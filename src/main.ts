@@ -5,6 +5,7 @@ import { FOVService } from '@services/FOVService'
 import { RenderingService } from '@services/RenderingService'
 import { MovementService } from '@services/MovementService'
 import { MessageService } from '@services/MessageService'
+import { DungeonService } from '@services/DungeonService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 
@@ -19,6 +20,7 @@ const fovService = new FOVService()
 const renderingService = new RenderingService(fovService)
 const movementService = new MovementService()
 const messageService = new MessageService()
+const dungeonService = new DungeonService(random)
 
 // Create UI
 const renderer = new GameRenderer(renderingService)
@@ -31,56 +33,26 @@ const inputHandler = new InputHandler(
 
 // Create initial game state
 function createInitialState(): GameState {
-  // Create simple test level (single room)
-  const width = 20
-  const height = 15
-  const tiles = Array(height)
-    .fill(null)
-    .map((_, y) =>
-      Array(width)
-        .fill(null)
-        .map((_, x) => {
-          // Border walls
-          if (x === 0 || x === width - 1 || y === 0 || y === height - 1) {
-            return {
-              type: TileType.WALL,
-              char: '#',
-              walkable: false,
-              transparent: false,
-              colorVisible: '#8B7355',
-              colorExplored: '#4A4A4A',
-            }
-          }
-          // Floor
-          return {
-            type: TileType.FLOOR,
-            char: '.',
-            walkable: true,
-            transparent: true,
-            colorVisible: '#A89078',
-            colorExplored: '#5A5A5A',
-          }
-        })
-    )
-
-  const level: Level = {
-    depth: 1,
-    width,
-    height,
-    tiles,
-    rooms: [{ id: 0, x: 1, y: 1, width: width - 2, height: height - 2 }],
-    doors: [],
-    monsters: [],
-    items: [],
-    gold: [],
-    stairsUp: null,
-    stairsDown: { x: 10, y: 7 },
-    explored: Array(height)
-      .fill(null)
-      .map(() => Array(width).fill(false)),
+  // Generate procedural dungeon using DungeonService
+  const dungeonConfig = {
+    width: 80,
+    height: 22,
+    minRooms: 4,
+    maxRooms: 9,
+    minRoomSize: 3,
+    maxRoomSize: 8,
+    minSpacing: 2,
+    loopChance: 0.25,
   }
 
-  const startPos: Position = { x: 5, y: 5 }
+  const level = dungeonService.generateLevel(1, dungeonConfig)
+
+  // Start player in center of first room
+  const startRoom = level.rooms[0]
+  const startPos: Position = {
+    x: startRoom.x + Math.floor(startRoom.width / 2),
+    y: startRoom.y + Math.floor(startRoom.height / 2),
+  }
   const torch = lightingService.createTorch()
 
   const player = {
