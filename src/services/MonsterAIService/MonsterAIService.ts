@@ -1,7 +1,7 @@
-import { Monster, GameState, Position, MonsterBehavior } from '../types/core/core'
-import { PathfindingService } from './PathfindingService'
-import { IRandomService } from './RandomService'
-import { FOVService } from './FOVService'
+import { Monster, GameState, Position, MonsterBehavior } from '../../types/core/core'
+import { PathfindingService } from '../PathfindingService'
+import { IRandomService } from '../RandomService'
+import { FOVService } from '../FOVService'
 
 // ============================================================================
 // MONSTER AI SERVICE - Behavior decision making
