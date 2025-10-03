@@ -1,0 +1,2 @@
+- always write a descriptive git commit message when you create a new commit
+- follow our plan.md file, complete each task, update our plan and create a new git commit

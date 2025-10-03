@@ -1,0 +1,72 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+
+.messages-view {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  padding: 10px;
+  min-height: 100px;
+}
+
+.messages div {
+  margin: 2px 0;
+}
+
+.msg-info { color: #ffffff; }
+.msg-combat { color: #ff8800; }
+.msg-warning { color: #ffdd00; }
+.msg-critical { color: #ff0000; }
+.msg-success { color: #00ff00; }
+
+.dungeon-view {
+  background: #000000;
+  border: 1px solid #444;
+  padding: 10px;
+}
+
+.dungeon-grid {
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: 2px;
+}
+
+.stats-view {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  padding: 10px;
+}
+
+.stats div {
+  margin: 4px 0;
+}
+
+/* Visibility state classes */
+.tile-visible { opacity: 1.0; }
+.tile-explored { opacity: 0.5; }
+.tile-unexplored { opacity: 0; }
