@@ -3635,11 +3635,11 @@ At this point you should be able to:
   - [x] Set hasStolen flag after theft
   - [x] Change to FLEEING state after theft
 
-- [ ] **STATIONARY behavior** (Venus Flytrap)
-  - [ ] Never move from spawn position
-  - [ ] Attack if player moves adjacent
-  - [ ] `stationaryBehavior(monster, playerPos)` method
-  - [ ] Special: Holds player in place for 1-2 turns
+- [x] **STATIONARY behavior** (Venus Flytrap)
+  - [x] Never move from spawn position
+  - [x] Attack if player moves adjacent
+  - [x] `stationaryBehavior(monster, playerPos)` method
+  - [x] Special: Holds player in place for 1-2 turns
 
 - [ ] **COWARD behavior** (Vampire)
   - [ ] Check HP percentage

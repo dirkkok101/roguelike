@@ -59,6 +59,9 @@ export class MonsterAIService {
       case MonsterBehavior.THIEF:
         return this.thiefBehavior(monster, playerPos, level)
 
+      case MonsterBehavior.STATIONARY:
+        return this.stationaryBehavior(monster, playerPos)
+
       default:
         return { type: 'wait' }
     }
@@ -199,6 +202,19 @@ export class MonsterAIService {
     // Otherwise, approach player using A* to get close enough to steal
     // (Actual stealing happens when adjacent in the attack phase)
     return this.smartBehavior(monster, playerPos, level)
+  }
+
+  /**
+   * STATIONARY behavior - Never move
+   * Used by Venus Flytrap
+   */
+  private stationaryBehavior(
+    monster: Monster,
+    playerPos: Position
+  ): MonsterAction {
+    // Venus Flytrap never moves, just waits for player to come adjacent
+    // When adjacent, attack action is triggered automatically
+    return { type: 'wait' }
   }
 
   /**
