@@ -1,5 +1,5 @@
 import { LightSource } from '@types/core'
-import { IRandomService } from './RandomService'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // LIGHTING SERVICE - Light source management and fuel tracking
