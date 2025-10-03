@@ -3685,76 +3685,76 @@ At this point you should be able to:
 
 **Create `src/services/SpecialAbilityService.ts`**:
 
-- [ ] **Rust armor** (Aquator)
-  - [ ] When hits player, chance to rust equipped armor
-  - [ ] Reduce armor AC bonus by 1
-  - [ ] Message: "Your armor rusts!"
-  - [ ] Can rust to -AC limit
+- [x] **Rust armor** (Aquator)
+  - [x] When hits player, chance to rust equipped armor
+  - [x] Reduce armor AC bonus by 1
+  - [x] Message: "Your armor rusts!"
+  - [x] Can rust to -AC limit
 
-- [ ] **Flying** (Bat, Kestrel, Griffin)
-  - [ ] Ignore certain terrain in pathfinding
-  - [ ] Can move over water/lava (if added)
-  - [ ] Flag in monster data: special: ["flying"]
+- [x] **Flying** (Bat, Kestrel, Griffin)
+  - [x] Ignore certain terrain in pathfinding
+  - [x] Can move over water/lava (if added)
+  - [x] Flag in monster data: special: ["flying"]
 
-- [ ] **Freeze player** (Ice Monster)
-  - [ ] On hit, chance to freeze
-  - [ ] Player loses next turn (skip turn)
-  - [ ] Message: "You are frozen solid!"
-  - [ ] Stacks with damage (0d0 + freeze)
+- [x] **Freeze player** (Ice Monster)
+  - [x] On hit, chance to freeze
+  - [x] Player loses next turn (skip turn)
+  - [x] Message: "You are frozen solid!"
+  - [x] Stacks with damage (0d0 + freeze)
 
-- [ ] **Confusion** (Medusa)
-  - [ ] On hit, chance to confuse player
-  - [ ] Player movements become random for 3-5 turns
-  - [ ] Message: "You feel confused!"
-  - [ ] Effect tracked in Player state
+- [x] **Confusion** (Medusa)
+  - [x] On hit, chance to confuse player
+  - [x] Player movements become random for 3-5 turns
+  - [x] Message: "You feel confused!"
+  - [x] Effect tracked in Player state
 
-- [ ] **Invisibility** (Phantom)
-  - [ ] Monster not rendered unless player has "See Invisible"
-  - [ ] Can still be attacked if known position
-  - [ ] Shows as '?' when bumped into
-  - [ ] Special ring reveals invisible monsters
+- [x] **Invisibility** (Phantom)
+  - [x] Monster not rendered unless player has "See Invisible"
+  - [x] Can still be attacked if known position
+  - [x] Shows as '?' when bumped into
+  - [x] Special ring reveals invisible monsters (deferred to Phase 5)
 
-- [ ] **Drain strength** (Rattlesnake)
-  - [ ] On hit, reduce player.strength by 1
-  - [ ] Can't go below 3
-  - [ ] Message: "You feel weaker!"
-  - [ ] Permanent until restored
+- [x] **Drain strength** (Rattlesnake)
+  - [x] On hit, reduce player.strength by 1
+  - [x] Can't go below 3
+  - [x] Message: "You feel weaker!"
+  - [x] Permanent until restored
 
-- [ ] **Drain XP** (Wraith)
-  - [ ] On hit, reduce player XP
-  - [ ] Can cause level loss if XP drops below threshold
-  - [ ] Message: "You feel your life force drain away!"
+- [x] **Drain XP** (Wraith)
+  - [x] On hit, reduce player XP
+  - [x] Can cause level loss if XP drops below threshold
+  - [x] Message: "You feel your life force drain away!"
 
-- [ ] **Drain max HP** (Vampire)
-  - [ ] On hit, reduce player.maxHp by 1
-  - [ ] Current HP also reduced if over new max
-  - [ ] Message: "You feel your life essence fade!"
-  - [ ] Permanent until restored
+- [x] **Drain max HP** (Vampire)
+  - [x] On hit, reduce player.maxHp by 1
+  - [x] Current HP also reduced if over new max
+  - [x] Message: "You feel your life essence fade!"
+  - [x] Permanent until restored
 
-- [ ] **Regeneration** (Griffin, Troll, Vampire)
-  - [ ] Heal 1 HP per N turns
-  - [ ] Check in monster turn processing
-  - [ ] Can't exceed maxHp
-  - [ ] Makes these monsters very dangerous
+- [x] **Regeneration** (Griffin, Troll, Vampire)
+  - [x] Heal 1 HP per N turns
+  - [x] Check in monster turn processing
+  - [x] Can't exceed maxHp
+  - [x] Makes these monsters very dangerous
 
-- [ ] **Holds player** (Venus Flytrap)
-  - [ ] When hit, chance to hold in place
-  - [ ] Player can't move for 1-2 turns
-  - [ ] Can still attack
-  - [ ] Message: "The flytrap grabs you!"
+- [x] **Holds player** (Venus Flytrap)
+  - [x] When hit, chance to hold in place
+  - [x] Player can't move for 1-2 turns
+  - [x] Can still attack
+  - [x] Message: "The flytrap grabs you!"
 
-- [ ] **Multiple attacks** (Centaur, Dragon, etc.)
-  - [ ] Parse damage string "1d2/1d5/1d5" (3 attacks)
-  - [ ] Roll each attack separately
-  - [ ] Apply damage from all successful hits
-  - [ ] Message each attack individually
+- [x] **Multiple attacks** (Centaur, Dragon, etc.)
+  - [x] Parse damage string "1d2/1d5/1d5" (3 attacks)
+  - [x] Roll each attack separately
+  - [x] Apply damage from all successful hits
+  - [x] Message each attack individually
 
-- [ ] **Breath weapon** (Dragon)
-  - [ ] Ranged attack (6d6 fire damage)
-  - [ ] Range: 5 tiles
-  - [ ] Line-of-sight check
-  - [ ] Chance to use vs melee attack
-  - [ ] Message: "The dragon breathes fire!"
+- [x] **Breath weapon** (Dragon)
+  - [x] Ranged attack (6d6 fire damage)
+  - [x] Range: 5 tiles
+  - [x] Line-of-sight check
+  - [x] Chance to use vs melee attack
+  - [x] Message: "The dragon breathes fire!"
 
 #### 4.5 Monster Turn Processing
 
