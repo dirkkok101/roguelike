@@ -3664,22 +3664,22 @@ At this point you should be able to:
 
 #### 4.3 Monster FOV & Awareness
 
-- [ ] **Monster FOV calculation**
-  - [ ] Awake monsters compute their own FOV
-  - [ ] Use same shadowcasting algorithm as player
-  - [ ] Vision radius = monster.aiProfile.aggroRange
-  - [ ] Store in monster.visibleCells Set
+- [x] **Monster FOV calculation**
+  - [x] Awake monsters compute their own FOV
+  - [x] Use same shadowcasting algorithm as player
+  - [x] Vision radius = monster.aiProfile.aggroRange
+  - [x] Store in monster.visibleCells Set
 
-- [ ] **Wake-up logic**
-  - [ ] Check if player position in monster's aggro range
-  - [ ] If in range, set isAsleep = false
-  - [ ] Add message "The {monster} wakes up!"
-  - [ ] MEAN monsters always start awake (special flag)
+- [x] **Wake-up logic**
+  - [x] Check if player position in monster's aggro range
+  - [x] If in range, set isAsleep = false
+  - [x] Add message "The {monster} wakes up!" (handled in MonsterTurnService)
+  - [x] MEAN monsters always start awake (handled in spawning)
 
-- [ ] **Sleeping monster optimization**
-  - [ ] Skip FOV calculation for sleeping monsters
-  - [ ] Skip AI decision for sleeping monsters
-  - [ ] Only check distance for wake-up
+- [x] **Sleeping monster optimization**
+  - [x] Skip FOV calculation for sleeping monsters
+  - [x] Skip AI decision for sleeping monsters (already in decideAction)
+  - [x] Only check distance for wake-up
 
 #### 4.4 Special Monster Abilities
 

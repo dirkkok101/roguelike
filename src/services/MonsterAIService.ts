@@ -1,6 +1,7 @@
 import { Monster, GameState, Position, MonsterBehavior } from '../types/core/core'
 import { PathfindingService } from './PathfindingService'
 import { IRandomService } from './RandomService'
+import { FOVService } from './FOVService'
 
 // ============================================================================
 // MONSTER AI SERVICE - Behavior decision making
@@ -14,8 +15,59 @@ export interface MonsterAction {
 export class MonsterAIService {
   constructor(
     private pathfinding: PathfindingService,
-    private random: IRandomService
+    private random: IRandomService,
+    private fovService: FOVService
   ) {}
+
+  /**
+   * Compute FOV for monster (for awake monsters)
+   */
+  computeMonsterFOV(monster: Monster, state: GameState): Monster {
+    // Skip FOV calculation for sleeping monsters (optimization)
+    if (monster.isAsleep || monster.state === 'SLEEPING') {
+      return monster
+    }
+
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return monster
+
+    // Use aggro range as vision radius
+    const visionRadius = monster.aiProfile.aggroRange
+    const visibleCells = this.fovService.computeFOV(
+      monster.position,
+      visionRadius,
+      level
+    )
+
+    return {
+      ...monster,
+      visibleCells,
+    }
+  }
+
+  /**
+   * Check if monster should wake up
+   */
+  checkWakeUp(monster: Monster, state: GameState): Monster {
+    // Already awake
+    if (!monster.isAsleep) {
+      return monster
+    }
+
+    const playerPos = state.player.position
+    const distToPlayer = this.distance(monster.position, playerPos)
+
+    // Wake up if player within aggro range
+    if (distToPlayer <= monster.aiProfile.aggroRange) {
+      return {
+        ...monster,
+        isAsleep: false,
+        state: 'HUNTING',
+      }
+    }
+
+    return monster
+  }
 
   /**
    * Update monster state based on conditions (FSM)
