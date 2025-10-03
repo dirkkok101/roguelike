@@ -3641,12 +3641,12 @@ At this point you should be able to:
   - [x] `stationaryBehavior(monster, playerPos)` method
   - [x] Special: Holds player in place for 1-2 turns
 
-- [ ] **COWARD behavior** (Vampire)
-  - [ ] Check HP percentage
-  - [ ] If HP < fleeThreshold (30%), flee from player
-  - [ ] Otherwise, use SMART behavior
-  - [ ] `cowardBehavior(monster, state, level)` method
-  - [ ] Path away from player using A* in reverse
+- [x] **COWARD behavior** (Vampire)
+  - [x] Check HP percentage
+  - [x] If HP < fleeThreshold (30%), flee from player
+  - [x] Otherwise, use SMART behavior
+  - [x] `cowardBehavior(monster, state, level)` method
+  - [x] Path away from player using A* in reverse
 
 #### 4.2 Monster State Machine
 

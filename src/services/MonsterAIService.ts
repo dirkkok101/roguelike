@@ -62,6 +62,9 @@ export class MonsterAIService {
       case MonsterBehavior.STATIONARY:
         return this.stationaryBehavior(monster, playerPos)
 
+      case MonsterBehavior.COWARD:
+        return this.cowardBehavior(monster, playerPos, level)
+
       default:
         return { type: 'wait' }
     }
@@ -215,6 +218,27 @@ export class MonsterAIService {
     // Venus Flytrap never moves, just waits for player to come adjacent
     // When adjacent, attack action is triggered automatically
     return { type: 'wait' }
+  }
+
+  /**
+   * COWARD behavior - Flee when HP is low
+   * Used by Vampire
+   */
+  private cowardBehavior(
+    monster: Monster,
+    playerPos: Position,
+    level: any
+  ): MonsterAction {
+    // Calculate HP percentage
+    const hpPercent = monster.hp / monster.maxHp
+
+    // If HP below flee threshold, flee
+    if (hpPercent < monster.aiProfile.fleeThreshold) {
+      return this.fleeBehavior(monster, playerPos, level)
+    }
+
+    // Otherwise, fight intelligently using SMART behavior
+    return this.smartBehavior(monster, playerPos, level)
   }
 
   /**
