@@ -11,8 +11,8 @@
 1. [Overview](#overview)
 2. [Phase 0: Project Setup](#phase-0-project-setup)
 3. [Phase 1: Foundation & Core Loop](#phase-1-foundation--core-loop)
-4. [Phase 2: Combat & Monsters](#phase-2-combat--monsters)
-5. [Phase 3: Advanced Dungeon Generation](#phase-3-advanced-dungeon-generation)
+4. [Phase 2: Advanced Dungeon Generation](#phase-2-advanced-dungeon-generation)
+5. [Phase 3: Combat & Monsters](#phase-3-combat--monsters)
 6. [Phase 4: Complete AI Behaviors](#phase-4-complete-ai-behaviors)
 7. [Phase 5: Items & Inventory](#phase-5-items--inventory)
 8. [Phase 6: Hunger & Progression](#phase-6-hunger--progression)
@@ -1924,7 +1924,7 @@ export class MoveCommand implements ICommand {
     // 3. Check for monster
     const monster = this.movementService.getMonsterAt(newPosition, level)
     if (monster) {
-      // Combat happens here (Phase 2)
+      // Combat happens here (Phase 3)
       // For now, just block movement
       const messages = this.messageService.addMessage(
         state.messages,
@@ -2761,13 +2761,261 @@ Navigate to `http://localhost:3000` and use arrow keys to move around!
 
 ---
 
-## Phase 2: Combat & Monsters
+## Phase 2: Advanced Dungeon Generation
 
-**Goal**: Implement combat system with monsters and basic AI
+**Goal**: Full procedural dungeon generation with rooms, corridors, multiple door types, and guaranteed connectivity
 **Duration**: Week 3
-**Deliverable**: Can fight monsters with basic AI, see combat messages, die
+**Deliverable**: Can explore procedurally generated multi-level dungeon with varied doors and alternate paths
 
-### 2.1 Combat Service
+### Tasks
+
+#### 2.1 Core DungeonService
+
+**Create `src/services/DungeonService.ts`**:
+
+- [ ] **Basic structure and types**
+  - [ ] Room interface with bounds and ID
+  - [ ] Corridor interface with start/end points
+  - [ ] Graph node structure for MST
+  - [ ] DungeonConfig interface (min/max rooms, sizes, etc.)
+
+- [ ] **Room placement algorithm**
+  - [ ] `placeRooms(config)` - Generate N random rooms (4-9)
+  - [ ] Overlap prevention with collision detection
+  - [ ] Variable room sizes (3x3 to 8x8)
+  - [ ] Ensure minimum spacing between rooms
+  - [ ] Return list of non-overlapping rooms
+
+- [ ] **Room connectivity graph**
+  - [ ] `buildRoomGraph(rooms)` - Create complete graph
+  - [ ] Calculate distances between all room pairs (center to center)
+  - [ ] Build adjacency list representation
+
+- [ ] **Minimum Spanning Tree (MST)**
+  - [ ] Implement Prim's or Kruskal's algorithm
+  - [ ] `generateMST(graph)` - Find minimum spanning tree
+  - [ ] Ensures all rooms are connected with minimum corridors
+  - [ ] Return MST edge list
+
+- [ ] **Corridor generation**
+  - [ ] `createCorridor(room1, room2)` - Connect two rooms
+  - [ ] L-shaped corridors (horizontal then vertical, or vice versa)
+  - [ ] Optional winding (add random bends)
+  - [ ] Carve corridor tiles in level grid
+  - [ ] Handle corridor intersections
+
+- [ ] **Loop generation for alternate paths**
+  - [ ] `addExtraConnections(rooms, mst, chance)` - Add 20-30% extra edges
+  - [ ] Prevents linear dungeons, adds exploration
+  - [ ] Connect random non-MST room pairs
+
+#### 2.2 Door System
+
+- [ ] **Door placement**
+  - [ ] `placeDoors(rooms, corridors)` - Add doors at room/corridor junctions
+  - [ ] Detect corridor entry points into rooms
+  - [ ] Create Door entities with positions
+
+- [ ] **Door types (6 types)**
+  - [ ] OPEN (`'`) - 40% chance, always passable, doesn't block vision
+  - [ ] CLOSED (`+`) - 30% chance, passable, blocks vision until opened
+  - [ ] LOCKED (`+`) - 10% chance, needs key to open
+  - [ ] SECRET (`#`) - 10% chance, appears as wall, found via search
+  - [ ] BROKEN (`'`) - 5% chance, permanently open
+  - [ ] ARCHWAY (no symbol) - 5% chance, open passage with no door
+
+- [ ] **Door data structure**
+  - [ ] Position, state, discovered flag
+  - [ ] Orientation (horizontal/vertical)
+  - [ ] connectedRooms array
+
+#### 2.3 Door Interaction Commands
+
+- [ ] **OpenDoorCommand**
+  - [ ] Check adjacent tiles for closed/locked doors
+  - [ ] If locked, check for key in inventory
+  - [ ] Change state from CLOSED to OPEN
+  - [ ] Update tile transparency for FOV
+
+- [ ] **CloseDoorCommand**
+  - [ ] Check adjacent tiles for open doors
+  - [ ] Change state from OPEN to CLOSED
+  - [ ] Update tile transparency for FOV
+
+- [ ] **SearchCommand**
+  - [ ] `s` key - Search adjacent tiles
+  - [ ] Chance to discover secret doors (formula: intelligence-based)
+  - [ ] Chance to discover traps
+  - [ ] Add message "You found a secret door!" or "You found a trap!"
+  - [ ] Mark discovered flag on entity
+
+#### 2.4 Trap System
+
+- [ ] **Trap types**
+  - [ ] Bear trap (1d4 damage, holds player)
+  - [ ] Dart trap (1d6 damage, poison chance)
+  - [ ] Teleport trap (random teleport)
+  - [ ] Sleep trap (skip turns)
+  - [ ] Pit trap (fall damage, deeper level)
+
+- [ ] **Trap placement**
+  - [ ] `placeTraps(level, count)` - Random placement in rooms/corridors
+  - [ ] 2-4 traps per level
+  - [ ] Hidden by default (discovered = false)
+  - [ ] Avoid placing on player start position
+
+- [ ] **Trap triggering**
+  - [ ] Check in MovementService when player moves
+  - [ ] If trap.discovered === false, chance to trigger
+  - [ ] Apply trap effect to player
+  - [ ] Reveal trap after triggering
+  - [ ] Add message describing trap
+
+- [ ] **TrapService**
+  - [ ] `triggerTrap(trap, player, state)` - Handle trap effects
+  - [ ] Damage calculation
+  - [ ] Status effect application
+  - [ ] Trap disarm chance (future enhancement)
+
+#### 2.5 Connectivity & Validation
+
+- [ ] **Floodfill verification**
+  - [ ] `verifyConnectivity(level)` - Ensure all floor tiles reachable
+  - [ ] Start from player spawn position
+  - [ ] Mark all reachable tiles via BFS/DFS
+  - [ ] If unreachable tiles found, regenerate dungeon
+
+- [ ] **Stairs placement**
+  - [ ] `placeStairs(level, depth)` - Add up/down stairs
+  - [ ] Stairs up (`<`) - Not on level 1
+  - [ ] Stairs down (`>`) - Not on level 10
+  - [ ] Place in different rooms (not same room)
+  - [ ] Ensure both reachable from spawn
+
+#### 2.6 Multi-Level Support
+
+- [ ] **Level generation**
+  - [ ] `generateLevel(depth, seed)` - Create one dungeon level
+  - [ ] Use seed for deterministic generation
+  - [ ] Vary room count by depth (deeper = more rooms)
+  - [ ] Increase monster/trap count with depth
+
+- [ ] **Level persistence**
+  - [ ] Store generated levels in `GameState.levels` Map
+  - [ ] Key = level depth (1-10)
+  - [ ] Don't regenerate when revisiting
+  - [ ] Preserve monster positions, items, etc.
+
+- [ ] **MoveStairsCommand**
+  - [ ] `>` key - Go down stairs
+  - [ ] `<` key - Go up stairs
+  - [ ] Check if player on stairs tile
+  - [ ] Load or generate target level
+  - [ ] Update GameState.currentLevel
+  - [ ] Spawn player at opposite stairs on new level
+  - [ ] Recompute FOV for new level
+
+#### 2.7 Entity Spawning
+
+- [ ] **Monster spawning**
+  - [ ] `spawnMonsters(level, depth)` - Place monsters in level
+  - [ ] Number based on depth (1-2 at level 1, 5-7 at level 10)
+  - [ ] Weighted selection based on depth (harder monsters deeper)
+  - [ ] Don't spawn in starting room
+  - [ ] Load monster templates from monsters.json
+  - [ ] Roll HP from dice notation (e.g., "5d8")
+
+- [ ] **Item spawning**
+  - [ ] `spawnItems(level, depth)` - Place items randomly
+  - [ ] 3-6 items per level
+  - [ ] Weight by rarity
+  - [ ] Include light sources (torches, lanterns, oil)
+
+- [ ] **Gold spawning**
+  - [ ] `spawnGold(level)` - Place gold piles
+  - [ ] 2-5 piles per level
+  - [ ] Amount scales with depth (10-50 * depth)
+
+### Files to Create
+
+- `src/services/DungeonService.ts` - Main dungeon generation
+- `src/services/TrapService.ts` - Trap effects and triggering
+- `src/commands/OpenDoorCommand.ts` - Open doors
+- `src/commands/CloseDoorCommand.ts` - Close doors
+- `src/commands/SearchCommand.ts` - Find secrets/traps
+- `src/commands/MoveStairsCommand.ts` - Level navigation
+- `src/__tests__/services/DungeonService.test.ts` - Dungeon tests
+- `src/__tests__/services/TrapService.test.ts` - Trap tests
+
+### Tests Required
+
+- [ ] **DungeonService tests**
+  - [ ] Room placement generates N rooms without overlap
+  - [ ] MST connects all rooms
+  - [ ] Loops add extra connections
+  - [ ] Connectivity verification passes for valid dungeons
+  - [ ] Same seed generates identical dungeon
+  - [ ] All door types appear with expected frequency
+
+- [ ] **Trap tests**
+  - [ ] Trap triggering applies correct effects
+  - [ ] Search command reveals traps
+  - [ ] Traps don't spawn on player start
+
+- [ ] **Door tests**
+  - [ ] Open command opens closed doors
+  - [ ] Locked doors require key
+  - [ ] Secret doors stay hidden until searched
+
+- [ ] **Stairs tests**
+  - [ ] Moving up/down changes level correctly
+  - [ ] Player spawns at opposite stairs
+  - [ ] Level state preserved when revisiting
+
+### Phase 2 Complete! ✅
+
+At this point you should be able to:
+- Explore procedurally generated multi-room dungeons
+- See varied room layouts every game (4-9 rooms)
+- Navigate corridors connecting rooms
+- Open and close doors (o/c keys)
+- Search for secret doors and traps (s key)
+- Navigate between 26 dungeon levels via stairs (>/<)
+- Experience guaranteed connectivity (all rooms reachable)
+- Trigger traps (bear trap, dart, teleport, sleep, pit)
+
+**Test it:**
+1. `npm run dev`
+2. Explore multiple rooms connected by corridors
+3. Test opening doors (o) and closing doors (c)
+4. Search for secret doors (s key near walls)
+5. Step on a trap to trigger it
+6. Go down stairs (>) to level 2
+7. Go back up (<) to level 1 - verify same layout
+8. Restart game - verify new dungeon layout
+9. Check all rooms are reachable from start
+
+**Playtest scenarios:**
+- Can you reach every room from your starting position?
+- Do corridors feel natural (not too straight/boring)?
+- Are locked doors blocking progress appropriately?
+- Do traps feel fair (not instant death)?
+- Does dungeon complexity increase with depth?
+- Are secret doors discoverable with searching?
+
+**Known limitations:**
+- All monsters still use basic AI (advanced behaviors in Phase 4)
+- No items to find yet (Phase 5)
+- No special monster abilities yet (Phase 4)
+
+---
+## Phase 3: Combat & Monsters
+
+**Goal**: Implement combat system, monster AI, and basic monster behaviors
+**Duration**: Week 4
+**Deliverable**: Fight monsters with tactical AI in the dungeon
+
+### 3.1 Combat Service
 
 **Create `src/services/CombatService.ts`**:
 ```typescript
@@ -2895,7 +3143,7 @@ export class CombatService {
 }
 ```
 
-### 2.2 Monster Data & AI Profile
+### 3.2 Monster Data & AI Profile
 
 **Create `public/data/monsters.json`**:
 ```json
@@ -2948,7 +3196,7 @@ export class CombatService {
 ]
 ```
 
-### 2.3 PathfindingService (A*)
+### 3.3 PathfindingService (A*)
 
 **Create `src/services/PathfindingService.ts`**:
 ```typescript
@@ -3099,7 +3347,7 @@ export class PathfindingService {
 }
 ```
 
-### 2.4 Monster AI Service (Basic)
+### 3.4 Monster AI Service (Basic)
 
 **Create `src/services/MonsterAIService.ts`**:
 ```typescript
@@ -3203,7 +3451,7 @@ export class MonsterAIService {
 }
 ```
 
-### 2.5 Attack Command
+### 3.5 Attack Command
 
 **Create `src/commands/AttackCommand.ts`**:
 ```typescript
@@ -3305,9 +3553,9 @@ export class AttackCommand implements ICommand {
 }
 ```
 
-### Phase 2 Summary
+### Phase 3 Summary
 
-**Phase 2 adds**:
+**Phase 3 adds**:
 - CombatService with original Rogue formulas
 - Monster data structure and JSON
 - A* pathfinding for smart monsters
@@ -3315,13 +3563,13 @@ export class AttackCommand implements ICommand {
 - Attack command
 - Combat messages
 
-**To complete Phase 2**, also add:
+**To complete Phase 3**, also add:
 - Monster spawning in dungeon generation
 - Monster turn processing
 - Death screen
 - Update MoveCommand to use AttackCommand when bumping into monsters
 
-### Phase 2 Complete! ✅
+### Phase 3 Complete! ✅
 
 At this point you should be able to:
 - Fight monsters in the single-room dungeon
@@ -3348,258 +3596,9 @@ At this point you should be able to:
 - Is early game survivable but challenging?
 
 **Known limitations:**
-- Only 1 room available (full procedural dungeon in Phase 3)
+- Only 1 room available (full procedural dungeon in Phase 2)
 - Only basic AI behaviors implemented (more in Phase 4)
 - No items to help in combat yet (Phase 5)
-
----
-
-## Phase 3: Advanced Dungeon Generation
-
-**Goal**: Full procedural dungeon generation with rooms, corridors, multiple door types, and guaranteed connectivity
-**Duration**: Week 4
-**Deliverable**: Can explore procedurally generated multi-level dungeon with varied doors and alternate paths
-
-### Tasks
-
-#### 3.1 Core DungeonService
-
-**Create `src/services/DungeonService.ts`**:
-
-- [ ] **Basic structure and types**
-  - [ ] Room interface with bounds and ID
-  - [ ] Corridor interface with start/end points
-  - [ ] Graph node structure for MST
-  - [ ] DungeonConfig interface (min/max rooms, sizes, etc.)
-
-- [ ] **Room placement algorithm**
-  - [ ] `placeRooms(config)` - Generate N random rooms (4-9)
-  - [ ] Overlap prevention with collision detection
-  - [ ] Variable room sizes (3x3 to 8x8)
-  - [ ] Ensure minimum spacing between rooms
-  - [ ] Return list of non-overlapping rooms
-
-- [ ] **Room connectivity graph**
-  - [ ] `buildRoomGraph(rooms)` - Create complete graph
-  - [ ] Calculate distances between all room pairs (center to center)
-  - [ ] Build adjacency list representation
-
-- [ ] **Minimum Spanning Tree (MST)**
-  - [ ] Implement Prim's or Kruskal's algorithm
-  - [ ] `generateMST(graph)` - Find minimum spanning tree
-  - [ ] Ensures all rooms are connected with minimum corridors
-  - [ ] Return MST edge list
-
-- [ ] **Corridor generation**
-  - [ ] `createCorridor(room1, room2)` - Connect two rooms
-  - [ ] L-shaped corridors (horizontal then vertical, or vice versa)
-  - [ ] Optional winding (add random bends)
-  - [ ] Carve corridor tiles in level grid
-  - [ ] Handle corridor intersections
-
-- [ ] **Loop generation for alternate paths**
-  - [ ] `addExtraConnections(rooms, mst, chance)` - Add 20-30% extra edges
-  - [ ] Prevents linear dungeons, adds exploration
-  - [ ] Connect random non-MST room pairs
-
-#### 3.2 Door System
-
-- [ ] **Door placement**
-  - [ ] `placeDoors(rooms, corridors)` - Add doors at room/corridor junctions
-  - [ ] Detect corridor entry points into rooms
-  - [ ] Create Door entities with positions
-
-- [ ] **Door types (6 types)**
-  - [ ] OPEN (`'`) - 40% chance, always passable, doesn't block vision
-  - [ ] CLOSED (`+`) - 30% chance, passable, blocks vision until opened
-  - [ ] LOCKED (`+`) - 10% chance, needs key to open
-  - [ ] SECRET (`#`) - 10% chance, appears as wall, found via search
-  - [ ] BROKEN (`'`) - 5% chance, permanently open
-  - [ ] ARCHWAY (no symbol) - 5% chance, open passage with no door
-
-- [ ] **Door data structure**
-  - [ ] Position, state, discovered flag
-  - [ ] Orientation (horizontal/vertical)
-  - [ ] connectedRooms array
-
-#### 3.3 Door Interaction Commands
-
-- [ ] **OpenDoorCommand**
-  - [ ] Check adjacent tiles for closed/locked doors
-  - [ ] If locked, check for key in inventory
-  - [ ] Change state from CLOSED to OPEN
-  - [ ] Update tile transparency for FOV
-
-- [ ] **CloseDoorCommand**
-  - [ ] Check adjacent tiles for open doors
-  - [ ] Change state from OPEN to CLOSED
-  - [ ] Update tile transparency for FOV
-
-- [ ] **SearchCommand**
-  - [ ] `s` key - Search adjacent tiles
-  - [ ] Chance to discover secret doors (formula: intelligence-based)
-  - [ ] Chance to discover traps
-  - [ ] Add message "You found a secret door!" or "You found a trap!"
-  - [ ] Mark discovered flag on entity
-
-#### 3.4 Trap System
-
-- [ ] **Trap types**
-  - [ ] Bear trap (1d4 damage, holds player)
-  - [ ] Dart trap (1d6 damage, poison chance)
-  - [ ] Teleport trap (random teleport)
-  - [ ] Sleep trap (skip turns)
-  - [ ] Pit trap (fall damage, deeper level)
-
-- [ ] **Trap placement**
-  - [ ] `placeTraps(level, count)` - Random placement in rooms/corridors
-  - [ ] 2-4 traps per level
-  - [ ] Hidden by default (discovered = false)
-  - [ ] Avoid placing on player start position
-
-- [ ] **Trap triggering**
-  - [ ] Check in MovementService when player moves
-  - [ ] If trap.discovered === false, chance to trigger
-  - [ ] Apply trap effect to player
-  - [ ] Reveal trap after triggering
-  - [ ] Add message describing trap
-
-- [ ] **TrapService**
-  - [ ] `triggerTrap(trap, player, state)` - Handle trap effects
-  - [ ] Damage calculation
-  - [ ] Status effect application
-  - [ ] Trap disarm chance (future enhancement)
-
-#### 3.5 Connectivity & Validation
-
-- [ ] **Floodfill verification**
-  - [ ] `verifyConnectivity(level)` - Ensure all floor tiles reachable
-  - [ ] Start from player spawn position
-  - [ ] Mark all reachable tiles via BFS/DFS
-  - [ ] If unreachable tiles found, regenerate dungeon
-
-- [ ] **Stairs placement**
-  - [ ] `placeStairs(level, depth)` - Add up/down stairs
-  - [ ] Stairs up (`<`) - Not on level 1
-  - [ ] Stairs down (`>`) - Not on level 10
-  - [ ] Place in different rooms (not same room)
-  - [ ] Ensure both reachable from spawn
-
-#### 3.6 Multi-Level Support
-
-- [ ] **Level generation**
-  - [ ] `generateLevel(depth, seed)` - Create one dungeon level
-  - [ ] Use seed for deterministic generation
-  - [ ] Vary room count by depth (deeper = more rooms)
-  - [ ] Increase monster/trap count with depth
-
-- [ ] **Level persistence**
-  - [ ] Store generated levels in `GameState.levels` Map
-  - [ ] Key = level depth (1-10)
-  - [ ] Don't regenerate when revisiting
-  - [ ] Preserve monster positions, items, etc.
-
-- [ ] **MoveStairsCommand**
-  - [ ] `>` key - Go down stairs
-  - [ ] `<` key - Go up stairs
-  - [ ] Check if player on stairs tile
-  - [ ] Load or generate target level
-  - [ ] Update GameState.currentLevel
-  - [ ] Spawn player at opposite stairs on new level
-  - [ ] Recompute FOV for new level
-
-#### 3.7 Entity Spawning
-
-- [ ] **Monster spawning**
-  - [ ] `spawnMonsters(level, depth)` - Place monsters in level
-  - [ ] Number based on depth (1-2 at level 1, 5-7 at level 10)
-  - [ ] Weighted selection based on depth (harder monsters deeper)
-  - [ ] Don't spawn in starting room
-  - [ ] Load monster templates from monsters.json
-  - [ ] Roll HP from dice notation (e.g., "5d8")
-
-- [ ] **Item spawning**
-  - [ ] `spawnItems(level, depth)` - Place items randomly
-  - [ ] 3-6 items per level
-  - [ ] Weight by rarity
-  - [ ] Include light sources (torches, lanterns, oil)
-
-- [ ] **Gold spawning**
-  - [ ] `spawnGold(level)` - Place gold piles
-  - [ ] 2-5 piles per level
-  - [ ] Amount scales with depth (10-50 * depth)
-
-### Files to Create
-
-- `src/services/DungeonService.ts` - Main dungeon generation
-- `src/services/TrapService.ts` - Trap effects and triggering
-- `src/commands/OpenDoorCommand.ts` - Open doors
-- `src/commands/CloseDoorCommand.ts` - Close doors
-- `src/commands/SearchCommand.ts` - Find secrets/traps
-- `src/commands/MoveStairsCommand.ts` - Level navigation
-- `src/__tests__/services/DungeonService.test.ts` - Dungeon tests
-- `src/__tests__/services/TrapService.test.ts` - Trap tests
-
-### Tests Required
-
-- [ ] **DungeonService tests**
-  - [ ] Room placement generates N rooms without overlap
-  - [ ] MST connects all rooms
-  - [ ] Loops add extra connections
-  - [ ] Connectivity verification passes for valid dungeons
-  - [ ] Same seed generates identical dungeon
-  - [ ] All door types appear with expected frequency
-
-- [ ] **Trap tests**
-  - [ ] Trap triggering applies correct effects
-  - [ ] Search command reveals traps
-  - [ ] Traps don't spawn on player start
-
-- [ ] **Door tests**
-  - [ ] Open command opens closed doors
-  - [ ] Locked doors require key
-  - [ ] Secret doors stay hidden until searched
-
-- [ ] **Stairs tests**
-  - [ ] Moving up/down changes level correctly
-  - [ ] Player spawns at opposite stairs
-  - [ ] Level state preserved when revisiting
-
-### Phase 3 Complete! ✅
-
-At this point you should be able to:
-- Explore procedurally generated multi-room dungeons
-- See varied room layouts every game (4-9 rooms)
-- Navigate corridors connecting rooms
-- Open and close doors (o/c keys)
-- Search for secret doors and traps (s key)
-- Navigate between 26 dungeon levels via stairs (>/<)
-- Experience guaranteed connectivity (all rooms reachable)
-- Trigger traps (bear trap, dart, teleport, sleep, pit)
-
-**Test it:**
-1. `npm run dev`
-2. Explore multiple rooms connected by corridors
-3. Test opening doors (o) and closing doors (c)
-4. Search for secret doors (s key near walls)
-5. Step on a trap to trigger it
-6. Go down stairs (>) to level 2
-7. Go back up (<) to level 1 - verify same layout
-8. Restart game - verify new dungeon layout
-9. Check all rooms are reachable from start
-
-**Playtest scenarios:**
-- Can you reach every room from your starting position?
-- Do corridors feel natural (not too straight/boring)?
-- Are locked doors blocking progress appropriately?
-- Do traps feel fair (not instant death)?
-- Does dungeon complexity increase with depth?
-- Are secret doors discoverable with searching?
-
-**Known limitations:**
-- All monsters still use basic AI (advanced behaviors in Phase 4)
-- No items to find yet (Phase 5)
-- No special monster abilities yet (Phase 4)
 
 ---
 
@@ -4991,12 +4990,12 @@ Ensure all services have comprehensive unit tests.
 - [ ] `MovementService.test.ts` - test collisions, valid moves
 - [ ] `MessageService.test.ts` - test message queue, limits
 
-**Combat Services** (Phase 2):
+**Combat Services** (Phase 3):
 - [ ] `CombatService.test.ts` - test hit calculations, damage, death
 - [ ] `PathfindingService.test.ts` - test A*, blocked paths, long distances
 - [ ] `MonsterAIService.test.ts` - test all 7 AI behaviors with deterministic RNG
 
-**Dungeon Services** (Phase 3):
+**Dungeon Services** (Phase 2):
 - [ ] `DungeonService.test.ts` - test room generation, MST, corridors
 - [ ] `TrapService.test.ts` - test all 5 trap types and effects
 - [ ] Test door mechanics (6 door types)
@@ -5030,7 +5029,7 @@ Test all command implementations.
 - [ ] `AttackCommand.test.ts` - test combat, kills, XP
 - [ ] `MoveStairsCommand.test.ts` - test level transitions
 
-**Door Commands** (Phase 3):
+**Door Commands** (Phase 2):
 - [ ] `OpenDoorCommand.test.ts` - test opening, locked doors
 - [ ] `CloseDoorCommand.test.ts` - test closing, blocked tiles
 - [ ] `SearchCommand.test.ts` - test finding secret doors and traps
@@ -6063,14 +6062,14 @@ Phase 1: Foundation
 ├── MoveCommand (uses all above) ───┤
 └── UI (GameRenderer, InputHandler) ┘
 
-Phase 2: Combat
+Phase 2: Dungeon
+└── DungeonService (uses Random, all tile/room logic)
+
+Phase 3: Combat
 ├── CombatService (uses Random)
 ├── PathfindingService
 ├── MonsterAIService (uses Pathfinding, Random)
 └── AttackCommand (uses Combat, Message)
-
-Phase 3: Dungeon
-└── DungeonService (uses Random, all tile/room logic)
 
 Phase 4: AI
 └── Expand MonsterAIService (ERRATIC, GREEDY, THIEF, etc.)
