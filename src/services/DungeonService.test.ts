@@ -186,4 +186,55 @@ describe('DungeonService', () => {
       }
     })
   })
+
+  describe('placeDoors', () => {
+    test('should place doors at room entries', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      expect(level.doors.length).toBeGreaterThan(0)
+    })
+
+    test('should assign door states from available types', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      const states = level.doors.map((d) => d.state)
+      expect(states.length).toBeGreaterThan(0)
+
+      // All doors should have valid states
+      for (const door of level.doors) {
+        expect(['OPEN', 'CLOSED', 'LOCKED', 'SECRET', 'BROKEN', 'ARCHWAY']).toContain(door.state)
+      }
+    })
+
+    test('should set discovered flag correctly', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      for (const door of level.doors) {
+        if (door.state === 'SECRET') {
+          expect(door.discovered).toBe(false)
+        } else {
+          expect(door.discovered).toBe(true)
+        }
+      }
+    })
+
+    test('should detect door orientation', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      for (const door of level.doors) {
+        expect(['horizontal', 'vertical']).toContain(door.orientation)
+      }
+    })
+
+    test('should not place duplicate doors at same position', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      const positions = new Set()
+      for (const door of level.doors) {
+        const key = `${door.position.x},${door.position.y}`
+        expect(positions.has(key)).toBe(false)
+        positions.add(key)
+      }
+    })
+  })
 })

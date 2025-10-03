@@ -1,4 +1,4 @@
-import { Level, Room, Tile, TileType, Position } from '../types/core/core'
+import { Level, Room, Tile, TileType, Position, Door, DoorState } from '../types/core/core'
 import { IRandomService } from './RandomService'
 
 // ============================================================================
@@ -68,13 +68,16 @@ export class DungeonService {
       this.carveRoomIntoTiles(tiles, room)
     }
 
+    // Place doors at room/corridor junctions
+    const doors = this.placeDoors(rooms, corridors, tiles)
+
     return {
       depth,
       width: config.width,
       height: config.height,
       tiles,
       rooms,
-      doors: [],
+      doors,
       monsters: [],
       items: [],
       gold: [],
@@ -388,6 +391,141 @@ export class DungeonService {
     return {
       x: room.x + Math.floor(room.width / 2),
       y: room.y + Math.floor(room.height / 2),
+    }
+  }
+
+  // ============================================================================
+  // DOOR PLACEMENT
+  // ============================================================================
+
+  /**
+   * Place doors at room/corridor junctions
+   */
+  placeDoors(rooms: Room[], corridors: Corridor[], tiles: Tile[][]): Door[] {
+    const doors: Door[] = []
+    const doorPositions = new Set<string>()
+
+    // For each room, find corridor entry points
+    for (const room of rooms) {
+      const entries = this.findRoomEntries(room, tiles)
+
+      for (const entry of entries) {
+        const key = `${entry.x},${entry.y}`
+        if (!doorPositions.has(key)) {
+          doorPositions.add(key)
+
+          const door = this.createDoor(entry, room)
+          doors.push(door)
+
+          // Update tile to reflect door
+          this.updateTileForDoor(tiles, door)
+        }
+      }
+    }
+
+    return doors
+  }
+
+  /**
+   * Find corridor entry points into a room
+   */
+  private findRoomEntries(room: Room, tiles: Tile[][]): Position[] {
+    const entries: Position[] = []
+
+    // Check all edges of the room
+    for (let x = room.x; x < room.x + room.width; x++) {
+      // Top edge
+      if (room.y > 0 && tiles[room.y - 1]?.[x]?.walkable) {
+        entries.push({ x, y: room.y })
+      }
+      // Bottom edge
+      if (room.y + room.height < tiles.length && tiles[room.y + room.height]?.[x]?.walkable) {
+        entries.push({ x, y: room.y + room.height - 1 })
+      }
+    }
+
+    for (let y = room.y; y < room.y + room.height; y++) {
+      // Left edge
+      if (room.x > 0 && tiles[y]?.[room.x - 1]?.walkable) {
+        entries.push({ x: room.x, y })
+      }
+      // Right edge
+      if (room.x + room.width < tiles[0].length && tiles[y]?.[room.x + room.width]?.walkable) {
+        entries.push({ x: room.x + room.width - 1, y })
+      }
+    }
+
+    return entries
+  }
+
+  /**
+   * Create a door with random type
+   */
+  private createDoor(position: Position, room: Room): Door {
+    const doorType = this.randomDoorType()
+    const orientation = this.detectOrientation(position, room)
+
+    return {
+      position,
+      state: doorType,
+      discovered: doorType !== DoorState.SECRET,
+      orientation,
+      connectsRooms: [room.id, -1], // -1 = corridor
+    }
+  }
+
+  /**
+   * Randomly select door type based on probabilities
+   */
+  private randomDoorType(): DoorState {
+    const roll = this.random.next()
+
+    if (roll < 0.4) return DoorState.OPEN // 40%
+    if (roll < 0.7) return DoorState.CLOSED // 30%
+    if (roll < 0.8) return DoorState.LOCKED // 10%
+    if (roll < 0.9) return DoorState.SECRET // 10%
+    if (roll < 0.95) return DoorState.BROKEN // 5%
+    return DoorState.ARCHWAY // 5%
+  }
+
+  /**
+   * Detect door orientation based on room position
+   */
+  private detectOrientation(position: Position, room: Room): 'horizontal' | 'vertical' {
+    // If door is on left/right edge of room, it's vertical
+    if (position.x === room.x || position.x === room.x + room.width - 1) {
+      return 'vertical'
+    }
+    // Otherwise horizontal
+    return 'horizontal'
+  }
+
+  /**
+   * Update tile to reflect door state
+   */
+  private updateTileForDoor(tiles: Tile[][], door: Door): void {
+    const tile = tiles[door.position.y][door.position.x]
+    if (!tile) return
+
+    switch (door.state) {
+      case DoorState.OPEN:
+      case DoorState.BROKEN:
+      case DoorState.ARCHWAY:
+        tile.char = "'"
+        tile.walkable = true
+        tile.transparent = true
+        break
+      case DoorState.CLOSED:
+      case DoorState.LOCKED:
+        tile.char = '+'
+        tile.walkable = true
+        tile.transparent = false
+        break
+      case DoorState.SECRET:
+        tile.char = '#'
+        tile.walkable = false
+        tile.transparent = false
+        break
     }
   }
 }
