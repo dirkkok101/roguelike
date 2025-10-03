@@ -86,7 +86,7 @@ describe('CombatService - Hit Calculation', () => {
       // Need to test with worse modifiers or better AC
 
       const strongMonster = { ...monster, ac: -10 } // Very good AC
-      mockRandom.setValues([1]) // roll for hit
+      mockRandom.setValues([1, 3]) // roll for hit, damage (even though miss)
 
       const result = service.playerAttack(player, strongMonster)
 
@@ -108,7 +108,7 @@ describe('CombatService - Hit Calculation', () => {
       const highLevelPlayer = { ...createTestPlayer(), level: 10 }
       const strongMonster = { ...createTestMonster(), ac: -15 }
 
-      mockRandom.setValues([1]) // roll 1 (very bad roll)
+      mockRandom.setValues([1, 3]) // roll 1 (very bad roll), damage
 
       const result = service.playerAttack(highLevelPlayer, strongMonster)
 
