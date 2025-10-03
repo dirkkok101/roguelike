@@ -1,4 +1,4 @@
-import { Message } from '@types/core/core'
+import { Message } from '@game/core/core'
 
 // ============================================================================
 // MESSAGE SERVICE - Combat log and message management

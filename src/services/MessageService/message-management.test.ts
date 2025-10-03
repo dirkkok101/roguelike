@@ -1,5 +1,5 @@
 import { MessageService } from './MessageService'
-import { Message } from '@types/core/core'
+import { Message } from '@game/core/core'
 
 describe('MessageService - Message Management', () => {
   let service: MessageService

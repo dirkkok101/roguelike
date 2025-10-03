@@ -1,4 +1,4 @@
-import { Position, Level } from '../types/core/core'
+import { Position, Level } from '@game/core/core'
 
 // ============================================================================
 // PATHFINDING SERVICE - A* algorithm for monster AI

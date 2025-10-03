@@ -1,5 +1,5 @@
 import { MovementService } from './MovementService'
-import { Position, Player } from '@types/core/core'
+import { Position, Player } from '@game/core/core'
 
 describe('MovementService - Position Calculation', () => {
   let service: MovementService

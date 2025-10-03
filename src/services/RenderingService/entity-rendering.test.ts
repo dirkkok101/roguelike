@@ -1,6 +1,6 @@
 import { RenderingService, RenderConfig } from './RenderingService'
 import { FOVService } from '@services/FOVService'
-import { Position } from '@types/core/core'
+import { Position } from '@game/core/core'
 
 describe('RenderingService - Entity Rendering', () => {
   let service: RenderingService

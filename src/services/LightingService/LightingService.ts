@@ -1,4 +1,4 @@
-import { LightSource } from '@types/core/core'
+import { LightSource } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================

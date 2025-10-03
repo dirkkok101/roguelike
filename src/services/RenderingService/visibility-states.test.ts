@@ -1,6 +1,6 @@
 import { RenderingService } from './RenderingService'
 import { FOVService } from '@services/FOVService'
-import { Level, Position, TileType } from '@types/core/core'
+import { Level, Position, TileType } from '@game/core/core'
 
 describe('RenderingService - Visibility States', () => {
   let service: RenderingService

@@ -1,6 +1,6 @@
 import { LightingService } from './LightingService'
 import { MockRandom } from '@services/RandomService'
-import { LightSource } from '@types/core'
+import { LightSource } from '@game/core'
 
 describe('LightingService - Fuel Consumption', () => {
   let service: LightingService

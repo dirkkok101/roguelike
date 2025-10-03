@@ -1,5 +1,5 @@
 import { MovementService } from './MovementService'
-import { Level, TileType, Position } from '@types/core/core'
+import { Level, TileType, Position } from '@game/core/core'
 
 describe('MovementService - Bounds Validation', () => {
   let service: MovementService

@@ -1,1 +1,2 @@
-export { TrapService, TrapEffect } from './TrapService'
+export { TrapService } from './TrapService'
+export type { TrapEffect } from './TrapService'

@@ -1,4 +1,4 @@
-import { GameState, Position } from '@types/core/core'
+import { GameState, Position } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
 
 // ============================================================================

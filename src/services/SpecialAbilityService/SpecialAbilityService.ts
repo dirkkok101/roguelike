@@ -1,5 +1,5 @@
-import { Player, Monster, Armor } from '../../types/core/core'
-import { IRandomService } from '../RandomService'
+import { Player, Monster, Armor } from '@game/core/core'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // SPECIAL ABILITY SERVICE - Handle all special monster abilities

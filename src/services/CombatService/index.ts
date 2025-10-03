@@ -1,1 +1,2 @@
-export { CombatService, CombatResult } from './CombatService'
+export { CombatService } from './CombatService'
+export type { CombatResult } from './CombatService'

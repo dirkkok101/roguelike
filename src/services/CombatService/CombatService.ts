@@ -1,5 +1,5 @@
-import { Player, Monster, Weapon } from '../types/core/core'
-import { IRandomService } from './RandomService'
+import { Player, Monster, Weapon } from '@game/core/core'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // COMBAT SERVICE - Original Rogue combat formulas

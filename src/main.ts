@@ -1,4 +1,4 @@
-import { GameState, Level, TileType, Position } from '@types/core/core'
+import { GameState, Level, TileType, Position } from '@game/core/core'
 import { SeededRandom } from '@services/RandomService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'

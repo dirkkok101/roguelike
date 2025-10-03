@@ -1,4 +1,4 @@
-import { Position, Level, Monster, Item, GoldPile, Tile } from '@types/core/core'
+import { Position, Level, Monster, Item, GoldPile, Tile } from '@game/core/core'
 import { FOVService } from '@services/FOVService'
 
 // ============================================================================

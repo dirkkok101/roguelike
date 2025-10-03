@@ -4,7 +4,7 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Level, TileType } from '@types/core/core'
+import { GameState, Level, TileType } from '@game/core/core'
 
 describe('MoveCommand - FOV Updates', () => {
   let movementService: MovementService

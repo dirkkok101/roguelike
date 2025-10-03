@@ -1,1 +1,2 @@
-export { MonsterAIService, MonsterAction } from './MonsterAIService'
+export { MonsterAIService } from './MonsterAIService'
+export type { MonsterAction } from './MonsterAIService'

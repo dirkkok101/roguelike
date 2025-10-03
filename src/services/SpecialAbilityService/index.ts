@@ -1,1 +1,2 @@
-export { SpecialAbilityService, AbilityResult } from './SpecialAbilityService'
+export { SpecialAbilityService } from './SpecialAbilityService'
+export type { AbilityResult } from './SpecialAbilityService'

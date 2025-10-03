@@ -1,8 +1,8 @@
-import { GameState, Monster, Position } from '../../types/core/core'
-import { MonsterAIService, MonsterAction } from '../MonsterAIService'
-import { CombatService } from '../CombatService'
-import { SpecialAbilityService } from '../SpecialAbilityService'
-import { MessageService } from '../MessageService'
+import { GameState, Monster, Position } from '@game/core/core'
+import { MonsterAIService, MonsterAction } from '@services/MonsterAIService'
+import { CombatService } from '@services/CombatService'
+import { SpecialAbilityService } from '@services/SpecialAbilityService'
+import { MessageService } from '@services/MessageService'
 
 // ============================================================================
 // MONSTER TURN SERVICE - Process all monster turns

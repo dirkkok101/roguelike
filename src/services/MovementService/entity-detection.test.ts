@@ -1,5 +1,5 @@
 import { MovementService } from './MovementService'
-import { Level, TileType, Position, Monster, Item, GoldPile } from '@types/core/core'
+import { Level, TileType, Position, Monster, Item, GoldPile } from '@game/core/core'
 
 describe('MovementService - Entity Detection', () => {
   let service: MovementService

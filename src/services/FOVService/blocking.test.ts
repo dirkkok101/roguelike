@@ -1,5 +1,5 @@
 import { FOVService } from './FOVService'
-import { Level, TileType, Position } from '@types/core/core'
+import { Level, TileType, Position } from '@game/core/core'
 
 describe('FOVService - Vision Blocking', () => {
   let service: FOVService

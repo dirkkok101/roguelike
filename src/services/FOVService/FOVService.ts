@@ -1,4 +1,4 @@
-import { Position, Level } from '@types/core/core'
+import { Position, Level } from '@game/core/core'
 
 // ============================================================================
 // FOV SERVICE - Recursive shadowcasting algorithm

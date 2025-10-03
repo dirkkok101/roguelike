@@ -26,7 +26,7 @@
       "@/*": ["src/*"],
       "@services/*": ["src/services/*"],
       "@commands/*": ["src/commands/*"],
-      "@types/*": ["src/types/*"],
+      "@game/*": ["src/types/*"],
       "@ui/*": ["src/ui/*"],
       "@utils/*": ["src/utils/*"]
     }

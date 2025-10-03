@@ -1,6 +1,6 @@
 import { RenderingService } from './RenderingService'
 import { FOVService } from '@services/FOVService'
-import { Tile, TileType, Monster, Item, GoldPile } from '@types/core/core'
+import { Tile, TileType, Monster, Item, GoldPile } from '@game/core/core'
 
 describe('RenderingService - Colors', () => {
   let service: RenderingService

@@ -1,4 +1,4 @@
-import { Position, Level, Player } from '@types/core/core'
+import { Position, Level, Player } from '@game/core/core'
 
 // ============================================================================
 // MOVEMENT SERVICE - Position validation and collision detection
