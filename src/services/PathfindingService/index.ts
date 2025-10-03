@@ -1,0 +1,1 @@
+export { PathfindingService } from './PathfindingService'
