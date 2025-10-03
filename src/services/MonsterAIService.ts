@@ -53,6 +53,9 @@ export class MonsterAIService {
       case MonsterBehavior.ERRATIC:
         return this.erraticBehavior(monster, playerPos, level)
 
+      case MonsterBehavior.GREEDY:
+        return this.greedyBehavior(monster, playerPos, level, state)
+
       default:
         return { type: 'wait' }
     }
@@ -143,6 +146,66 @@ export class MonsterAIService {
       // Move toward player using simple behavior
       return this.simpleBehavior(monster, playerPos, level)
     }
+  }
+
+  /**
+   * GREEDY behavior - Prioritize gold over player
+   * Used by Orcs
+   */
+  private greedyBehavior(
+    monster: Monster,
+    playerPos: Position,
+    level: any,
+    state: GameState
+  ): MonsterAction {
+    // Find nearest gold pile
+    const nearestGold = this.findNearestGold(monster.position, level)
+
+    if (nearestGold) {
+      // Calculate distances
+      const goldDist = this.distance(monster.position, nearestGold)
+      const playerDist = this.distance(monster.position, playerPos)
+
+      // If gold is closer than player, go for gold
+      if (goldDist < playerDist) {
+        const nextStep = this.pathfinding.getNextStep(monster.position, nearestGold, level)
+        if (nextStep) {
+          return { type: 'move', target: nextStep }
+        }
+      }
+    }
+
+    // No gold or player is closer - use simple behavior toward player
+    return this.simpleBehavior(monster, playerPos, level)
+  }
+
+  /**
+   * Find nearest gold pile to position
+   */
+  private findNearestGold(position: Position, level: any): Position | null {
+    if (!level.gold || level.gold.length === 0) {
+      return null
+    }
+
+    let nearest: Position | null = null
+    let minDist = Infinity
+
+    for (const goldPile of level.gold) {
+      const dist = this.distance(position, goldPile.position)
+      if (dist < minDist) {
+        minDist = dist
+        nearest = goldPile.position
+      }
+    }
+
+    return nearest
+  }
+
+  /**
+   * Calculate Manhattan distance between two positions
+   */
+  private distance(pos1: Position, pos2: Position): number {
+    return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y)
   }
 
   /**

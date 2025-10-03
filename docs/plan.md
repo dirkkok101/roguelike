@@ -3620,12 +3620,12 @@ At this point you should be able to:
   - [x] `erraticBehavior(monster, playerPos, level)` method
   - [x] Used by flying creatures
 
-- [ ] **GREEDY behavior** (Orc)
-  - [ ] Check for gold piles in FOV
-  - [ ] If gold visible, path toward gold instead of player
-  - [ ] If no gold, use SIMPLE behavior
-  - [ ] `greedyBehavior(monster, state, level)` method
-  - [ ] Pick up gold when reached
+- [x] **GREEDY behavior** (Orc)
+  - [x] Check for gold piles in FOV
+  - [x] If gold visible, path toward gold instead of player
+  - [x] If no gold, use SIMPLE behavior
+  - [x] `greedyBehavior(monster, state, level)` method
+  - [x] Pick up gold when reached
 
 - [ ] **THIEF behavior** (Leprechaun, Nymph)
   - [ ] Approach player using A*
