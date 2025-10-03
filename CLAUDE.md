@@ -96,10 +96,19 @@ src/
 // ✅ Use barrel exports with path aliases
 import { FOVService } from '@services/FOVService'
 import { MoveCommand } from '@commands/MoveCommand'
+import { GameState, Player, Monster } from '@game/core/core'
 
 // ❌ Don't import directly
 import { FOVService } from '@services/FOVService/FOVService'
+import { GameState } from '../types/core/core'  // Use @game instead
 ```
+
+**Path Aliases:**
+- `@services/*` → `src/services/*`
+- `@commands/*` → `src/commands/*`
+- `@game/*` → `src/types/*` (Note: `@game` not `@types` - TypeScript reserves `@types` for declaration packages)
+- `@ui/*` → `src/ui/*`
+- `@utils/*` → `src/utils/*`
 
 ---
 

@@ -230,7 +230,7 @@ import { LightingService } from '@services/LightingService'
 
 // Mocks and dependencies always via path alias
 import { MockRandom } from '@services/RandomService'
-import { LightSource } from '@types/core'
+import { LightSource } from '@game/core/core'
 ```
 
 ---
@@ -394,7 +394,7 @@ export default {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@commands/(.*)$': '<rootDir>/src/commands/$1',
-    '^@types/(.*)$': '<rootDir>/src/types/$1',
+    '^@game/(.*)$': '<rootDir>/src/types/$1',
   },
   collectCoverageFrom: [
     'src/**/*.ts',
