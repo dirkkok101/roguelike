@@ -3614,11 +3614,11 @@ At this point you should be able to:
 
 **Update `src/services/MonsterAIService.ts`**:
 
-- [ ] **ERRATIC behavior** (Bat, Kestrel)
-  - [ ] 50% chance to move toward player
-  - [ ] 50% chance to move randomly
-  - [ ] `erraticBehavior(monster, playerPos, level)` method
-  - [ ] Used by flying creatures
+- [x] **ERRATIC behavior** (Bat, Kestrel)
+  - [x] 50% chance to move toward player
+  - [x] 50% chance to move randomly
+  - [x] `erraticBehavior(monster, playerPos, level)` method
+  - [x] Used by flying creatures
 
 - [ ] **GREEDY behavior** (Orc)
   - [ ] Check for gold piles in FOV
