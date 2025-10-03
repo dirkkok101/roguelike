@@ -3188,36 +3188,431 @@ export class AttackCommand implements ICommand {
 
 ## Phase 3: Advanced Dungeon Generation
 
-**Goal**: Full procedural dungeon generation
+**Goal**: Full procedural dungeon generation with rooms, corridors, multiple door types, and guaranteed connectivity
 **Duration**: Week 4
+**Deliverable**: Can explore procedurally generated multi-level dungeon with varied doors and alternate paths
 
-### 3.1 DungeonService
+### Tasks
 
-**Create `src/services/DungeonService.ts`** with:
-- Room placement algorithm
-- MST for connectivity
-- Corridor generation
-- Door placement (6 types)
-- Floodfill verification
-- Multi-level generation
+#### 3.1 Core DungeonService
 
-*[Implementation details follow PRD Section 4.5]*
+**Create `src/services/DungeonService.ts`**:
+
+- [ ] **Basic structure and types**
+  - [ ] Room interface with bounds and ID
+  - [ ] Corridor interface with start/end points
+  - [ ] Graph node structure for MST
+  - [ ] DungeonConfig interface (min/max rooms, sizes, etc.)
+
+- [ ] **Room placement algorithm**
+  - [ ] `placeRooms(config)` - Generate N random rooms (4-9)
+  - [ ] Overlap prevention with collision detection
+  - [ ] Variable room sizes (3x3 to 8x8)
+  - [ ] Ensure minimum spacing between rooms
+  - [ ] Return list of non-overlapping rooms
+
+- [ ] **Room connectivity graph**
+  - [ ] `buildRoomGraph(rooms)` - Create complete graph
+  - [ ] Calculate distances between all room pairs (center to center)
+  - [ ] Build adjacency list representation
+
+- [ ] **Minimum Spanning Tree (MST)**
+  - [ ] Implement Prim's or Kruskal's algorithm
+  - [ ] `generateMST(graph)` - Find minimum spanning tree
+  - [ ] Ensures all rooms are connected with minimum corridors
+  - [ ] Return MST edge list
+
+- [ ] **Corridor generation**
+  - [ ] `createCorridor(room1, room2)` - Connect two rooms
+  - [ ] L-shaped corridors (horizontal then vertical, or vice versa)
+  - [ ] Optional winding (add random bends)
+  - [ ] Carve corridor tiles in level grid
+  - [ ] Handle corridor intersections
+
+- [ ] **Loop generation for alternate paths**
+  - [ ] `addExtraConnections(rooms, mst, chance)` - Add 20-30% extra edges
+  - [ ] Prevents linear dungeons, adds exploration
+  - [ ] Connect random non-MST room pairs
+
+#### 3.2 Door System
+
+- [ ] **Door placement**
+  - [ ] `placeDoors(rooms, corridors)` - Add doors at room/corridor junctions
+  - [ ] Detect corridor entry points into rooms
+  - [ ] Create Door entities with positions
+
+- [ ] **Door types (6 types)**
+  - [ ] OPEN (`'`) - 40% chance, always passable, doesn't block vision
+  - [ ] CLOSED (`+`) - 30% chance, passable, blocks vision until opened
+  - [ ] LOCKED (`+`) - 10% chance, needs key to open
+  - [ ] SECRET (`#`) - 10% chance, appears as wall, found via search
+  - [ ] BROKEN (`'`) - 5% chance, permanently open
+  - [ ] ARCHWAY (no symbol) - 5% chance, open passage with no door
+
+- [ ] **Door data structure**
+  - [ ] Position, state, discovered flag
+  - [ ] Orientation (horizontal/vertical)
+  - [ ] connectedRooms array
+
+#### 3.3 Door Interaction Commands
+
+- [ ] **OpenDoorCommand**
+  - [ ] Check adjacent tiles for closed/locked doors
+  - [ ] If locked, check for key in inventory
+  - [ ] Change state from CLOSED to OPEN
+  - [ ] Update tile transparency for FOV
+
+- [ ] **CloseDoorCommand**
+  - [ ] Check adjacent tiles for open doors
+  - [ ] Change state from OPEN to CLOSED
+  - [ ] Update tile transparency for FOV
+
+- [ ] **SearchCommand**
+  - [ ] `s` key - Search adjacent tiles
+  - [ ] Chance to discover secret doors (formula: intelligence-based)
+  - [ ] Chance to discover traps
+  - [ ] Add message "You found a secret door!" or "You found a trap!"
+  - [ ] Mark discovered flag on entity
+
+#### 3.4 Trap System
+
+- [ ] **Trap types**
+  - [ ] Bear trap (1d4 damage, holds player)
+  - [ ] Dart trap (1d6 damage, poison chance)
+  - [ ] Teleport trap (random teleport)
+  - [ ] Sleep trap (skip turns)
+  - [ ] Pit trap (fall damage, deeper level)
+
+- [ ] **Trap placement**
+  - [ ] `placeTraps(level, count)` - Random placement in rooms/corridors
+  - [ ] 2-4 traps per level
+  - [ ] Hidden by default (discovered = false)
+  - [ ] Avoid placing on player start position
+
+- [ ] **Trap triggering**
+  - [ ] Check in MovementService when player moves
+  - [ ] If trap.discovered === false, chance to trigger
+  - [ ] Apply trap effect to player
+  - [ ] Reveal trap after triggering
+  - [ ] Add message describing trap
+
+- [ ] **TrapService**
+  - [ ] `triggerTrap(trap, player, state)` - Handle trap effects
+  - [ ] Damage calculation
+  - [ ] Status effect application
+  - [ ] Trap disarm chance (future enhancement)
+
+#### 3.5 Connectivity & Validation
+
+- [ ] **Floodfill verification**
+  - [ ] `verifyConnectivity(level)` - Ensure all floor tiles reachable
+  - [ ] Start from player spawn position
+  - [ ] Mark all reachable tiles via BFS/DFS
+  - [ ] If unreachable tiles found, regenerate dungeon
+
+- [ ] **Stairs placement**
+  - [ ] `placeStairs(level, depth)` - Add up/down stairs
+  - [ ] Stairs up (`<`) - Not on level 1
+  - [ ] Stairs down (`>`) - Not on level 10
+  - [ ] Place in different rooms (not same room)
+  - [ ] Ensure both reachable from spawn
+
+#### 3.6 Multi-Level Support
+
+- [ ] **Level generation**
+  - [ ] `generateLevel(depth, seed)` - Create one dungeon level
+  - [ ] Use seed for deterministic generation
+  - [ ] Vary room count by depth (deeper = more rooms)
+  - [ ] Increase monster/trap count with depth
+
+- [ ] **Level persistence**
+  - [ ] Store generated levels in `GameState.levels` Map
+  - [ ] Key = level depth (1-10)
+  - [ ] Don't regenerate when revisiting
+  - [ ] Preserve monster positions, items, etc.
+
+- [ ] **MoveStairsCommand**
+  - [ ] `>` key - Go down stairs
+  - [ ] `<` key - Go up stairs
+  - [ ] Check if player on stairs tile
+  - [ ] Load or generate target level
+  - [ ] Update GameState.currentLevel
+  - [ ] Spawn player at opposite stairs on new level
+  - [ ] Recompute FOV for new level
+
+#### 3.7 Entity Spawning
+
+- [ ] **Monster spawning**
+  - [ ] `spawnMonsters(level, depth)` - Place monsters in level
+  - [ ] Number based on depth (1-2 at level 1, 5-7 at level 10)
+  - [ ] Weighted selection based on depth (harder monsters deeper)
+  - [ ] Don't spawn in starting room
+  - [ ] Load monster templates from monsters.json
+  - [ ] Roll HP from dice notation (e.g., "5d8")
+
+- [ ] **Item spawning**
+  - [ ] `spawnItems(level, depth)` - Place items randomly
+  - [ ] 3-6 items per level
+  - [ ] Weight by rarity
+  - [ ] Include light sources (torches, lanterns, oil)
+
+- [ ] **Gold spawning**
+  - [ ] `spawnGold(level)` - Place gold piles
+  - [ ] 2-5 piles per level
+  - [ ] Amount scales with depth (10-50 * depth)
+
+### Files to Create
+
+- `src/services/DungeonService.ts` - Main dungeon generation
+- `src/services/TrapService.ts` - Trap effects and triggering
+- `src/commands/OpenDoorCommand.ts` - Open doors
+- `src/commands/CloseDoorCommand.ts` - Close doors
+- `src/commands/SearchCommand.ts` - Find secrets/traps
+- `src/commands/MoveStairsCommand.ts` - Level navigation
+- `src/__tests__/services/DungeonService.test.ts` - Dungeon tests
+- `src/__tests__/services/TrapService.test.ts` - Trap tests
+
+### Tests Required
+
+- [ ] **DungeonService tests**
+  - [ ] Room placement generates N rooms without overlap
+  - [ ] MST connects all rooms
+  - [ ] Loops add extra connections
+  - [ ] Connectivity verification passes for valid dungeons
+  - [ ] Same seed generates identical dungeon
+  - [ ] All door types appear with expected frequency
+
+- [ ] **Trap tests**
+  - [ ] Trap triggering applies correct effects
+  - [ ] Search command reveals traps
+  - [ ] Traps don't spawn on player start
+
+- [ ] **Door tests**
+  - [ ] Open command opens closed doors
+  - [ ] Locked doors require key
+  - [ ] Secret doors stay hidden until searched
+
+- [ ] **Stairs tests**
+  - [ ] Moving up/down changes level correctly
+  - [ ] Player spawns at opposite stairs
+  - [ ] Level state preserved when revisiting
 
 ---
 
-## Phase 4: Complete AI Behaviors
+## Phase 4: Complete AI Behaviors & Special Abilities
 
-**Goal**: Implement all 7 monster behaviors
+**Goal**: Implement all 7 monster behaviors and special monster abilities
 **Duration**: Week 5
+**Deliverable**: Monsters exhibit varied, intelligent behaviors; special abilities work correctly
 
-### 4.1 Expand MonsterAIService
+### Tasks
 
-Add implementations for:
-- **ERRATIC**: Random movement (Bat, Kestrel)
-- **GREEDY**: Prioritize gold (Orc)
-- **THIEF**: Steal and flee (Leprechaun, Nymph)
-- **STATIONARY**: Don't move (Venus Flytrap)
-- **COWARD**: Flee at low HP (Vampire)
+#### 4.1 Expand MonsterAIService
+
+**Update `src/services/MonsterAIService.ts`**:
+
+- [ ] **ERRATIC behavior** (Bat, Kestrel)
+  - [ ] 50% chance to move toward player
+  - [ ] 50% chance to move randomly
+  - [ ] `erraticBehavior(monster, playerPos, level)` method
+  - [ ] Used by flying creatures
+
+- [ ] **GREEDY behavior** (Orc)
+  - [ ] Check for gold piles in FOV
+  - [ ] If gold visible, path toward gold instead of player
+  - [ ] If no gold, use SIMPLE behavior
+  - [ ] `greedyBehavior(monster, state, level)` method
+  - [ ] Pick up gold when reached
+
+- [ ] **THIEF behavior** (Leprechaun, Nymph)
+  - [ ] Approach player using A*
+  - [ ] When adjacent, attempt to steal
+  - [ ] After stealing, flee in opposite direction
+  - [ ] `thiefBehavior(monster, state, level)` method
+  - [ ] Set hasStolen flag after theft
+  - [ ] Change to FLEEING state after theft
+
+- [ ] **STATIONARY behavior** (Venus Flytrap)
+  - [ ] Never move from spawn position
+  - [ ] Attack if player moves adjacent
+  - [ ] `stationaryBehavior(monster, playerPos)` method
+  - [ ] Special: Holds player in place for 1-2 turns
+
+- [ ] **COWARD behavior** (Vampire)
+  - [ ] Check HP percentage
+  - [ ] If HP < fleeThreshold (30%), flee from player
+  - [ ] Otherwise, use SMART behavior
+  - [ ] `cowardBehavior(monster, state, level)` method
+  - [ ] Path away from player using A* in reverse
+
+#### 4.2 Monster State Machine
+
+- [ ] **State transitions**
+  - [ ] SLEEPING → WANDERING (player enters aggro range)
+  - [ ] WANDERING → HUNTING (player in FOV)
+  - [ ] HUNTING → FLEEING (HP low for COWARD, or after stealing for THIEF)
+  - [ ] FLEEING → HUNTING (HP recovered or threat gone)
+
+- [ ] **updateMonsterState(monster, state)** method
+  - [ ] Check aggro range against player distance
+  - [ ] Check FOV for player visibility
+  - [ ] Update monster.state enum
+  - [ ] Return updated monster
+
+#### 4.3 Monster FOV & Awareness
+
+- [ ] **Monster FOV calculation**
+  - [ ] Awake monsters compute their own FOV
+  - [ ] Use same shadowcasting algorithm as player
+  - [ ] Vision radius = monster.aiProfile.aggroRange
+  - [ ] Store in monster.visibleCells Set
+
+- [ ] **Wake-up logic**
+  - [ ] Check if player position in monster's aggro range
+  - [ ] If in range, set isAsleep = false
+  - [ ] Add message "The {monster} wakes up!"
+  - [ ] MEAN monsters always start awake (special flag)
+
+- [ ] **Sleeping monster optimization**
+  - [ ] Skip FOV calculation for sleeping monsters
+  - [ ] Skip AI decision for sleeping monsters
+  - [ ] Only check distance for wake-up
+
+#### 4.4 Special Monster Abilities
+
+**Create `src/services/SpecialAbilityService.ts`**:
+
+- [ ] **Rust armor** (Aquator)
+  - [ ] When hits player, chance to rust equipped armor
+  - [ ] Reduce armor AC bonus by 1
+  - [ ] Message: "Your armor rusts!"
+  - [ ] Can rust to -AC limit
+
+- [ ] **Flying** (Bat, Kestrel, Griffin)
+  - [ ] Ignore certain terrain in pathfinding
+  - [ ] Can move over water/lava (if added)
+  - [ ] Flag in monster data: special: ["flying"]
+
+- [ ] **Freeze player** (Ice Monster)
+  - [ ] On hit, chance to freeze
+  - [ ] Player loses next turn (skip turn)
+  - [ ] Message: "You are frozen solid!"
+  - [ ] Stacks with damage (0d0 + freeze)
+
+- [ ] **Confusion** (Medusa)
+  - [ ] On hit, chance to confuse player
+  - [ ] Player movements become random for 3-5 turns
+  - [ ] Message: "You feel confused!"
+  - [ ] Effect tracked in Player state
+
+- [ ] **Invisibility** (Phantom)
+  - [ ] Monster not rendered unless player has "See Invisible"
+  - [ ] Can still be attacked if known position
+  - [ ] Shows as '?' when bumped into
+  - [ ] Special ring reveals invisible monsters
+
+- [ ] **Drain strength** (Rattlesnake)
+  - [ ] On hit, reduce player.strength by 1
+  - [ ] Can't go below 3
+  - [ ] Message: "You feel weaker!"
+  - [ ] Permanent until restored
+
+- [ ] **Drain XP** (Wraith)
+  - [ ] On hit, reduce player XP
+  - [ ] Can cause level loss if XP drops below threshold
+  - [ ] Message: "You feel your life force drain away!"
+
+- [ ] **Drain max HP** (Vampire)
+  - [ ] On hit, reduce player.maxHp by 1
+  - [ ] Current HP also reduced if over new max
+  - [ ] Message: "You feel your life essence fade!"
+  - [ ] Permanent until restored
+
+- [ ] **Regeneration** (Griffin, Troll, Vampire)
+  - [ ] Heal 1 HP per N turns
+  - [ ] Check in monster turn processing
+  - [ ] Can't exceed maxHp
+  - [ ] Makes these monsters very dangerous
+
+- [ ] **Holds player** (Venus Flytrap)
+  - [ ] When hit, chance to hold in place
+  - [ ] Player can't move for 1-2 turns
+  - [ ] Can still attack
+  - [ ] Message: "The flytrap grabs you!"
+
+- [ ] **Multiple attacks** (Centaur, Dragon, etc.)
+  - [ ] Parse damage string "1d2/1d5/1d5" (3 attacks)
+  - [ ] Roll each attack separately
+  - [ ] Apply damage from all successful hits
+  - [ ] Message each attack individually
+
+- [ ] **Breath weapon** (Dragon)
+  - [ ] Ranged attack (6d6 fire damage)
+  - [ ] Range: 5 tiles
+  - [ ] Line-of-sight check
+  - [ ] Chance to use vs melee attack
+  - [ ] Message: "The dragon breathes fire!"
+
+#### 4.5 Monster Turn Processing
+
+**Create `src/services/MonsterTurnService.ts`**:
+
+- [ ] **processMons
+
+terTurns(state)** method
+  - [ ] Iterate through all monsters on current level
+  - [ ] Skip if monster is dead (hp <= 0)
+  - [ ] Update monster state (sleeping/hunting/fleeing)
+  - [ ] Decide action using MonsterAIService
+  - [ ] Execute action (move, attack, wait)
+  - [ ] Apply regeneration if applicable
+  - [ ] Return updated game state
+
+- [ ] **executeMonsterAction(monster, action, state)** method
+  - [ ] If action.type === 'move', move monster
+  - [ ] If action.type === 'attack', monster attacks player
+  - [ ] If action.type === 'wait', do nothing
+  - [ ] Check for theft attempt (THIEF behavior)
+  - [ ] Trigger special abilities on hit
+
+- [ ] **Integration with game loop**
+  - [ ] Call processMo nsterTurns() after each player command
+  - [ ] Update game state with monster changes
+  - [ ] Add combat messages for monster actions
+
+### Files to Create
+
+- `src/services/SpecialAbilityService.ts` - Handle all special abilities
+- `src/services/MonsterTurnService.ts` - Monster turn processing
+- `src/__tests__/services/SpecialAbilityService.test.ts`
+- `src/__tests__/services/MonsterTurnService.test.ts`
+
+### Tests Required
+
+- [ ] **AI Behavior tests**
+  - [ ] ERRATIC moves randomly 50% of the time
+  - [ ] GREEDY paths toward gold when visible
+  - [ ] THIEF steals item and flees
+  - [ ] STATIONARY never moves
+  - [ ] COWARD flees when HP low
+
+- [ ] **State transition tests**
+  - [ ] Sleeping monster wakes when player in range
+  - [ ] Monster enters HUNTING state when sees player
+  - [ ] COWARD enters FLEEING when HP < threshold
+
+- [ ] **Special ability tests**
+  - [ ] Aquator rusts armor on hit
+  - [ ] Ice Monster freezes player
+  - [ ] Wraith drains XP
+  - [ ] Vampire drains max HP
+  - [ ] Regenerating monsters heal over time
+  - [ ] Dragon breath weapon deals damage at range
+
+- [ ] **Monster turn integration tests**
+  - [ ] Monsters take turns after player
+  - [ ] Multiple monsters act in sequence
+  - [ ] Dead monsters don't act
 
 ---
 
