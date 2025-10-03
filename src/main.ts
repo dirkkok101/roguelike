@@ -28,7 +28,8 @@ const inputHandler = new InputHandler(
   movementService,
   lightingService,
   fovService,
-  messageService
+  messageService,
+  random
 )
 
 // Create initial game state
