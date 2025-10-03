@@ -6,6 +6,9 @@ import { RenderingService } from '@services/RenderingService'
 import { MovementService } from '@services/MovementService'
 import { MessageService } from '@services/MessageService'
 import { DungeonService } from '@services/DungeonService'
+import { CombatService } from '@services/CombatService'
+import { PathfindingService } from '@services/PathfindingService'
+import { MonsterAIService } from '@services/MonsterAIService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 
@@ -21,6 +24,9 @@ const renderingService = new RenderingService(fovService)
 const movementService = new MovementService()
 const messageService = new MessageService()
 const dungeonService = new DungeonService(random)
+const combatService = new CombatService(random)
+const pathfindingService = new PathfindingService()
+const monsterAIService = new MonsterAIService(pathfindingService, random)
 
 // Dungeon configuration
 const dungeonConfig = {
@@ -43,7 +49,8 @@ const inputHandler = new InputHandler(
   messageService,
   random,
   dungeonService,
-  dungeonConfig
+  dungeonConfig,
+  combatService
 )
 
 // Create initial game state

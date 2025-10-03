@@ -1,0 +1,114 @@
+[
+  {
+    "letter": "B",
+    "name": "Bat",
+    "hp": "1d8",
+    "ac": 3,
+    "damage": "1d2",
+    "xpValue": 1,
+    "level": 1,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 1,
+      "aggroRange": 5,
+      "fleeThreshold": 0.0,
+      "special": ["flying"]
+    }
+  },
+  {
+    "letter": "K",
+    "name": "Kobold",
+    "hp": "1d4",
+    "ac": 7,
+    "damage": "1d4",
+    "xpValue": 1,
+    "level": 1,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 1,
+      "aggroRange": 5,
+      "fleeThreshold": 0.0,
+      "special": []
+    }
+  },
+  {
+    "letter": "S",
+    "name": "Snake",
+    "hp": "1d6",
+    "ac": 5,
+    "damage": "1d3",
+    "xpValue": 2,
+    "level": 1,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 1,
+      "aggroRange": 4,
+      "fleeThreshold": 0.0,
+      "special": []
+    }
+  },
+  {
+    "letter": "O",
+    "name": "Orc",
+    "hp": "1d8",
+    "ac": 6,
+    "damage": "1d8",
+    "xpValue": 5,
+    "level": 2,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 3,
+      "aggroRange": 6,
+      "fleeThreshold": 0.0,
+      "special": []
+    }
+  },
+  {
+    "letter": "Z",
+    "name": "Zombie",
+    "hp": "2d8",
+    "ac": 8,
+    "damage": "1d8",
+    "xpValue": 7,
+    "level": 2,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 1,
+      "aggroRange": 3,
+      "fleeThreshold": 0.0,
+      "special": []
+    }
+  },
+  {
+    "letter": "T",
+    "name": "Troll",
+    "hp": "6d8",
+    "ac": 4,
+    "damage": "1d8+1d8",
+    "xpValue": 120,
+    "level": 6,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 3,
+      "aggroRange": 7,
+      "fleeThreshold": 0.0,
+      "special": ["regeneration"]
+    }
+  },
+  {
+    "letter": "D",
+    "name": "Dragon",
+    "hp": "10d8",
+    "ac": -1,
+    "damage": "1d8+3d10",
+    "xpValue": 5000,
+    "level": 10,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 5,
+      "aggroRange": 10,
+      "fleeThreshold": 0.0,
+      "special": ["mean", "breath_weapon"]
+    }
+  }
+]

@@ -10,6 +10,7 @@ import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { IRandomService } from '@services/RandomService'
 import { DungeonService, DungeonConfig } from '@services/DungeonService'
+import { CombatService } from '@services/CombatService'
 
 // ============================================================================
 // INPUT HANDLER - Keyboard input to commands
@@ -27,7 +28,8 @@ export class InputHandler {
     private messageService: MessageService,
     private random: IRandomService,
     private dungeonService: DungeonService,
-    private dungeonConfig: DungeonConfig
+    private dungeonConfig: DungeonConfig,
+    private combatService: CombatService
   ) {}
 
   /**
@@ -64,7 +66,8 @@ export class InputHandler {
           this.movementService,
           this.lightingService,
           this.fovService,
-          this.messageService
+          this.messageService,
+          this.combatService
         )
 
       case 'ArrowDown':
@@ -74,7 +77,8 @@ export class InputHandler {
           this.movementService,
           this.lightingService,
           this.fovService,
-          this.messageService
+          this.messageService,
+          this.combatService
         )
 
       case 'ArrowLeft':
@@ -84,7 +88,8 @@ export class InputHandler {
           this.movementService,
           this.lightingService,
           this.fovService,
-          this.messageService
+          this.messageService,
+          this.combatService
         )
 
       case 'ArrowRight':
@@ -94,7 +99,8 @@ export class InputHandler {
           this.movementService,
           this.lightingService,
           this.fovService,
-          this.messageService
+          this.messageService,
+          this.combatService
         )
 
       case 'o':

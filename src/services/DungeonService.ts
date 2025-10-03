@@ -8,6 +8,9 @@ import {
   DoorState,
   Trap,
   TrapType,
+  Monster,
+  MonsterBehavior,
+  MonsterState,
 } from '../types/core/core'
 import { IRandomService } from './RandomService'
 
@@ -91,6 +94,11 @@ export class DungeonService {
     const stairsDownIndex = rooms.length > 1 ? rooms.length - 1 : 0
     const stairsDownPos = this.getRandomRoomCenter(rooms[stairsDownIndex])
 
+    // Spawn monsters (exclude starting room)
+    const spawnRooms = rooms.slice(1) // Skip first room
+    const monsterCount = Math.min(depth + 1, 7) // 2-8 monsters based on depth
+    const monsters = this.spawnMonsters(spawnRooms, monsterCount, tiles, depth)
+
     return {
       depth,
       width: config.width,
@@ -99,7 +107,7 @@ export class DungeonService {
       rooms,
       doors,
       traps,
-      monsters: [],
+      monsters,
       items: [],
       gold: [],
       stairsUp: stairsUpPos,
@@ -603,5 +611,141 @@ export class DungeonService {
     }
 
     return traps
+  }
+
+  // ============================================================================
+  // MONSTER SPAWNING
+  // ============================================================================
+
+  /**
+   * Spawn monsters in rooms based on depth
+   */
+  spawnMonsters(rooms: Room[], count: number, tiles: Tile[][], depth: number): Monster[] {
+    const monsters: Monster[] = []
+    const monsterPositions = new Set<string>()
+
+    // Monster templates based on depth
+    const templates = [
+      {
+        letter: 'B',
+        name: 'Bat',
+        hpDice: '1d8',
+        ac: 3,
+        damage: '1d2',
+        xpValue: 1,
+        level: 1,
+        behavior: MonsterBehavior.SIMPLE,
+      },
+      {
+        letter: 'K',
+        name: 'Kobold',
+        hpDice: '1d4',
+        ac: 7,
+        damage: '1d4',
+        xpValue: 1,
+        level: 1,
+        behavior: MonsterBehavior.SIMPLE,
+      },
+      {
+        letter: 'S',
+        name: 'Snake',
+        hpDice: '1d6',
+        ac: 5,
+        damage: '1d3',
+        xpValue: 2,
+        level: 1,
+        behavior: MonsterBehavior.SIMPLE,
+      },
+      {
+        letter: 'O',
+        name: 'Orc',
+        hpDice: '1d8',
+        ac: 6,
+        damage: '1d8',
+        xpValue: 5,
+        level: 2,
+        behavior: MonsterBehavior.SMART,
+      },
+      {
+        letter: 'Z',
+        name: 'Zombie',
+        hpDice: '2d8',
+        ac: 8,
+        damage: '1d8',
+        xpValue: 7,
+        level: 2,
+        behavior: MonsterBehavior.SIMPLE,
+      },
+      {
+        letter: 'T',
+        name: 'Troll',
+        hpDice: '6d8',
+        ac: 4,
+        damage: '1d8+1d8',
+        xpValue: 120,
+        level: 6,
+        behavior: MonsterBehavior.SMART,
+      },
+    ]
+
+    // Filter templates by depth (only spawn appropriate level monsters)
+    const availableTemplates = templates.filter((t) => t.level <= depth)
+
+    let attempts = 0
+    const maxAttempts = count * 10
+
+    while (monsters.length < count && attempts < maxAttempts) {
+      attempts++
+
+      if (rooms.length === 0 || availableTemplates.length === 0) break
+
+      // Pick random room
+      const room = rooms[this.random.nextInt(0, rooms.length - 1)]
+
+      // Pick random position in room
+      const x = this.random.nextInt(room.x + 1, room.x + room.width - 2)
+      const y = this.random.nextInt(room.y + 1, room.y + room.height - 2)
+
+      const key = `${x},${y}`
+
+      // Check if position is valid
+      if (!monsterPositions.has(key) && tiles[y] && tiles[y][x] && tiles[y][x].walkable) {
+        monsterPositions.add(key)
+
+        // Pick random template
+        const template = this.random.pickRandom(availableTemplates)
+
+        // Roll HP
+        const hp = this.random.roll(template.hpDice)
+
+        monsters.push({
+          id: `monster-${monsters.length}-${this.random.nextInt(1000, 9999)}`,
+          letter: template.letter,
+          name: template.name,
+          position: { x, y },
+          hp,
+          maxHp: hp,
+          ac: template.ac,
+          damage: template.damage,
+          xpValue: template.xpValue,
+          level: template.level,
+          aiProfile: {
+            behavior: template.behavior,
+            intelligence: template.level,
+            aggroRange: 5 + template.level,
+            fleeThreshold: 0.0,
+            special: [],
+          },
+          isAsleep: this.random.chance(0.5), // 50% start asleep
+          isAwake: !this.random.chance(0.5),
+          state: MonsterState.SLEEPING,
+          visibleCells: new Set(),
+          currentPath: null,
+          hasStolen: false,
+        })
+      }
+    }
+
+    return monsters
   }
 }
