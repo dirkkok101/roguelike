@@ -12,13 +12,14 @@ export class GameRenderer {
 
   constructor(
     private renderingService: RenderingService,
-    private config = {
+    _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
       showItemsInMemory: false,
       showGoldInMemory: false,
     }
   ) {
+    // Config will be used in future phases for customizable rendering
     // Create UI structure
     this.dungeonContainer = this.createDungeonView()
     this.statsContainer = this.createStatsView()

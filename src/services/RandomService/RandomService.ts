@@ -92,14 +92,14 @@ export class MockRandom implements IRandomService {
     this.index = 0
   }
 
-  nextInt(min: number, max: number): number {
+  nextInt(_min: number, _max: number): number {
     if (this.index >= this.values.length) {
       throw new Error('MockRandom: No more values')
     }
     return this.values[this.index++]
   }
 
-  roll(dice: string): number {
+  roll(_dice: string): number {
     return this.nextInt(0, 100)
   }
 
@@ -107,7 +107,7 @@ export class MockRandom implements IRandomService {
     return array
   }
 
-  chance(probability: number): boolean {
+  chance(_probability: number): boolean {
     return this.nextInt(0, 1) === 1
   }
 

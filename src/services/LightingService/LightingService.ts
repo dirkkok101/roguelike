@@ -1,4 +1,4 @@
-import { LightSource } from '@types/core'
+import { LightSource } from '@types/core/core'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
@@ -6,7 +6,9 @@ import { IRandomService } from '@services/RandomService'
 // ============================================================================
 
 export class LightingService {
-  constructor(private random: IRandomService) {}
+  constructor(_random: IRandomService) {
+    // Random service will be used in future phases for fuel variations
+  }
 
   /**
    * Tick fuel consumption for a light source (call each turn)

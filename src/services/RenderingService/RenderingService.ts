@@ -13,10 +13,8 @@ export interface RenderConfig {
 }
 
 export class RenderingService {
-  private fovService: FOVService
-
-  constructor(fovService: FOVService) {
-    this.fovService = fovService
+  constructor(_fovService: FOVService) {
+    // FOV service will be used in future phases for advanced rendering
   }
 
   /**
@@ -44,7 +42,7 @@ export class RenderingService {
    * Determine if entity should be rendered
    */
   shouldRenderEntity(
-    entityPosition: Position,
+    _entityPosition: Position,
     entityType: 'monster' | 'item' | 'gold' | 'stairs' | 'trap',
     visibilityState: VisibilityState,
     config: RenderConfig
@@ -159,7 +157,7 @@ export class RenderingService {
     }
   }
 
-  private getItemColor(item: Item): string {
+  private getItemColor(_item: Item): string {
     // Simplified for Phase 1, expanded in Phase 5
     return '#FFFFFF'
   }

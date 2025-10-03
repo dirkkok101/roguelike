@@ -1,1 +1,2 @@
-export { IRandomService, SeededRandom, MockRandom } from './RandomService'
+export type { IRandomService } from './RandomService'
+export { SeededRandom, MockRandom } from './RandomService'
