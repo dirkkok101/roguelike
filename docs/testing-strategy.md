@@ -1,7 +1,8 @@
 # Testing Strategy: ASCII Roguelike
 
-**Version**: 1.0
-**Last Updated**: 2025-10-03
+**Version**: 1.0  
+**Last Updated**: 2025-10-03  
+**Related Docs**: [Game Design](./game-design.md) | [Architecture](./architecture.md) | [Core Systems](./systems-core.md) | [Advanced Systems](./systems-advanced.md) | [Plan](./plan.md)
 
 ---
 
@@ -505,8 +506,8 @@ When migrating existing code to this structure:
 
 ## References
 
-- **PRD**: `docs/prd.md` - Section 4.2.1 Test Organization Strategy
-- **Implementation Plan**: `docs/plan.md` - Phase 1.2.5 Migration Guide
+- **Architecture**: [architecture.md](./architecture.md) - Service implementations
+- **Development Plan**: [plan.md](./plan.md) - Testing tasks per phase
 - **Jest Config**: `jest.config.js`
 - **TypeScript Config**: `tsconfig.json` (path aliases)
 
@@ -516,6 +517,6 @@ When migrating existing code to this structure:
 
 For questions about testing strategy, file organization, or conventions:
 1. Refer to examples in existing services (RandomService, LightingService)
-2. Check PRD Section 4.2.1
+2. Check Architecture document for service details
 3. Review this document
 4. Document decisions and update this file as patterns evolve
