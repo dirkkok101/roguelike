@@ -3184,6 +3184,37 @@ export class AttackCommand implements ICommand {
 - Death screen
 - Update MoveCommand to use AttackCommand when bumping into monsters
 
+### Phase 2 Complete! ✅
+
+At this point you should be able to:
+- Fight monsters in the single-room dungeon
+- See monsters move toward you using basic AI (SIMPLE)
+- Take and deal damage with combat messages
+- Gain XP when monsters die
+- Die when HP reaches 0
+- See death screen with stats
+- Watch monsters use A* pathfinding around obstacles
+
+**Test it:**
+1. `npm run dev`
+2. Wait for monsters to spawn and approach you
+3. Bump into them to attack (movement key toward monster)
+4. Verify combat messages appear in message log
+5. Check XP gain shown in messages on monster death
+6. Let monsters kill you to test death screen
+7. Verify stats displayed on death screen
+
+**Playtest scenarios:**
+- Do monsters pathfind intelligently around walls?
+- Are combat messages clear about hit/miss/damage?
+- Does XP reward feel proportional to difficulty?
+- Is early game survivable but challenging?
+
+**Known limitations:**
+- Only 1 room available (full procedural dungeon in Phase 3)
+- Only basic AI behaviors implemented (more in Phase 4)
+- No items to help in combat yet (Phase 5)
+
 ---
 
 ## Phase 3: Advanced Dungeon Generation
@@ -3396,6 +3427,42 @@ export class AttackCommand implements ICommand {
   - [ ] Moving up/down changes level correctly
   - [ ] Player spawns at opposite stairs
   - [ ] Level state preserved when revisiting
+
+### Phase 3 Complete! ✅
+
+At this point you should be able to:
+- Explore procedurally generated multi-room dungeons
+- See varied room layouts every game (4-9 rooms)
+- Navigate corridors connecting rooms
+- Open and close doors (o/c keys)
+- Search for secret doors and traps (s key)
+- Navigate between 26 dungeon levels via stairs (>/<)
+- Experience guaranteed connectivity (all rooms reachable)
+- Trigger traps (bear trap, dart, teleport, sleep, pit)
+
+**Test it:**
+1. `npm run dev`
+2. Explore multiple rooms connected by corridors
+3. Test opening doors (o) and closing doors (c)
+4. Search for secret doors (s key near walls)
+5. Step on a trap to trigger it
+6. Go down stairs (>) to level 2
+7. Go back up (<) to level 1 - verify same layout
+8. Restart game - verify new dungeon layout
+9. Check all rooms are reachable from start
+
+**Playtest scenarios:**
+- Can you reach every room from your starting position?
+- Do corridors feel natural (not too straight/boring)?
+- Are locked doors blocking progress appropriately?
+- Do traps feel fair (not instant death)?
+- Does dungeon complexity increase with depth?
+- Are secret doors discoverable with searching?
+
+**Known limitations:**
+- All monsters still use basic AI (advanced behaviors in Phase 4)
+- No items to find yet (Phase 5)
+- No special monster abilities yet (Phase 4)
 
 ---
 
@@ -3613,6 +3680,42 @@ terTurns(state)** method
   - [ ] Monsters take turns after player
   - [ ] Multiple monsters act in sequence
   - [ ] Dead monsters don't act
+
+### Phase 4 Complete! ✅
+
+At this point you should be able to:
+- Observe 7 different AI behaviors (SMART, ERRATIC, GREEDY, SIMPLE, THIEF, STATIONARY, COWARD)
+- Experience 12+ special monster abilities
+- Watch Leprechaun steal gold and flee
+- Get confused by Medusa (random movement)
+- See Troll regenerate HP each turn
+- Watch Ice Monster freeze you in place
+- Survive (or not) Vampire draining max HP permanently
+- See monsters with different personalities and tactics
+
+**Test it:**
+1. `npm run dev`
+2. Find a Bat (letter B) - watch ERRATIC movement (random + toward player)
+3. Drop gold on floor, find an Orc (O) - watch GREEDY behavior prioritize gold
+4. Find a Leprechaun (L) - watch it steal gold then flee
+5. Fight a Troll (T) - notice HP regeneration each turn
+6. Get hit by Ice Monster (I) - verify you're frozen for turns
+7. Fight Medusa (M) - get confused and move randomly
+8. Check combat log for all special ability messages
+9. Test COWARD monsters flee when HP < 30%
+
+**Playtest scenarios:**
+- Do monsters feel distinct from each other in behavior?
+- Are special abilities too overpowered or too weak?
+- Is GREEDY AI obvious (monsters go for gold)?
+- Does THIEF AI flee after stealing?
+- Are regenerating monsters beatable?
+- Is confusion effect clear to player?
+
+**Known limitations:**
+- No items to counter special abilities yet (Phase 5)
+- No healing items if drained/damaged (Phase 5)
+- Limited strategies without inventory (Phase 5)
 
 ---
 
@@ -3843,6 +3946,46 @@ terTurns(state)** method
   - [ ] All 11 item commands work
   - [ ] Can't unequip cursed items
   - [ ] Auto-identify on use
+
+### Phase 5 Complete! ✅
+
+At this point you should be able to:
+- Pick up items from dungeon floor (`,` key)
+- View inventory with all items (`i` key)
+- Equip weapons, armor, and rings
+- Drink potions, read scrolls, zap wands, eat food
+- See unidentified items ("red potion" vs "potion of healing")
+- Identify items by using them or reading scroll of identify
+- Get stuck with cursed items (cannot remove)
+- Use remove curse scroll to free cursed items
+- Experience all 50+ item effects
+
+**Test it:**
+1. `npm run dev`
+2. Find and pick up various items (`,` key)
+3. Press `i` to view inventory screen
+4. Equip a weapon (`w`) and armor (`W`)
+5. Drink an unidentified potion (`q`) - note if it gets auto-identified
+6. Try on a ring (`P`) - test 2-ring limit
+7. Read a scroll of identify (`r`) to identify an unknown item
+8. Get a cursed item equipped - try to remove it (should fail)
+9. Read scroll of remove curse to free it
+10. Zap a wand (`z`) - check charges deplete
+11. Verify inventory shows equipment slots and letter assignments
+
+**Playtest scenarios:**
+- Is inventory management intuitive and easy to navigate?
+- Are unidentified item names varied and memorable?
+- Do item effects feel impactful and useful?
+- Is identification system clear (which items are known)?
+- Can you recover from cursed items reasonably?
+- Are there enough healing potions to survive?
+- Do wand charges run out at a reasonable rate?
+
+**Known limitations:**
+- No hunger system yet (can't starve, Phase 6)
+- No leveling system (can't gain stats, Phase 6)
+- No victory condition (can't win yet, Phase 7)
 
 ---
 
@@ -4111,6 +4254,45 @@ Integrate leveling into game flow and display.
 - [ ] Level-up messages display correctly
 - [ ] UI shows updated stats after level-up
 - [ ] Save/load preserves hunger and XP state
+
+### Phase 6 Complete! ✅
+
+At this point you should be able to:
+- Experience 5 hunger states (Full → Not Hungry → Hungry → Weak → Fainting)
+- See hunger warnings in message log
+- Eat food (`e` key) to reset hunger counter
+- Take starvation damage when fainting (1 HP/turn)
+- Die from starvation if no food available
+- Gain XP from monster kills
+- Level up when XP threshold reached
+- See stat increases on level-up (HP always, STR 10% chance)
+- Feel character progression over time
+
+**Test it:**
+1. `npm run dev`
+2. Play for 900+ turns without eating - watch hunger progress
+3. Eat a ration of food (`e`) to reset hunger to full
+4. Kill monsters and watch XP accumulate
+5. Level up and see "Welcome to level 2!" message
+6. Note HP gain (1d10) and potential STR increase
+7. Check stats display shows updated level and max HP
+8. Try to starve to death (don't eat for ~1900 turns)
+9. Verify hunger affects combat (to-hit penalty when weak/fainting)
+10. Test regeneration slows/stops when hungry
+
+**Playtest scenarios:**
+- Does hunger create meaningful pressure to find food?
+- Is food scarce enough to matter but not frustrating?
+- Does leveling feel rewarding and impactful?
+- Are XP requirements balanced (level 5 by floor 10)?
+- Is starvation a real threat or easily avoided?
+- Do stat increases feel significant?
+- Is the 1d10 HP gain per level enough to keep pace with damage?
+
+**Known limitations:**
+- No save/load yet (can't resume game, Phase 7)
+- No victory condition (can't win yet, Phase 7)
+- No complete UI screens (main menu, help, Phase 7)
 
 ---
 
@@ -4585,6 +4767,73 @@ Polish the UI and integrate all screens.
 - [ ] Message history displays recent messages
 - [ ] Quit confirmation prevents accidental exits
 - [ ] All screen transitions work smoothly
+
+### Phase 7 Complete! ✅
+
+At this point you should have a **complete, playable roguelike game**!
+
+You should be able to:
+- Start game from main menu (New Game / Continue / Help)
+- Play through all 26 dungeon levels
+- Find the Amulet of Yendor on level 26
+- Return to level 1 with the amulet
+- Win the game and see victory screen with score
+- Die and see death screen with cause and stats
+- Save and quit (`S`), then resume game later
+- Experience permadeath (save deleted on death/victory)
+- View help screen (`?`) with all commands
+- View message history (`M`) to review past events
+- See all UI polish and screen transitions
+
+**Test it - Full Game Playthrough:**
+1. `npm run dev` - see main menu
+2. Press `N` for New Game
+3. Play through multiple levels
+4. Save and quit (`S` or `Shift+S`)
+5. Refresh page - see main menu with "Continue Game"
+6. Press `C` to continue - resume where you left off
+7. Attempt to reach level 26
+8. Find the Amulet of Yendor (golden `,` symbol)
+9. Pick it up - see special message
+10. Return to level 1 using up stairs (`<`)
+11. Step on up stairs on level 1 - trigger victory!
+12. See victory screen with final score and stats
+13. Press any key to return to main menu
+
+**Test it - Death Scenario:**
+1. Start new game
+2. Let monsters kill you
+3. See death screen with cause ("Killed by Troll on level 5")
+4. Verify stats displayed (level, gold, kills, turns)
+5. Press any key to return to main menu
+6. Try to continue - should not be available (save deleted)
+
+**Test it - Help & UI:**
+1. From main menu, press `H` for help
+2. Verify all commands listed correctly
+3. Press `ESC` to close help
+4. During game, press `?` for help
+5. Press `M` (Shift+M) for message history
+6. Verify scrollable log of recent messages
+7. Test `Q` quit confirmation dialog
+
+**Playtest scenarios:**
+- Can you complete a full game from start to victory?
+- Is the amulet clearly visible on level 26?
+- Is the victory condition clear (return to level 1)?
+- Does save/load preserve everything (position, items, hunger, etc.)?
+- Is permadeath working (no save scumming)?
+- Are all UI screens polished and professional?
+- Is the help screen comprehensive enough for new players?
+- Does the score calculation feel fair?
+
+**Victory criteria:**
+- [ ] Win the game at least once
+- [ ] Save/load works perfectly across sessions
+- [ ] Death deletes save (tested)
+- [ ] Victory deletes save (tested)
+- [ ] All screens render correctly
+- [ ] No game-breaking bugs
 
 ---
 
