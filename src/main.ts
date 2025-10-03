@@ -22,6 +22,18 @@ const movementService = new MovementService()
 const messageService = new MessageService()
 const dungeonService = new DungeonService(random)
 
+// Dungeon configuration
+const dungeonConfig = {
+  width: 80,
+  height: 22,
+  minRooms: 4,
+  maxRooms: 9,
+  minRoomSize: 3,
+  maxRoomSize: 8,
+  minSpacing: 2,
+  loopChance: 0.25,
+}
+
 // Create UI
 const renderer = new GameRenderer(renderingService)
 const inputHandler = new InputHandler(
@@ -29,22 +41,14 @@ const inputHandler = new InputHandler(
   lightingService,
   fovService,
   messageService,
-  random
+  random,
+  dungeonService,
+  dungeonConfig
 )
 
 // Create initial game state
 function createInitialState(): GameState {
   // Generate procedural dungeon using DungeonService
-  const dungeonConfig = {
-    width: 80,
-    height: 22,
-    minRooms: 4,
-    maxRooms: 9,
-    minRoomSize: 3,
-    maxRoomSize: 8,
-    minSpacing: 2,
-    loopChance: 0.25,
-  }
 
   const level = dungeonService.generateLevel(1, dungeonConfig)
 
