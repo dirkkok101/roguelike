@@ -165,6 +165,77 @@ ge for spares
 
 ---
 
+### 3.2.3 Visibility States & Color System
+
+**Purpose**: Provide visual distinction between currently visible areas (FOV), previously explored areas (map memory), and unexplored areas.
+
+**Three Visibility States**:
+
+| State | Description | Rendering |
+|-------|-------------|-----------|
+| **Visible** | Currently in FOV | Full brightness, full color |
+| **Explored** | Previously seen, not in FOV | Dimmed/desaturated, "memory" |
+| **Unexplored** | Never seen before | Hidden (black) |
+
+**Entity Rendering Rules by State**:
+
+| Entity Type | Visible (in FOV) | Explored (memory) | Unexplored |
+|-------------|------------------|-------------------|------------|
+| **Player** | Full color @ | N/A (current position) | Hidden |
+| **Monsters** | Full color A-Z | **NOT SHOWN** | Hidden |
+| **Items** | Full color symbols | Dimmed (optional) | Hidden |
+| **Gold** | Full color $ | Dimmed (optional) | Hidden |
+| **Stairs** | Full color < > | Dimmed < > | Hidden |
+| **Doors** | Full color + ' | Dimmed + ' | Hidden |
+| **Walls** | Tan/brown | Dark gray | Hidden |
+| **Floors** | Light brown | Medium gray | Hidden |
+| **Corridors** | Brown | Dark gray | Hidden |
+| **Traps** | Red ^ (if discovered) | Dimmed ^ (if discovered) | Hidden |
+
+**Key Rendering Principles**:
+
+1. **Monsters only visible in FOV**: Player can only see monster behavior and position when currently visible
+2. **Terrain is remembered**: Walls, floors, corridors, and doors remain visible in explored areas (dimmed)
+3. **Items/Gold optionally remembered**: Can be configured to show in memory (dimmed) or require FOV
+4. **Dynamic entities hidden**: Monster positions, animations, and states only shown in current FOV
+5. **Fog of war**: Explored tiles remain visible to help navigation and tactical planning
+
+**Color Palette** (detailed in Section 5.1):
+
+**Visible State** (in FOV):
+- Walls: `#8B7355` (tan)
+- Floors: `#A89078` (light brown)
+- Corridors: `#6B5D52` (dark brown)
+- Doors (closed): `#D4AF37` (golden)
+- Doors (open): `#8B7355` (tan)
+- Player: `#00FFFF` (cyan)
+- Monsters: Varies by type (red/green/blue based on danger)
+- Items: Varies by type (yellow/magenta/cyan)
+- Gold: `#FFD700` (gold)
+- Stairs: `#FFFFFF` (white)
+
+**Explored State** (memory):
+- Walls: `#4A4A4A` (dark gray)
+- Floors: `#5A5A5A` (medium gray)
+- Corridors: `#404040` (darker gray)
+- Doors: `#6A6A6A` (gray)
+- Monsters: **NOT SHOWN**
+- Items: `#707070` (dim gray) - optional
+- Gold: `#808080` (dim gray) - optional
+- Stairs: `#9A9A9A` (light gray)
+
+**Unexplored State**:
+- Everything: `#000000` (black) or not rendered
+
+**Implementation Notes**:
+- Use CSS classes for state-based styling (e.g., `.tile-visible`, `.tile-explored`)
+- RenderingService determines visibility state for each cell
+- Explored state tracked in `Level.explored` boolean array
+- FOV calculation updates visible cells each turn
+- Explored cells marked true when first entered FOV, never reset
+
+---
+
 ### 3.3 Monsters (26 Total - Letters A-Z)
 
 All monsters from the original Rogue, each represented by a capital letter:
@@ -502,6 +573,7 @@ Damage = Weapon Dice + Strength Modifier
 │  - PathfindingService: A* pathfinding for monster AI         │
 │  - LightingService: Light source management, fuel tracking   │
 │  - MonsterAIService: AI behavior decision-making             │
+│  - RenderingService: Visibility states, color selection      │
 │  - DebugService: Debug commands and visualizations           │
 │  - RandomService: Seeded RNG (injectable for testing)        │
 │  - Contains ALL game logic and rules                         │
@@ -967,6 +1039,78 @@ class DebugService {
 - **Seed Display**: Shows current seed in corner
 
 **Dependencies**: All services (for command execution)
+
+---
+
+#### RenderingService
+
+**Responsibilities**: Determine visibility states, apply color schemes, filter entity rendering
+
+**Methods**:
+```typescript
+class RenderingService {
+  constructor(
+    private fovService: FOVService
+  ) {}
+
+  // Visibility state determination
+  getVisibilityState(
+    position: Position,
+    visibleCells: Set<Position>,
+    level: Level
+  ): 'visible' | 'explored' | 'unexplored'
+
+  // Entity rendering decisions
+  shouldRenderEntity(
+    entityPosition: Position,
+    entityType: 'monster' | 'item' | 'gold' | 'stairs' | 'trap',
+    visibilityState: 'visible' | 'explored' | 'unexplored',
+    config: RenderConfig
+  ): boolean
+
+  // Color selection
+  getColorForTile(
+    tile: Tile,
+    visibilityState: 'visible' | 'explored' | 'unexplored'
+  ): string
+
+  getColorForEntity(
+    entity: Monster | Item | GoldPile,
+    visibilityState: 'visible' | 'explored' | 'unexplored'
+  ): string
+
+  // CSS class generation
+  getCSSClass(
+    visibilityState: 'visible' | 'explored' | 'unexplored',
+    entityType?: string
+  ): string
+}
+```
+
+**Visibility Logic**:
+```typescript
+getVisibilityState(position, visibleCells, level):
+  if position in visibleCells:
+    return 'visible'
+  else if level.explored[position.y][position.x]:
+    return 'explored'
+  else:
+    return 'unexplored'
+```
+
+**Entity Rendering Rules**:
+- **Monsters**: Only render if `visibilityState === 'visible'`
+- **Items/Gold**: Render if `visible`, optionally if `explored` (config)
+- **Stairs**: Render if `visible` or `explored`
+- **Traps**: Render if discovered AND (`visible` or `explored`)
+- **Terrain**: Render if `visible` or `explored`
+
+**Color Mappings** (detailed in Section 5.1):
+- Visible state: Full color palette
+- Explored state: Grayscale variants
+- Unexplored state: Black/hidden
+
+**Dependencies**: FOVService
 
 ---
 
@@ -1771,6 +1915,8 @@ interface Tile {
   char: string;  // Display character
   walkable: boolean;
   transparent: boolean;  // For FOV calculations
+  colorVisible: string;  // Hex color when in FOV (e.g., "#8B7355")
+  colorExplored: string;  // Hex color when in memory (e.g., "#4A4A4A")
 }
 ```
 
@@ -2032,30 +2178,68 @@ All game content stored in `/data/*.json`:
 - **Size**: 14-16px for readability
 - **Weight**: Regular for dungeon, bold for player/important elements
 
-**Color Palette**:
-- **Background**: Dark gray/black (`#1a1a1a`)
-- **Player**: Bright cyan (`#00ffff`)
-- **Monsters**: Red/orange gradient (`#ff4444` to `#ff8800`)
+**Color Palette** (Three-State Visibility System):
+
+**Background**: Dark gray/black (`#1a1a1a`)
+
+**VISIBLE STATE** (Currently in FOV):
+
+*Terrain*:
+- **Walls**: Tan (`#8B7355`)
+- **Floors**: Light brown (`#A89078`)
+- **Corridors**: Dark brown (`#6B5D52`)
+- **Doors (closed)**: Golden (`#D4AF37`)
+- **Doors (open)**: Tan (`#8B7355`)
+- **Doors (secret)**: Same as wall until discovered
+- **Stairs**: White (`#FFFFFF`)
+- **Traps**: Red (`#FF4444`) - if discovered
+
+*Entities*:
+- **Player**: Bright cyan (`#00FFFF`)
+- **Monsters**:
+  - Low threat (A-E): Green (`#44FF44`)
+  - Medium threat (F-P): Yellow (`#FFDD00`)
+  - High threat (Q-U): Orange (`#FF8800`)
+  - Boss tier (V-Z): Red (`#FF4444`)
 - **Items**:
-  - Gold: Yellow (`#ffdd00`)
-  - Food: Green (`#44ff44`)
-  - Light Sources: Orange (`#ffaa00`)
-  - Potions: Magenta (`#ff00ff`)
-  - Weapons/Armor: White (`#ffffff`)
-- **Dungeon**:
-  - Walls: Dark gray (`#444444`)
-  - Floors: Medium gray (`#666666`)
-  - Corridors: Lighter gray (`#888888`)
-  - Doors (closed): Brown (`#aa6622`)
-  - Doors (open): Light brown (`#cc8844`)
-  - Doors (secret): Same as wall (hidden)
-  - Fog of War (explored): Dim gray (`#333333`)
-- **Messages**:
-  - Damage: Red (`#ff4444`)
-  - Healing: Green (`#44ff44`)
-  - Info: White (`#ffffff`)
-  - Warnings: Yellow (`#ffdd00`)
-  - Light warnings: Orange (`#ff8800`)
+  - Gold: Gold (`#FFD700`)
+  - Food: Green (`#44FF44`)
+  - Light sources (torch): Orange (`#FFAA00`)
+  - Light sources (lantern): Yellow (`#FFD700`)
+  - Potions: Magenta (`#FF00FF`)
+  - Scrolls: Cyan (`#00FFFF`)
+  - Weapons: White (`#FFFFFF`)
+  - Armor: Silver (`#C0C0C0`)
+  - Rings: Purple (`#9370DB`)
+  - Wands: Blue (`#4444FF`)
+  - Amulet of Yendor: Bright gold (`#FFD700`)
+
+**EXPLORED STATE** (Previously seen, map memory):
+
+*Terrain*:
+- **Walls**: Dark gray (`#4A4A4A`)
+- **Floors**: Medium gray (`#5A5A5A`)
+- **Corridors**: Darker gray (`#404040`)
+- **Doors**: Gray (`#6A6A6A`)
+- **Stairs**: Light gray (`#9A9A9A`)
+- **Traps**: Dark red (`#442222`) - if discovered
+
+*Entities*:
+- **Monsters**: **NOT RENDERED** (only visible in FOV)
+- **Items**: Optional - Dim gray (`#707070`)
+- **Gold**: Optional - Dim gray (`#808080`)
+
+**UNEXPLORED STATE**:
+- Everything: Black (`#000000`) or not rendered
+
+**UI/Message Colors**:
+- **Damage**: Red (`#FF4444`)
+- **Healing**: Green (`#44FF44`)
+- **Info**: White (`#FFFFFF`)
+- **Warnings**: Yellow (`#FFDD00`)
+- **Light warnings**: Orange (`#FF8800`)
+- **Critical**: Bright red (`#FF0000`)
+- **Success**: Bright green (`#00FF00`)
 
 **Effects**:
 - **Subtle glow** on player character (2px cyan shadow)
@@ -2222,18 +2406,23 @@ All game content stored in `/data/*.json`:
 - [ ] Keyboard input handling
 - [ ] LightingService (fuel tracking, radius calculation)
 - [ ] FOVService (shadowcasting with light radius)
+- [ ] RenderingService (visibility states, color selection, entity filtering)
 - [ ] MovementService (position validation, basic collision)
 - [ ] MoveCommand (orchestrate movement + FOV update)
 - [ ] Simple test level (single room, manual placement)
-- [ ] Render player (`@`) on floor (`.`)
+- [ ] Render player (`@`) on floor (`.`) with visibility states
+- [ ] Implement three-state rendering (visible/explored/unexplored)
+- [ ] Add color palette CSS classes for visibility states
+- [ ] Update Level.explored tracking when FOV changes
 - [ ] **DebugService** (basic commands: reveal, teleport, god mode)
 
-**Deliverable**: Can move player around a room, see FOV change with light
+**Deliverable**: Can move player around a room, see FOV change with light, observe fog of war (explored areas dimmed, unexplored hidden)
 
 **Tests**:
 - MovementService unit tests
 - LightingService unit tests
 - FOVService unit tests
+- RenderingService unit tests (visibility state logic, color selection, entity filtering)
 - MoveCommand unit tests
 
 ---
