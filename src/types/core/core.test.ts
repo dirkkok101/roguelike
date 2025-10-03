@@ -1,4 +1,4 @@
-import { Position, TileType, DoorState } from '@types/core'
+import { Position, TileType, DoorState } from './core'
 
 describe('Core Types', () => {
   test('Position type works', () => {

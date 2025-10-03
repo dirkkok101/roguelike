@@ -202,21 +202,38 @@ export default {
 
 ```bash
 mkdir -p src/{types,services,commands,ui,utils}
-mkdir -p src/__tests__/{services,commands,ui,utils}
 mkdir -p public/data
 mkdir -p public/assets
 ```
 
-**Complete structure**:
+**Complete structure** (with colocated tests):
 ```
 roguelike/
 ├── src/
 │   ├── types/           # TypeScript interfaces and types
-│   ├── services/        # Game logic layer
+│   │   └── core/
+│   │       ├── core.ts
+│   │       └── core.test.ts
+│   ├── services/        # Game logic layer (each service in own folder)
+│   │   ├── RandomService/
+│   │   │   ├── RandomService.ts
+│   │   │   ├── RandomService.seeded.test.ts
+│   │   │   └── RandomService.mock.test.ts
+│   │   ├── LightingService/
+│   │   │   ├── LightingService.ts
+│   │   │   ├── LightingService.fuel.test.ts
+│   │   │   └── LightingService.creation.test.ts
+│   │   └── FOVService/
+│   │       ├── FOVService.ts
+│   │       ├── FOVService.shadowcasting.test.ts
+│   │       └── FOVService.blocking.test.ts
 │   ├── commands/        # Command pattern orchestration
+│   │   └── MoveCommand/
+│   │       ├── MoveCommand.ts
+│   │       ├── MoveCommand.movement.test.ts
+│   │       └── MoveCommand.collision.test.ts
 │   ├── ui/             # DOM rendering and input
 │   ├── utils/          # Helper functions
-│   ├── __tests__/      # Test files (mirrors src structure)
 │   └── main.ts         # Entry point
 ├── public/
 │   ├── data/           # JSON data files
@@ -5791,10 +5808,60 @@ All 26 monsters from original Rogue with full stats and AI behaviors:
 
 ## Appendix C: Testing Patterns
 
+### Testing Philosophy
+
+**Colocated Tests**: Tests live next to the code they test, organized by scenario/feature.
+
+**File Naming Convention**:
+- `ServiceName.ts` - The service implementation
+- `ServiceName.scenario.test.ts` - Test file for specific scenario
+- Examples:
+  - `RandomService.seeded.test.ts` - Tests for seeded random behavior
+  - `RandomService.mock.test.ts` - Tests for mock random behavior
+  - `LightingService.fuel.test.ts` - Tests for fuel consumption
+  - `LightingService.creation.test.ts` - Tests for creating light sources
+  - `FOVService.shadowcasting.test.ts` - Tests for shadowcasting algorithm
+  - `FOVService.blocking.test.ts` - Tests for vision blocking
+
+**Benefits**:
+- Easy to find tests for specific functionality
+- Clear separation of test concerns
+- Better organization as codebase grows
+- Tests are close to implementation for easier refactoring
+
+### Folder Structure Examples
+
+```
+src/services/
+├── RandomService/
+│   ├── RandomService.ts              # Implementation
+│   ├── RandomService.seeded.test.ts  # Seeded RNG tests
+│   └── RandomService.mock.test.ts    # Mock RNG tests
+├── LightingService/
+│   ├── LightingService.ts
+│   ├── LightingService.fuel.test.ts      # Fuel tracking tests
+│   ├── LightingService.creation.test.ts  # Light creation tests
+│   └── LightingService.warnings.test.ts  # Warning message tests
+└── FOVService/
+    ├── FOVService.ts
+    ├── FOVService.shadowcasting.test.ts  # Algorithm tests
+    ├── FOVService.blocking.test.ts       # Vision blocking tests
+    └── FOVService.radius.test.ts         # Radius calculation tests
+
+src/commands/
+└── MoveCommand/
+    ├── MoveCommand.ts
+    ├── MoveCommand.movement.test.ts   # Basic movement tests
+    ├── MoveCommand.collision.test.ts  # Wall/monster collision tests
+    └── MoveCommand.fov.test.ts        # FOV update tests
+```
+
 ### Service Testing Pattern
 
+**File**: `src/services/ServiceName/ServiceName.scenario.test.ts`
+
 ```typescript
-describe('ServiceName', () => {
+describe('ServiceName - Scenario Description', () => {
   let service: ServiceName
   let mockRandom: MockRandom
 
@@ -5813,13 +5880,19 @@ describe('ServiceName', () => {
     // Assert
     expect(result).toBe(/* ... */)
   })
+
+  test('edge case is handled', () => {
+    // Test edge cases
+  })
 })
 ```
 
 ### Command Testing Pattern
 
+**File**: `src/commands/CommandName/CommandName.scenario.test.ts`
+
 ```typescript
-describe('CommandName', () => {
+describe('CommandName - Scenario Description', () => {
   let command: CommandName
   let mockServices: /* ... */
 
@@ -5832,8 +5905,27 @@ describe('CommandName', () => {
     const newState = command.execute(initialState)
     expect(newState./* ... */).toBe(/* ... */)
   })
+
+  test('handles error conditions', () => {
+    // Test error handling
+  })
 })
 ```
+
+### Import Path Updates
+
+With this structure, imports change:
+```typescript
+// Old structure
+import { RandomService } from '@services/RandomService'
+
+// New structure (same! TypeScript resolves directory index)
+import { RandomService } from '@services/RandomService'
+// or explicitly:
+import { RandomService } from '@services/RandomService/RandomService'
+```
+
+Configure in `tsconfig.json` and `jest.config.js` to support directory imports.
 
 ---
 
