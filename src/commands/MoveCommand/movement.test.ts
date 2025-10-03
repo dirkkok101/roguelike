@@ -1,0 +1,291 @@
+import { MoveCommand } from './MoveCommand'
+import { MovementService } from '@services/MovementService'
+import { LightingService } from '@services/LightingService'
+import { FOVService } from '@services/FOVService'
+import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { GameState, Level, TileType } from '@types/core/core'
+
+describe('MoveCommand - Basic Movement', () => {
+  let movementService: MovementService
+  let lightingService: LightingService
+  let fovService: FOVService
+  let messageService: MessageService
+
+  beforeEach(() => {
+    movementService = new MovementService()
+    lightingService = new LightingService(new MockRandom())
+    fovService = new FOVService()
+    messageService = new MessageService()
+  })
+
+  function createTestState(): GameState {
+    const level: Level = {
+      depth: 1,
+      width: 10,
+      height: 10,
+      tiles: Array(10)
+        .fill(null)
+        .map(() =>
+          Array(10)
+            .fill(null)
+            .map(() => ({
+              type: TileType.FLOOR,
+              char: '.',
+              walkable: true,
+              transparent: true,
+              colorVisible: '#fff',
+              colorExplored: '#666',
+            }))
+        ),
+      rooms: [],
+      doors: [],
+      monsters: [],
+      items: [],
+      gold: [],
+      stairsUp: null,
+      stairsDown: null,
+      explored: Array(10)
+        .fill(null)
+        .map(() => Array(10).fill(false)),
+    }
+
+    return {
+      player: {
+        position: { x: 5, y: 5 },
+        hp: 30,
+        maxHp: 30,
+        strength: 16,
+        maxStrength: 16,
+        ac: 4,
+        level: 1,
+        xp: 0,
+        gold: 0,
+        hunger: 1300,
+        equipment: {
+          weapon: null,
+          armor: null,
+          leftRing: null,
+          rightRing: null,
+          lightSource: lightingService.createTorch(),
+        },
+        inventory: [],
+      },
+      currentLevel: 1,
+      levels: new Map([[1, level]]),
+      visibleCells: new Set(),
+      messages: [],
+      turnCount: 0,
+      seed: 'test',
+      gameId: 'test-game',
+      isGameOver: false,
+      hasWon: false,
+    }
+  }
+
+  describe('directional movement', () => {
+    test('moves player up', () => {
+      const state = createTestState()
+      const command = new MoveCommand(
+        'up',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      const newState = command.execute(state)
+
+      expect(newState.player.position).toEqual({ x: 5, y: 4 })
+    })
+
+    test('moves player down', () => {
+      const state = createTestState()
+      const command = new MoveCommand(
+        'down',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      const newState = command.execute(state)
+
+      expect(newState.player.position).toEqual({ x: 5, y: 6 })
+    })
+
+    test('moves player left', () => {
+      const state = createTestState()
+      const command = new MoveCommand(
+        'left',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      const newState = command.execute(state)
+
+      expect(newState.player.position).toEqual({ x: 4, y: 5 })
+    })
+
+    test('moves player right', () => {
+      const state = createTestState()
+      const command = new MoveCommand(
+        'right',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      const newState = command.execute(state)
+
+      expect(newState.player.position).toEqual({ x: 6, y: 5 })
+    })
+  })
+
+  describe('turn tracking', () => {
+    test('increments turn count', () => {
+      const state = createTestState()
+      const command = new MoveCommand(
+        'right',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      const newState = command.execute(state)
+
+      expect(newState.turnCount).toBe(1)
+    })
+
+    test('increments turn count for multiple moves', () => {
+      let state = createTestState()
+
+      const right = new MoveCommand(
+        'right',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+      const down = new MoveCommand(
+        'down',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      state = right.execute(state)
+      expect(state.turnCount).toBe(1)
+
+      state = down.execute(state)
+      expect(state.turnCount).toBe(2)
+    })
+  })
+
+  describe('immutability', () => {
+    test('does not mutate original state', () => {
+      const state = createTestState()
+      const originalPosition = { ...state.player.position }
+      const originalTurnCount = state.turnCount
+
+      const command = new MoveCommand(
+        'right',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      command.execute(state)
+
+      expect(state.player.position).toEqual(originalPosition)
+      expect(state.turnCount).toBe(originalTurnCount)
+    })
+
+    test('returns new state object', () => {
+      const state = createTestState()
+      const command = new MoveCommand(
+        'right',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      const newState = command.execute(state)
+
+      expect(newState).not.toBe(state)
+      expect(newState.player).not.toBe(state.player)
+    })
+  })
+
+  describe('level boundaries', () => {
+    test('handles movement near edges', () => {
+      const state = createTestState()
+      state.player.position = { x: 1, y: 1 }
+
+      const up = new MoveCommand(
+        'up',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+      const left = new MoveCommand(
+        'left',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      const newState1 = up.execute(state)
+      expect(newState1.player.position).toEqual({ x: 1, y: 0 })
+
+      const newState2 = left.execute(state)
+      expect(newState2.player.position).toEqual({ x: 0, y: 1 })
+    })
+
+    test('does not move when hitting boundary', () => {
+      const state = createTestState()
+      state.player.position = { x: 0, y: 0 }
+
+      const up = new MoveCommand(
+        'up',
+        movementService,
+        lightingService,
+        fovService,
+        messageService
+      )
+
+      const newState = up.execute(state)
+
+      expect(newState.player.position).toEqual({ x: 0, y: 0 })
+    })
+  })
+
+  describe('sequential movement', () => {
+    test('supports chained movements', () => {
+      let state = createTestState()
+
+      const commands = [
+        new MoveCommand('right', movementService, lightingService, fovService, messageService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService),
+        new MoveCommand('down', movementService, lightingService, fovService, messageService),
+        new MoveCommand('left', movementService, lightingService, fovService, messageService),
+      ]
+
+      for (const command of commands) {
+        state = command.execute(state)
+      }
+
+      expect(state.player.position).toEqual({ x: 6, y: 6 })
+      expect(state.turnCount).toBe(4)
+    })
+  })
+})

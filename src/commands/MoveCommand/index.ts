@@ -1,0 +1,1 @@
+export { MoveCommand } from './MoveCommand'
