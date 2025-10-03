@@ -1,0 +1,189 @@
+import { DungeonService, DungeonConfig } from './DungeonService'
+import { SeededRandom } from './RandomService'
+
+describe('DungeonService', () => {
+  const seed = 'test-dungeon-seed'
+  const random = new SeededRandom(seed)
+  const dungeonService = new DungeonService(random)
+
+  const defaultConfig: DungeonConfig = {
+    width: 80,
+    height: 22,
+    minRooms: 4,
+    maxRooms: 9,
+    minRoomSize: 3,
+    maxRoomSize: 8,
+    minSpacing: 2,
+    loopChance: 0.25,
+  }
+
+  describe('generateLevel', () => {
+    test('should generate a level with the correct dimensions', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      expect(level.width).toBe(defaultConfig.width)
+      expect(level.height).toBe(defaultConfig.height)
+      expect(level.tiles.length).toBe(defaultConfig.height)
+      expect(level.tiles[0].length).toBe(defaultConfig.width)
+    })
+
+    test('should generate rooms within the min/max range', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      expect(level.rooms.length).toBeGreaterThanOrEqual(defaultConfig.minRooms)
+      expect(level.rooms.length).toBeLessThanOrEqual(defaultConfig.maxRooms)
+    })
+
+    test('should create rooms with correct size constraints', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      for (const room of level.rooms) {
+        expect(room.width).toBeGreaterThanOrEqual(defaultConfig.minRoomSize)
+        expect(room.width).toBeLessThanOrEqual(defaultConfig.maxRoomSize)
+        expect(room.height).toBeGreaterThanOrEqual(defaultConfig.minRoomSize)
+        expect(room.height).toBeLessThanOrEqual(defaultConfig.maxRoomSize)
+      }
+    })
+
+    test('should have stairs down on level 1', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      expect(level.stairsDown).not.toBeNull()
+      expect(level.stairsUp).toBeNull()
+    })
+
+    test('should have both stairs on deeper levels', () => {
+      const level = dungeonService.generateLevel(5, defaultConfig)
+
+      expect(level.stairsDown).not.toBeNull()
+      expect(level.stairsUp).not.toBeNull()
+    })
+
+    test('should initialize explored array correctly', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      expect(level.explored.length).toBe(defaultConfig.height)
+      expect(level.explored[0].length).toBe(defaultConfig.width)
+      expect(level.explored[0][0]).toBe(false)
+    })
+  })
+
+  describe('placeRooms', () => {
+    test('should place non-overlapping rooms', () => {
+      const rooms = dungeonService.placeRooms(defaultConfig)
+
+      for (let i = 0; i < rooms.length; i++) {
+        for (let j = i + 1; j < rooms.length; j++) {
+          const room1 = rooms[i]
+          const room2 = rooms[j]
+
+          // Check no overlap with spacing buffer
+          const noOverlap =
+            room1.x + room1.width + defaultConfig.minSpacing <= room2.x ||
+            room2.x + room2.width + defaultConfig.minSpacing <= room1.x ||
+            room1.y + room1.height + defaultConfig.minSpacing <= room2.y ||
+            room2.y + room2.height + defaultConfig.minSpacing <= room1.y
+
+          expect(noOverlap).toBe(true)
+        }
+      }
+    })
+  })
+
+  describe('buildRoomGraph', () => {
+    test('should create edges between all room pairs', () => {
+      const rooms = dungeonService.placeRooms(defaultConfig)
+      const graph = dungeonService.buildRoomGraph(rooms)
+
+      expect(graph.length).toBe(rooms.length)
+
+      // Each node should have edges to all other nodes
+      for (const node of graph) {
+        expect(node.edges.length).toBe(rooms.length - 1)
+      }
+    })
+
+    test('should calculate positive distances', () => {
+      const rooms = dungeonService.placeRooms(defaultConfig)
+      const graph = dungeonService.buildRoomGraph(rooms)
+
+      for (const node of graph) {
+        for (const edge of node.edges) {
+          expect(edge.weight).toBeGreaterThan(0)
+        }
+      }
+    })
+  })
+
+  describe('generateMST', () => {
+    test('should connect all rooms with N-1 edges', () => {
+      const rooms = dungeonService.placeRooms(defaultConfig)
+      const graph = dungeonService.buildRoomGraph(rooms)
+      const mstEdges = dungeonService.generateMST(graph)
+
+      // MST should have exactly N-1 edges for N nodes
+      expect(mstEdges.length).toBe(rooms.length - 1)
+    })
+
+    test('should create a connected tree', () => {
+      const rooms = dungeonService.placeRooms(defaultConfig)
+      const graph = dungeonService.buildRoomGraph(rooms)
+      const mstEdges = dungeonService.generateMST(graph)
+
+      // Verify all rooms are reachable via MST
+      const visited = new Set<number>()
+      const queue: number[] = [0]
+      visited.add(0)
+
+      while (queue.length > 0) {
+        const current = queue.shift()!
+
+        for (const edge of mstEdges) {
+          if (edge.from === current && !visited.has(edge.to)) {
+            visited.add(edge.to)
+            queue.push(edge.to)
+          } else if (edge.to === current && !visited.has(edge.from)) {
+            visited.add(edge.from)
+            queue.push(edge.from)
+          }
+        }
+      }
+
+      expect(visited.size).toBe(rooms.length)
+    })
+  })
+
+  describe('createCorridor', () => {
+    test('should create a path between room centers', () => {
+      const room1 = { id: 0, x: 5, y: 5, width: 4, height: 4 }
+      const room2 = { id: 1, x: 15, y: 15, width: 4, height: 4 }
+
+      const corridor = dungeonService.createCorridor(room1, room2)
+
+      expect(corridor.path.length).toBeGreaterThan(0)
+      expect(corridor.start).toBeDefined()
+      expect(corridor.end).toBeDefined()
+    })
+  })
+
+  describe('determinism', () => {
+    test('should generate identical dungeons with same seed', () => {
+      const random1 = new SeededRandom('deterministic-seed')
+      const random2 = new SeededRandom('deterministic-seed')
+      const service1 = new DungeonService(random1)
+      const service2 = new DungeonService(random2)
+
+      const level1 = service1.generateLevel(1, defaultConfig)
+      const level2 = service2.generateLevel(1, defaultConfig)
+
+      expect(level1.rooms.length).toBe(level2.rooms.length)
+
+      for (let i = 0; i < level1.rooms.length; i++) {
+        expect(level1.rooms[i].x).toBe(level2.rooms[i].x)
+        expect(level1.rooms[i].y).toBe(level2.rooms[i].y)
+        expect(level1.rooms[i].width).toBe(level2.rooms[i].width)
+        expect(level1.rooms[i].height).toBe(level2.rooms[i].height)
+      }
+    })
+  })
+})
