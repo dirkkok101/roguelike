@@ -1,4 +1,14 @@
-import { Level, Room, Tile, TileType, Position, Door, DoorState } from '../types/core/core'
+import {
+  Level,
+  Room,
+  Tile,
+  TileType,
+  Position,
+  Door,
+  DoorState,
+  Trap,
+  TrapType,
+} from '../types/core/core'
 import { IRandomService } from './RandomService'
 
 // ============================================================================
@@ -71,6 +81,16 @@ export class DungeonService {
     // Place doors at room/corridor junctions
     const doors = this.placeDoors(rooms, corridors, tiles)
 
+    // Place traps
+    const trapCount = this.random.nextInt(2, 4) // 2-4 traps per level
+    const traps = this.placeTraps(rooms, trapCount, tiles)
+
+    // Determine stairs positions (not in starting room)
+    const startRoomIndex = 0
+    const stairsUpPos = depth > 1 ? this.getRandomRoomCenter(rooms[startRoomIndex]) : null
+    const stairsDownIndex = rooms.length > 1 ? rooms.length - 1 : 0
+    const stairsDownPos = this.getRandomRoomCenter(rooms[stairsDownIndex])
+
     return {
       depth,
       width: config.width,
@@ -78,11 +98,12 @@ export class DungeonService {
       tiles,
       rooms,
       doors,
+      traps,
       monsters: [],
       items: [],
       gold: [],
-      stairsUp: depth > 1 ? this.getRandomRoomCenter(rooms[0]) : null,
-      stairsDown: this.getRandomRoomCenter(rooms[rooms.length - 1]),
+      stairsUp: stairsUpPos,
+      stairsDown: stairsDownPos,
       explored: Array(config.height)
         .fill(null)
         .map(() => Array(config.width).fill(false)),
@@ -527,5 +548,60 @@ export class DungeonService {
         tile.transparent = false
         break
     }
+  }
+
+  // ============================================================================
+  // TRAP PLACEMENT
+  // ============================================================================
+
+  /**
+   * Place traps randomly in rooms and corridors
+   */
+  placeTraps(rooms: Room[], count: number, tiles: Tile[][]): Trap[] {
+    const traps: Trap[] = []
+    const trapPositions = new Set<string>()
+    const trapTypes = [
+      TrapType.BEAR,
+      TrapType.DART,
+      TrapType.TELEPORT,
+      TrapType.SLEEP,
+      TrapType.PIT,
+    ]
+
+    let attempts = 0
+    const maxAttempts = count * 10
+
+    while (traps.length < count && attempts < maxAttempts) {
+      attempts++
+
+      // Pick random room
+      const room = rooms[this.random.nextInt(0, rooms.length - 1)]
+
+      // Pick random position in room (avoid edges)
+      const x = this.random.nextInt(room.x + 1, room.x + room.width - 2)
+      const y = this.random.nextInt(room.y + 1, room.y + room.height - 2)
+
+      const key = `${x},${y}`
+
+      // Check if position is valid
+      if (
+        !trapPositions.has(key) &&
+        tiles[y] &&
+        tiles[y][x] &&
+        tiles[y][x].walkable
+      ) {
+        trapPositions.add(key)
+
+        const trapType = this.random.pickRandom(trapTypes)
+        traps.push({
+          type: trapType,
+          position: { x, y },
+          discovered: false,
+          triggered: false,
+        })
+      }
+    }
+
+    return traps
   }
 }

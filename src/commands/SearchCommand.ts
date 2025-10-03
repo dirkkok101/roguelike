@@ -85,7 +85,39 @@ export class SearchCommand implements ICommand {
         }
       }
 
-      // TODO: Check for traps (Phase 2.4)
+      // Check for traps
+      const trap = level.traps.find(
+        (t) => t.position.x === pos.x && t.position.y === pos.y && !t.discovered
+      )
+
+      if (trap) {
+        const findChance = 0.5 + state.player.level * 0.05
+        if (this.random.chance(findChance)) {
+          // Reveal trap
+          const updatedTraps = level.traps.map((t) =>
+            t.position.x === pos.x && t.position.y === pos.y ? { ...t, discovered: true } : t
+          )
+
+          const updatedLevel = { ...level, traps: updatedTraps }
+          const updatedLevels = new Map(state.levels)
+          updatedLevels.set(state.currentLevel, updatedLevel)
+
+          messages = this.messageService.addMessage(
+            messages,
+            `You found a ${trap.type.toLowerCase()} trap!`,
+            'success',
+            state.turnCount
+          )
+          foundSomething = true
+
+          return {
+            ...state,
+            levels: updatedLevels,
+            messages,
+            turnCount: state.turnCount + 1,
+          }
+        }
+      }
     }
 
     if (!foundSomething) {

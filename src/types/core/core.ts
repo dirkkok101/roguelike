@@ -49,6 +49,21 @@ export interface Room {
   height: number
 }
 
+export enum TrapType {
+  BEAR = 'BEAR',
+  DART = 'DART',
+  TELEPORT = 'TELEPORT',
+  SLEEP = 'SLEEP',
+  PIT = 'PIT',
+}
+
+export interface Trap {
+  type: TrapType
+  position: Position
+  discovered: boolean
+  triggered: boolean
+}
+
 export interface Level {
   depth: number
   width: number
@@ -56,6 +71,7 @@ export interface Level {
   tiles: Tile[][]
   rooms: Room[]
   doors: Door[]
+  traps: Trap[]
   monsters: Monster[]
   items: Item[]
   gold: GoldPile[]
