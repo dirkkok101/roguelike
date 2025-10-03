@@ -206,7 +206,7 @@ mkdir -p public/data
 mkdir -p public/assets
 ```
 
-**Complete structure** (with colocated tests):
+**Complete structure** (hybrid colocated with scenario-based tests):
 ```
 roguelike/
 ├── src/
@@ -217,21 +217,28 @@ roguelike/
 │   ├── services/        # Game logic layer (each service in own folder)
 │   │   ├── RandomService/
 │   │   │   ├── RandomService.ts
-│   │   │   ├── RandomService.seeded.test.ts
-│   │   │   └── RandomService.mock.test.ts
+│   │   │   ├── seeded.test.ts           # Deterministic RNG tests
+│   │   │   ├── mock.test.ts             # Mock implementation tests
+│   │   │   └── index.ts                 # Barrel export
 │   │   ├── LightingService/
 │   │   │   ├── LightingService.ts
-│   │   │   ├── LightingService.fuel.test.ts
-│   │   │   └── LightingService.creation.test.ts
+│   │   │   ├── fuel-consumption.test.ts # Fuel tick & warning tests
+│   │   │   ├── light-sources.test.ts    # Creation & radius tests
+│   │   │   ├── refill.test.ts           # Lantern refill tests
+│   │   │   └── index.ts                 # Barrel export
 │   │   └── FOVService/
 │   │       ├── FOVService.ts
-│   │       ├── FOVService.shadowcasting.test.ts
-│   │       └── FOVService.blocking.test.ts
+│   │       ├── shadowcasting.test.ts    # FOV algorithm tests
+│   │       ├── blocking.test.ts         # Vision blocking tests
+│   │       ├── radius.test.ts           # Light radius tests
+│   │       └── index.ts                 # Barrel export
 │   ├── commands/        # Command pattern orchestration
 │   │   └── MoveCommand/
 │   │       ├── MoveCommand.ts
-│   │       ├── MoveCommand.movement.test.ts
-│   │       └── MoveCommand.collision.test.ts
+│   │       ├── movement.test.ts         # Basic movement tests
+│   │       ├── collision.test.ts        # Collision detection tests
+│   │       ├── fov-updates.test.ts      # FOV recalculation tests
+│   │       └── index.ts                 # Barrel export
 │   ├── ui/             # DOM rendering and input
 │   ├── utils/          # Helper functions
 │   └── main.ts         # Entry point
@@ -772,6 +779,25 @@ describe('MockRandom', () => {
   })
 })
 ```
+
+### 1.2.5 Migrate to Hybrid Test Structure
+
+**Goal**: Establish consistent folder structure and test organization pattern for all services and commands
+
+**Duration**: 1-2 hours
+
+**Tasks**:
+
+1. Fix LightingService folder structure (move orphaned .ts file)
+2. Add barrel exports to RandomService and LightingService
+3. Rename RandomService tests to scenario-based convention (remove `ServiceName.` prefix)
+4. Create LightingService scenario-based test files
+5. Create `docs/testing-strategy.md` with comprehensive guidelines
+6. Git commits after each major task
+
+**Deliverable**: All existing code migrated to new structure, ready to continue with Phase 1.3+ using consistent pattern
+
+---
 
 ### 1.3 Lighting Service
 

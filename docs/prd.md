@@ -598,6 +598,56 @@ Damage = Weapon Dice + Strength Modifier
 
 ---
 
+### 4.2.1 Test Organization Strategy
+
+**Structure**: Modified Colocated with Scenario-Based Tests
+
+Each service and command lives in its own folder containing:
+- Source file(s) - Implementation code
+- Scenario-based test files - Tests organized by feature/behavior
+- Barrel export (index.ts) - Clean re-exports for imports
+
+**Benefits**:
+- Tests close to source for easy maintenance
+- Clear scenario-based organization
+- Folder isolation for each major component
+- Simple imports via path aliases (`@services/ServiceName`)
+- Scales well for complex services with multiple test scenarios
+
+**Example Structure**:
+```
+src/services/FOVService/
+├── FOVService.ts              # Implementation
+├── shadowcasting.test.ts      # FOV algorithm tests
+├── blocking.test.ts           # Vision blocking tests
+├── radius.test.ts             # Light radius tests
+└── index.ts                   # export { FOVService } from './FOVService'
+
+src/commands/MoveCommand/
+├── MoveCommand.ts             # Command implementation
+├── movement.test.ts           # Basic movement tests
+├── collision.test.ts          # Collision detection tests
+├── fov-updates.test.ts        # FOV recalculation tests
+└── index.ts                   # export { MoveCommand } from './MoveCommand'
+```
+
+**Test Naming Convention**: Use descriptive scenario names that describe **what** is tested:
+- ✅ Good: `fuel-consumption.test.ts`, `smart-pathfinding.test.ts`, `hunger-penalties.test.ts`
+- ✅ Good: `shadowcasting.test.ts`, `secret-door-discovery.test.ts`, `room-generation.test.ts`
+- ❌ Avoid: `ServiceName.test.ts` (too broad), `test1.test.ts` (not descriptive), `methodName.test.ts` (tests implementation)
+
+**Import Pattern**:
+```typescript
+// Clean imports using barrel exports
+import { FOVService } from '@services/FOVService'
+import { MoveCommand } from '@commands/MoveCommand'
+import { RandomService } from '@services/RandomService'
+
+// NOT: import { FOVService } from '@services/FOVService/FOVService'
+```
+
+---
+
 ### 4.3 Service Layer Details
 
 #### CombatService
