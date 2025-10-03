@@ -12,7 +12,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Estimated Timeline**: 11 weeks total (assumes single developer, ~20-30 hours/week)
 
-**Current Status**: Phase 1 in progress
+**Current Status**: Phases 1-4 mostly complete, Phase 5 (Inventory) next
 
 ---
 
@@ -20,135 +20,135 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Get basic movement, rendering, and lighting working
 
-**Status**: 🟡 In Progress (5/16 complete)
+**Status**: 🟢 Mostly Complete (15/16 complete - 94%)
 
 ### Tasks
 
 #### Project Setup
 - [x] Project setup (Vite + TypeScript + Jest)
-- [ ] Configure Jest with path aliases
-- [ ] Create tsconfig.json with strict mode
-- [ ] Set up folder structure (src/, data/, tests/)
-- [ ] Create barrel exports (index.ts files)
+- [x] Configure Jest with path aliases
+- [x] Create tsconfig.json with strict mode
+- [x] Set up folder structure (src/, data/, tests/)
+- [x] Create barrel exports (index.ts files)
 
 **Reference**: [Architecture - Technology Stack](./architecture.md#technology-stack)
 
 #### Core Data Structures
-- [ ] GameState interface
-- [ ] Player interface
-- [ ] Position type
-- [ ] Level interface
-- [ ] LightSource interface
-- [ ] Tile interface and TileType enum
+- [x] GameState interface
+- [x] Player interface
+- [x] Position type
+- [x] Level interface
+- [x] LightSource interface
+- [x] Tile interface and TileType enum
 
 **Reference**: [Architecture - Data Structures](./architecture.md#data-structures)
 
 #### RandomService
-- [ ] Create IRandomService interface
-- [ ] Implement SeededRandom class
-- [ ] Implement MockRandom class for testing
-- [ ] Write unit tests
-  - [ ] Seeded determinism tests
-  - [ ] Mock value queue tests
-  - [ ] Dice roll parsing tests
+- [x] Create IRandomService interface
+- [x] Implement SeededRandom class
+- [x] Implement MockRandom class for testing
+- [x] Write unit tests
+  - [x] Seeded determinism tests
+  - [x] Mock value queue tests
+  - [x] Dice roll parsing tests
 
 **Reference**: [Architecture - RandomService](./architecture.md#randomservice)  
 **Testing**: [Testing Strategy - RandomService](./testing-strategy.md)
 
 #### Basic UI Layer
-- [ ] Create index.html with layout
-- [ ] Style with CSS (colors, fonts, layout)
-- [ ] Implement dungeon grid renderer (DOM manipulation)
-- [ ] Implement stats panel renderer
-- [ ] Implement message log renderer
-- [ ] Keyboard input handler
-- [ ] Input → Command conversion
+- [x] Create index.html with layout
+- [x] Style with CSS (colors, fonts, layout)
+- [x] Implement dungeon grid renderer (DOM manipulation)
+- [x] Implement stats panel renderer
+- [x] Implement message log renderer
+- [x] Keyboard input handler
+- [x] Input → Command conversion
 
 **Reference**: [Game Design - UI/UX Design](./game-design.md#uiux-design)
 
 #### LightingService
-- [ ] Implement LightingService class
-  - [ ] tickFuel() method
-  - [ ] refillLantern() method
-  - [ ] getLightRadius() method
-  - [ ] isFuelLow() method
-  - [ ] generateFuelWarning() method
-  - [ ] equipLightSource() method
-- [ ] Write unit tests
-  - [ ] fuel-consumption.test.ts
-  - [ ] light-sources.test.ts
-  - [ ] refill.test.ts
-  - [ ] warnings.test.ts
+- [x] Implement LightingService class
+  - [x] tickFuel() method
+  - [x] refillLantern() method
+  - [x] getLightRadius() method
+  - [x] isFuelLow() method
+  - [x] generateFuelWarning() method
+  - [x] equipLightSource() method
+- [x] Write unit tests
+  - [x] fuel-consumption.test.ts
+  - [x] light-sources.test.ts
+  - [x] refill.test.ts
+  - [x] warnings.test.ts (covered in fuel-consumption)
 
 **Reference**: [Core Systems - Lighting System](./systems-core.md#lighting-system)
 
 #### FOVService
-- [ ] Implement FOVService class
-  - [ ] computeFOV() method (shadowcasting)
-  - [ ] isInFOV() method
-  - [ ] isBlocking() method
-  - [ ] castLight() private method (octant processing)
-- [ ] Write unit tests
-  - [ ] shadowcasting.test.ts
-  - [ ] blocking.test.ts
-  - [ ] radius.test.ts
-  - [ ] octants.test.ts
+- [x] Implement FOVService class
+  - [x] computeFOV() method (shadowcasting)
+  - [x] isInFOV() method
+  - [x] isBlocking() method
+  - [x] castLight() private method (octant processing)
+- [x] Write unit tests
+  - [x] shadowcasting.test.ts
+  - [x] blocking.test.ts
+  - [x] radius.test.ts
+  - [x] octants.test.ts (covered in shadowcasting)
 
 **Reference**: [Core Systems - FOV System](./systems-core.md#fov-system)
 
 #### RenderingService
-- [ ] Implement RenderingService class
-  - [ ] getVisibilityState() method
-  - [ ] shouldRenderEntity() method
-  - [ ] getColorForTile() method
-  - [ ] getColorForEntity() method
-  - [ ] getCSSClass() method
-- [ ] Write unit tests
-  - [ ] visibility-states.test.ts
-  - [ ] entity-filtering.test.ts
-  - [ ] color-selection.test.ts
-  - [ ] fog-of-war.test.ts
+- [x] Implement RenderingService class
+  - [x] getVisibilityState() method
+  - [x] shouldRenderEntity() method
+  - [x] getColorForTile() method
+  - [x] getColorForEntity() method
+  - [x] getCSSClass() method
+- [x] Write unit tests
+  - [x] visibility-states.test.ts
+  - [x] entity-rendering.test.ts (entity filtering)
+  - [x] colors.test.ts (color selection)
+  - [x] fog-of-war.test.ts (covered in visibility-states)
 
 **Reference**: [Core Systems - Visibility & Color System](./systems-core.md#visibility-color-system)
 
 #### MovementService
-- [ ] Implement MovementService class
-  - [ ] canMoveTo() method
-  - [ ] moveEntity() method
-  - [ ] getEntityAt() method
-  - [ ] isWalkable() method
-  - [ ] getAdjacentPositions() method
-- [ ] Write unit tests
-  - [ ] movement.test.ts
-  - [ ] collision.test.ts
-  - [ ] walkable.test.ts
+- [x] Implement MovementService class
+  - [x] canMoveTo() method
+  - [x] moveEntity() method
+  - [x] getEntityAt() method
+  - [x] isWalkable() method
+  - [x] getAdjacentPositions() method
+- [x] Write unit tests
+  - [x] position-calculation.test.ts (movement)
+  - [x] entity-detection.test.ts (collision)
+  - [x] bounds-validation.test.ts (walkable)
 
 **Reference**: [Architecture - MovementService](./architecture.md#movementservice)
 
 #### MoveCommand
-- [ ] Implement MoveCommand class
-  - [ ] execute() method (orchestrate movement + FOV update)
-- [ ] Write unit tests
-  - [ ] movement.test.ts
-  - [ ] collision.test.ts
-  - [ ] fov-updates.test.ts
-  - [ ] fuel-consumption.test.ts
+- [x] Implement MoveCommand class
+  - [x] execute() method (orchestrate movement + FOV update)
+- [x] Write unit tests
+  - [x] movement.test.ts
+  - [x] collision.test.ts
+  - [x] fov-updates.test.ts
+  - [x] fuel-consumption.test.ts (integrated in movement)
 
 **Reference**: [Architecture - Command Layer](./architecture.md#command-layer-details)
 
 #### Simple Test Level
-- [ ] Create manual level generation (single room)
-- [ ] Place player at starting position
-- [ ] Place walls, floors, corridors
-- [ ] Implement Level.explored array tracking
-- [ ] Update explored tiles on FOV change
+- [x] Create manual level generation (single room) - DungeonService does full procedural generation
+- [x] Place player at starting position
+- [x] Place walls, floors, corridors
+- [x] Implement Level.explored array tracking
+- [x] Update explored tiles on FOV change
 
 #### Rendering Implementation
-- [ ] Render player (`@`) on floor (`.`)
-- [ ] Implement three-state rendering (visible/explored/unexplored)
-- [ ] Add color palette CSS classes for visibility states
-- [ ] Render walls, floors, corridors with correct colors
-- [ ] Test fog of war (explored areas dimmed, unexplored hidden)
+- [x] Render player (`@`) on floor (`.`)
+- [x] Implement three-state rendering (visible/explored/unexplored)
+- [x] Add color palette CSS classes for visibility states
+- [x] Render walls, floors, corridors with correct colors
+- [x] Test fog of war (explored areas dimmed, unexplored hidden)
 
 **Reference**: [Core Systems - Visibility System](./systems-core.md#visibility-color-system)
 
@@ -180,110 +180,116 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Implement combat system with monsters and basic AI
 
-**Status**: ⚪ Not Started (0/12 complete)
+**Status**: 🟢 Mostly Complete (11/12 complete - 92%)
 
 ### Tasks
 
 #### Data Loading
-- [ ] Create /data/monsters.json
-  - [ ] Add all 26 monsters with stats
-  - [ ] Include AI profiles
-  - [ ] Set spawn levels
-- [ ] Create JSON loader utility
-- [ ] Load monster data at game start
+- [x] Create /data/monsters.json
+  - [x] Add all 26 monsters with stats
+  - [x] Include AI profiles
+  - [x] Set spawn levels
+- [x] Create JSON loader utility
+- [x] Load monster data at game start
 
-**Reference**: [Architecture - Data Files](./architecture.md#data-files)  
+**Reference**: [Architecture - Data Files](./architecture.md#data-files)
 **Monster List**: [Game Design - Monsters](./game-design.md#monsters)
 
 #### Monster Data Structure
-- [ ] Create Monster interface
-- [ ] Create MonsterAIProfile interface
-- [ ] Create MonsterState enum
-- [ ] Create MonsterFlag enum
+- [x] Create Monster interface
+- [x] Create MonsterAIProfile interface
+- [x] Create MonsterState enum
+- [x] Create MonsterFlag enum
 
 **Reference**: [Architecture - Monster](./architecture.md#monster)
 
 #### CombatService
-- [ ] Implement CombatService class
-  - [ ] calculateHit() method
-  - [ ] calculateDamage() method
-  - [ ] applyDamage() method
-  - [ ] resolveAttack() method
-  - [ ] checkDeath() method
-- [ ] Write unit tests
-  - [ ] hit-calculation.test.ts
-  - [ ] damage.test.ts
-  - [ ] death.test.ts
+- [x] Implement CombatService class
+  - [x] calculateHit() method
+  - [x] calculateDamage() method
+  - [x] applyDamage() method
+  - [x] resolveAttack() method (playerAttack/monsterAttack)
+  - [x] checkDeath() method (calculateXP)
+- [x] Write unit tests
+  - [x] hit-calculation.test.ts
+  - [x] damage.test.ts
+  - [x] death.test.ts (covered in damage tests)
 
-**Reference**: [Architecture - CombatService](./architecture.md#combatservice)  
+**Reference**: [Architecture - CombatService](./architecture.md#combatservice)
 **Combat Rules**: [Game Design - Combat System](./game-design.md#combat-system)
 
 #### AttackCommand
-- [ ] Implement AttackCommand class
-  - [ ] execute() method (orchestrate combat)
-- [ ] Write unit tests
-  - [ ] melee.test.ts
-  - [ ] death-handling.test.ts
+- [x] Implement AttackCommand class
+  - [x] execute() method (orchestrate combat)
+- [x] Write unit tests
+  - [x] AttackCommand.test.ts (melee + death handling)
 
 #### MonsterAIService (Basic Behaviors)
-- [ ] Implement MonsterAIService class
-  - [ ] decideAction() method
-  - [ ] simpleBehavior() method (greedy movement)
-  - [ ] smartBehavior() method (A* pathfinding)
-  - [ ] canSeePlayer() method
-- [ ] Write unit tests
-  - [ ] simple-behavior.test.ts
-  - [ ] smart-behavior.test.ts
+- [x] Implement MonsterAIService class
+  - [x] decideAction() method
+  - [x] simpleBehavior() method (greedy movement)
+  - [x] smartBehavior() method (A* pathfinding)
+  - [x] canSeePlayer() method
+- [x] Write unit tests (9 test files!)
+  - [x] behavior-simple.test.ts
+  - [x] behavior-smart.test.ts (A* pathfinding)
+  - [x] behavior-erratic.test.ts
+  - [x] behavior-greedy.test.ts
+  - [x] behavior-thief.test.ts
+  - [x] behavior-coward.test.ts
+  - [x] behavior-stationary.test.ts
+  - [x] state-transitions.test.ts
+  - [x] fov-and-awareness.test.ts
 
 **Reference**: [Advanced Systems - Monster AI](./systems-advanced.md#monster-ai)
 
 #### PathfindingService
-- [ ] Implement PathfindingService class
-  - [ ] findPath() method (A* algorithm)
-  - [ ] getNextStep() method
-  - [ ] isWalkable() method
-  - [ ] heuristic() method (Manhattan distance)
-  - [ ] getNeighbors() method
-- [ ] Write unit tests
-  - [ ] astar-algorithm.test.ts
-  - [ ] obstacle-avoidance.test.ts
-  - [ ] no-path.test.ts
+- [x] Implement PathfindingService class
+  - [x] findPath() method (A* algorithm)
+  - [x] getNextStep() method
+  - [x] isWalkable() method
+  - [x] heuristic() method (Manhattan distance)
+  - [x] getNeighbors() method
+- [x] Write unit tests
+  - [x] astar-algorithm.test.ts
+  - [x] path-optimization.test.ts (obstacle avoidance + no-path)
 
 **Reference**: [Advanced Systems - Pathfinding](./systems-advanced.md#pathfinding)
 
 #### Monster Spawning
-- [ ] Implement spawnMonsters() in DungeonService
-- [ ] Use spawn levels from monsters.json
-- [ ] Set initial sleep state
-- [ ] Place monsters in rooms (not corridors)
+- [x] Implement spawnMonsters() in DungeonService
+- [x] Use spawn levels from monsters.json
+- [x] Set initial sleep state
+- [x] Place monsters in rooms (not corridors)
 
 #### Monster Rendering
-- [ ] Render monsters (A-Z letters)
-- [ ] Apply monster colors by threat level
-- [ ] Only render monsters in FOV
-- [ ] Hide sleeping monsters until woken
+- [x] Render monsters (A-Z letters)
+- [x] Apply monster colors by threat level
+- [x] Only render monsters in FOV
+- [x] Hide sleeping monsters until woken
 
 #### MessageService
-- [ ] Implement MessageService class
-  - [ ] addMessage() method
-  - [ ] addMessages() method
-  - [ ] getRecentMessages() method
-  - [ ] clearLog() method
-- [ ] Write unit tests
-  - [ ] add-message.test.ts
-  - [ ] recent-messages.test.ts
+- [x] Implement MessageService class
+  - [x] addMessage() method
+  - [x] addMessages() method
+  - [x] getRecentMessages() method
+  - [x] clearLog() method
+- [x] Write unit tests
+  - [x] message-management.test.ts (add messages)
+  - [x] message-retrieval.test.ts (recent messages)
+  - [x] max-capacity.test.ts
 
 **Reference**: [Architecture - MessageService](./architecture.md#messageservice)
 
 #### Combat Flow
-- [ ] Integrate AttackCommand into input handler
-- [ ] Move into monster → trigger attack
-- [ ] Display combat messages in log
-- [ ] Handle player death → game over screen
-- [ ] Handle monster death → remove from level
+- [x] Integrate AttackCommand into input handler
+- [x] Move into monster → trigger attack
+- [x] Display combat messages in log
+- [x] Handle player death → game over screen
+- [x] Handle monster death → remove from level
 
 #### Death Screen
-- [ ] Create death screen UI
+- [ ] Create death screen UI (needs verification)
 - [ ] Display final stats (level, gold, kills, turns)
 - [ ] Show cause of death
 - [ ] Offer "New Game" option
@@ -305,98 +311,87 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Full procedural dungeon generation with rooms, corridors, doors
 
-**Status**: ⚪ Not Started (0/11 complete)
+**Status**: 🟢 Complete (13/13 complete - 100%)
 
 ### Tasks
 
 #### DungeonService Core
-- [ ] Implement DungeonService class
-  - [ ] generateLevel() method (main orchestrator)
-  - [ ] createEmptyLevel() method
-  - [ ] buildRoomGraph() method
-- [ ] Load config.json for dungeon parameters
+- [x] Implement DungeonService class
+  - [x] generateLevel() method (main orchestrator)
+  - [x] createEmptyLevel() method
+  - [x] buildRoomGraph() method
+- [x] Load config.json for dungeon parameters (config passed in constructor)
 
 **Reference**: [Advanced Systems - Dungeon Generation](./systems-advanced.md#dungeon-generation)
 
 #### Room Generation
-- [ ] Implement placeRooms() method
-  - [ ] Random room sizes
-  - [ ] Overlap prevention with buffer
-  - [ ] Placement attempts logic
-- [ ] Implement carveRoom() method
-- [ ] Write unit tests
-  - [ ] room-generation.test.ts
-  - [ ] overlap-prevention.test.ts
+- [x] Implement placeRooms() method
+  - [x] Random room sizes
+  - [x] Overlap prevention with buffer
+  - [x] Placement attempts logic
+- [x] Implement carveRoom() method
+- [x] Write unit tests (covered in DungeonService integration)
 
 #### Corridor Connection
-- [ ] Implement connectRooms() method
-  - [ ] L-shaped corridor logic
-  - [ ] Random horizontal/vertical first
-- [ ] Implement carveCorridor() method
-  - [ ] Winding/bending logic
-- [ ] Write unit tests
-  - [ ] corridor-connection.test.ts
-  - [ ] winding.test.ts
+- [x] Implement connectRooms() method
+  - [x] L-shaped corridor logic
+  - [x] Random horizontal/vertical first
+- [x] Implement carveCorridor() method
+  - [x] Winding/bending logic
+- [x] Write unit tests (covered in DungeonService integration)
 
 #### Minimum Spanning Tree
-- [ ] Implement minimumSpanningTree() method (Prim's algorithm)
-- [ ] Write unit tests
-  - [ ] mst-connectivity.test.ts
-  - [ ] all-rooms-connected.test.ts
+- [x] Implement minimumSpanningTree() method (Prim's algorithm)
+- [x] Write unit tests (covered in DungeonService integration)
 
 #### Loop Generation
-- [ ] Implement addLoops() method
-- [ ] Write unit tests
-  - [ ] loop-generation.test.ts
-  - [ ] alternate-paths.test.ts
+- [x] Implement addLoops() method
+- [x] Write unit tests (covered in DungeonService integration)
 
 #### Door System
-- [ ] Create DoorState enum
-- [ ] Create Door interface
-- [ ] Implement placeDoors() method
-  - [ ] Random door type selection
-  - [ ] Door orientation detection
-- [ ] Implement door rendering (all 6 types)
-- [ ] Write unit tests
-  - [ ] door-placement.test.ts
-  - [ ] door-types.test.ts
+- [x] Create DoorState enum
+- [x] Create Door interface
+- [x] Implement placeDoors() method
+  - [x] Random door type selection
+  - [x] Door orientation detection
+- [x] Implement door rendering (all 6 types)
+- [x] Write unit tests
+  - [x] OpenDoorCommand.test.ts
+  - [x] CloseDoorCommand.test.ts
+  - [x] SearchCommand.test.ts (secret doors)
 
 **Reference**: [Architecture - Door](./architecture.md#door)
 
 #### Connectivity Verification
-- [ ] Implement isFullyConnected() method (floodfill)
-- [ ] Implement ensureConnectivity() method (emergency corridors)
-- [ ] Write unit tests
-  - [ ] connectivity.test.ts
-  - [ ] floodfill.test.ts
+- [x] Implement isFullyConnected() method (floodfill)
+- [x] Implement ensureConnectivity() method (emergency corridors)
+- [x] Write unit tests (covered in DungeonService integration)
 
 #### Stairs Placement
-- [ ] Implement placeStairs() method
-  - [ ] Stairs up (if not level 1)
-  - [ ] Stairs down (if not level 10)
-  - [ ] Place in opposite corners of level
-- [ ] Render stairs (`<` and `>`)
+- [x] Implement placeStairs() method
+  - [x] Stairs up (if not level 1)
+  - [x] Stairs down (if not level 10)
+  - [x] Place in opposite corners of level
+- [x] Render stairs (`<` and `>`)
 
 #### Multi-Level Support
-- [ ] Store levels in GameState.levels Map
-- [ ] Generate level on first visit
-- [ ] Persist level state when leaving
-- [ ] Load level state when returning
+- [x] Store levels in GameState.levels Map
+- [x] Generate level on first visit
+- [x] Persist level state when leaving
+- [x] Load level state when returning
 
 **Reference**: [Architecture - GameState](./architecture.md#gamestate)
 
 #### Stairs Navigation
-- [ ] Implement MoveStairsCommand
-  - [ ] Change currentLevel
-  - [ ] Load/generate target level
-  - [ ] Place player on opposite stairs
-- [ ] Wire up `>` and `<` keys
+- [x] Implement MoveStairsCommand
+  - [x] Change currentLevel
+  - [x] Load/generate target level
+  - [x] Place player on opposite stairs
+- [x] Wire up `>` and `<` keys (MoveStairsCommand.test.ts)
 
 #### Seed Determinism
-- [ ] Ensure same seed = same dungeon
-- [ ] Write unit tests
-  - [ ] seed-determinism.test.ts
-  - [ ] cross-level-consistency.test.ts
+- [x] Ensure same seed = same dungeon
+- [x] Write unit tests (covered in RandomService seeded.test.ts)
 
 ---
 
@@ -418,76 +413,100 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Implement all monster AI behaviors
 
-**Status**: ⚪ Not Started (0/8 complete)
+**Status**: 🟢 Mostly Complete (9/10 complete - 90%)
 
 ### Tasks
 
 #### ERRATIC Behavior
-- [ ] Implement erraticBehavior() method
-  - [ ] 50% random movement
-  - [ ] 50% toward player
-- [ ] Apply to Bat, Kestrel
-- [ ] Write unit tests
-  - [ ] erratic-behavior.test.ts
+- [x] Implement erraticBehavior() method
+  - [x] 50% random movement
+  - [x] 50% toward player
+- [x] Apply to Bat, Kestrel
+- [x] Write unit tests
+  - [x] behavior-erratic.test.ts
 
 #### GREEDY Behavior
-- [ ] Implement greedyBehavior() method
-  - [ ] Find nearest gold
-  - [ ] Choose gold vs player based on distance
-- [ ] Implement findNearestGold() utility
-- [ ] Apply to Orc
-- [ ] Write unit tests
-  - [ ] greedy-behavior.test.ts
+- [x] Implement greedyBehavior() method
+  - [x] Find nearest gold
+  - [x] Choose gold vs player based on distance
+- [x] Implement findNearestGold() utility
+- [x] Apply to Orc
+- [x] Write unit tests
+  - [x] behavior-greedy.test.ts
 
 #### THIEF Behavior
-- [ ] Implement thiefBehavior() method
-  - [ ] Approach player
-  - [ ] Steal gold/item on contact
-  - [ ] Flee after stealing
-- [ ] Set hasStolen flag
-- [ ] Apply to Leprechaun, Nymph
-- [ ] Write unit tests
-  - [ ] thief-behavior.test.ts
+- [x] Implement thiefBehavior() method
+  - [x] Approach player
+  - [x] Steal gold/item on contact
+  - [x] Flee after stealing
+- [x] Set hasStolen flag
+- [x] Apply to Leprechaun, Nymph
+- [x] Write unit tests
+  - [x] behavior-thief.test.ts
+  - [x] MonsterTurnService/theft-mechanics.test.ts
 
 #### STATIONARY Behavior
-- [ ] Implement stationaryBehavior() method
-  - [ ] Return wait action
-- [ ] Apply to Venus Flytrap
-- [ ] Write unit tests
-  - [ ] stationary-behavior.test.ts
+- [x] Implement stationaryBehavior() method
+  - [x] Return wait action
+- [x] Apply to Venus Flytrap
+- [x] Write unit tests
+  - [x] behavior-stationary.test.ts
 
 #### COWARD Behavior
-- [ ] Implement flee() method
-  - [ ] Use A* to find path away from player
-  - [ ] Pick direction that maximizes distance
-- [ ] Add flee threshold check in decideAction()
-- [ ] Apply to Vampire
-- [ ] Write unit tests
-  - [ ] coward-behavior.test.ts
+- [x] Implement flee() method
+  - [x] Use A* to find path away from player
+  - [x] Pick direction that maximizes distance
+- [x] Add flee threshold check in decideAction()
+- [x] Apply to Vampire
+- [x] Write unit tests
+  - [x] behavior-coward.test.ts
 
 #### Monster FOV
-- [ ] Compute FOV for awake monsters
-- [ ] Store in Monster.visibleCells
-- [ ] Use for player detection
-- [ ] Write unit tests
-  - [ ] monster-fov.test.ts
+- [x] Compute FOV for awake monsters
+- [x] Store in Monster.visibleCells
+- [x] Use for player detection
+- [x] Write unit tests
+  - [x] fov-and-awareness.test.ts
 
 #### Wake-Up Logic
-- [ ] Check if player in monster's FOV
-- [ ] Check if player adjacent
-- [ ] Transition SLEEPING → HUNTING
-- [ ] MEAN flag → always start HUNTING
-- [ ] Write unit tests
-  - [ ] wake-conditions.test.ts
+- [x] Check if player in monster's FOV
+- [x] Check if player adjacent
+- [x] Transition SLEEPING → HUNTING
+- [x] MEAN flag → always start HUNTING
+- [x] Write unit tests (covered in fov-and-awareness.test.ts)
 
 #### AI State Transitions
-- [ ] Implement state machine logic
-- [ ] SLEEPING ↔ HUNTING
-- [ ] HUNTING ↔ FLEEING
-- [ ] Write unit tests
-  - [ ] state-transitions.test.ts
+- [x] Implement state machine logic
+- [x] SLEEPING ↔ HUNTING
+- [x] HUNTING ↔ FLEEING
+- [x] Write unit tests
+  - [x] state-transitions.test.ts
 
 **Reference**: [Advanced Systems - Monster AI](./systems-advanced.md#monster-ai)
+
+---
+
+### Bonus Implementations (Beyond Phase 4 Scope)
+
+#### MonsterTurnService
+- [x] Complete turn processing orchestration (3 test files)
+  - [x] turn-processing.test.ts
+  - [x] combat-execution.test.ts
+  - [x] theft-mechanics.test.ts
+
+#### SpecialAbilityService
+- [x] All special monster abilities (6 test files)
+  - [x] breath-weapon.test.ts (dragons)
+  - [x] multiple-attacks.test.ts (multi-hit monsters)
+  - [x] regeneration.test.ts (trolls)
+  - [x] drain-abilities.test.ts (vampires, wraiths)
+  - [x] debuff-abilities.test.ts (medusa, rust monster)
+  - [x] ability-orchestration.test.ts
+
+#### TrapService
+- [x] Trap system implementation (2 test files)
+  - [x] trap-detection.test.ts
+  - [x] trap-effects.test.ts
 
 ---
 
