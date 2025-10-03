@@ -3618,27 +3618,231 @@ terTurns(state)** method
 
 ## Phase 5: Items & Inventory
 
-**Goal**: Full item system
+**Goal**: Full item system with inventory management, identification, and all item effects
 **Duration**: Week 6-7
+**Deliverable**: Can pick up, carry, equip, and use all item types with proper effects
 
-### 5.1 Item Interfaces
+### Tasks
 
-Expand item types in `src/types/core.ts`
+#### 5.1 Item Type Definitions
 
-### 5.2 InventoryService
+**Update `src/types/core.ts`**:
 
-Item management, equipment, stacking
+- [ ] **Base Item interface** (already exists, expand)
+  - [ ] id, name, type, identified, position
+  - [ ] unidentifiedName (e.g., "blue potion")
+  - [ ] stackable flag for food/ammo
 
-### 5.3 IdentificationService
+- [ ] **Weapon types** (10 weapons)
+  - [ ] Mace (2d4), Long sword (3d4), Short bow (1d1)
+  - [ ] Arrow (1d1, stackable), Dagger (1d6)
+  - [ ] Two-handed sword (4d4), Dart (1d3, stackable)
+  - [ ] Crossbow (1d2), Crossbow bolt (1d2, stackable), Spear (2d3)
 
-Random names, identification mechanics
+- [ ] **Armor types** (8 armors)
+  - [ ] Leather (AC 8), Ring mail (AC 7), Studded leather (AC 7)
+  - [ ] Scale mail (AC 6), Chain mail (AC 5), Splint mail (AC 4)
+  - [ ] Banded mail (AC 4), Plate mail (AC 3)
 
-### 5.4 Item Commands
+- [ ] **Potion types** (12 potions with effects)
+  - [ ] Confusion, Hallucination, Healing, Extra healing
+  - [ ] Poison, Raise level, Strength, Restore strength
+  - [ ] Blindness, See invisible, Levitation, Haste self
 
-- PickUpCommand
-- DropCommand
-- EquipCommand
-- UseItemCommand
+- [ ] **Scroll types** (14 scrolls with effects)
+  - [ ] Monster confusion, Magic mapping, Hold monster, Sleep
+  - [ ] Enchant armor, Enchant weapon, Identify, Scare monster
+  - [ ] Food detection, Teleportation, Remove curse, Create monster
+  - [ ] Aggravate monsters, Protect armor
+
+- [ ] **Ring types** (14 rings with effects)
+  - [ ] Protection, Add strength, Sustain strength, Searching
+  - [ ] See invisible, Adornment, Aggravate monster (cursed)
+  - [ ] Dexterity, Increase damage, Regeneration
+  - [ ] Slow digestion, Teleportation (cursed), Stealth, Maintain armor
+
+- [ ] **Wand types** (14 wands with charges/effects)
+  - [ ] Light, Striking, Lightning, Fire, Cold
+  - [ ] Polymorph, Magic missile, Haste monster, Slow monster
+  - [ ] Drain life, Cancellation, Teleport away, Teleport to, Nothing
+
+#### 5.2 Identification System
+
+**Create `src/services/IdentificationService.ts`**:
+
+- [ ] **Random name generation**
+  - [ ] Shuffle potion colors per game (12 colors)
+  - [ ] Shuffle scroll titles per game (14 titles)
+  - [ ] Shuffle ring stones per game (14 stones)
+  - [ ] Shuffle wand materials per game (14 materials)
+  - [ ] Store mappings in GameState for consistency
+
+- [ ] **Identification mechanics**
+  - [ ] Mark item as identified
+  - [ ] Identify all items of same type globally
+  - [ ] Auto-identify on use
+  - [ ] Identify via scroll of identify
+
+#### 5.3 Inventory Management
+
+**Create `src/services/InventoryService.ts`**:
+
+- [ ] **Inventory operations**
+  - [ ] Add/remove items from inventory array
+  - [ ] Check capacity (26 items max, a-z slots)
+  - [ ] Find item by ID
+  - [ ] Filter by ItemType
+
+- [ ] **Equipment management**
+  - [ ] Equip weapon (unequip current)
+  - [ ] Equip armor (unequip current)
+  - [ ] Equip ring to left/right slot
+  - [ ] Equip light source
+  - [ ] Unequip item from slot
+
+- [ ] **Stacking**
+  - [ ] Stack food rations
+  - [ ] Stack ammo (arrows, darts, bolts)
+  - [ ] Combine stacks on pickup
+
+- [ ] **Cursed items**
+  - [ ] Flag items as cursed
+  - [ ] Prevent unequipping cursed items
+  - [ ] Require Remove Curse scroll
+
+#### 5.4 Item Commands (11 commands)
+
+- [ ] **PickUpCommand** (`,`)
+  - [ ] Check item at position, add to inventory
+  - [ ] Check capacity, stack if stackable
+  - [ ] Remove from level, message
+
+- [ ] **DropCommand** (`d`)
+  - [ ] Show inventory, select item
+  - [ ] Remove from inventory, add to level
+  - [ ] Can't drop equipped items
+
+- [ ] **WieldCommand** (`w`)
+  - [ ] Show weapons, select, equip
+
+- [ ] **WearArmorCommand** (`W`)
+  - [ ] Show armor, select, equip
+
+- [ ] **TakeOffArmorCommand** (`T`)
+  - [ ] Check if cursed, unequip armor
+
+- [ ] **PutOnRingCommand** (`P`)
+  - [ ] Show rings, ask which hand, equip
+  - [ ] Apply ring effects
+
+- [ ] **RemoveRingCommand** (`R`)
+  - [ ] Select hand, check cursed, unequip
+  - [ ] Remove ring effects
+
+- [ ] **QuaffPotionCommand** (`q`)
+  - [ ] Show potions, select, apply effect
+  - [ ] Remove potion, auto-identify
+
+- [ ] **ReadScrollCommand** (`r`)
+  - [ ] Show scrolls, select, apply effect
+  - [ ] Remove scroll, auto-identify
+
+- [ ] **ZapWandCommand** (`z`)
+  - [ ] Show wands, choose direction if targeted
+  - [ ] Apply effect, decrement charges
+
+- [ ] **EatCommand** (`e`)
+  - [ ] Show food, select, add nutrition
+  - [ ] Remove food from inventory
+
+#### 5.5 Item Effects
+
+**Create `src/services/ItemEffectService.ts`**:
+
+- [ ] **Potion effects** (implement all 12)
+  - [ ] Confusion, Hallucination, Healing, Extra healing
+  - [ ] Poison, Raise level, Strength, Restore strength
+  - [ ] Blindness, See invisible, Levitation, Haste
+
+- [ ] **Scroll effects** (implement all 14)
+  - [ ] Monster confusion, Magic mapping, Hold, Sleep
+  - [ ] Enchant armor, Enchant weapon, Identify, Scare
+  - [ ] Food detection, Teleportation, Remove curse, Create monster
+  - [ ] Aggravate, Protect armor
+
+- [ ] **Wand effects** (implement all 14)
+  - [ ] Damage wands (striking, lightning, fire, cold)
+  - [ ] Utility wands (light, teleport, polymorph, etc.)
+  - [ ] Line-of-sight for beams
+
+- [ ] **Ring effects** (passive, always active)
+  - [ ] Apply when equipped
+  - [ ] Remove when unequipped
+  - [ ] Stat modifiers, behavior changes
+
+#### 5.6 Inventory UI
+
+**Create `src/ui/InventoryScreen.ts`**:
+
+- [ ] **Modal overlay on `i` key**
+  - [ ] Darken background
+  - [ ] Show inventory grid
+
+- [ ] **Display**
+  - [ ] List items a-z
+  - [ ] Show identified/unidentified names
+  - [ ] Indicator (*) for equipped items
+  - [ ] Color code by type
+
+- [ ] **Item selection**
+  - [ ] Letter to select, show details
+  - [ ] Context actions
+  - [ ] ESC to close
+
+- [ ] **Equipment slots**
+  - [ ] Display current weapon, armor, rings, light
+
+### Files to Create
+
+- `src/services/IdentificationService.ts`
+- `src/services/InventoryService.ts`
+- `src/services/ItemEffectService.ts`
+- `src/commands/PickUpCommand.ts`
+- `src/commands/DropCommand.ts`
+- `src/commands/WieldCommand.ts`
+- `src/commands/WearArmorCommand.ts`
+- `src/commands/TakeOffArmorCommand.ts`
+- `src/commands/PutOnRingCommand.ts`
+- `src/commands/RemoveRingCommand.ts`
+- `src/commands/QuaffPotionCommand.ts`
+- `src/commands/ReadScrollCommand.ts`
+- `src/commands/ZapWandCommand.ts`
+- `src/ui/InventoryScreen.ts`
+- All corresponding test files
+
+### Tests Required
+
+- [ ] **Identification tests**
+  - [ ] Random names consistent within game
+  - [ ] Different across games
+  - [ ] Identifying one identifies all of type
+
+- [ ] **Inventory tests**
+  - [ ] Add/remove items works
+  - [ ] Stacking works for stackables
+  - [ ] Capacity limit (26) enforced
+  - [ ] Equipment slots work
+
+- [ ] **Item effect tests**
+  - [ ] All 12 potion effects work
+  - [ ] All 14 scroll effects work
+  - [ ] All 14 wand effects work
+  - [ ] Ring bonuses apply correctly
+
+- [ ] **Command tests**
+  - [ ] All 11 item commands work
+  - [ ] Can't unequip cursed items
+  - [ ] Auto-identify on use
 
 ---
 
@@ -3647,13 +3851,266 @@ Random names, identification mechanics
 **Goal**: Hunger system and leveling
 **Duration**: Week 8
 
-### 6.1 HungerService
+### 6.1 HungerService Implementation
 
-Food consumption, hunger states, effects
+Create the hunger system that tracks food consumption and applies effects.
 
-### 6.2 LevelingService
+**Hunger States (enum)**:
+- [ ] Define `HungerState` enum with 5 states:
+  - `FULL` (0-300 turns since eating)
+  - `NOT_HUNGRY` (300-900 turns)
+  - `HUNGRY` (900-1400 turns) - "You are getting hungry"
+  - `WEAK` (1400-1900 turns) - "You are weak from hunger"
+  - `FAINTING` (1900+ turns) - "You are fainting from hunger" + 1 HP damage per turn
 
-XP curves, stat increases
+**Core Service**:
+- [ ] Create `src/services/HungerService.ts`
+- [ ] Define `IHungerService` interface:
+  ```typescript
+  interface IHungerService {
+    tick(player: Player): HungerUpdate
+    consumeFood(player: Player, nutritionalValue: number): Player
+    getHungerState(turnsSinceAte: number): HungerState
+    getHungerEffects(state: HungerState): HungerEffects
+    shouldTakeDamage(state: HungerState): boolean
+  }
+  ```
+
+**Hunger Mechanics**:
+- [ ] Implement `tick()` method:
+  - Increment player's `turnsSinceAte` counter
+  - Check for state transitions
+  - Return messages for state changes
+  - Apply starvation damage if `FAINTING`
+- [ ] Implement `consumeFood()` method:
+  - Reset `turnsSinceAte` to 0 or negative (for overeating)
+  - Update hunger state
+  - Return updated player
+- [ ] Implement `getHungerState()` method with turn thresholds
+- [ ] Implement `getHungerEffects()` method:
+  - `FAINTING`: -2 to hit, no regeneration
+  - `WEAK`: -1 to hit, half regeneration
+  - `HUNGRY`: normal, reminder message
+  - `NOT_HUNGRY`/`FULL`: normal
+- [ ] Implement `shouldTakeDamage()` for starvation
+
+**Player State Updates**:
+- [ ] Add `turnsSinceAte: number` to Player type in `core.ts`
+- [ ] Add `hungerState: HungerState` to Player type
+- [ ] Update player initialization to set hunger values
+
+**Integration**:
+- [ ] Update main game loop to call `HungerService.tick()` each turn
+- [ ] Update `CombatService` to apply hunger modifiers to hit chances
+- [ ] Update regeneration logic to check hunger effects
+- [ ] Add hunger state to status display in GameRenderer
+
+**Tests**:
+- [ ] Create `src/__tests__/services/HungerService.test.ts`
+- [ ] Test all 5 hunger state transitions
+- [ ] Test food consumption and counter reset
+- [ ] Test starvation damage application
+- [ ] Test hunger effects on combat modifiers
+- [ ] Test overeating (negative turnsSinceAte)
+
+### 6.2 Food Items
+
+Implement food items and eating mechanics.
+
+**Food Type Definition**:
+- [ ] Add `Food` item category to ItemType enum in `core.ts`
+- [ ] Add `nutritionalValue: number` to Item interface
+- [ ] Define food items in data:
+  ```typescript
+  {
+    type: 'Food',
+    name: 'ration of food',
+    nutritionalValue: 900,  // ~900 turns of sustenance
+    symbol: '🍖',
+    stackable: true
+  }
+  ```
+
+**Food Variants** (optional variety):
+- [ ] Ration of food (standard, 900 turns)
+- [ ] Slime mold (Vegetarians only, 900 turns, "Yuk, what a slimy mold!")
+- [ ] Fruit (found on dungeon floor, 300 turns)
+
+**EatCommand Implementation**:
+- [ ] Create `src/commands/EatCommand.ts`
+- [ ] Implement `ICommand` interface
+- [ ] Validate player has food in inventory
+- [ ] Select food from inventory (if multiple)
+- [ ] Call `HungerService.consumeFood()`
+- [ ] Remove food from inventory
+- [ ] Display appropriate message
+- [ ] Handle cursed food (if applicable)
+
+**Inventory Integration**:
+- [ ] Update `InventoryService` to handle food items
+- [ ] Add food filtering for `EatCommand`
+- [ ] Update inventory display to show food
+
+**Key Binding**:
+- [ ] Bind `e` key to `EatCommand` in InputHandler
+- [ ] Add to help screen
+
+**Tests**:
+- [ ] Create `src/__tests__/commands/EatCommand.test.ts`
+- [ ] Test eating ration resets hunger
+- [ ] Test eating with no food shows error
+- [ ] Test eating removes item from inventory
+- [ ] Test eating when full shows message
+- [ ] Test inventory updates correctly
+
+### 6.3 LevelingService Implementation
+
+Create the experience and leveling system.
+
+**Experience System**:
+- [ ] Create `src/services/LevelingService.ts`
+- [ ] Define `ILevelingService` interface:
+  ```typescript
+  interface ILevelingService {
+    addExperience(player: Player, xpGained: number): LevelUpResult
+    calculateXPRequired(level: number): number
+    calculateXPReward(monsterLevel: number, playerLevel: number): number
+    levelUp(player: Player): Player
+  }
+  ```
+
+**XP Curves**:
+- [ ] Implement `calculateXPRequired()` with original Rogue formula:
+  - Level 2: 10 XP
+  - Level 3: 20 XP
+  - Level 4: 40 XP
+  - Formula: `10 * Math.pow(2, level - 2)`
+  - Cap at reasonable maximum (e.g., level 20)
+- [ ] Create XP lookup table for fast access
+
+**XP Rewards**:
+- [ ] Implement `calculateXPReward()`:
+  - Base XP = monster's HP * (monster level + 1)
+  - Scale by level difference (harder monsters = more XP)
+  - Minimum 1 XP per kill
+  - Formula: `Math.max(1, baseXP * (1 + (monsterLevel - playerLevel) * 0.1))`
+
+**Level-Up Mechanics**:
+- [ ] Implement `addExperience()` method:
+  - Add XP to player's total
+  - Check if threshold reached
+  - Trigger level-up if needed
+  - Return level-up details
+- [ ] Implement `levelUp()` method:
+  - Increment player level
+  - Increase max HP (see next section)
+  - Increase stats (see next section)
+  - Full heal on level-up
+  - Return updated player
+
+**Stat Increases**:
+- [ ] Implement `calculateStatIncrease()` for each stat:
+  - **Strength**: 10% chance to increase by 1 (max 31)
+  - **Max HP**: Always increases by 1d10 (average 5.5)
+  - **To-hit bonus**: Automatically increases with level
+  - No increases to other stats (keep simple like original)
+- [ ] Cap stats at reasonable maximums
+
+**HP Gain Per Level**:
+- [ ] Implement `calculateHPGain()`:
+  - Roll 1d10 for HP increase
+  - Add to max HP
+  - Heal player to full on level-up
+  - Display HP gain in message
+
+**Player State**:
+- [ ] Add `xp: number` to Player type in `core.ts`
+- [ ] Add `xpToNextLevel: number` to Player type
+- [ ] Initialize XP to 0 for new players
+
+**Tests**:
+- [ ] Create `src/__tests__/services/LevelingService.test.ts`
+- [ ] Test XP curve formula (levels 1-10)
+- [ ] Test XP reward calculation
+- [ ] Test level-up triggers at correct thresholds
+- [ ] Test stat increases (using MockRandom)
+- [ ] Test HP gain on level-up
+- [ ] Test multiple level-ups from single XP gain
+- [ ] Test level cap if implemented
+
+### 6.4 Level-Up Integration & UI
+
+Integrate leveling into game flow and display.
+
+**Combat Integration**:
+- [ ] Update `CombatService.playerAttack()`:
+  - On monster kill, calculate XP reward
+  - Call `LevelingService.addExperience()`
+  - Handle level-up result
+  - Return XP and level-up info
+- [ ] Update `AttackCommand`:
+  - Display XP gained message
+  - Display level-up message if applicable
+  - Show stat increases
+
+**Level-Up Messages**:
+- [ ] Create congratulations message: "Welcome to level X!"
+- [ ] Display HP gain: "You gain X hit points!"
+- [ ] Display stat increases: "You feel stronger!" (if STR increased)
+- [ ] Use `MessageService.addMessage()` with special styling
+
+**Status Display Updates**:
+- [ ] Update `GameRenderer` to show current level
+- [ ] Display XP progress: "Level: 5 (XP: 120/160)"
+- [ ] Update stats display to show level-modified values
+- [ ] Consider XP bar visualization (optional)
+
+**Level-Scaled Mechanics**:
+- [ ] Update `CombatService` to use level in to-hit calculations:
+  - Player to-hit: `level + strength bonus - monster AC`
+  - Monster to-hit: `monster level - player AC`
+- [ ] Update damage calculations if level affects damage
+- [ ] Update dungeon generation to scale with player level (optional)
+
+**UI Polish**:
+- [ ] Add level-up animation or highlight (optional)
+- [ ] Add sound effect for level-up (optional)
+- [ ] Pause game briefly to show level-up message
+- [ ] Add level to save file
+
+**Tests**:
+- [ ] Create `src/__tests__/integration/leveling.test.ts`
+- [ ] Test full kill → XP → level-up flow
+- [ ] Test level-up messages appear correctly
+- [ ] Test stats update in UI after level-up
+- [ ] Test combat uses new level values
+- [ ] Test save/load preserves XP and level
+
+### 6.5 Files Created in Phase 6
+
+- `src/services/HungerService.ts` (120 lines)
+- `src/services/LevelingService.ts` (180 lines)
+- `src/commands/EatCommand.ts` (80 lines)
+- `src/__tests__/services/HungerService.test.ts` (250 lines)
+- `src/__tests__/services/LevelingService.test.ts` (300 lines)
+- `src/__tests__/commands/EatCommand.test.ts` (150 lines)
+- `src/__tests__/integration/leveling.test.ts` (200 lines)
+
+**Total**: ~1,280 lines of code + tests
+
+### 6.6 Testing Requirements
+
+- [ ] All hunger state transitions work correctly
+- [ ] Starvation damage applies when fainting
+- [ ] Food consumption resets hunger properly
+- [ ] Hunger affects combat and regeneration
+- [ ] XP curves match original Rogue formula
+- [ ] Level-up triggers at correct XP thresholds
+- [ ] Stats increase appropriately
+- [ ] HP gain on level-up uses 1d10
+- [ ] Level-up messages display correctly
+- [ ] UI shows updated stats after level-up
+- [ ] Save/load preserves hunger and XP state
 
 ---
 
@@ -3662,15 +4119,472 @@ XP curves, stat increases
 **Goal**: Complete game loop
 **Duration**: Week 9
 
-### 7.1 Amulet Implementation
+### 7.1 Amulet of Yendor Implementation
 
-### 7.2 SaveService
+Create the win condition: retrieve the Amulet from level 26 and return to level 1.
 
-LocalStorage wrapper, permadeath
+**Amulet Item**:
+- [ ] Define Amulet in `core.ts` as special item type:
+  ```typescript
+  {
+    type: 'Amulet',
+    name: 'the Amulet of Yendor',
+    symbol: ',',
+    color: Colors.GOLD_BRIGHT,
+    unique: true,
+    questItem: true
+  }
+  ```
+- [ ] Add amulet spawning to `DungeonService`:
+  - Only spawn on level 26 (deepest level)
+  - Place in guaranteed accessible room
+  - Never spawn on level 1-25
 
-### 7.3 UI Screens
+**Amulet Pickup**:
+- [ ] Update `PickUpCommand` to handle amulet:
+  - Display special message: "You have found the Amulet of Yendor!"
+  - Mark amulet as possessed in player state
+  - Add to inventory (but cannot be dropped)
+  - Log achievement
+- [ ] Add `hasAmulet: boolean` to Player type
 
-Main menu, victory screen, help screen
+**Victory Condition**:
+- [ ] Create `checkVictoryCondition()` in game loop:
+  - Check if player has amulet
+  - Check if player is on level 1
+  - Check if player is on upstairs tile
+- [ ] Trigger victory when all conditions met
+- [ ] Transition to victory screen
+
+**Amulet Effects** (optional difficulty increase):
+- [ ] Increase monster spawn rate when amulet possessed
+- [ ] Increase monster aggression range
+- [ ] Display "The Amulet makes you feel exposed" message
+
+**Tests**:
+- [ ] Create `src/__tests__/integration/victory.test.ts`
+- [ ] Test amulet spawns only on level 26
+- [ ] Test amulet pickup adds to inventory
+- [ ] Test victory condition triggers correctly
+- [ ] Test cannot win without amulet
+- [ ] Test cannot win on wrong level
+
+### 7.2 SaveService & Persistence
+
+Implement save/load system with permadeath.
+
+**SaveService Interface**:
+- [ ] Create `src/services/SaveService.ts`
+- [ ] Define `ISaveService` interface:
+  ```typescript
+  interface ISaveService {
+    saveGame(gameState: GameState): void
+    loadGame(): GameState | null
+    hasSavedGame(): boolean
+    deleteSave(): void
+    autoSave(gameState: GameState): void
+  }
+  ```
+
+**LocalStorage Implementation**:
+- [ ] Implement localStorage wrapper with error handling
+- [ ] Use key: `roguelike_save_v1`
+- [ ] Handle quota exceeded errors
+- [ ] Validate saved data on load
+
+**Game State Serialization**:
+- [ ] Define `GameState` type in `core.ts`:
+  ```typescript
+  interface GameState {
+    player: Player
+    dungeon: Level[]
+    currentLevel: number
+    turnCount: number
+    seed: string
+    messageLog: Message[]
+    identifications: IdentificationState
+    gameVersion: string
+  }
+  ```
+- [ ] Implement `serializeGameState()` to JSON
+- [ ] Implement `deserializeGameState()` with validation
+- [ ] Handle version migrations if needed
+
+**Permadeath Mechanics**:
+- [ ] Delete save file on player death
+- [ ] Show "Your save has been deleted" message
+- [ ] Prevent save scumming (no manual save/load)
+- [ ] Only allow one save slot
+
+**Auto-Save Events**:
+- [ ] Auto-save after each player action
+- [ ] Auto-save on level transition
+- [ ] Auto-save on pickup/drop
+- [ ] Auto-save on equipment change
+- [ ] Debounce saves (max once per 100ms)
+
+**Load Game Flow**:
+- [ ] Check for saved game on startup
+- [ ] Restore all game state from save
+- [ ] Reinitialize services with saved RNG seed
+- [ ] Restore FOV and lighting state
+- [ ] Resume game at saved position
+
+**SaveCommand** (optional manual save):
+- [ ] Create `src/commands/SaveCommand.ts`
+- [ ] Bind to `S` key (Shift+S)
+- [ ] Display "Game saved" message
+- [ ] Exit game after save (classic roguelike behavior)
+
+**Tests**:
+- [ ] Create `src/__tests__/services/SaveService.test.ts`
+- [ ] Test save/load round-trip preserves state
+- [ ] Test deleted save returns null on load
+- [ ] Test localStorage errors handled gracefully
+- [ ] Test auto-save debouncing
+- [ ] Test permadeath deletes save
+- [ ] Test version migration (if implemented)
+
+### 7.3 Main Menu Screen
+
+Create the main menu UI.
+
+**Main Menu Component**:
+- [ ] Create `src/ui/MainMenu.ts`
+- [ ] Define menu interface:
+  ```typescript
+  interface IMainMenu {
+    render(hasSavedGame: boolean): void
+    handleInput(key: string): MenuAction
+  }
+  ```
+
+**Menu Options**:
+- [ ] Display game title (ASCII art optional):
+  ```
+  ╔═══════════════════════════════════╗
+  ║     ROGUE: Dungeon Crawl          ║
+  ║                                   ║
+  ║  [N] New Game                     ║
+  ║  [C] Continue Game                ║
+  ║  [H] Help                         ║
+  ║  [A] About                        ║
+  ╚═══════════════════════════════════╝
+  ```
+- [ ] "New Game" - starts new game (warns if save exists)
+- [ ] "Continue Game" - loads saved game (disabled if no save)
+- [ ] "Help" - shows help screen
+- [ ] "About" - shows credits and version
+
+**Menu Rendering**:
+- [ ] Center menu on screen
+- [ ] Highlight selected option
+- [ ] Keyboard navigation (arrow keys or letters)
+- [ ] Enter to confirm selection
+- [ ] ESC to exit game (with confirmation)
+
+**New Game Confirmation**:
+- [ ] If save exists, show warning:
+  - "A saved game exists. Starting a new game will delete it."
+  - "Are you sure? (Y/N)"
+- [ ] Delete save if confirmed
+- [ ] Generate new seed for new game
+
+**Integration**:
+- [ ] Update `main.ts` to show menu on startup
+- [ ] Handle menu → game transition
+- [ ] Handle game → menu transition (on death/victory)
+
+**Tests**:
+- [ ] Create `src/__tests__/ui/MainMenu.test.ts`
+- [ ] Test menu renders correctly
+- [ ] Test navigation works
+- [ ] Test "Continue" disabled without save
+- [ ] Test new game warning shows with existing save
+- [ ] Test menu state transitions
+
+### 7.4 Victory Screen
+
+Display victory screen when player wins.
+
+**Victory Screen Component**:
+- [ ] Create `src/ui/VictoryScreen.ts`
+- [ ] Display victory message:
+  ```
+  ╔═══════════════════════════════════╗
+  ║  CONGRATULATIONS!                 ║
+  ║                                   ║
+  ║  You have retrieved the Amulet    ║
+  ║  of Yendor and escaped the        ║
+  ║  Dungeons of Doom!                ║
+  ║                                   ║
+  ║  Your Final Stats:                ║
+  ║  ═════════════════                ║
+  ║  Score: 12,450                    ║
+  ║  Level: 12                        ║
+  ║  HP: 84/120                       ║
+  ║  Turns: 8,341                     ║
+  ║  Kills: 127                       ║
+  ║  Gold: 2,450                      ║
+  ║                                   ║
+  ║  [Press any key to continue]      ║
+  ╚═══════════════════════════════════╝
+  ```
+
+**Score Calculation**:
+- [ ] Create `calculateScore()` function:
+  - Base score = gold collected
+  - Bonus per level = 100 * level
+  - Bonus per kill = 10 * kill
+  - Amulet bonus = 10,000
+  - Item value bonus
+- [ ] Display final score prominently
+
+**Victory Statistics**:
+- [ ] Track kills throughout game
+- [ ] Track gold collected (including spent)
+- [ ] Track turns taken
+- [ ] Track deepest level reached
+- [ ] Display all stats on victory screen
+
+**High Score Table** (optional):
+- [ ] Store top 10 scores in localStorage
+- [ ] Display high score table
+- [ ] Highlight current run if in top 10
+- [ ] Show date and player name (optional input)
+
+**Victory Flow**:
+- [ ] Trigger on victory condition
+- [ ] Delete save file (game complete)
+- [ ] Show victory screen
+- [ ] Wait for key press
+- [ ] Return to main menu
+
+**Tests**:
+- [ ] Create `src/__tests__/ui/VictoryScreen.test.ts`
+- [ ] Test victory screen renders
+- [ ] Test score calculation formula
+- [ ] Test stats display correctly
+- [ ] Test high score saving (if implemented)
+- [ ] Test save deleted on victory
+
+### 7.5 Death Screen
+
+Display death screen when player dies.
+
+**Death Screen Component**:
+- [ ] Create `src/ui/DeathScreen.ts`
+- [ ] Display death message:
+  ```
+  ╔═══════════════════════════════════╗
+  ║  YOU DIED                         ║
+  ║                                   ║
+  ║  Killed by: Troll on level 12     ║
+  ║                                   ║
+  ║  Your Stats:                      ║
+  ║  ═══════════                      ║
+  ║  Score: 3,240                     ║
+  ║  Level: 8                         ║
+  ║  Turns: 4,127                     ║
+  ║  Kills: 67                        ║
+  ║  Gold: 740                        ║
+  ║                                   ║
+  ║  [Press any key to continue]      ║
+  ╚═══════════════════════════════════╝
+  ```
+
+**Death Reasons**:
+- [ ] Track cause of death (monster name, starvation, etc.)
+- [ ] Display specific death message
+- [ ] Store death info for tombstone
+
+**Tombstone/Morgue File** (optional):
+- [ ] Create death log entry
+- [ ] Store in localStorage (`roguelike_morgue`)
+- [ ] Include full inventory and equipment
+- [ ] Include dungeon level reached
+- [ ] View past deaths from main menu
+
+**Death Flow**:
+- [ ] Trigger on player HP <= 0
+- [ ] Delete save file (permadeath)
+- [ ] Show death screen
+- [ ] Wait for key press
+- [ ] Return to main menu
+
+**Tests**:
+- [ ] Create `src/__tests__/ui/DeathScreen.test.ts`
+- [ ] Test death screen renders
+- [ ] Test cause of death displayed
+- [ ] Test save deleted on death
+- [ ] Test stats display correctly
+- [ ] Test morgue file created (if implemented)
+
+### 7.6 Help Screen
+
+Display help screen with keybindings and instructions.
+
+**Help Screen Component**:
+- [ ] Create `src/ui/HelpScreen.ts`
+- [ ] Display comprehensive help:
+  ```
+  ╔═══════════════════════════════════╗
+  ║  HELP - ROGUE                     ║
+  ║                                   ║
+  ║  MOVEMENT:                        ║
+  ║  ←↑↓→ or hjkl  Move               ║
+  ║  yubn          Diagonal movement  ║
+  ║  .             Rest (pass turn)   ║
+  ║                                   ║
+  ║  ITEMS:                           ║
+  ║  ,             Pick up item       ║
+  ║  d             Drop item          ║
+  ║  i             Show inventory     ║
+  ║  w             Wield weapon       ║
+  ║  W             Wear armor         ║
+  ║  T             Take off armor     ║
+  ║  P             Put on ring        ║
+  ║  R             Remove ring        ║
+  ║  q             Quaff potion       ║
+  ║  r             Read scroll        ║
+  ║  z             Zap wand           ║
+  ║  e             Eat food           ║
+  ║                                   ║
+  ║  DUNGEON:                         ║
+  ║  >             Go down stairs     ║
+  ║  <             Go up stairs       ║
+  ║  o             Open door          ║
+  ║  c             Close door         ║
+  ║  s             Search for traps   ║
+  ║                                   ║
+  ║  OTHER:                           ║
+  ║  ?             Show this help     ║
+  ║  S             Save & quit        ║
+  ║  Q             Quit (no save)     ║
+  ║                                   ║
+  ║  [ESC] Close help                 ║
+  ╚═══════════════════════════════════╝
+  ```
+
+**Help Sections**:
+- [ ] Movement commands (8-direction + rest)
+- [ ] Item commands (11 commands)
+- [ ] Dungeon commands (stairs, doors, search)
+- [ ] System commands (help, save, quit)
+- [ ] Symbols legend (tiles, monsters, items)
+
+**Symbols Legend**:
+- [ ] Show all tile symbols (@, #, +, %, etc.)
+- [ ] Show monster symbols (a-z, A-Z)
+- [ ] Show item symbols (!, ?, /, =, etc.)
+- [ ] Color-coded if possible
+
+**Help Access**:
+- [ ] Bind `?` key to show help
+- [ ] Available from main menu
+- [ ] Available during gameplay
+- [ ] ESC to close and return
+
+**Tests**:
+- [ ] Create `src/__tests__/ui/HelpScreen.test.ts`
+- [ ] Test help screen renders
+- [ ] Test all commands listed
+- [ ] Test help accessible from game and menu
+- [ ] Test ESC closes help
+
+### 7.7 UI Polish & Final Integration
+
+Polish the UI and integrate all screens.
+
+**Title & Branding**:
+- [ ] Create ASCII title logo (optional)
+- [ ] Add version number to main menu
+- [ ] Add credits/attribution
+- [ ] Consistent color scheme across all screens
+
+**Screen Transitions**:
+- [ ] Smooth fade between screens (optional)
+- [ ] Clear screen before rendering new screen
+- [ ] Consistent layout and spacing
+- [ ] Handle window resize gracefully
+
+**Message History Modal**:
+- [ ] Create `MessageHistory.ts` UI component
+- [ ] Display scrollable message log
+- [ ] Bind to `M` key (Shift+M)
+- [ ] Show last 100 messages
+- [ ] Highlight recent messages
+- [ ] ESC to close
+
+**Game Over Handling**:
+- [ ] Centralize game over logic
+- [ ] Handle death → death screen → main menu flow
+- [ ] Handle victory → victory screen → main menu flow
+- [ ] Ensure save deleted in both cases
+
+**Quit Confirmation**:
+- [ ] Add confirmation dialog for quit without save
+- [ ] "Really quit? Your game will not be saved. (Y/N)"
+- [ ] Save if user chooses to save
+- [ ] Exit without save if confirmed
+
+**Status Bar Polish**:
+- [ ] Consistent formatting for all stats
+- [ ] Color-code critical values (low HP = red)
+- [ ] Show hunger status with icon
+- [ ] Show XP progress bar (optional)
+- [ ] Show floor number prominently
+
+**Input Handling**:
+- [ ] Handle invalid keys gracefully
+- [ ] Display "Unknown command" for invalid keys
+- [ ] Support uppercase and lowercase
+- [ ] Handle numpad and vi keys interchangeably
+
+**Tests**:
+- [ ] Create `src/__tests__/integration/ui-flow.test.ts`
+- [ ] Test menu → game transition
+- [ ] Test game → death → menu flow
+- [ ] Test game → victory → menu flow
+- [ ] Test help screen from all contexts
+- [ ] Test quit confirmation
+- [ ] Test message history modal
+
+### 7.8 Files Created in Phase 7
+
+- `src/services/SaveService.ts` (200 lines)
+- `src/commands/SaveCommand.ts` (60 lines)
+- `src/ui/MainMenu.ts` (150 lines)
+- `src/ui/VictoryScreen.ts` (120 lines)
+- `src/ui/DeathScreen.ts` (100 lines)
+- `src/ui/HelpScreen.ts` (180 lines)
+- `src/ui/MessageHistory.ts` (100 lines)
+- `src/__tests__/services/SaveService.test.ts` (300 lines)
+- `src/__tests__/ui/MainMenu.test.ts` (200 lines)
+- `src/__tests__/ui/VictoryScreen.test.ts` (150 lines)
+- `src/__tests__/ui/DeathScreen.test.ts` (120 lines)
+- `src/__tests__/ui/HelpScreen.test.ts` (100 lines)
+- `src/__tests__/integration/victory.test.ts` (200 lines)
+- `src/__tests__/integration/ui-flow.test.ts` (250 lines)
+
+**Total**: ~2,230 lines of code + tests
+
+### 7.9 Testing Requirements
+
+- [ ] Amulet spawns correctly on level 26
+- [ ] Victory condition triggers with amulet on level 1
+- [ ] Save/load preserves all game state
+- [ ] Permadeath deletes save on death
+- [ ] Auto-save works on all key events
+- [ ] Main menu displays correctly
+- [ ] Continue game loads saved state
+- [ ] New game warns if save exists
+- [ ] Victory screen shows correct stats and score
+- [ ] Death screen shows correct cause of death
+- [ ] Help screen lists all commands
+- [ ] Message history displays recent messages
+- [ ] Quit confirmation prevents accidental exits
+- [ ] All screen transitions work smoothly
 
 ---
 
@@ -3679,17 +4593,439 @@ Main menu, victory screen, help screen
 **Goal**: >80% coverage, balance
 **Duration**: Week 10-11
 
-### 8.1 Test Coverage
+### 8.1 Service Unit Test Coverage
 
-Unit tests for all services and commands
+Ensure all services have comprehensive unit tests.
 
-### 8.2 Integration Tests
+**Core Services** (Phases 0-1):
+- [ ] `RandomService.test.ts` - complete with MockRandom validation
+- [ ] `FOVService.test.ts` - test all 8 octants, edge cases
+- [ ] `LightingService.test.ts` - test torch, lantern, radius calculations
+- [ ] `RenderingService.test.ts` - test visibility states, colors
+- [ ] `MovementService.test.ts` - test collisions, valid moves
+- [ ] `MessageService.test.ts` - test message queue, limits
 
-Full game flow tests
+**Combat Services** (Phase 2):
+- [ ] `CombatService.test.ts` - test hit calculations, damage, death
+- [ ] `PathfindingService.test.ts` - test A*, blocked paths, long distances
+- [ ] `MonsterAIService.test.ts` - test all 7 AI behaviors with deterministic RNG
 
-### 8.3 Balance Tuning
+**Dungeon Services** (Phase 3):
+- [ ] `DungeonService.test.ts` - test room generation, MST, corridors
+- [ ] `TrapService.test.ts` - test all 5 trap types and effects
+- [ ] Test door mechanics (6 door types)
+- [ ] Test multi-level generation consistency
 
-Monster scaling, item drop rates, difficulty curve
+**Item Services** (Phase 5):
+- [ ] `InventoryService.test.ts` - test equipment slots, stacking, cursed items
+- [ ] `IdentificationService.test.ts` - test name generation, identification
+- [ ] `ItemEffectService.test.ts` - test all 40+ item effects
+
+**Progression Services** (Phase 6):
+- [ ] `HungerService.test.ts` - test all 5 hunger states
+- [ ] `LevelingService.test.ts` - test XP curves, level-ups, stat increases
+
+**System Services** (Phase 7):
+- [ ] `SaveService.test.ts` - test serialization, permadeath, auto-save
+
+**Coverage Target**:
+- [ ] Run `npm run test:coverage`
+- [ ] Verify >80% statement coverage
+- [ ] Verify >75% branch coverage
+- [ ] Verify >80% function coverage
+- [ ] Fix any gaps in coverage
+
+### 8.2 Command Unit Test Coverage
+
+Test all command implementations.
+
+**Movement Commands**:
+- [ ] `MoveCommand.test.ts` - test all 8 directions, collisions
+- [ ] `AttackCommand.test.ts` - test combat, kills, XP
+- [ ] `MoveStairsCommand.test.ts` - test level transitions
+
+**Door Commands** (Phase 3):
+- [ ] `OpenDoorCommand.test.ts` - test opening, locked doors
+- [ ] `CloseDoorCommand.test.ts` - test closing, blocked tiles
+- [ ] `SearchCommand.test.ts` - test finding secret doors and traps
+
+**Item Commands** (Phase 5):
+- [ ] `PickUpCommand.test.ts` - test pickup, full inventory
+- [ ] `DropCommand.test.ts` - test dropping, equipped items
+- [ ] `WieldCommand.test.ts` - test weapon equipping, cursed weapons
+- [ ] `WearArmorCommand.test.ts` - test armor equipping
+- [ ] `TakeOffArmorCommand.test.ts` - test removal, cursed armor
+- [ ] `PutOnRingCommand.test.ts` - test ring slots (2 max)
+- [ ] `RemoveRingCommand.test.ts` - test removal, cursed rings
+- [ ] `QuaffPotionCommand.test.ts` - test all potion effects
+- [ ] `ReadScrollCommand.test.ts` - test all scroll effects
+- [ ] `ZapWandCommand.test.ts` - test all wand effects, charges
+- [ ] `EatCommand.test.ts` - test food consumption, hunger reset
+
+**System Commands** (Phase 7):
+- [ ] `SaveCommand.test.ts` - test save and quit
+
+**Command Coverage**:
+- [ ] Verify all commands have >80% coverage
+- [ ] Test error cases (invalid input, empty inventory, etc.)
+- [ ] Test edge cases (full inventory, no targets, etc.)
+
+### 8.3 UI Component Test Coverage
+
+Test all UI rendering and input handling.
+
+**Core UI**:
+- [ ] `GameRenderer.test.ts` - test dungeon rendering, status display
+- [ ] `InputHandler.test.ts` - test key mapping, command routing
+- [ ] `InventoryScreen.test.ts` - test inventory display, selection
+
+**Menu Screens** (Phase 7):
+- [ ] `MainMenu.test.ts` - test menu navigation, save detection
+- [ ] `VictoryScreen.test.ts` - test score calculation, stats display
+- [ ] `DeathScreen.test.ts` - test death message, cause tracking
+- [ ] `HelpScreen.test.ts` - test help display, all commands listed
+- [ ] `MessageHistory.test.ts` - test message log, scrolling
+
+**UI Testing Focus**:
+- [ ] Test rendering does not crash
+- [ ] Test input produces correct commands
+- [ ] Test screen transitions
+- [ ] Mock canvas/DOM for headless tests
+
+### 8.4 Integration Test Suite
+
+Test complete game flows and feature interactions.
+
+**Core Game Loop** (`src/__tests__/integration/game-loop.test.ts`):
+- [ ] Test player spawns correctly
+- [ ] Test turn processing order (player → monsters → environment)
+- [ ] Test FOV updates on movement
+- [ ] Test message log updates
+- [ ] Test game state consistency after each turn
+- [ ] Test 100-turn simulation runs without errors
+
+**Multi-Level Gameplay** (`src/__tests__/integration/multi-level.test.ts`):
+- [ ] Test descending 26 levels
+- [ ] Test ascending back to level 1
+- [ ] Test monsters don't follow between levels
+- [ ] Test items persist on levels
+- [ ] Test stairs always accessible
+- [ ] Test level memory (explored state)
+
+**Combat Flow** (`src/__tests__/integration/combat.test.ts`):
+- [ ] Test player kills monster → gains XP → levels up
+- [ ] Test monster kills player → death screen
+- [ ] Test special abilities trigger correctly
+- [ ] Test fleeing behavior (COWARD AI)
+- [ ] Test confusion effects
+- [ ] Test paralysis effects
+
+**Item Interaction** (`src/__tests__/integration/items.test.ts`):
+- [ ] Test find → pick up → equip → use flow
+- [ ] Test identification system (unknown → identified)
+- [ ] Test cursed item cannot be removed
+- [ ] Test remove curse scroll
+- [ ] Test potion stacking
+- [ ] Test wand charges deplete
+- [ ] Test ring interactions (2 ring limit)
+
+**Hunger & Survival** (`src/__tests__/integration/hunger.test.ts`):
+- [ ] Test hunger progresses over turns
+- [ ] Test eating resets hunger
+- [ ] Test starvation damage
+- [ ] Test death by starvation
+- [ ] Test hunger affects combat
+
+**Save/Load Persistence** (`src/__tests__/integration/save-load.test.ts`):
+- [ ] Test save → load preserves player state
+- [ ] Test save → load preserves dungeon state
+- [ ] Test save → load preserves monster positions
+- [ ] Test save → load preserves item identifications
+- [ ] Test save → load preserves RNG state (same seed)
+- [ ] Test death deletes save
+- [ ] Test victory deletes save
+
+**Victory Condition** (`src/__tests__/integration/victory.test.ts`):
+- [ ] Test reach level 26
+- [ ] Test find amulet
+- [ ] Test return to level 1
+- [ ] Test victory screen appears
+- [ ] Test score calculated correctly
+
+**Edge Cases** (`src/__tests__/integration/edge-cases.test.ts`):
+- [ ] Test player surrounded by monsters
+- [ ] Test empty floor (no monsters/items)
+- [ ] Test fully blocked room (unreachable)
+- [ ] Test teleport to wall (trap edge case)
+- [ ] Test inventory overflow (>26 items)
+- [ ] Test zero HP exactly (not negative)
+
+### 8.5 Balance Tuning & Playtesting
+
+Balance gameplay for fun and challenge.
+
+**Monster Balance**:
+- [ ] Test early levels (1-5) are survivable
+- [ ] Test mid levels (10-15) are challenging
+- [ ] Test deep levels (20-26) are hard but fair
+- [ ] Adjust monster spawn rates per level
+- [ ] Adjust monster HP/damage scaling
+- [ ] Test monster density (not too crowded)
+- [ ] Verify monster level progression:
+  - Level 1-3: Bat, Kestrel, Emu, Hobgoblin
+  - Level 4-8: Snake, Centaur, Orc, Zombie
+  - Level 9-15: Rattlesnake, Troll, Wraith
+  - Level 16-26: Griffin, Dragon, Vampire
+
+**Item Balance**:
+- [ ] Test item spawn rates (not too rare or common)
+- [ ] Adjust potion drop rates (healing most common)
+- [ ] Adjust scroll drop rates (identify common)
+- [ ] Adjust weapon/armor spawn by depth
+- [ ] Test cursed item percentage (~10%)
+- [ ] Verify food scarcity (hunger pressure)
+- [ ] Balance wand charge counts
+- [ ] Balance ring power levels
+
+**Combat Balance**:
+- [ ] Test AC effectiveness (armor matters)
+- [ ] Test weapon damage scaling
+- [ ] Test to-hit formula (not too easy/hard)
+- [ ] Test player damage vs monster HP
+- [ ] Test monster damage vs player HP
+- [ ] Verify combat feels fair (not too swingy)
+
+**Progression Balance**:
+- [ ] Test XP curve (level 10 by floor 15)
+- [ ] Test stat increases feel impactful
+- [ ] Test HP gain per level (average 5-6)
+- [ ] Test strength increases (10% chance)
+- [ ] Verify hunger timing (need food every ~1000 turns)
+
+**Difficulty Curve**:
+- [ ] Play through levels 1-10 multiple times
+- [ ] Track win rate (should be ~10-20% for skilled players)
+- [ ] Track average death level (around level 8-12)
+- [ ] Identify difficulty spikes
+- [ ] Smooth out difficulty curve
+- [ ] Ensure level 26 is reachable but challenging
+
+**Drop Rate Tuning**:
+- [ ] Gold: Common (30%)
+- [ ] Potion: Common (25%)
+- [ ] Scroll: Common (20%)
+- [ ] Weapon: Uncommon (10%)
+- [ ] Armor: Uncommon (8%)
+- [ ] Ring: Rare (5%)
+- [ ] Wand: Rare (5%)
+- [ ] Food: Uncommon (7%)
+- [ ] Amulet: Unique (level 26 only)
+
+### 8.6 Bug Fixing & Edge Cases
+
+Identify and fix common bugs and edge cases.
+
+**Movement Bugs**:
+- [ ] Test diagonal movement blocked by corners
+- [ ] Test movement onto items works
+- [ ] Test movement onto stairs works
+- [ ] Test cannot move off map
+- [ ] Test cannot move into walls
+
+**Combat Bugs**:
+- [ ] Test damage cannot reduce HP below 0
+- [ ] Test zero-damage attacks display correctly
+- [ ] Test critical hits (if implemented)
+- [ ] Test confused player cannot attack
+- [ ] Test paralyzed player cannot move
+
+**Inventory Bugs**:
+- [ ] Test equipping item with full hands
+- [ ] Test dropping equipped item unequips it
+- [ ] Test cursed items cannot be unequipped
+- [ ] Test inventory letter wrapping (a-z then A-Z)
+- [ ] Test stacking identical items
+
+**Door Bugs**:
+- [ ] Test cannot open already-open door
+- [ ] Test cannot close door with entity on it
+- [ ] Test secret doors remain hidden until searched
+- [ ] Test locked doors require key or force
+- [ ] Test broken doors cannot be closed
+
+**Trap Bugs**:
+- [ ] Test traps trigger once then disappear
+- [ ] Test search reveals nearby traps
+- [ ] Test teleport trap doesn't teleport into walls
+- [ ] Test pit trap handles multi-level descent
+
+**AI Bugs**:
+- [ ] Test monsters don't move when player not in FOV
+- [ ] Test GREEDY monsters prioritize gold
+- [ ] Test THIEF monsters flee after stealing
+- [ ] Test COWARD monsters flee at low HP
+- [ ] Test pathfinding handles blocked paths
+
+**Save/Load Bugs**:
+- [ ] Test save doesn't corrupt on browser close
+- [ ] Test load handles missing data gracefully
+- [ ] Test save size doesn't exceed localStorage limit
+- [ ] Test version mismatch handled
+
+**UI Bugs**:
+- [ ] Test message log doesn't overflow
+- [ ] Test very long messages wrap correctly
+- [ ] Test colors render consistently
+- [ ] Test special characters display (unicode)
+- [ ] Test screen resize doesn't break layout
+
+### 8.7 Performance Testing & Optimization
+
+Ensure smooth gameplay at 60 FPS.
+
+**FOV Performance**:
+- [ ] Profile FOV calculation time
+- [ ] Test FOV with radius 10+ doesn't lag
+- [ ] Test FOV in large rooms (20x20+)
+- [ ] Optimize shadowcasting if needed
+- [ ] Cache FOV results if unchanged
+
+**Pathfinding Performance**:
+- [ ] Profile A* pathfinding time
+- [ ] Test pathfinding across entire level
+- [ ] Set max pathfinding distance (limit to 30 tiles)
+- [ ] Cache paths if destination unchanged
+- [ ] Test multiple monsters pathfinding simultaneously
+
+**Dungeon Generation Performance**:
+- [ ] Profile level generation time
+- [ ] Test generation completes in <100ms
+- [ ] Optimize MST algorithm if needed
+- [ ] Optimize floodfill if needed
+
+**Rendering Performance**:
+- [ ] Profile render() call time
+- [ ] Test full screen render at 60 FPS
+- [ ] Optimize canvas drawing if needed
+- [ ] Only redraw changed tiles (optional)
+
+**Save/Load Performance**:
+- [ ] Profile save serialization time
+- [ ] Profile load deserialization time
+- [ ] Test save/load with 26 full levels
+- [ ] Optimize JSON serialization if needed
+- [ ] Compress save data if too large (optional)
+
+**Memory Usage**:
+- [ ] Profile memory usage over long game
+- [ ] Test no memory leaks after 1000+ turns
+- [ ] Test localStorage usage stays under quota
+- [ ] Optimize large data structures
+
+### 8.8 Code Quality & Cleanup
+
+Final code quality improvements.
+
+**Code Cleanup**:
+- [ ] Remove all console.log statements
+- [ ] Remove commented-out code
+- [ ] Remove unused imports
+- [ ] Remove unused variables
+- [ ] Fix all TypeScript warnings
+- [ ] Fix all ESLint warnings
+
+**Code Documentation**:
+- [ ] Add JSDoc comments to all public methods
+- [ ] Document complex algorithms (FOV, A*, MST)
+- [ ] Document all interfaces
+- [ ] Add examples to README
+- [ ] Document development setup
+
+**Type Safety**:
+- [ ] Remove all `any` types
+- [ ] Add strict null checks
+- [ ] Use proper discriminated unions
+- [ ] Validate all external data (JSON)
+
+**Error Handling**:
+- [ ] Add try-catch around localStorage calls
+- [ ] Add try-catch around JSON parsing
+- [ ] Handle canvas context creation failure
+- [ ] Display user-friendly error messages
+- [ ] Log errors to console for debugging
+
+**Code Style**:
+- [ ] Run Prettier on all files
+- [ ] Consistent naming conventions
+- [ ] Consistent file structure
+- [ ] Consistent import ordering
+
+### 8.9 Final Playtesting Checklist
+
+Complete playthrough testing.
+
+**Playthrough 1: Tutorial/Easy Path**:
+- [ ] Start new game
+- [ ] Complete first 5 levels
+- [ ] Pick up and use each item type
+- [ ] Test all commands work
+- [ ] Verify UI is clear and intuitive
+- [ ] Check for confusing messages
+- [ ] Note any rough edges
+
+**Playthrough 2: Full Game**:
+- [ ] Attempt to reach level 26
+- [ ] Find the Amulet
+- [ ] Attempt to return to level 1
+- [ ] Try to win the game
+- [ ] Track time to completion
+- [ ] Note difficulty spikes
+- [ ] Verify victory screen
+
+**Playthrough 3: Death Scenarios**:
+- [ ] Die to monster
+- [ ] Die to starvation
+- [ ] Die to trap (if lethal)
+- [ ] Verify death screen correct
+- [ ] Verify save deleted
+- [ ] Verify can start new game
+
+**Playthrough 4: Edge Cases**:
+- [ ] Test save/load multiple times
+- [ ] Test all special monster abilities
+- [ ] Test all item effects
+- [ ] Test cursed items
+- [ ] Test full inventory
+- [ ] Test all trap types
+- [ ] Test all door types
+
+**User Experience Checks**:
+- [ ] Game is fun to play
+- [ ] Controls feel responsive
+- [ ] Difficulty feels fair
+- [ ] UI is readable
+- [ ] Messages are clear
+- [ ] Help screen is comprehensive
+- [ ] No confusing mechanics
+
+### 8.10 Testing Requirements Summary
+
+**Minimum Requirements**:
+- [ ] >80% code coverage across all modules
+- [ ] All unit tests pass
+- [ ] All integration tests pass
+- [ ] Zero TypeScript errors
+- [ ] Zero ESLint errors
+- [ ] At least 3 complete playthroughs without crashes
+- [ ] Win the game at least once
+- [ ] Die in at least 3 different ways
+- [ ] Performance: 60 FPS on modern browsers
+- [ ] Performance: Level generation <100ms
+- [ ] Performance: Save/load <50ms
+- [ ] No memory leaks after 1000+ turns
+- [ ] Works in Chrome, Firefox, Safari
+- [ ] Works on desktop (1920x1080+)
+- [ ] Mobile support (optional but nice to have)
 
 ---
 
@@ -3751,9 +5087,418 @@ roguelike/
 
 ## Appendix B: Data File Templates
 
-### monsters.json (Complete)
+### monsters.json (Complete Monster Roster)
 
-See PRD Section 4.9 for all 26 monsters with stats and AI profiles
+All 26 monsters from original Rogue with full stats and AI behaviors:
+
+```json
+{
+  "monsters": [
+    {
+      "symbol": "A",
+      "name": "Aquator",
+      "level": 5,
+      "hp": "5d8",
+      "ac": 2,
+      "damage": "0d0/0d0",
+      "xp": 20,
+      "ai": "SIMPLE",
+      "specialAbility": "RUST_ARMOR",
+      "minDepth": 8,
+      "maxDepth": 26,
+      "description": "Rusts armor on contact"
+    },
+    {
+      "symbol": "B",
+      "name": "Bat",
+      "level": 1,
+      "hp": "1d8",
+      "ac": 3,
+      "damage": "1d2",
+      "xp": 1,
+      "ai": "ERRATIC",
+      "specialAbility": "FLYING",
+      "minDepth": 1,
+      "maxDepth": 8,
+      "description": "Fast, erratic flier"
+    },
+    {
+      "symbol": "C",
+      "name": "Centaur",
+      "level": 4,
+      "hp": "4d8",
+      "ac": 4,
+      "damage": "1d6/1d6",
+      "xp": 17,
+      "ai": "SMART",
+      "specialAbility": "MULTIPLE_ATTACKS",
+      "minDepth": 7,
+      "maxDepth": 16,
+      "description": "Dual-wielding archer"
+    },
+    {
+      "symbol": "D",
+      "name": "Dragon",
+      "level": 10,
+      "hp": "10d8",
+      "ac": -1,
+      "damage": "1d8/1d8/3d10",
+      "xp": 6800,
+      "ai": "SMART",
+      "specialAbility": "BREATH_WEAPON,MULTIPLE_ATTACKS,REGENERATION",
+      "minDepth": 21,
+      "maxDepth": 26,
+      "description": "Ancient fire-breather with regeneration"
+    },
+    {
+      "symbol": "E",
+      "name": "Emu",
+      "level": 1,
+      "hp": "1d8",
+      "ac": 7,
+      "damage": "1d2",
+      "xp": 2,
+      "ai": "SIMPLE",
+      "specialAbility": null,
+      "minDepth": 1,
+      "maxDepth": 5,
+      "description": "Large flightless bird"
+    },
+    {
+      "symbol": "F",
+      "name": "Venus Flytrap",
+      "level": 8,
+      "hp": "8d8",
+      "ac": 3,
+      "damage": "1d6",
+      "xp": 80,
+      "ai": "STATIONARY",
+      "specialAbility": "HOLD_PLAYER",
+      "minDepth": 14,
+      "maxDepth": 26,
+      "description": "Immobile but can hold player"
+    },
+    {
+      "symbol": "G",
+      "name": "Griffin",
+      "level": 13,
+      "hp": "13d8",
+      "ac": 2,
+      "damage": "4d3/3d5/4d3",
+      "xp": 2000,
+      "ai": "SMART",
+      "specialAbility": "MULTIPLE_ATTACKS,FLYING,REGENERATION",
+      "minDepth": 20,
+      "maxDepth": 26,
+      "description": "Legendary flying regenerator with 3 attacks"
+    },
+    {
+      "symbol": "H",
+      "name": "Hobgoblin",
+      "level": 1,
+      "hp": "1d8",
+      "ac": 5,
+      "damage": "1d8",
+      "xp": 3,
+      "ai": "SIMPLE",
+      "specialAbility": null,
+      "minDepth": 1,
+      "maxDepth": 6,
+      "description": "Common dungeon dweller"
+    },
+    {
+      "symbol": "I",
+      "name": "Ice Monster",
+      "level": 1,
+      "hp": "1d8",
+      "ac": 9,
+      "damage": "0d0",
+      "xp": 5,
+      "ai": "SIMPLE",
+      "specialAbility": "FREEZE_PLAYER",
+      "minDepth": 2,
+      "maxDepth": 10,
+      "description": "Freezes player in place (no damage)"
+    },
+    {
+      "symbol": "J",
+      "name": "Jabberwock",
+      "level": 15,
+      "hp": "15d8",
+      "ac": 6,
+      "damage": "2d12/2d4",
+      "xp": 3000,
+      "ai": "SMART",
+      "specialAbility": "MULTIPLE_ATTACKS",
+      "minDepth": 22,
+      "maxDepth": 26,
+      "description": "Fierce dual attacker"
+    },
+    {
+      "symbol": "K",
+      "name": "Kestrel",
+      "level": 1,
+      "hp": "1d8",
+      "ac": 7,
+      "damage": "1d4",
+      "xp": 2,
+      "ai": "ERRATIC",
+      "specialAbility": "FLYING",
+      "minDepth": 1,
+      "maxDepth": 6,
+      "description": "Small bird of prey"
+    },
+    {
+      "symbol": "L",
+      "name": "Leprechaun",
+      "level": 3,
+      "hp": "3d8",
+      "ac": 8,
+      "damage": "1d1",
+      "xp": 10,
+      "ai": "THIEF",
+      "specialAbility": "STEAL_GOLD",
+      "minDepth": 5,
+      "maxDepth": 16,
+      "description": "Steals gold and flees"
+    },
+    {
+      "symbol": "M",
+      "name": "Medusa",
+      "level": 8,
+      "hp": "8d8",
+      "ac": 2,
+      "damage": "3d4/3d4/2d5",
+      "xp": 200,
+      "ai": "SMART",
+      "specialAbility": "CONFUSION,MULTIPLE_ATTACKS",
+      "minDepth": 16,
+      "maxDepth": 26,
+      "description": "Confusing gaze + 3 attacks"
+    },
+    {
+      "symbol": "N",
+      "name": "Nymph",
+      "level": 3,
+      "hp": "3d8",
+      "ac": 9,
+      "damage": "0d0",
+      "xp": 37,
+      "ai": "THIEF",
+      "specialAbility": "STEAL_ITEM",
+      "minDepth": 6,
+      "maxDepth": 16,
+      "description": "Steals random item and teleports"
+    },
+    {
+      "symbol": "O",
+      "name": "Orc",
+      "level": 1,
+      "hp": "1d8",
+      "ac": 6,
+      "damage": "1d8",
+      "xp": 5,
+      "ai": "GREEDY",
+      "specialAbility": null,
+      "minDepth": 3,
+      "maxDepth": 12,
+      "description": "Greedy fighter, seeks gold"
+    },
+    {
+      "symbol": "P",
+      "name": "Phantom",
+      "level": 8,
+      "hp": "8d8",
+      "ac": 3,
+      "damage": "4d4",
+      "xp": 120,
+      "ai": "SMART",
+      "specialAbility": "INVISIBLE",
+      "minDepth": 15,
+      "maxDepth": 26,
+      "description": "Invisible until attacks"
+    },
+    {
+      "symbol": "Q",
+      "name": "Quagga",
+      "level": 3,
+      "hp": "3d8",
+      "ac": 2,
+      "damage": "1d5/1d5",
+      "xp": 15,
+      "ai": "SIMPLE",
+      "specialAbility": "MULTIPLE_ATTACKS",
+      "minDepth": 5,
+      "maxDepth": 12,
+      "description": "Zebra-like creature with kick"
+    },
+    {
+      "symbol": "R",
+      "name": "Rattlesnake",
+      "level": 2,
+      "hp": "2d8",
+      "ac": 3,
+      "damage": "1d6",
+      "xp": 9,
+      "ai": "SIMPLE",
+      "specialAbility": "DRAIN_STRENGTH",
+      "minDepth": 3,
+      "maxDepth": 12,
+      "description": "Venomous, drains strength"
+    },
+    {
+      "symbol": "S",
+      "name": "Snake",
+      "level": 1,
+      "hp": "1d8",
+      "ac": 5,
+      "damage": "1d3",
+      "xp": 3,
+      "ai": "SIMPLE",
+      "specialAbility": null,
+      "minDepth": 2,
+      "maxDepth": 8,
+      "description": "Common serpent"
+    },
+    {
+      "symbol": "T",
+      "name": "Troll",
+      "level": 6,
+      "hp": "6d8",
+      "ac": 4,
+      "damage": "1d8/1d8/2d6",
+      "xp": 120,
+      "ai": "SMART",
+      "specialAbility": "REGENERATION,MULTIPLE_ATTACKS",
+      "minDepth": 11,
+      "maxDepth": 20,
+      "description": "Regenerates HP, 3 attacks"
+    },
+    {
+      "symbol": "U",
+      "name": "Ur-Vile",
+      "level": 7,
+      "hp": "7d8",
+      "ac": -2,
+      "damage": "1d3/1d3/1d3/4d6",
+      "xp": 190,
+      "ai": "SMART",
+      "specialAbility": "MULTIPLE_ATTACKS",
+      "minDepth": 13,
+      "maxDepth": 26,
+      "description": "Four attacks, excellent AC"
+    },
+    {
+      "symbol": "V",
+      "name": "Vampire",
+      "level": 8,
+      "hp": "8d8",
+      "ac": 1,
+      "damage": "1d10",
+      "xp": 350,
+      "ai": "SMART",
+      "specialAbility": "DRAIN_MAX_HP,REGENERATION,FLYING",
+      "minDepth": 17,
+      "maxDepth": 26,
+      "description": "Drains max HP permanently, regenerates"
+    },
+    {
+      "symbol": "W",
+      "name": "Wraith",
+      "level": 5,
+      "hp": "5d8",
+      "ac": 4,
+      "damage": "1d6",
+      "xp": 55,
+      "ai": "SMART",
+      "specialAbility": "DRAIN_XP",
+      "minDepth": 9,
+      "maxDepth": 18,
+      "description": "Drains experience levels"
+    },
+    {
+      "symbol": "X",
+      "name": "Xeroc",
+      "level": 7,
+      "hp": "7d8",
+      "ac": 7,
+      "damage": "4d4",
+      "xp": 100,
+      "ai": "SMART",
+      "specialAbility": "MIMIC",
+      "minDepth": 13,
+      "maxDepth": 26,
+      "description": "Disguises as item until approached"
+    },
+    {
+      "symbol": "Y",
+      "name": "Yeti",
+      "level": 4,
+      "hp": "4d8",
+      "ac": 6,
+      "damage": "1d6/1d6",
+      "xp": 50,
+      "ai": "SIMPLE",
+      "specialAbility": "MULTIPLE_ATTACKS",
+      "minDepth": 7,
+      "maxDepth": 15,
+      "description": "Snow beast with dual claws"
+    },
+    {
+      "symbol": "Z",
+      "name": "Zombie",
+      "level": 2,
+      "hp": "2d8",
+      "ac": 8,
+      "damage": "1d8",
+      "xp": 7,
+      "ai": "SIMPLE",
+      "specialAbility": null,
+      "minDepth": 3,
+      "maxDepth": 10,
+      "description": "Shambling undead"
+    }
+  ]
+}
+```
+
+**Monster Stats Explanation**:
+- **symbol**: Display character (A-Z)
+- **name**: Monster name
+- **level**: Monster level (affects XP, to-hit, etc.)
+- **hp**: Hit point dice (e.g., "5d8" = roll 5 eight-sided dice)
+- **ac**: Armor class (lower is better, -2 is best, 9 is worst)
+- **damage**: Damage dice per attack (multiple attacks separated by /)
+- **xp**: Experience points awarded on kill
+- **ai**: Behavior type (SIMPLE, SMART, ERRATIC, GREEDY, THIEF, STATIONARY, COWARD)
+- **specialAbility**: Unique abilities (null if none)
+- **minDepth/maxDepth**: Level range where monster spawns
+
+**Special Abilities**:
+- `RUST_ARMOR`: Damages armor on contact (Aquator)
+- `FLYING`: Can move over difficult terrain (Bat, Kestrel, Griffin, Vampire)
+- `MULTIPLE_ATTACKS`: Multiple damage rolls per turn (Centaur, Dragon, etc.)
+- `BREATH_WEAPON`: Dragon's fire breath (3d10 damage, ranged)
+- `HOLD_PLAYER`: Paralyzes player (Venus Flytrap)
+- `REGENERATION`: Heals HP each turn (Dragon, Griffin, Troll, Vampire)
+- `FREEZE_PLAYER`: Freezes player for 1-3 turns (Ice Monster)
+- `STEAL_GOLD`: Steals gold and flees (Leprechaun)
+- `STEAL_ITEM`: Steals random item and teleports (Nymph)
+- `INVISIBLE`: Not visible until attacks (Phantom)
+- `DRAIN_STRENGTH`: Reduces strength stat (Rattlesnake)
+- `DRAIN_XP`: Reduces experience level (Wraith)
+- `DRAIN_MAX_HP`: Permanently reduces max HP (Vampire)
+- `CONFUSION`: Confuses player, random movement (Medusa)
+- `MIMIC`: Appears as item on floor (Xeroc)
+
+**AI Behaviors**:
+- `SIMPLE`: Move toward player if in FOV
+- `SMART`: Use A* pathfinding, intelligent positioning
+- `ERRATIC`: 50% random movement, 50% toward player
+- `GREEDY`: Prioritize moving to gold piles
+- `THIEF`: Steal (gold/item) then flee
+- `STATIONARY`: Never moves (Venus Flytrap)
+- `COWARD`: Flee when HP < 30%
 
 ### items.json Structure
 
