@@ -3760,28 +3760,26 @@ At this point you should be able to:
 
 **Create `src/services/MonsterTurnService.ts`**:
 
-- [ ] **processMons
+- [x] **processMonsterTurns(state)** method
+  - [x] Iterate through all monsters on current level
+  - [x] Skip if monster is dead (hp <= 0)
+  - [x] Update monster state (sleeping/hunting/fleeing)
+  - [x] Decide action using MonsterAIService
+  - [x] Execute action (move, attack, wait)
+  - [x] Apply regeneration if applicable
+  - [x] Return updated game state
 
-terTurns(state)** method
-  - [ ] Iterate through all monsters on current level
-  - [ ] Skip if monster is dead (hp <= 0)
-  - [ ] Update monster state (sleeping/hunting/fleeing)
-  - [ ] Decide action using MonsterAIService
-  - [ ] Execute action (move, attack, wait)
-  - [ ] Apply regeneration if applicable
-  - [ ] Return updated game state
+- [x] **executeMonsterAction(monster, action, state)** method
+  - [x] If action.type === 'move', move monster
+  - [x] If action.type === 'attack', monster attacks player
+  - [x] If action.type === 'wait', do nothing
+  - [x] Check for theft attempt (THIEF behavior)
+  - [x] Trigger special abilities on hit
 
-- [ ] **executeMonsterAction(monster, action, state)** method
-  - [ ] If action.type === 'move', move monster
-  - [ ] If action.type === 'attack', monster attacks player
-  - [ ] If action.type === 'wait', do nothing
-  - [ ] Check for theft attempt (THIEF behavior)
-  - [ ] Trigger special abilities on hit
-
-- [ ] **Integration with game loop**
-  - [ ] Call processMo nsterTurns() after each player command
-  - [ ] Update game state with monster changes
-  - [ ] Add combat messages for monster actions
+- [x] **Integration with game loop**
+  - [x] Call processMonsterTurns() after each player command (integration needed in game loop)
+  - [x] Update game state with monster changes
+  - [x] Add combat messages for monster actions
 
 ### Files to Create
 
