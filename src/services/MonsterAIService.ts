@@ -18,6 +18,70 @@ export class MonsterAIService {
   ) {}
 
   /**
+   * Update monster state based on conditions (FSM)
+   */
+  updateMonsterState(monster: Monster, state: GameState): Monster {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return monster
+
+    const playerPos = state.player.position
+    const distToPlayer = this.distance(monster.position, playerPos)
+
+    // Check if player is in aggro range
+    const inAggroRange = distToPlayer <= monster.aiProfile.aggroRange
+
+    // Calculate HP percentage for COWARD check
+    const hpPercent = monster.hp / monster.maxHp
+
+    // State transitions
+    switch (monster.state) {
+      case 'SLEEPING':
+        // Wake up if player in aggro range
+        if (inAggroRange) {
+          return { ...monster, state: 'HUNTING', isAsleep: false }
+        }
+        break
+
+      case 'WANDERING':
+        // Start hunting if player in aggro range
+        if (inAggroRange) {
+          return { ...monster, state: 'HUNTING' }
+        }
+        break
+
+      case 'HUNTING':
+        // Flee if COWARD and HP low
+        if (
+          monster.aiProfile.behavior === MonsterBehavior.COWARD &&
+          hpPercent < monster.aiProfile.fleeThreshold
+        ) {
+          return { ...monster, state: 'FLEEING' }
+        }
+        // Flee if THIEF and hasStolen
+        if (
+          monster.aiProfile.behavior === MonsterBehavior.THIEF &&
+          monster.hasStolen
+        ) {
+          return { ...monster, state: 'FLEEING' }
+        }
+        break
+
+      case 'FLEEING':
+        // Stop fleeing if HP recovered (for COWARD)
+        if (
+          monster.aiProfile.behavior === MonsterBehavior.COWARD &&
+          hpPercent >= monster.aiProfile.fleeThreshold + 0.1
+        ) {
+          return { ...monster, state: 'HUNTING' }
+        }
+        // THIEF continues fleeing once stolen
+        break
+    }
+
+    return monster
+  }
+
+  /**
    * Decide action for monster
    */
   decideAction(monster: Monster, state: GameState): MonsterAction {

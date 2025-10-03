@@ -3650,17 +3650,17 @@ At this point you should be able to:
 
 #### 4.2 Monster State Machine
 
-- [ ] **State transitions**
-  - [ ] SLEEPING → WANDERING (player enters aggro range)
-  - [ ] WANDERING → HUNTING (player in FOV)
-  - [ ] HUNTING → FLEEING (HP low for COWARD, or after stealing for THIEF)
-  - [ ] FLEEING → HUNTING (HP recovered or threat gone)
+- [x] **State transitions**
+  - [x] SLEEPING → WANDERING (player enters aggro range)
+  - [x] WANDERING → HUNTING (player in FOV)
+  - [x] HUNTING → FLEEING (HP low for COWARD, or after stealing for THIEF)
+  - [x] FLEEING → HUNTING (HP recovered or threat gone)
 
-- [ ] **updateMonsterState(monster, state)** method
-  - [ ] Check aggro range against player distance
-  - [ ] Check FOV for player visibility
-  - [ ] Update monster.state enum
-  - [ ] Return updated monster
+- [x] **updateMonsterState(monster, state)** method
+  - [x] Check aggro range against player distance
+  - [x] Check FOV for player visibility
+  - [x] Update monster.state enum
+  - [x] Return updated monster
 
 #### 4.3 Monster FOV & Awareness
 
