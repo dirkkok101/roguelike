@@ -3627,13 +3627,13 @@ At this point you should be able to:
   - [x] `greedyBehavior(monster, state, level)` method
   - [x] Pick up gold when reached
 
-- [ ] **THIEF behavior** (Leprechaun, Nymph)
-  - [ ] Approach player using A*
-  - [ ] When adjacent, attempt to steal
-  - [ ] After stealing, flee in opposite direction
-  - [ ] `thiefBehavior(monster, state, level)` method
-  - [ ] Set hasStolen flag after theft
-  - [ ] Change to FLEEING state after theft
+- [x] **THIEF behavior** (Leprechaun, Nymph)
+  - [x] Approach player using A*
+  - [x] When adjacent, attempt to steal
+  - [x] After stealing, flee in opposite direction
+  - [x] `thiefBehavior(monster, state, level)` method
+  - [x] Set hasStolen flag after theft
+  - [x] Change to FLEEING state after theft
 
 - [ ] **STATIONARY behavior** (Venus Flytrap)
   - [ ] Never move from spawn position

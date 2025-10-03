@@ -56,6 +56,9 @@ export class MonsterAIService {
       case MonsterBehavior.GREEDY:
         return this.greedyBehavior(monster, playerPos, level, state)
 
+      case MonsterBehavior.THIEF:
+        return this.thiefBehavior(monster, playerPos, level)
+
       default:
         return { type: 'wait' }
     }
@@ -177,6 +180,65 @@ export class MonsterAIService {
 
     // No gold or player is closer - use simple behavior toward player
     return this.simpleBehavior(monster, playerPos, level)
+  }
+
+  /**
+   * THIEF behavior - Steal and flee
+   * Used by Leprechaun (steals gold), Nymph (steals items)
+   */
+  private thiefBehavior(
+    monster: Monster,
+    playerPos: Position,
+    level: any
+  ): MonsterAction {
+    // If already stole, flee from player
+    if (monster.hasStolen) {
+      return this.fleeBehavior(monster, playerPos, level)
+    }
+
+    // Otherwise, approach player using A* to get close enough to steal
+    // (Actual stealing happens when adjacent in the attack phase)
+    return this.smartBehavior(monster, playerPos, level)
+  }
+
+  /**
+   * Flee from target position
+   */
+  private fleeBehavior(
+    monster: Monster,
+    targetPos: Position,
+    level: any
+  ): MonsterAction {
+    // Move away from target
+    const dx = monster.position.x - targetPos.x
+    const dy = monster.position.y - targetPos.y
+
+    let target: Position
+
+    // Move in opposite direction from target
+    if (Math.abs(dx) > Math.abs(dy)) {
+      target = { x: monster.position.x + Math.sign(dx), y: monster.position.y }
+    } else {
+      target = { x: monster.position.x, y: monster.position.y + Math.sign(dy) }
+    }
+
+    // Check if walkable
+    const tile = level.tiles[target.y]?.[target.x]
+    if (tile?.walkable) {
+      return { type: 'move', target }
+    }
+
+    // If can't flee in preferred direction, try perpendicular
+    const altTarget = Math.abs(dx) > Math.abs(dy)
+      ? { x: monster.position.x, y: monster.position.y + (dy > 0 ? 1 : -1) }
+      : { x: monster.position.x + (dx > 0 ? 1 : -1), y: monster.position.y }
+
+    const altTile = level.tiles[altTarget.y]?.[altTarget.x]
+    if (altTile?.walkable) {
+      return { type: 'move', target: altTarget }
+    }
+
+    return { type: 'wait' }
   }
 
   /**
