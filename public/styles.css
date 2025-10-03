@@ -10,6 +10,7 @@ body {
   font-family: 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
   font-size: 14px;
   line-height: 1.4;
+  overflow: hidden;
 }
 
 #app {
@@ -20,18 +21,29 @@ body {
   justify-content: center;
 }
 
+/* Make game container fill the screen */
 .game-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr;
+  gap: 15px;
   padding: 20px;
+  width: 100%;
+  height: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
+/* Messages span full width at top */
 .messages-view {
+  grid-column: 1 / -1;
+  grid-row: 1;
   background: #2a2a2a;
   border: 1px solid #444;
-  padding: 10px;
-  min-height: 100px;
+  padding: 15px;
+  min-height: 120px;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 .messages div {
@@ -44,22 +56,37 @@ body {
 .msg-critical { color: #ff0000; }
 .msg-success { color: #00ff00; }
 
+/* Dungeon takes main area */
 .dungeon-view {
+  grid-column: 1;
+  grid-row: 2;
   background: #000000;
   border: 1px solid #444;
-  padding: 10px;
+  padding: 15px;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
+/* Make dungeon grid scale better */
 .dungeon-grid {
   margin: 0;
   line-height: 1.2;
-  letter-spacing: 2px;
+  letter-spacing: 0.1em;
+  font-size: 16px;
+  white-space: pre;
 }
 
+/* Stats sidebar on the right */
 .stats-view {
+  grid-column: 2;
+  grid-row: 2;
   background: #2a2a2a;
   border: 1px solid #444;
-  padding: 10px;
+  padding: 15px;
+  min-width: 250px;
+  align-self: start;
 }
 
 .stats div {
@@ -70,3 +97,22 @@ body {
 .tile-visible { opacity: 1.0; }
 .tile-explored { opacity: 0.5; }
 .tile-unexplored { opacity: 0; }
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .game-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .stats-view {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: auto;
+  }
+
+  .dungeon-view {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}

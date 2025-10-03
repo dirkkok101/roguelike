@@ -2648,6 +2648,99 @@ body {
 </html>
 ```
 
+### 1.12 UI Layout Optimization
+
+**Goal**: Make the game use full browser window for better visibility and gameplay experience.
+
+**Update `public/styles.css`** with full-screen layout:
+```css
+/* Make game container fill the screen */
+.game-container {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr;
+  gap: 15px;
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Messages span full width at top */
+.messages-view {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  padding: 15px;
+  min-height: 120px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+/* Dungeon takes main area */
+.dungeon-view {
+  grid-column: 1;
+  grid-row: 2;
+  background: #000000;
+  border: 1px solid #444;
+  padding: 15px;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+/* Stats sidebar on the right */
+.stats-view {
+  grid-column: 2;
+  grid-row: 2;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  padding: 15px;
+  min-width: 250px;
+  align-self: start;
+}
+
+/* Make dungeon grid scale better */
+.dungeon-grid {
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  font-size: 16px;
+  white-space: pre;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .game-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .stats-view {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: auto;
+  }
+
+  .dungeon-view {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+```
+
+**Benefits**:
+- Full browser window utilization
+- Better visibility of dungeon and stats
+- Scrollable message log
+- Responsive layout for different screen sizes
+- Cleaner grid-based layout
+
+---
+
 ### Phase 1 Complete! ✅
 
 At this point you should have:
@@ -2657,6 +2750,7 @@ At this point you should have:
 - Message log
 - Stats display
 - Fuel consumption for torch
+- Full-screen optimized layout
 
 **Test it**:
 ```bash
