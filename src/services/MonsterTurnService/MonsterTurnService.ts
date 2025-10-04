@@ -51,6 +51,11 @@ export class MonsterTurnService {
       // Execute action
       const result = this.executeMonsterAction(updatedMonster, action, currentState)
       currentState = result
+
+      // Stop processing if player died
+      if (currentState.player.hp <= 0) {
+        break
+      }
     }
 
     return currentState
@@ -146,6 +151,7 @@ export class MonsterTurnService {
   private handleAttack(monster: Monster, state: GameState): GameState {
     let currentPlayer = state.player
     let messages = state.messages
+    let killedBy: string | undefined = undefined
 
     // Check for THIEF behavior - steal instead of attack
     if (
@@ -176,6 +182,12 @@ export class MonsterTurnService {
           currentPlayer,
           breathDamage
         )
+
+        // Check if breath weapon killed player
+        if (currentPlayer.hp <= 0) {
+          killedBy = `Killed by ${monster.name}'s breath weapon`
+          break
+        }
         continue
       }
 
@@ -196,6 +208,12 @@ export class MonsterTurnService {
           state.turnCount
         )
 
+        // Check if attack killed player
+        if (currentPlayer.hp <= 0) {
+          killedBy = `Killed by ${monster.name}`
+          break
+        }
+
         // Apply special abilities on hit
         const abilityResult = this.abilityService.applyOnHitAbilities(
           currentPlayer,
@@ -211,6 +229,12 @@ export class MonsterTurnService {
             'warning',
             state.turnCount
           )
+        }
+
+        // Check if special ability killed player (e.g., poison)
+        if (currentPlayer.hp <= 0 && !killedBy) {
+          killedBy = `Killed by ${monster.name}`
+          break
         }
       } else {
         messages = this.messageService.addMessage(
@@ -230,6 +254,7 @@ export class MonsterTurnService {
       player: currentPlayer,
       messages,
       isGameOver,
+      deathCause: killedBy || state.deathCause,
     }
   }
 

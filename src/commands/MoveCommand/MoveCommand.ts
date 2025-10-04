@@ -191,6 +191,24 @@ export class MoveCommand implements ICommand {
       if (newHungerState === HungerState.STARVING) {
         player = this.hungerService.applyStarvationDamage(player)
         hungerMessages.push('You are fainting from hunger!')
+
+        // Check if player died from starvation
+        if (player.hp <= 0) {
+          const messages = this.messageService.addMessage(
+            state.messages,
+            'You died of starvation!',
+            'critical',
+            state.turnCount + 1
+          )
+          return {
+            ...state,
+            player,
+            messages,
+            isGameOver: true,
+            deathCause: 'Died of starvation',
+            turnCount: state.turnCount + 1,
+          }
+        }
       }
     }
 
@@ -332,6 +350,24 @@ export class MoveCommand implements ICommand {
       if (newHungerState === HungerState.STARVING) {
         player = this.hungerService.applyStarvationDamage(player)
         hungerMessages.push('You are fainting from hunger!')
+
+        // Check if player died from starvation
+        if (player.hp <= 0) {
+          const messages = this.messageService.addMessage(
+            state.messages,
+            'You died of starvation!',
+            'critical',
+            state.turnCount + 1
+          )
+          return {
+            ...state,
+            player,
+            messages,
+            isGameOver: true,
+            deathCause: 'Died of starvation',
+            turnCount: state.turnCount + 1,
+          }
+        }
       }
     }
 
