@@ -22,6 +22,7 @@ import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
+import { MainMenu } from '@ui/MainMenu'
 import { loadItemData, ItemData } from './data/ItemDataLoader'
 
 // ============================================================================
@@ -173,28 +174,55 @@ async function initializeGame() {
   }
   }
 
-  // Game state
-  let gameState = createInitialState()
+  // Function to start game with given state
+  function startGame(initialState: GameState) {
+    let gameState = initialState
 
-  // Render initial state
-  const app = document.getElementById('app')
-  if (app) {
-    app.innerHTML = ''
-    app.appendChild(renderer.getContainer())
-    renderer.render(gameState)
-  }
-
-  // Input handling
-  document.addEventListener('keydown', (event) => {
-    const command = inputHandler.handleKeyPress(event, gameState)
-    if (command) {
-      gameState = command.execute(gameState)
-      autoSaveMiddleware.afterTurn(gameState)
+    // Render initial state
+    const app = document.getElementById('app')
+    if (app) {
+      app.innerHTML = ''
+      app.appendChild(renderer.getContainer())
       renderer.render(gameState)
     }
-  })
 
-  console.log('Game initialized. Use arrow keys to move.')
+    // Input handling
+    document.addEventListener('keydown', (event) => {
+      const command = inputHandler.handleKeyPress(event, gameState)
+      if (command) {
+        gameState = command.execute(gameState)
+        autoSaveMiddleware.afterTurn(gameState)
+        renderer.render(gameState)
+      }
+    })
+
+    console.log('Game initialized. Use arrow keys to move.')
+  }
+
+  // Check for existing save and show menu
+  const mainMenu = new MainMenu()
+  const hasSave = localStorageService.hasSave()
+
+  mainMenu.show(
+    hasSave,
+    // New Game callback
+    () => {
+      const newState = createInitialState()
+      startGame(newState)
+    },
+    // Continue callback
+    () => {
+      const savedState = localStorageService.loadGame()
+      if (savedState) {
+        console.log('Continuing saved game:', savedState.gameId)
+        startGame(savedState)
+      } else {
+        console.error('Failed to load save, starting new game')
+        const newState = createInitialState()
+        startGame(newState)
+      }
+    }
+  )
 }
 
 // Start the game
