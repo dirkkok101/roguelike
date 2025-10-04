@@ -459,11 +459,14 @@ See [Core Systems](./systems-core.md#visibility-color-system) for complete color
 │  TITLE BAR                                           [~] Debug    │
 │  Roguelike: The Quest for the Amulet          Seed: abc123def    │
 ├──────────────────────────────────────────────────────────────────┤
-│  MESSAGE LOG (5 lines, scrolling)                                │
+│  MESSAGE LOG (8 lines, scrolling, grouping, history modal)       │
+│  > You miss the Orc. (x2)                                        │
 │  > You hit the Orc for 5 damage.                                 │
 │  > The Orc attacks you for 3 damage!                             │
 │  > Your torch is getting dim...                                  │
 │  > You feel hungry.                                              │
+│  > You picked up 15 gold.                                        │
+│  > The Zombie attacks! (x3)                                      │
 │  >                                                               │
 ├──────────────────────────────────────────────┬────────────────────┤
 │                                              │  STATS             │
@@ -494,9 +497,23 @@ See [Core Systems](./systems-core.md#visibility-color-system) for complete color
 │                                              │    Protection +1   │
 │                                              │    [empty]         │
 ├──────────────────────────────────────────────┴────────────────────┤
-│  COMMANDS: [i]nv [q]uaff [r]ead [w]ield [e]at [o]pen [>]/<] [S]ave│
+│  📍 Item here! │ [g]et item  [o]pen door  [i]nventory  [?]help   │
 └──────────────────────────────────────────────────────────────────┘
 ```
+
+**Enhanced UI Features**:
+
+- **Message Grouping**: Repeated identical messages are consolidated with counts (e.g., "You miss. (x3)")
+- **Message History Modal**: Press `Ctrl+M` to view full message history with search/filter
+- **Contextual Command Bar**: Bottom bar dynamically shows context-aware commands based on player position
+  - Shows primary hints (e.g., "📍 Item here!", "⚠️ Monster nearby!")
+  - Displays warnings (inventory full, low health, hunger)
+  - Auto-adjusts available actions based on environment (doors, items, stairs, combat)
+  - Color-coded: primary actions (green), secondary actions (blue), warnings (yellow/orange)
+- **Auto-Notifications**: Important events briefly flash at bottom of screen (level up, stat changes)
+- **Quick Help Modal**: Press `?` for context-sensitive help and keybindings
+- **Full-Width Layout**: Command bar spans entire browser width (up to 1600px max-width) for better readability
+- **Responsive Design**: Layout adjusts for narrow screens (< 1024px) with stacked columns
 
 ---
 

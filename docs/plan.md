@@ -1098,6 +1098,121 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 ---
 
+## UI/UX Enhancement (Completed 2025-10-04)
+
+**Goal**: Modernize interface with context-aware features and improved usability
+
+**Status**: 🟢 Complete (100%)
+
+### Overview
+
+A comprehensive 5-phase enhancement to the game's user interface and experience, implementing modern roguelike UX patterns while maintaining ASCII aesthetic.
+
+### Implemented Features
+
+#### Phase A: Foundation Services (Complete)
+- [x] **ContextService** - Context analysis service
+  - Analyzes player surroundings (items, doors, monsters, stairs)
+  - Determines available actions based on context
+  - Generates primary hints and warnings
+  - Categorizes actions (primary/secondary)
+- [x] **NotificationService** - Auto-notification system
+  - Displays brief status notifications (2-second duration)
+  - Handles level-up, stat changes, important events
+  - Non-intrusive flash at bottom of screen
+
+**Tests**: 100% coverage (context-analysis.test.ts, notifications.test.ts)
+
+#### Phase B: UI Components (Complete)
+- [x] **ContextualCommandBar** - Dynamic command bar
+  - Shows context-aware commands based on player position
+  - Displays primary hints (item here, door nearby)
+  - Shows warnings (inventory full, low health, hunger)
+  - Color-coded actions (green=primary, blue=secondary)
+  - Full-width layout spanning browser width
+- [x] **MessageHistoryModal** - Full message history viewer
+  - Press `Ctrl+M` to view all messages
+  - Infinite scrollback with turn numbers
+  - Color-coded by message type
+  - Search and filter capabilities
+- [x] **HelpModal** - Quick help reference
+  - Press `?` for context-sensitive help
+  - Shows all keybindings organized by category
+  - Movement, combat, inventory, debug sections
+
+#### Phase C: Message System Enhancement (Complete)
+- [x] **Message Grouping** - Smart message consolidation
+  - Identical consecutive messages grouped with counts
+  - Example: "You miss. (x3)" instead of 3 separate messages
+  - Reduces spam, improves readability
+  - Preserves turn numbers and message types
+- [x] **Message Importance** - Priority-based display
+  - Messages tagged with importance levels (1-5)
+  - Critical messages prioritized in display
+  - Future: basis for smart filtering
+
+**Tests**: 100% coverage (message-grouping.test.ts, message-importance.test.ts)
+
+#### Phase D: Integration & Keybindings (Complete)
+- [x] Wire ContextService into GameRenderer
+- [x] Wire NotificationService into commands
+- [x] Add keybindings (Ctrl+M for history, ? for help)
+- [x] Integrate contextual command bar into layout
+- [x] Add auto-notifications for level-up, stat changes
+- [x] Update InputHandler with new modals
+
+#### Phase E: Layout & Polish (Complete)
+- [x] **CSS Grid Enhancement** - 3-row layout
+  - Changed from 2-row to 3-row grid
+  - Explicit positioning for command bar (grid-row: 3)
+  - Full-width spanning (grid-column: 1 / -1)
+  - Responsive design for narrow screens (< 1024px)
+- [x] **Separation of Concerns** - Move styles from JS to CSS
+  - Removed inline layout styles from ContextualCommandBar
+  - CSS handles all layout and spacing
+  - Better maintainability and consistency
+- [x] **Message Log Expansion** - 8 lines instead of 5
+  - More context visible at once
+  - Better for message grouping display
+  - Improved readability
+
+**Git Commits**:
+- f39ea50 - Fix NotificationService import
+- d09fc8f - Implement full-width contextual command bar layout
+
+### Technical Highlights
+
+**Architecture**:
+- Services contain all logic (ContextService, NotificationService)
+- UI components are pure renderers (ContextualCommandBar, modals)
+- Commands orchestrate service calls
+- Immutable state updates throughout
+
+**Testing**:
+- 10 test files, 100% coverage
+- Scenario-based test organization
+- Edge cases covered (max capacity, message grouping)
+
+**UX Improvements**:
+- Context-aware interface reduces cognitive load
+- Message grouping reduces spam
+- Auto-notifications highlight important events
+- Full message history prevents lost information
+- Quick help reduces learning curve
+
+### Documentation Updated
+
+- [x] Updated game-design.md layout diagram (8 messages, contextual bar)
+- [x] Added "Enhanced UI Features" section to game-design.md
+- [x] Documented all new keybindings and features
+- [x] Added this UI/UX Enhancement section to plan.md
+- [x] Deleted ui_design_plan.md (content incorporated)
+- [x] Deleted debug_tools_plan.md (content incorporated in Phase 1)
+
+**Reference**: [Game Design - UI/UX Design](./game-design.md#uiux-design)
+
+---
+
 ## Notes & Decisions
 
 ### Phase 1
