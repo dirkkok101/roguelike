@@ -565,7 +565,7 @@ export class DungeonService {
       case DoorState.CLOSED:
       case DoorState.LOCKED:
         tile.char = '+'
-        tile.walkable = true
+        tile.walkable = false
         tile.transparent = false
         break
       case DoorState.SECRET:

@@ -282,5 +282,41 @@ describe('DungeonService', () => {
         expect(isAtWallBoundary).toBe(true)
       }
     })
+
+    test('should set correct walkable flags for all door states', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      expect(level.doors.length).toBeGreaterThan(0)
+
+      for (const door of level.doors) {
+        const tile = level.tiles[door.position.y][door.position.x]
+
+        switch (door.state) {
+          case 'OPEN':
+          case 'BROKEN':
+          case 'ARCHWAY':
+            expect(tile.walkable).toBe(true)
+            expect(tile.transparent).toBe(true)
+            expect(tile.char).toBe("'")
+            break
+
+          case 'CLOSED':
+          case 'LOCKED':
+            expect(tile.walkable).toBe(false)
+            expect(tile.transparent).toBe(false)
+            expect(tile.char).toBe('+')
+            break
+
+          case 'SECRET':
+            expect(tile.walkable).toBe(false)
+            expect(tile.transparent).toBe(false)
+            expect(tile.char).toBe('#')
+            break
+
+          default:
+            fail(`Unexpected door state: ${door.state}`)
+        }
+      }
+    })
   })
 })

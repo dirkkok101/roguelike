@@ -1,4 +1,4 @@
-import { GameState } from '@game/core/core'
+import { GameState, DoorState, Position } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MovementService } from '@services/MovementService'
 import { LightingService } from '@services/LightingService'
@@ -32,6 +32,42 @@ export class MoveCommand implements ICommand {
 
     // 2. Check if walkable
     if (!this.movementService.isWalkable(newPosition, level)) {
+      // Check if blocked by a door
+      const door = level.doors.find(
+        (d) => d.position.x === newPosition.x && d.position.y === newPosition.y
+      )
+
+      if (door) {
+        // Handle different door states
+        if (door.state === DoorState.CLOSED) {
+          // Auto-open closed doors (bump-to-open)
+          return this.openDoorAndMoveThrough(state, level, door, newPosition)
+        }
+
+        if (door.state === DoorState.LOCKED) {
+          // Locked door - show message (key system not yet implemented)
+          const messages = this.messageService.addMessage(
+            state.messages,
+            'The door is locked.',
+            'warning',
+            state.turnCount
+          )
+          return { ...state, messages }
+        }
+
+        if (door.state === DoorState.SECRET && !door.discovered) {
+          // Undiscovered secret door - appears as wall
+          const messages = this.messageService.addMessage(
+            state.messages,
+            "You can't go that way.",
+            'info',
+            state.turnCount
+          )
+          return { ...state, messages }
+        }
+      }
+
+      // Not a door or other obstacle - regular wall/obstacle message
       const messages = this.messageService.addMessage(
         state.messages,
         "You can't go that way.",
@@ -188,6 +224,107 @@ export class MoveCommand implements ICommand {
       player: updatedPlayer,
       visibleCells,
       levels: updatedLevels,
+      turnCount: state.turnCount + 1,
+    }
+  }
+
+  /**
+   * Open a closed door and move the player through it
+   */
+  private openDoorAndMoveThrough(
+    state: GameState,
+    level: any,
+    door: any,
+    newPosition: Position
+  ): GameState {
+    // 1. Update door state to OPEN
+    const updatedDoor = { ...door, state: DoorState.OPEN }
+    const updatedDoors = level.doors.map((d: any) =>
+      d.position.x === door.position.x && d.position.y === door.position.y
+        ? updatedDoor
+        : d
+    )
+
+    // 2. Update tile to be walkable and transparent
+    const updatedTiles = level.tiles.map((row: any) => [...row])
+    const tile = updatedTiles[door.position.y][door.position.x]
+    tile.char = "'"
+    tile.walkable = true
+    tile.transparent = true
+
+    // 3. Move player through the now-open door
+    const player = this.movementService.movePlayer(state.player, newPosition)
+
+    // 4. Tick light fuel
+    let updatedPlayer = player
+    if (player.equipment.lightSource) {
+      const tickedLight = this.lightingService.tickFuel(
+        player.equipment.lightSource
+      )
+      updatedPlayer = {
+        ...player,
+        equipment: {
+          ...player.equipment,
+          lightSource: tickedLight,
+        },
+      }
+
+      // Check for fuel warning
+      const warning = this.lightingService.generateFuelWarning(tickedLight)
+      if (warning) {
+        const messages = this.messageService.addMessage(
+          state.messages,
+          warning,
+          'warning',
+          state.turnCount + 1
+        )
+
+        const levelWithDoor = { ...level, doors: updatedDoors, tiles: updatedTiles }
+        const levelsWithDoor = new Map(state.levels)
+        levelsWithDoor.set(state.currentLevel, levelWithDoor)
+
+        return {
+          ...state,
+          player: updatedPlayer,
+          levels: levelsWithDoor,
+          messages,
+          turnCount: state.turnCount + 1,
+        }
+      }
+    }
+
+    // 5. Recompute FOV
+    const lightRadius = this.lightingService.getLightRadius(
+      updatedPlayer.equipment.lightSource
+    )
+    const visibleCells = this.fovService.computeFOV(
+      newPosition,
+      lightRadius,
+      { ...level, doors: updatedDoors, tiles: updatedTiles }
+    )
+
+    // 6. Update explored tiles
+    const levelWithDoor = { ...level, doors: updatedDoors, tiles: updatedTiles }
+    const updatedLevel = this.fovService.updateExploredTiles(levelWithDoor, visibleCells)
+
+    // 7. Update levels map
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    // 8. Add message
+    const messages = this.messageService.addMessage(
+      state.messages,
+      'You open the door and move through.',
+      'info',
+      state.turnCount + 1
+    )
+
+    return {
+      ...state,
+      player: updatedPlayer,
+      visibleCells,
+      levels: updatedLevels,
+      messages,
       turnCount: state.turnCount + 1,
     }
   }
