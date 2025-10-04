@@ -525,7 +525,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Full item system with inventory management
 
-**Status**: 🟡 In Progress (5/15 complete - 33%)
+**Status**: 🟡 In Progress (8/15 complete - 53%)
 
 ### Tasks
 
@@ -603,12 +603,12 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 - [ ] Render items with correct symbols and colors (UI task)
 
 #### Item Commands
-- [ ] Implement PickUpCommand
-- [ ] Implement DropCommand
-- [ ] Implement EquipCommand (w, W, P)
+- [x] Implement PickUpCommand (14 tests)
+- [x] Implement DropCommand (13 tests)
+- [x] Implement EquipCommand for weapons/armor/rings (15 tests)
 - [ ] Implement UnequipCommand (T, R)
 - [ ] Implement UseItemCommand (q, r, z, e)
-- [ ] Wire up command keys
+- [ ] Wire up command keys (UI task)
 
 #### Inventory UI
 - [ ] Create inventory screen modal
