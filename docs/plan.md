@@ -1,7 +1,7 @@
 # Development Plan: ASCII Roguelike
 
-**Version**: 2.0  
-**Last Updated**: 2025-10-03  
+**Version**: 2.0
+**Last Updated**: 2025-10-04
 **Related Docs**: [Game Design](./game-design.md) | [Architecture](./architecture.md) | [Core Systems](./systems-core.md) | [Advanced Systems](./systems-advanced.md) | [Testing](./testing-strategy.md)
 
 ---
@@ -21,9 +21,16 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 - Standardized all imports to use path aliases (@game/*, @services/*, @commands/*)
 - Extracted exploration tracking logic from MoveCommand to FOVService
 - Improved architecture compliance: commands orchestrate, services contain logic
-- All tests passing: 65/65 suites, 768/768 tests
 
-**Impact**: Better separation of concerns, improved maintainability, architecture now fully compliant with design guidelines.
+✅ **Completed door system implementation:**
+- Fixed door placement bug: doors now on wall tiles (not floor tiles) - commit f1a12aa
+- Fixed walkability bug: CLOSED/LOCKED doors now correctly block movement
+- Implemented auto-open (bump-to-open) behavior for CLOSED doors - commit 980519f
+- LOCKED doors block movement until key system (deferred to Phase 5+)
+- Added 18 comprehensive door tests (door-interaction.test.ts + DungeonService tests)
+- All tests passing: 66/66 suites, 787/787 tests
+
+**Impact**: Better separation of concerns, improved maintainability, architecture now fully compliant with design guidelines. Door mechanics now match game design specification.
 
 ---
 
@@ -536,7 +543,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Full item system with inventory management
 
-**Status**: 🟡 In Progress (12/15 complete - 80%)
+**Status**: 🟢 Complete (15/15 complete - 100%)
 
 ### Tasks
 
@@ -611,7 +618,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 - [x] Place items in rooms (3-6 per level)
 - [x] Avoid monster and occupied positions
 - [x] Item categories: weapons, armor, potions, scrolls, rings, food
-- [ ] Render items with correct symbols and colors (UI task)
+- [x] Render items with correct symbols and colors (GameRenderer)
 
 #### Item Commands
 - [x] Implement PickUpCommand (14 tests)
@@ -619,15 +626,15 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 - [x] Implement EquipCommand for weapons/armor/rings (15 tests)
 - [x] Implement UnequipCommand for rings (13 tests)
 - [x] Implement UseItemCommand (q, r, z, e) (24 tests)
-- [ ] Wire up command keys (UI task)
+- [x] Wire up command keys (InputHandler - all 11 keys: , i d q r z e w W P R)
 
 #### Inventory UI
-- [ ] Create inventory screen modal
-- [ ] List all items with letters (a-z)
-- [ ] Show equipped items
-- [ ] Show unidentified names
-- [ ] Handle item selection
-- [ ] Wire up `i` key
+- [x] Create inventory screen modal (ModalController)
+- [x] List all items with letters (a-z)
+- [x] Show equipped items
+- [x] Show unidentified names
+- [x] Handle item selection
+- [x] Wire up `i` key
 
 #### Item Effects
 - [ ] Implement healing potion effect

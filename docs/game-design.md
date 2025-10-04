@@ -370,6 +370,9 @@ Damage = Weapon Dice + Strength Modifier
 | `o` | Open | Open a closed door |
 | `c` | Close | Close an open door |
 | `.` | Rest | Skip turn (wait in place) |
+
+**Note**: CLOSED doors auto-open when you walk into them (bump-to-open). The `o` command is useful for opening doors without moving through them. LOCKED doors require a key (Phase 5+).
+
 | `S` | Save | Save current game |
 | `Q` | Quit | Quit game (prompts to save) |
 | `~` | Debug | Open debug console (dev only) |

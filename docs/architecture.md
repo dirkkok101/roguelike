@@ -742,8 +742,8 @@ See [Game Design](./game-design.md#items-equipment) for complete item specificat
     "allowLoops": true,
     "loopChance": 0.3,
     "doorTypes": {
-      "open": 0.30,
-      "closed": 0.40,
+      "open": 0.40,
+      "closed": 0.30,
       "locked": 0.10,
       "broken": 0.05,
       "secret": 0.10,

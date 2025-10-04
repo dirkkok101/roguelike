@@ -356,8 +356,8 @@ interface DungeonConfig {
 
   // Door distribution
   doorTypes: {
-    open: 0.30,      // 30% already open
-    closed: 0.40,    // 40% closed (can open)
+    open: 0.40,      // 40% already open
+    closed: 0.30,    // 30% closed (can open)
     locked: 0.10,    // 10% locked (need key)
     broken: 0.05,    // 5% broken (always open, can't close)
     secret: 0.10,    // 10% secret (hidden until searched)
@@ -384,8 +384,8 @@ interface DungeonConfig {
 ```typescript
 enum DoorState {
   OPEN,        // Can walk through, doesn't block vision
-  CLOSED,      // Must open (press 'o'), blocks vision
-  LOCKED,      // Need key to open, blocks vision
+  CLOSED,      // Auto-opens on bump or press 'o', blocks vision
+  LOCKED,      // Need key to open, blocks vision, blocks movement
   BROKEN,      // Permanently open, can't close
   SECRET,      // Hidden (appears as wall '#'), found via search
   ARCHWAY,     // No door, just opening
@@ -443,6 +443,26 @@ class DungeonService {
   }
 }
 ```
+
+**Door Placement Details**:
+
+Doors are placed on **wall tiles** at the junction between rooms and corridors, not on floor tiles inside rooms:
+
+```typescript
+// Door positions are on the wall boundary
+Top edge:    door.y = room.y - 1  (wall above room)
+Bottom edge: door.y = room.y + room.height  (wall below room)
+Left edge:   door.x = room.x - 1  (wall left of room)
+Right edge:  door.x = room.x + room.width  (wall right of room)
+```
+
+**Auto-open Behavior** (implemented in MoveCommand):
+- **CLOSED doors**: Auto-open when player walks into them (bump-to-open)
+- **LOCKED doors**: Block movement, show "The door is locked" message
+- **SECRET doors**: Appear as walls until discovered (search command)
+- **OPEN/BROKEN/ARCHWAY**: Walkable, no interaction needed
+
+See [Door Plan](./door_plan.md) for full implementation details (commit 980519f, f1a12aa).
 
 ---
 
