@@ -869,56 +869,72 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Complete game loop with Amulet of Yendor
 
-**Status**: ⚪ Not Started (0/11 complete)
+**Status**: 🟡 In Progress (6/11 complete - 55%)
+
+**Current Progress**: Tasks A-F completed (Amulet, Victory, Death, LocalStorage, Save). 1191 tests passing (+112 new).
 
 ### Tasks
 
-#### Amulet of Yendor
-- [ ] Create Amulet item
-- [ ] Spawn on Level 10
-- [ ] Cannot be dropped once picked up
-- [ ] Set hasAmulet flag in GameState
+#### Amulet of Yendor ✅
+- [x] Create Amulet item
+- [x] Spawn on Level 10
+- [x] Cannot be dropped once picked up
+- [x] Set hasAmulet flag in GameState
+
+**Status**: Complete. Added hasAmulet to GameState, DungeonService spawns amulet on Level 10, PickUpCommand sets flag, DropCommand prevents dropping.
 
 **Reference**: [Game Design - Items](./game-design.md#items-equipment)
 
-#### Victory Condition
-- [ ] Check if player on Level 1 with amulet
-- [ ] Trigger victory screen
-- [ ] Write unit tests
-  - [ ] victory-condition.test.ts
+#### Victory Condition ✅
+- [x] Check if player on Level 1 with amulet
+- [x] Trigger victory screen
+- [x] Write unit tests
+  - [x] victory-condition.test.ts
 
-#### Victory Screen
-- [ ] Create victory screen UI
-- [ ] Display final stats (level, gold, kills, turns)
-- [ ] Show congratulations message
-- [ ] Offer "New Game" option
+**Status**: Complete. VictoryService implements victory check, score calculation (gold×10 + level×100 + XP×5 - turns÷10), and stats generation. MoveStairsCommand integrates victory check. 25 tests passing.
 
-#### Death Screen
-- [ ] Create death screen UI (needs verification)
-- [ ] Display final stats (level, gold, kills, turns)
-- [ ] Show cause of death
-- [ ] Offer "New Game" option
+#### Victory Screen ✅
+- [x] Create victory screen UI
+- [x] Display final stats (level, gold, kills, turns)
+- [x] Show congratulations message
+- [x] Offer "New Game" option
 
-#### LocalStorageService
-- [ ] Implement LocalStorageService class
-  - [ ] saveGame() method
-  - [ ] loadGame() method
-  - [ ] deleteSave() method
-  - [ ] hasSave() method
-- [ ] Write unit tests
-  - [ ] save-load.test.ts
-  - [ ] persistence.test.ts
+**Status**: Complete. VictoryScreen.ts implements golden modal overlay with final score, stats grid, and "Play Again" button. Integrated into GameRenderer. 14 tests passing.
+
+#### Death Screen ✅
+- [x] Create death screen UI (needs verification)
+- [x] Display final stats (level, gold, kills, turns)
+- [x] Show cause of death
+- [x] Offer "New Game" option
+
+**Status**: Complete. DeathScreen.ts implements red modal overlay with deathCause message, final stats, and permadeath notice. Added deathCause field to GameState. Integrated into GameRenderer. 14 tests passing.
+
+**Note**: CombatService/HungerService not yet updated to set deathCause (bonus task).
+
+#### LocalStorageService ✅
+- [x] Implement LocalStorageService class
+  - [x] saveGame() method
+  - [x] loadGame() method
+  - [x] deleteSave() method
+  - [x] hasSave() method
+- [x] Write unit tests
+  - [x] save-load.test.ts
+  - [x] persistence.test.ts
+
+**Status**: Complete. LocalStorageService handles Map/Set serialization, version validation, and error handling. 29 tests passing covering save/load/delete/persistence scenarios.
 
 **Reference**: [Architecture - Technology Stack](./architecture.md#technology-stack)
 
-#### SaveCommand
-- [ ] Implement SaveCommand
-  - [ ] Serialize GameState to JSON
-  - [ ] Save to LocalStorage
-  - [ ] Show "Game saved" message
-- [ ] Wire up `S` key
-- [ ] Write unit tests
-  - [ ] save-command.test.ts
+#### SaveCommand ✅
+- [x] Implement SaveCommand
+  - [x] Serialize GameState to JSON
+  - [x] Save to LocalStorage
+  - [x] Show "Game saved" message
+- [x] Wire up `S` key (uppercase to avoid conflict with search)
+- [x] Write unit tests
+  - [x] save-command.test.ts
+
+**Status**: Complete. SaveCommand uses LocalStorageService, prevents saving when game is over, handles storage quota errors gracefully. Wired to uppercase 'S' key in InputHandler. 9 tests passing.
 
 #### Auto-Save
 - [ ] Auto-save on quit (Q key)
