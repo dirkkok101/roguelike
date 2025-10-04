@@ -75,7 +75,7 @@ async function initializeGame() {
   }
 
   // Create UI
-  const renderer = new GameRenderer(renderingService, hungerService, levelingService, debugService, contextService, victoryService)
+  const renderer = new GameRenderer(renderingService, hungerService, levelingService, debugService, contextService, victoryService, localStorageService)
   const inputHandler = new InputHandler(
     movementService,
     lightingService,

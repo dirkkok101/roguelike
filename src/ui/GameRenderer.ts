@@ -5,6 +5,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
 import { VictoryService } from '@services/VictoryService'
+import { LocalStorageService } from '@services/LocalStorageService'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -37,6 +38,7 @@ export class GameRenderer {
     private debugService: DebugService,
     private contextService: ContextService,
     private victoryService: VictoryService,
+    private localStorageService: LocalStorageService,
     _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
@@ -64,6 +66,10 @@ export class GameRenderer {
   render(state: GameState): void {
     // Check for death before rendering
     if (state.isGameOver && !state.hasWon && !this.deathScreen.isVisible()) {
+      // Permadeath: Delete save immediately when player dies
+      this.localStorageService.deleteSave(state.gameId)
+      console.log('Save deleted (permadeath)')
+
       const stats: DeathStats = {
         cause: state.deathCause || 'Unknown cause',
         finalLevel: state.player.level,
