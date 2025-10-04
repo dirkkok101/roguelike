@@ -1,4 +1,4 @@
-import { GameState, Position } from '@game/core/core'
+import { GameState, Position, ItemType } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
 
 // ============================================================================
@@ -92,23 +92,34 @@ export class GameRenderer {
         let char = tile.char
         let color = this.renderingService.getColorForTile(tile, visState)
 
-        // Player
-        if (
-          pos.x === state.player.position.x &&
-          pos.y === state.player.position.y
-        ) {
-          char = '@'
-          color = '#00FFFF'
-        }
-        // Monsters (only if visible)
-        else if (visState === 'visible') {
-          const monster = level.monsters.find(
-            (m) => m.position.x === x && m.position.y === y
-          )
+        // Items and gold (only if visible, before monsters so monsters render on top)
+        if (visState === 'visible') {
+          // Gold piles
+          const gold = level.gold.find((g) => g.position.x === x && g.position.y === y)
+          if (gold) {
+            char = '*'
+            color = '#FFD700' // Gold
+          }
+
+          // Items
+          const item = level.items.find((i) => i.position?.x === x && i.position?.y === y)
+          if (item) {
+            char = this.getItemSymbol(item.type)
+            color = this.getItemColor(item.type)
+          }
+
+          // Monsters (only if visible, render on top of items)
+          const monster = level.monsters.find((m) => m.position.x === x && m.position.y === y)
           if (monster) {
             char = monster.letter
             color = this.renderingService.getColorForEntity(monster, visState)
           }
+        }
+
+        // Player (always on top)
+        if (pos.x === state.player.position.x && pos.y === state.player.position.y) {
+          char = '@'
+          color = '#00FFFF'
         }
 
         html += `<span style="color: ${color}">${char}</span>`
@@ -152,5 +163,57 @@ export class GameRenderer {
         ${recent.map((msg) => `<div class="msg-${msg.type}">${msg.text}</div>`).join('')}
       </div>
     `
+  }
+
+  /**
+   * Get display symbol for item type
+   */
+  private getItemSymbol(itemType: ItemType): string {
+    switch (itemType) {
+      case ItemType.POTION:
+        return '!'
+      case ItemType.SCROLL:
+        return '?'
+      case ItemType.RING:
+        return '='
+      case ItemType.WAND:
+        return '/'
+      case ItemType.FOOD:
+        return '%'
+      case ItemType.OIL_FLASK:
+        return '!'
+      case ItemType.WEAPON:
+        return ')'
+      case ItemType.ARMOR:
+        return '['
+      default:
+        return '?'
+    }
+  }
+
+  /**
+   * Get display color for item type
+   */
+  private getItemColor(itemType: ItemType): string {
+    switch (itemType) {
+      case ItemType.POTION:
+        return '#FF00FF' // Magenta
+      case ItemType.SCROLL:
+        return '#FFFFFF' // White
+      case ItemType.RING:
+        return '#FFD700' // Gold
+      case ItemType.WAND:
+        return '#00FFFF' // Cyan
+      case ItemType.FOOD:
+        return '#8B4513' // Brown
+      case ItemType.OIL_FLASK:
+        return '#FFA500' // Orange
+      case ItemType.WEAPON:
+        return '#C0C0C0' // Silver
+      case ItemType.ARMOR:
+        return '#C0C0C0' // Silver
+      default:
+        return '#FFFFFF'
+    }
   }
 }
