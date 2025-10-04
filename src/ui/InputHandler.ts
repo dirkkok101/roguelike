@@ -31,6 +31,7 @@ import { InventoryService } from '@services/InventoryService'
 import { IdentificationService } from '@services/IdentificationService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
+import { NotificationService } from '@services/NotificationService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -58,7 +59,10 @@ export class InputHandler {
     private hungerService: HungerService,
     private levelingService: LevelingService,
     private modalController: ModalController,
-    private debugService: DebugService
+    private debugService: DebugService,
+    private notificationService: NotificationService,
+    private messageHistoryModal?: any, // MessageHistoryModal
+    private helpModal?: any // HelpModal
   ) {}
 
   /**
@@ -107,7 +111,8 @@ export class InputHandler {
           this.fovService,
           this.messageService,
           this.combatService,
-          this.hungerService
+          this.hungerService,
+          this.notificationService
         )
 
       case 'ArrowDown':
@@ -119,7 +124,8 @@ export class InputHandler {
           this.fovService,
           this.messageService,
           this.combatService,
-          this.hungerService
+          this.hungerService,
+          this.notificationService
         )
 
       case 'ArrowLeft':
@@ -131,7 +137,8 @@ export class InputHandler {
           this.fovService,
           this.messageService,
           this.combatService,
-          this.hungerService
+          this.hungerService,
+          this.notificationService
         )
 
       case 'ArrowRight':
@@ -143,7 +150,8 @@ export class InputHandler {
           this.fovService,
           this.messageService,
           this.combatService,
-          this.hungerService
+          this.hungerService,
+          this.notificationService
         )
 
       case 'o':
@@ -431,10 +439,15 @@ export class InputHandler {
         return null
 
       case 'M':
-        // Wake all monsters
+        // Show message history (if not in debug mode with monsters)
+        // Otherwise wake all monsters (debug)
         if (this.debugService.isEnabled()) {
           event.preventDefault()
           return new WakeAllMonstersCommand(this.debugService)
+        } else if (this.messageHistoryModal) {
+          event.preventDefault()
+          this.messageHistoryModal.show(state)
+          return null
         }
         return null
 
@@ -467,6 +480,15 @@ export class InputHandler {
         if (this.debugService.isEnabled()) {
           event.preventDefault()
           return new ToggleAIDebugCommand(this.debugService)
+        }
+        return null
+
+      case '?':
+        // Show help modal
+        if (this.helpModal) {
+          event.preventDefault()
+          this.helpModal.show(state)
+          return null
         }
         return null
 

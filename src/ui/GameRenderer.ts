@@ -3,8 +3,12 @@ import { RenderingService } from '@services/RenderingService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
+import { ContextService } from '@services/ContextService'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
+import { ContextualCommandBar } from './ContextualCommandBar'
+import { MessageHistoryModal } from './MessageHistoryModal'
+import { HelpModal } from './HelpModal'
 
 // ============================================================================
 // GAME RENDERER - DOM rendering for game state
@@ -17,12 +21,16 @@ export class GameRenderer {
   private debugConsole: DebugConsole
   private debugOverlays: DebugOverlays
   private debugCanvas: HTMLCanvasElement | null = null
+  private commandBar: ContextualCommandBar
+  private messageHistoryModal: MessageHistoryModal
+  private helpModal: HelpModal
 
   constructor(
     private renderingService: RenderingService,
     private hungerService: HungerService,
     private levelingService: LevelingService,
     private debugService: DebugService,
+    private contextService: ContextService,
     _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
@@ -37,6 +45,9 @@ export class GameRenderer {
     this.messagesContainer = this.createMessagesView()
     this.debugConsole = new DebugConsole(debugService)
     this.debugOverlays = new DebugOverlays(debugService)
+    this.commandBar = new ContextualCommandBar(contextService)
+    this.messageHistoryModal = new MessageHistoryModal()
+    this.helpModal = new HelpModal(contextService)
   }
 
   /**
@@ -46,6 +57,7 @@ export class GameRenderer {
     this.renderDungeon(state)
     this.renderStats(state)
     this.renderMessages(state)
+    this.commandBar.render(state)
 
     // Render debug console
     this.debugConsole.render(state)
@@ -62,6 +74,7 @@ export class GameRenderer {
     container.className = 'game-container'
     container.appendChild(this.messagesContainer)
     container.appendChild(this.dungeonContainer)
+    container.appendChild(this.commandBar.getContainer())
     container.appendChild(this.statsContainer)
     container.appendChild(this.debugConsole.getContainer())
 
@@ -160,12 +173,49 @@ export class GameRenderer {
     const { player } = state
     const lightSource = player.equipment.lightSource
 
-    // Get hunger state for display
-    const hungerState = this.hungerService.getHungerState(player.hunger)
-    const hungerPercentage = Math.min(100, (player.hunger / 2000) * 100)
-    const hungerColor = hungerState === 'STARVING' ? 'red' :
-                        hungerState === 'WEAK' ? 'orange' :
-                        hungerState === 'HUNGRY' ? 'yellow' : 'green'
+    // HP color (green > yellow > red > blinking red)
+    const hpPercent = (player.hp / player.maxHp) * 100
+    const hpColor =
+      hpPercent >= 75
+        ? '#00FF00'
+        : hpPercent >= 50
+        ? '#FFDD00'
+        : hpPercent >= 25
+        ? '#FF8800'
+        : '#FF0000'
+    const hpBlink = hpPercent < 10 ? 'animation: blink 1s infinite;' : ''
+
+    // Hunger bar (green > yellow > orange > red)
+    const hungerPercent = Math.min(100, (player.hunger / 1300) * 100)
+    const hungerColor =
+      hungerPercent >= 75
+        ? '#00FF00'
+        : hungerPercent >= 50
+        ? '#FFDD00'
+        : hungerPercent >= 25
+        ? '#FF8800'
+        : '#FF0000'
+    const hungerBar =
+      '█'.repeat(Math.floor(hungerPercent / 10)) + '▒'.repeat(10 - Math.floor(hungerPercent / 10))
+
+    // Inventory color
+    const invCount = player.inventory.length
+    const invColor =
+      invCount < 20 ? '#00FF00' : invCount < 24 ? '#FFDD00' : invCount < 26 ? '#FF8800' : '#FF0000'
+
+    // Light status
+    let lightDisplay = 'None (darkness!)'
+    let lightColor = '#FF0000'
+    if (lightSource) {
+      const fuel = lightSource.fuel || 0
+      const maxFuel = lightSource.maxFuel || 1
+      const fuelPercent = (fuel / maxFuel) * 100
+
+      lightColor = fuelPercent >= 50 ? '#FFDD00' : fuelPercent >= 20 ? '#FF8800' : '#FF0000'
+
+      const fuelText = lightSource.fuel !== undefined ? ` (${fuel})` : ''
+      lightDisplay = `${lightSource.name}${fuelText}`
+    }
 
     // Get XP progress for display
     const xpNeeded = this.levelingService.getXPForNextLevel(player.level)
@@ -173,8 +223,14 @@ export class GameRenderer {
     const xpPercentage = xpNeeded === Infinity ? 100 : Math.min(100, (player.xp / xpNeeded) * 100)
 
     this.statsContainer.innerHTML = `
+      <style>
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0.3; }
+        }
+      </style>
       <div class="stats">
-        <div>HP: ${player.hp}/${player.maxHp}</div>
+        <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}</div>
         <div>Str: ${player.strength}/${player.maxStrength}</div>
         <div>AC: ${player.ac}</div>
         <div>Level: ${player.level}</div>
@@ -185,30 +241,36 @@ export class GameRenderer {
           </span>
         </div>
         <div>Gold: ${player.gold}</div>
-        <div>Hunger: ${hungerState}</div>
-        <div style="font-size: 0.8em; color: #666;">
-          <span style="display: inline-block; width: 100px; height: 8px; background: #333; border: 1px solid #555;">
-            <span style="display: block; width: ${hungerPercentage}%; height: 100%; background: ${hungerColor};"></span>
-          </span>
+        <div style="margin-top: 8px;">
+          <span style="color: #888;">Hunger:</span><br>
+          <span style="color: ${hungerColor};">[${hungerBar}]</span>
         </div>
         <div>Depth: ${state.currentLevel}</div>
         <div>Turn: ${state.turnCount}</div>
-        ${
-          lightSource
-            ? `<div>Light: ${lightSource.name} ${
-                lightSource.fuel !== undefined ? `(${lightSource.fuel})` : ''
-              }</div>`
-            : '<div>Light: None (darkness!)</div>'
-        }
+        <div style="margin-top: 8px;">
+          <span style="color: #888;">Light:</span><br>
+          <span style="color: ${lightColor};">${lightDisplay}</span>
+        </div>
+        <div style="margin-top: 8px;">
+          <span style="color: #888;">Inventory:</span>
+          <span style="color: ${invColor};"> ${invCount}/26</span>
+        </div>
       </div>
     `
   }
 
   private renderMessages(state: GameState): void {
-    const recent = state.messages.slice(-5)
+    const recent = state.messages.slice(-8)
     this.messagesContainer.innerHTML = `
       <div class="messages">
-        ${recent.map((msg) => `<div class="msg-${msg.type}">${msg.text}</div>`).join('')}
+        ${recent
+          .map((msg) => {
+            const importance = msg.importance || 3
+            const weight = importance >= 4 ? 'font-weight: bold;' : ''
+            const countText = msg.count && msg.count > 1 ? ` (x${msg.count})` : ''
+            return `<div class="msg-${msg.type}" style="${weight}">${msg.text}${countText}</div>`
+          })
+          .join('')}
       </div>
     `
   }
@@ -263,6 +325,20 @@ export class GameRenderer {
       default:
         return '#FFFFFF'
     }
+  }
+
+  /**
+   * Get message history modal
+   */
+  getMessageHistoryModal(): MessageHistoryModal {
+    return this.messageHistoryModal
+  }
+
+  /**
+   * Get help modal
+   */
+  getHelpModal(): HelpModal {
+    return this.helpModal
   }
 
   /**

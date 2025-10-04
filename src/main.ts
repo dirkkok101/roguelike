@@ -14,6 +14,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
+import { ContextService } from '@services/ContextService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -45,6 +46,8 @@ async function initializeGame() {
   const hungerService = new HungerService(random)
   const levelingService = new LevelingService(random)
   const debugService = new DebugService(messageService)
+  const contextService = new ContextService()
+  const notificationService = new NotificationService()
   const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
   const monsterAIService = new MonsterAIService(pathfindingService, random)
@@ -65,7 +68,7 @@ async function initializeGame() {
   }
 
   // Create UI
-  const renderer = new GameRenderer(renderingService, hungerService, levelingService, debugService)
+  const renderer = new GameRenderer(renderingService, hungerService, levelingService, debugService, contextService)
   const inputHandler = new InputHandler(
     movementService,
     lightingService,
@@ -80,7 +83,10 @@ async function initializeGame() {
     hungerService,
     levelingService,
     modalController,
-    debugService
+    debugService,
+    notificationService,
+    renderer.getMessageHistoryModal(),
+    renderer.getHelpModal()
   )
 
   // Create initial game state

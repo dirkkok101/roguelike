@@ -19,6 +19,7 @@ describe('MessageService - Message Management', () => {
         text: 'Test message',
         type: 'info',
         turn: 1,
+        importance: 3,
       })
     })
 
@@ -39,6 +40,7 @@ describe('MessageService - Message Management', () => {
         text: 'Second message',
         type: 'combat',
         turn: 2,
+        importance: 3,
       })
     })
 
@@ -107,9 +109,9 @@ describe('MessageService - Message Management', () => {
       const updated = service.addMessages(messages, newMessages, 5)
 
       expect(updated).toHaveLength(3)
-      expect(updated[0]).toEqual({ text: 'Message 1', type: 'info', turn: 5 })
-      expect(updated[1]).toEqual({ text: 'Message 2', type: 'combat', turn: 5 })
-      expect(updated[2]).toEqual({ text: 'Message 3', type: 'warning', turn: 5 })
+      expect(updated[0]).toEqual({ text: 'Message 1', type: 'info', turn: 5, importance: 3 })
+      expect(updated[1]).toEqual({ text: 'Message 2', type: 'combat', turn: 5, importance: 3 })
+      expect(updated[2]).toEqual({ text: 'Message 3', type: 'warning', turn: 5, importance: 3 })
     })
 
     test('adds to existing messages', () => {

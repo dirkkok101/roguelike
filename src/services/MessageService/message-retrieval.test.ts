@@ -17,14 +17,14 @@ describe('MessageService - Message Retrieval', () => {
   }
 
   describe('getRecentMessages()', () => {
-    test('returns last 5 messages by default', () => {
+    test('returns last 8 messages by default', () => {
       const messages = createMessages(10)
 
       const recent = service.getRecentMessages(messages)
 
-      expect(recent).toHaveLength(5)
-      expect(recent[0].text).toBe('Message 6')
-      expect(recent[4].text).toBe('Message 10')
+      expect(recent).toHaveLength(8)
+      expect(recent[0].text).toBe('Message 3')
+      expect(recent[7].text).toBe('Message 10')
     })
 
     test('returns requested number of messages', () => {

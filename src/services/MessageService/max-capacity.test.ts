@@ -16,29 +16,29 @@ describe('MessageService - Max Capacity', () => {
     }))
   }
 
-  describe('100 message limit', () => {
-    test('allows exactly 100 messages', () => {
+  describe('1000 message limit', () => {
+    test('allows exactly 1000 messages', () => {
       let messages: Message[] = []
 
-      for (let i = 1; i <= 100; i++) {
+      for (let i = 1; i <= 1000; i++) {
         messages = service.addMessage(messages, `Message ${i}`, 'info', i)
       }
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
     })
 
-    test('drops oldest message when exceeding 100', () => {
-      let messages = createMessages(100)
+    test('drops oldest message when exceeding 1000', () => {
+      let messages = createMessages(1000)
 
-      messages = service.addMessage(messages, 'Message 101', 'info', 101)
+      messages = service.addMessage(messages, 'Message 1001', 'info', 1001)
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
       expect(messages[0].text).toBe('Message 2') // First message dropped
-      expect(messages[99].text).toBe('Message 101')
+      expect(messages[999].text).toBe('Message 1001')
     })
 
     test('drops multiple oldest messages when adding bulk', () => {
-      let messages = createMessages(95)
+      let messages = createMessages(995)
 
       const newMessages = [
         { text: 'Bulk 1', type: 'info' as const },
@@ -49,22 +49,22 @@ describe('MessageService - Max Capacity', () => {
         { text: 'Bulk 6', type: 'info' as const },
       ]
 
-      messages = service.addMessages(messages, newMessages, 96)
+      messages = service.addMessages(messages, newMessages, 996)
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
       expect(messages[0].text).toBe('Message 2') // First message dropped
-      expect(messages[99].text).toBe('Bulk 6')
+      expect(messages[999].text).toBe('Bulk 6')
     })
 
     test('maintains chronological order after dropping', () => {
-      let messages = createMessages(100)
+      let messages = createMessages(1000)
 
-      messages = service.addMessage(messages, 'Message 101', 'info', 101)
-      messages = service.addMessage(messages, 'Message 102', 'info', 102)
+      messages = service.addMessage(messages, 'Message 1001', 'info', 1001)
+      messages = service.addMessage(messages, 'Message 1002', 'info', 1002)
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
       expect(messages[0].turn).toBe(3)
-      expect(messages[99].turn).toBe(102)
+      expect(messages[999].turn).toBe(1002)
 
       // Verify order is maintained
       for (let i = 0; i < messages.length - 1; i++) {
@@ -75,85 +75,85 @@ describe('MessageService - Max Capacity', () => {
     test('handles adding many messages at once', () => {
       let messages: Message[] = []
 
-      for (let i = 1; i <= 150; i++) {
+      for (let i = 1; i <= 1500; i++) {
         messages = service.addMessage(messages, `Message ${i}`, 'info', i)
       }
 
-      expect(messages).toHaveLength(100)
-      expect(messages[0].text).toBe('Message 51')
-      expect(messages[99].text).toBe('Message 150')
+      expect(messages).toHaveLength(1000)
+      expect(messages[0].text).toBe('Message 501')
+      expect(messages[999].text).toBe('Message 1500')
     })
 
     test('limit applies after bulk add', () => {
-      let messages = createMessages(50)
+      let messages = createMessages(500)
 
-      const newMessages = Array.from({ length: 60 }, (_, i) => ({
+      const newMessages = Array.from({ length: 600 }, (_, i) => ({
         text: `Bulk ${i + 1}`,
         type: 'info' as const,
       }))
 
-      messages = service.addMessages(messages, newMessages, 51)
+      messages = service.addMessages(messages, newMessages, 501)
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
     })
   })
 
   describe('capacity edge cases', () => {
     test('handles exactly at capacity', () => {
-      const messages = createMessages(100)
+      const messages = createMessages(1000)
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
 
       const updated = service.addMessage(
         messages,
         'One more',
         'info',
-        101
+        1001
       )
 
-      expect(updated).toHaveLength(100)
+      expect(updated).toHaveLength(1000)
     })
 
     test('handles far exceeding capacity in single addMessages call', () => {
       let messages: Message[] = []
 
-      const newMessages = Array.from({ length: 200 }, (_, i) => ({
+      const newMessages = Array.from({ length: 2000 }, (_, i) => ({
         text: `Message ${i + 1}`,
         type: 'info' as const,
       }))
 
       messages = service.addMessages(messages, newMessages, 1)
 
-      expect(messages).toHaveLength(100)
-      expect(messages[0].text).toBe('Message 101')
-      expect(messages[99].text).toBe('Message 200')
+      expect(messages).toHaveLength(1000)
+      expect(messages[0].text).toBe('Message 1001')
+      expect(messages[999].text).toBe('Message 2000')
     })
 
     test('preserves message types when dropping', () => {
       let messages: Message[] = []
 
-      // Add 100 info messages
-      for (let i = 1; i <= 100; i++) {
+      // Add 1000 info messages
+      for (let i = 1; i <= 1000; i++) {
         messages = service.addMessage(messages, `Info ${i}`, 'info', i)
       }
 
       // Add combat message (should drop first info)
-      messages = service.addMessage(messages, 'Combat!', 'combat', 101)
+      messages = service.addMessage(messages, 'Combat!', 'combat', 1001)
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
       expect(messages[0].text).toBe('Info 2')
-      expect(messages[99].text).toBe('Combat!')
-      expect(messages[99].type).toBe('combat')
+      expect(messages[999].text).toBe('Combat!')
+      expect(messages[999].type).toBe('combat')
     })
 
     test('maintains immutability when dropping', () => {
-      const original = createMessages(100)
+      const original = createMessages(1000)
 
-      const updated = service.addMessage(original, 'New', 'info', 101)
+      const updated = service.addMessage(original, 'New', 'info', 1001)
 
-      expect(original).toHaveLength(100)
+      expect(original).toHaveLength(1000)
       expect(original[0].text).toBe('Message 1')
-      expect(updated).toHaveLength(100)
+      expect(updated).toHaveLength(1000)
       expect(updated[0].text).toBe('Message 2')
     })
   })
@@ -162,29 +162,29 @@ describe('MessageService - Max Capacity', () => {
     test('getRecentMessages works after hitting capacity', () => {
       let messages: Message[] = []
 
-      for (let i = 1; i <= 150; i++) {
+      for (let i = 1; i <= 1500; i++) {
         messages = service.addMessage(messages, `Message ${i}`, 'info', i)
       }
 
       const recent = service.getRecentMessages(messages, 5)
 
       expect(recent).toHaveLength(5)
-      expect(recent[0].text).toBe('Message 146')
-      expect(recent[4].text).toBe('Message 150')
+      expect(recent[0].text).toBe('Message 1496')
+      expect(recent[4].text).toBe('Message 1500')
     })
 
     test('all messages retrievable after hitting capacity', () => {
       let messages: Message[] = []
 
-      for (let i = 1; i <= 150; i++) {
+      for (let i = 1; i <= 1500; i++) {
         messages = service.addMessage(messages, `Message ${i}`, 'info', i)
       }
 
-      const all = service.getRecentMessages(messages, 100)
+      const all = service.getRecentMessages(messages, 1000)
 
-      expect(all).toHaveLength(100)
-      expect(all[0].text).toBe('Message 51')
-      expect(all[99].text).toBe('Message 150')
+      expect(all).toHaveLength(1000)
+      expect(all[0].text).toBe('Message 501')
+      expect(all[999].text).toBe('Message 1500')
     })
   })
 
@@ -194,20 +194,20 @@ describe('MessageService - Max Capacity', () => {
 
       const startTime = Date.now()
 
-      for (let i = 1; i <= 500; i++) {
+      for (let i = 1; i <= 5000; i++) {
         messages = service.addMessage(messages, `Message ${i}`, 'info', i)
       }
 
       const duration = Date.now() - startTime
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
       expect(duration).toBeLessThan(100) // Should complete in <100ms
     })
 
     test('bulk add is efficient', () => {
       let messages: Message[] = []
 
-      const newMessages = Array.from({ length: 200 }, (_, i) => ({
+      const newMessages = Array.from({ length: 2000 }, (_, i) => ({
         text: `Message ${i + 1}`,
         type: 'info' as const,
       }))
@@ -216,7 +216,7 @@ describe('MessageService - Max Capacity', () => {
       messages = service.addMessages(messages, newMessages, 1)
       const duration = Date.now() - startTime
 
-      expect(messages).toHaveLength(100)
+      expect(messages).toHaveLength(1000)
       expect(duration).toBeLessThan(100) // Should complete in <100ms
     })
   })

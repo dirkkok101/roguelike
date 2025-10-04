@@ -193,6 +193,8 @@ export interface Message {
   text: string
   type: 'info' | 'combat' | 'warning' | 'critical' | 'success'
   turn: number
+  count?: number // For grouped messages
+  importance?: number // 1 (low) to 5 (critical)
 }
 
 // Item types (minimal for Phase 1, expanded in Phase 5)

@@ -6,6 +6,7 @@ import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
 import { HungerService, HungerState } from '@services/HungerService'
+import { NotificationService } from '@services/NotificationService'
 
 // ============================================================================
 // MOVE COMMAND - Handle player movement and combat
@@ -19,7 +20,8 @@ export class MoveCommand implements ICommand {
     private fovService: FOVService,
     private messageService: MessageService,
     private combatService?: CombatService,
-    private hungerService?: HungerService
+    private hungerService?: HungerService,
+    private notificationService?: NotificationService
   ) {}
 
   execute(state: GameState): GameState {
@@ -241,13 +243,34 @@ export class MoveCommand implements ICommand {
     const updatedLevels = new Map(state.levels)
     updatedLevels.set(state.currentLevel, updatedLevel)
 
-    // 10. Add hunger messages if any
+    // 10. Generate auto-notifications
+    const stateWithUpdatedLevel = {
+      ...state,
+      player: updatedPlayer,
+      visibleCells,
+      levels: updatedLevels,
+    }
+    const notifications = this.notificationService
+      ? this.notificationService.generateNotifications(stateWithUpdatedLevel, state.player.position)
+      : []
+
+    // 11. Add hunger messages if any
     let messages = state.messages
     hungerMessages.forEach((msg) => {
       messages = this.messageService.addMessage(
         messages,
         msg,
         msg.includes('fainting') ? 'critical' : 'warning',
+        state.turnCount + 1
+      )
+    })
+
+    // 12. Add auto-notifications to message log
+    notifications.forEach((msg) => {
+      messages = this.messageService.addMessage(
+        messages,
+        msg,
+        'info',
         state.turnCount + 1
       )
     })
@@ -368,7 +391,18 @@ export class MoveCommand implements ICommand {
     const updatedLevels = new Map(state.levels)
     updatedLevels.set(state.currentLevel, updatedLevel)
 
-    // 8. Add message
+    // 8. Generate auto-notifications
+    const stateWithUpdatedLevel = {
+      ...state,
+      player: updatedPlayer,
+      visibleCells,
+      levels: updatedLevels,
+    }
+    const notifications = this.notificationService
+      ? this.notificationService.generateNotifications(stateWithUpdatedLevel, state.player.position)
+      : []
+
+    // 9. Add message
     let messages = this.messageService.addMessage(
       state.messages,
       'You open the door and move through.',
@@ -376,12 +410,22 @@ export class MoveCommand implements ICommand {
       state.turnCount + 1
     )
 
-    // 9. Add hunger messages if any
+    // 10. Add hunger messages if any
     hungerMessages.forEach((msg) => {
       messages = this.messageService.addMessage(
         messages,
         msg,
         msg.includes('fainting') ? 'critical' : 'warning',
+        state.turnCount + 1
+      )
+    })
+
+    // 11. Add auto-notifications to message log
+    notifications.forEach((msg) => {
+      messages = this.messageService.addMessage(
+        messages,
+        msg,
+        'info',
         state.turnCount + 1
       )
     })
