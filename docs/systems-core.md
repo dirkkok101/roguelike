@@ -200,6 +200,12 @@ class FOVService {
   // Check if position blocks vision
   isBlocking(position: Position, level: Level): boolean
 
+  // Update explored tiles based on visible cells (immutable)
+  updateExploredTiles(
+    level: Level,
+    visibleCells: Set<string>
+  ): Level
+
   // Internal: Process one octant of FOV
   private castLight(
     row: number,
@@ -230,6 +236,7 @@ class FOVService {
 - `shadowcasting.test.ts` - Core algorithm correctness
 - `blocking.test.ts` - What blocks vision (walls, doors)
 - `radius.test.ts` - Light radius limits visibility
+- `exploration-tracking.test.ts` - Explored tiles tracking (immutability, bounds checking)
 - `octants.test.ts` - All 8 octants computed correctly
 
 ---

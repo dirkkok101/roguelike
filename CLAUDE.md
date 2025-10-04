@@ -431,6 +431,89 @@ function movePlayer(state: GameState, pos: Position) {
 }
 ```
 
+### 5. Real Example: MoveCommand Exploration Logic (Fixed in commit 9be65e6)
+
+**The Problem**: We found logic in MoveCommand that iterated through visible cells and marked tiles as explored:
+
+```typescript
+// ❌ Bad - Logic in Command (MoveCommand.ts lines 179-189)
+const updatedLevel = {
+  ...level,
+  explored: level.explored.map((row) => [...row]),
+}
+visibleCells.forEach((key) => {
+  const pos = this.fovService.keyToPos(key)
+  if (updatedLevel.explored[pos.y]) {
+    updatedLevel.explored[pos.y][pos.x] = true  // Logic in command!
+  }
+})
+```
+
+**Red Flags Detected**:
+- `forEach` loop in command
+- Array manipulation (`map`, direct array access)
+- Game logic (marking tiles as explored)
+
+**The Fix**: Extract to FOVService method, command becomes one line:
+
+```typescript
+// ✅ Good - Orchestration Only
+const updatedLevel = this.fovService.updateExploredTiles(level, visibleCells)
+```
+
+**FOVService gains the method**:
+```typescript
+// In FOVService.ts
+updateExploredTiles(level: Level, visibleCells: Set<string>): Level {
+  const updatedExplored = level.explored.map((row) => [...row])
+
+  visibleCells.forEach((key) => {
+    const pos = this.keyToPos(key)
+    if (updatedExplored[pos.y] && updatedExplored[pos.y][pos.x] !== undefined) {
+      updatedExplored[pos.y][pos.x] = true
+    }
+  })
+
+  return { ...level, explored: updatedExplored }
+}
+```
+
+**Benefits**:
+- Command reduced from 11 lines to 1
+- Logic testable in isolation (exploration-tracking.test.ts)
+- Method reusable across codebase
+- Follows architecture: commands orchestrate, services contain logic
+
+**Lesson**: If you see loops, conditionals, or data manipulation in a command, extract to a service!
+
+### How to Detect Logic in Commands (Quick Reference)
+
+**🚨 Red Flags** - If you see these in a command file, review carefully:
+
+| Pattern | Example | Why It's Bad | Fix |
+|---------|---------|--------------|-----|
+| Loops | `forEach`, `for`, `while`, `map` | Business logic iteration | Extract to service method |
+| Array manipulation | `push`, `splice`, `[index]` | Data structure logic | Extract to service method |
+| Calculations | `Math.floor`, `+`, `-`, `*`, `/` | Business rule calculations | Extract to service method |
+| String manipulation | `split`, `join`, `replace` | Data transformation logic | Extract to service method |
+| Complex conditionals | Nested `if/else`, `switch` | Business rule decisions | Extract to service method |
+| Object iteration | `Object.keys`, `Object.entries` | Data structure traversal | Extract to service method |
+
+**✅ Acceptable in Commands** - These are fine for orchestration:
+
+| Pattern | Example | Why It's OK |
+|---------|---------|-------------|
+| Simple routing | `if (monster) attack() else move()` | Routing to different services |
+| Guard clauses | `if (!walkable) return state` | Early exit orchestration |
+| Service calls | `this.service.method()` | Core purpose of commands |
+| State spreading | `{ ...state, player: {...} }` | Immutable state updates |
+
+**Quick Test**: "Can I explain what this command does in 3 sentences without mentioning implementation details?"
+- ✅ Yes → Probably good orchestration
+- ❌ No → Contains too much logic
+
+**See** [docs/ARCHITECTURAL_REVIEW.md](./docs/ARCHITECTURAL_REVIEW.md) **for complete checklist and examples.**
+
 ---
 
 ## Running the Project
@@ -469,10 +552,14 @@ npm run type-check   # TypeScript validation
 4. **Write tests first** (TDD when possible)
 5. **Implement with dependency injection**
 6. **Ensure immutability** (return new objects, never mutate)
-7. **Run tests**: `npm test ServiceName`
-8. **Check coverage**: Aim for >80%
-9. **Update plan.md**: Mark task checkbox as complete `[x]`
-10. **Git commit**: Write descriptive commit message describing what was done
+7. **Verify architecture** ([docs/ARCHITECTURAL_REVIEW.md](./docs/ARCHITECTURAL_REVIEW.md)):
+   - Commands orchestrate only (no loops, calculations, or logic)
+   - Services contain all logic
+   - No mutations (return new objects)
+8. **Run tests**: `npm test ServiceName`
+9. **Check coverage**: Aim for >80%
+10. **Update plan.md**: Mark task checkbox as complete `[x]`
+11. **Git commit**: Write descriptive commit message describing what was done
     - Example: `feat: implement LightingService with fuel tracking and warnings`
     - Example: `test: add FOVService shadowcasting algorithm tests`
     - Example: `refactor: extract corridor generation into separate method`

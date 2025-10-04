@@ -457,6 +457,7 @@ FOVService/
 ├── shadowcasting.test.ts        # Core algorithm tests
 ├── blocking.test.ts             # What blocks vision
 ├── radius.test.ts               # Light radius limits
+├── exploration-tracking.test.ts # Explored tiles tracking
 ├── octants.test.ts              # Octant transformations
 └── index.ts
 ```

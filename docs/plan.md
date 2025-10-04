@@ -14,6 +14,17 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Current Status**: Phases 1-4 mostly complete, Phase 5 (Inventory) next
 
+### Recent Architectural Improvements (2025-10-04)
+
+✅ **Completed comprehensive architectural refactoring:**
+- Reorganized 9 commands + DungeonService into folder structure with barrel exports
+- Standardized all imports to use path aliases (@game/*, @services/*, @commands/*)
+- Extracted exploration tracking logic from MoveCommand to FOVService
+- Improved architecture compliance: commands orchestrate, services contain logic
+- All tests passing: 65/65 suites, 768/768 tests
+
+**Impact**: Better separation of concerns, improved maintainability, architecture now fully compliant with design guidelines.
+
 ---
 
 ## Phase 1: Foundation & Core Loop (Week 1-2)
