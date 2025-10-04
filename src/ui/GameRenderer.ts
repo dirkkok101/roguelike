@@ -4,11 +4,13 @@ import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
+import { VictoryService } from '@services/VictoryService'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
 import { MessageHistoryModal } from './MessageHistoryModal'
 import { HelpModal } from './HelpModal'
+import { VictoryScreen } from './VictoryScreen'
 
 // ============================================================================
 // GAME RENDERER - DOM rendering for game state
@@ -24,6 +26,7 @@ export class GameRenderer {
   private commandBar: ContextualCommandBar
   private messageHistoryModal: MessageHistoryModal
   private helpModal: HelpModal
+  private victoryScreen: VictoryScreen
 
   constructor(
     private renderingService: RenderingService,
@@ -31,6 +34,7 @@ export class GameRenderer {
     private levelingService: LevelingService,
     private debugService: DebugService,
     private contextService: ContextService,
+    private victoryService: VictoryService,
     _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
@@ -48,12 +52,23 @@ export class GameRenderer {
     this.commandBar = new ContextualCommandBar(contextService)
     this.messageHistoryModal = new MessageHistoryModal()
     this.helpModal = new HelpModal(contextService)
+    this.victoryScreen = new VictoryScreen()
   }
 
   /**
    * Render complete game state
    */
   render(state: GameState): void {
+    // Check for victory before rendering
+    if (state.hasWon && !this.victoryScreen.isVisible()) {
+      const stats = this.victoryService.getVictoryStats(state)
+      this.victoryScreen.show(stats, () => {
+        // New game callback - reload page
+        window.location.reload()
+      })
+      return // Don't render game when victory screen shown
+    }
+
     this.renderDungeon(state)
     this.renderStats(state)
     this.renderMessages(state)
