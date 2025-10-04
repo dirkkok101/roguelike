@@ -35,9 +35,6 @@ export class ContextualCommandBar {
       font-size: 14px;
       padding: 8px 12px;
       border-top: 1px solid #444;
-      display: flex;
-      align-items: center;
-      gap: 16px;
     `
     return div
   }
