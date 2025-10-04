@@ -11,6 +11,8 @@ import { PathfindingService } from '@services/PathfindingService'
 import { MonsterAIService } from '@services/MonsterAIService'
 import { InventoryService } from '@services/InventoryService'
 import { IdentificationService } from '@services/IdentificationService'
+import { HungerService } from '@services/HungerService'
+import { LevelingService } from '@services/LevelingService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -39,7 +41,9 @@ async function initializeGame() {
   const movementService = new MovementService()
   const messageService = new MessageService()
   const dungeonService = new DungeonService(random, itemData)
-  const combatService = new CombatService(random)
+  const hungerService = new HungerService(random)
+  const levelingService = new LevelingService(random)
+  const combatService = new CombatService(random, hungerService)
   const pathfindingService = new PathfindingService()
   const monsterAIService = new MonsterAIService(pathfindingService, random)
   const inventoryService = new InventoryService()
@@ -59,7 +63,7 @@ async function initializeGame() {
   }
 
   // Create UI
-  const renderer = new GameRenderer(renderingService)
+  const renderer = new GameRenderer(renderingService, hungerService, levelingService)
   const inputHandler = new InputHandler(
     movementService,
     lightingService,
@@ -71,6 +75,8 @@ async function initializeGame() {
     combatService,
     inventoryService,
     identificationService,
+    hungerService,
+    levelingService,
     modalController
   )
 

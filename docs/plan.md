@@ -12,7 +12,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Estimated Timeline**: 11 weeks total (assumes single developer, ~20-30 hours/week)
 
-**Current Status**: Phases 1-5 complete, Phase 6 (Hunger & Progression) 67% complete
+**Current Status**: Phases 1-6 complete, Phase 7 (Win Condition & Polish) not started
 
 ### Recent Architectural Improvements (2025-10-04)
 
@@ -32,7 +32,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Impact**: Better separation of concerns, improved maintainability, architecture now fully compliant with design guidelines. Door mechanics now match game design specification.
 
-🟡 **Phase 6 Progress (Hunger & Progression) - 67% Complete:**
+✅ **Phase 6 Complete (Hunger & Progression) - 100% Complete:**
 - ✅ Implemented HungerService with 7 methods (44 tests passing)
   - Hunger depletion with ring modifiers (SLOW_DIGESTION reduces hunger rate)
   - 4 hunger states: NORMAL, HUNGRY, WEAK, STARVING
@@ -50,12 +50,20 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 - ✅ Integrated hunger penalties into CombatService (6 tests passing)
   - Optional HungerService dependency (backward compatible)
   - Penalties applied to player attacks when weak/starving
-- ✅ Implemented LevelingService with 5 methods
+- ✅ Implemented LevelingService with 5 methods (47 tests passing)
   - XP curve: [0, 10, 30, 60, 100, 150, 210, 280, 360, 450]
   - Level-up mechanics: +1d8 max HP, full heal, XP carry-over
-- ⚪ Pending: LevelingService tests, AttackCommand integration, UI updates
+  - 3 comprehensive test files (xp-calculation, level-up, xp-curve)
+- ✅ Integrated LevelingService into AttackCommand
+  - XP awarded on monster kills
+  - Level-up detection and application
+  - Level-up messages displayed
+- ✅ UI Updates Complete
+  - Hunger state display with visual bar
+  - XP progress display with visual bar
+  - 'e' key wired to EatCommand
 
-**Test Results**: 151 tests passing across all new Phase 6 components
+**Test Results**: 905 total tests passing (47 new LevelingService tests added)
 
 ---
 
@@ -712,9 +720,9 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Hunger system and character leveling
 
-**Status**: 🟡 In Progress (6/9 complete - 67%)
+**Status**: 🟢 Complete (9/9 complete - 100%)
 
-**Last Updated**: 2025-10-04
+**Last Updated**: 2025-10-04 (Completed)
 
 ### Tasks
 
@@ -742,7 +750,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
   - [x] Restore hunger units (random 1100-1499)
   - [x] Remove food from inventory
   - [x] 30% chance "tastes awful" message
-- [ ] Wire up `e` key (in InputHandler - pending)
+- [x] Wire up `e` key (in InputHandler - complete)
 - [x] Write unit tests (10 tests, all passing)
   - [x] eat-command.test.ts
 
@@ -752,7 +760,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
   - [x] "You are weak from hunger!" (warning)
   - [x] "You are fainting!" (critical)
 - [x] Integrated into MoveCommand (hunger ticks each turn)
-- [ ] Display current hunger state in UI (GameRenderer - pending)
+- [x] Display current hunger state in UI (GameRenderer - complete with visual bar)
 
 #### Hunger Combat Effects
 - [x] Apply combat penalties when weak
@@ -775,41 +783,43 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
   - [x] levelUp() method
   - [x] getXPForNextLevel() method
   - [x] calculateXPReward() method
-- [ ] Write unit tests (pending)
-  - [ ] xp-calculation.test.ts
-  - [ ] level-up.test.ts
-  - [ ] xp-curve.test.ts
+- [x] Write unit tests (complete - 47 tests passing)
+  - [x] xp-calculation.test.ts
+  - [x] level-up.test.ts
+  - [x] xp-curve.test.ts
 
 **Reference**: [Architecture - LevelingService](./architecture.md#levelingservice)
 
 #### XP Rewards
-- [ ] Grant XP on monster death (AttackCommand integration - pending)
+- [x] Grant XP on monster death (AttackCommand integration complete)
 - [x] Use monster xpValue from data (CombatService.calculateXP exists)
-- [ ] Integration tests (pending)
+- [x] Integration tests (complete)
 
 #### Level-Up Mechanics
 - [x] Increase max HP (+1d8)
 - [x] Full heal on level-up
 - [x] XP carry-over to next level
-- [ ] Display level-up message (AttackCommand - pending)
-- [ ] Update stats display (GameRenderer - pending)
+- [x] Display level-up message (AttackCommand complete)
+- [x] Update stats display (GameRenderer complete)
 
 #### XP Progress Display
-- [ ] Show current XP / next level XP in UI (GameRenderer - pending)
-- [ ] Visual progress bar (optional - pending)
+- [x] Show current XP / next level XP in UI (GameRenderer complete)
+- [x] Visual progress bar (GameRenderer complete)
 
 ---
 
 ### Deliverable
 
-✅ **Phase 6 Complete When:**
-- Hunger system fully functional
-- Food consumption works
-- Hunger states and effects working
-- Starvation causes death
-- Character leveling works
-- XP grants on kills
-- All Phase 6 tests passing (>80% coverage)
+✅ **Phase 6 Complete:**
+- ✅ Hunger system fully functional
+- ✅ Food consumption works
+- ✅ Hunger states and effects working
+- ✅ Starvation causes death
+- ✅ Character leveling works
+- ✅ XP grants on kills
+- ✅ All Phase 6 tests passing (905 total, >80% coverage)
+- ✅ Hunger and XP progress bars in UI
+- ✅ Level-up messages and mechanics complete
 
 ---
 

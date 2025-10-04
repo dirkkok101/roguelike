@@ -1,5 +1,7 @@
 import { GameState, Position, ItemType } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
+import { HungerService } from '@services/HungerService'
+import { LevelingService } from '@services/LevelingService'
 
 // ============================================================================
 // GAME RENDERER - DOM rendering for game state
@@ -12,6 +14,8 @@ export class GameRenderer {
 
   constructor(
     private renderingService: RenderingService,
+    private hungerService: HungerService,
+    private levelingService: LevelingService,
     _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
@@ -135,14 +139,37 @@ export class GameRenderer {
     const { player } = state
     const lightSource = player.equipment.lightSource
 
+    // Get hunger state for display
+    const hungerState = this.hungerService.getHungerState(player.hunger)
+    const hungerPercentage = Math.min(100, (player.hunger / 2000) * 100)
+    const hungerColor = hungerState === 'STARVING' ? 'red' :
+                        hungerState === 'WEAK' ? 'orange' :
+                        hungerState === 'HUNGRY' ? 'yellow' : 'green'
+
+    // Get XP progress for display
+    const xpNeeded = this.levelingService.getXPForNextLevel(player.level)
+    const xpDisplay = xpNeeded === Infinity ? `${player.xp} (MAX)` : `${player.xp}/${xpNeeded}`
+    const xpPercentage = xpNeeded === Infinity ? 100 : Math.min(100, (player.xp / xpNeeded) * 100)
+
     this.statsContainer.innerHTML = `
       <div class="stats">
         <div>HP: ${player.hp}/${player.maxHp}</div>
         <div>Str: ${player.strength}/${player.maxStrength}</div>
         <div>AC: ${player.ac}</div>
         <div>Level: ${player.level}</div>
-        <div>XP: ${player.xp}</div>
+        <div>XP: ${xpDisplay}</div>
+        <div style="font-size: 0.8em; color: #666;">
+          <span style="display: inline-block; width: 100px; height: 8px; background: #333; border: 1px solid #555;">
+            <span style="display: block; width: ${xpPercentage}%; height: 100%; background: #0af;"></span>
+          </span>
+        </div>
         <div>Gold: ${player.gold}</div>
+        <div>Hunger: ${hungerState}</div>
+        <div style="font-size: 0.8em; color: #666;">
+          <span style="display: inline-block; width: 100px; height: 8px; background: #333; border: 1px solid #555;">
+            <span style="display: block; width: ${hungerPercentage}%; height: 100%; background: ${hungerColor};"></span>
+          </span>
+        </div>
         <div>Depth: ${state.currentLevel}</div>
         <div>Turn: ${state.turnCount}</div>
         ${

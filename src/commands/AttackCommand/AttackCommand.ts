@@ -2,6 +2,7 @@ import { GameState, Monster } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { CombatService } from '@services/CombatService'
 import { MessageService } from '@services/MessageService'
+import { LevelingService } from '@services/LevelingService'
 
 // ============================================================================
 // ATTACK COMMAND - Player attacks monster
@@ -11,7 +12,8 @@ export class AttackCommand implements ICommand {
   constructor(
     private monsterId: string,
     private combatService: CombatService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private levelingService: LevelingService
   ) {}
 
   execute(state: GameState): GameState {
@@ -44,7 +46,36 @@ export class AttackCommand implements ICommand {
 
         // Remove monster and award XP
         const updatedMonsters = level.monsters.filter((m) => m.id !== this.monsterId)
-        const xp = this.combatService.calculateXP(monster)
+        const xpReward = this.levelingService.calculateXPReward(monster)
+
+        // Add XP and check for level-up
+        const xpResult = this.levelingService.addExperience(state.player, xpReward)
+        let updatedPlayer = xpResult.player
+
+        // Add XP gain message
+        messages = this.messageService.addMessage(
+          messages,
+          `You gain ${xpReward} experience points.`,
+          'success',
+          state.turnCount
+        )
+
+        // Handle level-up if it occurred
+        if (xpResult.leveledUp) {
+          updatedPlayer = this.levelingService.levelUp(updatedPlayer)
+          messages = this.messageService.addMessage(
+            messages,
+            `You have reached level ${updatedPlayer.level}!`,
+            'success',
+            state.turnCount
+          )
+          messages = this.messageService.addMessage(
+            messages,
+            `Your max HP increases to ${updatedPlayer.maxHp}!`,
+            'success',
+            state.turnCount
+          )
+        }
 
         const updatedLevel = { ...level, monsters: updatedMonsters }
         const updatedLevels = new Map(state.levels)
@@ -52,7 +83,7 @@ export class AttackCommand implements ICommand {
 
         return {
           ...state,
-          player: { ...state.player, xp: state.player.xp + xp },
+          player: updatedPlayer,
           levels: updatedLevels,
           messages,
           turnCount: state.turnCount + 1,

@@ -9,6 +9,7 @@ import { DropCommand } from '@commands/DropCommand'
 import { EquipCommand } from '@commands/EquipCommand'
 import { UnequipCommand } from '@commands/UnequipCommand'
 import { UseItemCommand } from '@commands/UseItemCommand'
+import { EatCommand } from '@commands/EatCommand'
 import { MovementService } from '@services/MovementService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
@@ -18,6 +19,8 @@ import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { CombatService } from '@services/CombatService'
 import { InventoryService } from '@services/InventoryService'
 import { IdentificationService } from '@services/IdentificationService'
+import { HungerService } from '@services/HungerService'
+import { LevelingService } from '@services/LevelingService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -42,6 +45,8 @@ export class InputHandler {
     private combatService: CombatService,
     private inventoryService: InventoryService,
     private identificationService: IdentificationService,
+    private hungerService: HungerService,
+    private levelingService: LevelingService,
     private modalController: ModalController
   ) {}
 
@@ -90,7 +95,8 @@ export class InputHandler {
           this.lightingService,
           this.fovService,
           this.messageService,
-          this.combatService
+          this.combatService,
+          this.hungerService
         )
 
       case 'ArrowDown':
@@ -101,7 +107,8 @@ export class InputHandler {
           this.lightingService,
           this.fovService,
           this.messageService,
-          this.combatService
+          this.combatService,
+          this.hungerService
         )
 
       case 'ArrowLeft':
@@ -112,7 +119,8 @@ export class InputHandler {
           this.lightingService,
           this.fovService,
           this.messageService,
-          this.combatService
+          this.combatService,
+          this.hungerService
         )
 
       case 'ArrowRight':
@@ -123,7 +131,8 @@ export class InputHandler {
           this.lightingService,
           this.fovService,
           this.messageService,
-          this.combatService
+          this.combatService,
+          this.hungerService
         )
 
       case 'o':
@@ -313,19 +322,12 @@ export class InputHandler {
       case 'e':
         // Eat food
         event.preventDefault()
-        this.modalController.showItemSelection('food', 'Eat what?', state, (item) => {
-          if (item) {
-            this.pendingCommand = new UseItemCommand(
-              item.id,
-              'eat',
-              this.inventoryService,
-              this.messageService,
-              this.random,
-              this.identificationService
-            )
-          }
-        })
-        return null
+        return new EatCommand(
+          this.inventoryService,
+          this.hungerService,
+          this.messageService,
+          this.random
+        )
 
       case 'w':
         // Wield weapon
