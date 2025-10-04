@@ -525,7 +525,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Full item system with inventory management
 
-**Status**: 🟡 In Progress (9/15 complete - 60%)
+**Status**: 🟡 In Progress (12/15 complete - 80%)
 
 ### Tasks
 
@@ -607,7 +607,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 - [x] Implement DropCommand (13 tests)
 - [x] Implement EquipCommand for weapons/armor/rings (15 tests)
 - [x] Implement UnequipCommand for rings (13 tests)
-- [ ] Implement UseItemCommand (q, r, z, e)
+- [x] Implement UseItemCommand (q, r, z, e) (24 tests)
 - [ ] Wire up command keys (UI task)
 
 #### Inventory UI
@@ -631,23 +631,22 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
   - [ ] enchanting.test.ts
 
 #### Lantern Refill
-- [ ] Implement refill mechanic (UseItemCommand with oil flask)
-- [ ] Check lantern is equipped
-- [ ] Add 500 fuel
-- [ ] Cap at maxFuel
-- [ ] Remove oil flask from inventory
-- [ ] Write unit tests
-  - [ ] refill.test.ts
+- [x] Implement refill mechanic (UseItemCommand with oil flask)
+- [x] Check lantern is equipped
+- [x] Add 500 fuel
+- [x] Cap at maxFuel
+- [x] Remove oil flask from inventory
+- [x] Write unit tests
+  - [x] lantern-refill.test.ts (9 tests)
 
 **Reference**: [Core Systems - Lighting System](./systems-core.md#lighting-system)
 
 #### Combat Integration
-- [ ] Use equipped weapon for damage calculation
-- [ ] Use equipped armor for AC
-- [ ] Apply ring effects to combat stats
-- [ ] Write unit tests
-  - [ ] weapon-damage.test.ts
-  - [ ] armor-protection.test.ts
+- [x] Use equipped weapon for damage calculation
+- [x] Use equipped armor for AC
+- [x] Apply ring effects to combat stats (ADD_STRENGTH, PROTECTION, DEXTERITY)
+- [x] Write unit tests
+  - [x] equipment-bonuses.test.ts (12 tests)
 
 ---
 
