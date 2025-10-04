@@ -10,7 +10,17 @@ import { EquipCommand } from '@commands/EquipCommand'
 import { UnequipCommand } from '@commands/UnequipCommand'
 import { UseItemCommand } from '@commands/UseItemCommand'
 import { EatCommand } from '@commands/EatCommand'
+import { ToggleGodModeCommand } from '@commands/ToggleGodModeCommand'
+import { RevealMapCommand } from '@commands/RevealMapCommand'
+import { ToggleDebugConsoleCommand } from '@commands/ToggleDebugConsoleCommand'
+import { SpawnMonsterCommand } from '@commands/SpawnMonsterCommand'
+import { WakeAllMonstersCommand } from '@commands/WakeAllMonstersCommand'
+import { KillAllMonstersCommand } from '@commands/KillAllMonstersCommand'
+import { ToggleFOVDebugCommand } from '@commands/ToggleFOVDebugCommand'
+import { TogglePathDebugCommand } from '@commands/TogglePathDebugCommand'
+import { ToggleAIDebugCommand } from '@commands/ToggleAIDebugCommand'
 import { MovementService } from '@services/MovementService'
+import { DebugService } from '@services/DebugService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
@@ -47,7 +57,8 @@ export class InputHandler {
     private identificationService: IdentificationService,
     private hungerService: HungerService,
     private levelingService: LevelingService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private debugService: DebugService
   ) {}
 
   /**
@@ -382,6 +393,82 @@ export class InputHandler {
         // Remove from left if present, else right
         const ringSlot = state.player.equipment.leftRing ? 'left' : 'right'
         return new UnequipCommand(ringSlot, this.inventoryService, this.messageService)
+
+      // =====================================================================
+      // DEBUG COMMANDS (dev only)
+      // =====================================================================
+
+      case '~':
+        // Toggle debug console
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new ToggleDebugConsoleCommand(this.debugService)
+        }
+        return null
+
+      case 'g':
+        // Toggle god mode
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new ToggleGodModeCommand(this.debugService)
+        }
+        return null
+
+      case 'v':
+        // Reveal map
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new RevealMapCommand(this.debugService)
+        }
+        return null
+
+      case 'm':
+        // Spawn monster (hardcoded to 'T' for now - TODO: add monster selection modal)
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new SpawnMonsterCommand('T', this.debugService)
+        }
+        return null
+
+      case 'M':
+        // Wake all monsters
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new WakeAllMonstersCommand(this.debugService)
+        }
+        return null
+
+      case 'K':
+        // Kill all monsters
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new KillAllMonstersCommand(this.debugService)
+        }
+        return null
+
+      case 'f':
+        // Toggle FOV debug overlay
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new ToggleFOVDebugCommand(this.debugService)
+        }
+        return null
+
+      case 'p':
+        // Toggle pathfinding debug overlay
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new TogglePathDebugCommand(this.debugService)
+        }
+        return null
+
+      case 'n':
+        // Toggle AI debug overlay
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new ToggleAIDebugCommand(this.debugService)
+        }
+        return null
 
       default:
         return null

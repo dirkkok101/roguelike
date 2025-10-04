@@ -2,6 +2,9 @@ import { GameState, Position, ItemType } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
+import { DebugService } from '@services/DebugService'
+import { DebugConsole } from './DebugConsole'
+import { DebugOverlays } from './DebugOverlays'
 
 // ============================================================================
 // GAME RENDERER - DOM rendering for game state
@@ -11,11 +14,15 @@ export class GameRenderer {
   private dungeonContainer: HTMLElement
   private statsContainer: HTMLElement
   private messagesContainer: HTMLElement
+  private debugConsole: DebugConsole
+  private debugOverlays: DebugOverlays
+  private debugCanvas: HTMLCanvasElement | null = null
 
   constructor(
     private renderingService: RenderingService,
     private hungerService: HungerService,
     private levelingService: LevelingService,
+    private debugService: DebugService,
     _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
@@ -28,6 +35,8 @@ export class GameRenderer {
     this.dungeonContainer = this.createDungeonView()
     this.statsContainer = this.createStatsView()
     this.messagesContainer = this.createMessagesView()
+    this.debugConsole = new DebugConsole(debugService)
+    this.debugOverlays = new DebugOverlays(debugService)
   }
 
   /**
@@ -37,6 +46,12 @@ export class GameRenderer {
     this.renderDungeon(state)
     this.renderStats(state)
     this.renderMessages(state)
+
+    // Render debug console
+    this.debugConsole.render(state)
+
+    // Render debug overlays (on canvas if available)
+    this.renderDebugOverlays(state)
   }
 
   /**
@@ -48,6 +63,12 @@ export class GameRenderer {
     container.appendChild(this.messagesContainer)
     container.appendChild(this.dungeonContainer)
     container.appendChild(this.statsContainer)
+    container.appendChild(this.debugConsole.getContainer())
+
+    // Add debug canvas for overlays
+    this.debugCanvas = this.createDebugCanvas()
+    container.appendChild(this.debugCanvas)
+
     return container
   }
 
@@ -242,5 +263,43 @@ export class GameRenderer {
       default:
         return '#FFFFFF'
     }
+  }
+
+  /**
+   * Create debug canvas overlay
+   */
+  private createDebugCanvas(): HTMLCanvasElement {
+    const canvas = document.createElement('canvas')
+    canvas.id = 'debug-canvas'
+    canvas.width = 80 * 16 // 80 cells × 16px cell size
+    canvas.height = 22 * 16 // 22 cells × 16px cell size
+    canvas.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 10;
+    `
+    return canvas
+  }
+
+  /**
+   * Render debug overlays on canvas
+   */
+  private renderDebugOverlays(state: GameState): void {
+    if (!this.debugCanvas) return
+
+    const ctx = this.debugCanvas.getContext('2d')
+    if (!ctx) return
+
+    // Clear canvas
+    ctx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height)
+
+    const cellSize = 16
+
+    // Render overlays in order (FOV → Path → AI for proper layering)
+    this.debugOverlays.renderFOVOverlay(state, ctx, cellSize)
+    this.debugOverlays.renderPathOverlay(state, ctx, cellSize)
+    this.debugOverlays.renderAIOverlay(state, ctx, cellSize)
   }
 }

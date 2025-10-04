@@ -1,0 +1,98 @@
+import { WakeAllMonstersCommand } from './WakeAllMonstersCommand'
+import { DebugService } from '@services/DebugService'
+import { MessageService } from '@services/MessageService'
+import { GameState, Level, TileType, MonsterState, MonsterBehavior } from '@game/core/core'
+
+describe('WakeAllMonstersCommand', () => {
+  let debugService: DebugService
+  let command: WakeAllMonstersCommand
+  let mockState: GameState
+
+  beforeEach(() => {
+    const messageService = new MessageService()
+    debugService = new DebugService(messageService, true)
+    command = new WakeAllMonstersCommand(debugService)
+
+    const level: Level = {
+      depth: 1,
+      width: 10,
+      height: 10,
+      tiles: Array(10).fill(null).map(() =>
+        Array(10).fill(null).map(() => ({
+          type: TileType.FLOOR,
+          char: '.',
+          walkable: true,
+          transparent: true,
+          colorVisible: '#fff',
+          colorExplored: '#888',
+        }))
+      ),
+      explored: Array(10).fill(null).map(() => Array(10).fill(false)),
+      rooms: [],
+      doors: [],
+      traps: [],
+      monsters: [
+        {
+          id: 'monster1',
+          letter: 'O',
+          name: 'Orc',
+          position: { x: 2, y: 2 },
+          hp: 10,
+          maxHp: 10,
+          ac: 5,
+          damage: '1d8',
+          xpValue: 15,
+          aiProfile: {
+            behavior: MonsterBehavior.SIMPLE,
+            intelligence: 5,
+            aggroRange: 5,
+            fleeThreshold: 0.25,
+            special: [],
+          },
+          isAsleep: true,
+          isAwake: false,
+          state: MonsterState.SLEEPING,
+          visibleCells: new Set(),
+          currentPath: null,
+          hasStolen: false,
+          level: 1,
+        },
+      ] as any,
+      items: [],
+      gold: [],
+      stairsUp: null,
+      stairsDown: { x: 5, y: 5 },
+    }
+
+    mockState = {
+      currentLevel: 1,
+      levels: new Map([[1, level]]),
+      messages: [],
+      debug: debugService.initializeDebugState(),
+    } as GameState
+  })
+
+  test('executes debugService.wakeAllMonsters', () => {
+    const result = command.execute(mockState)
+
+    const monsters = result.levels.get(1)!.monsters
+    expect(monsters.every(m => m.isAwake)).toBe(true)
+  })
+
+  test('wakes all sleeping monsters', () => {
+    const result = command.execute(mockState)
+
+    const monsters = result.levels.get(1)!.monsters
+    expect(monsters).toHaveLength(1)
+    expect(monsters[0].isAwake).toBe(true)
+    expect(monsters[0].isAsleep).toBe(false)
+  })
+
+  test('adds message with monster count', () => {
+    const result = command.execute(mockState)
+
+    expect(result.messages).toHaveLength(1)
+    expect(result.messages[0].text).toContain('Woke')
+    expect(result.messages[0].text).toContain('monsters')
+  })
+})

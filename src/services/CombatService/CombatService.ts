@@ -1,6 +1,7 @@
-import { Player, Monster, Weapon, Ring, RingType } from '@game/core/core'
+import { Player, Monster, Weapon, Ring, RingType, GameState } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { HungerService } from '@services/HungerService'
+import { DebugService } from '@services/DebugService'
 
 // ============================================================================
 // COMBAT SERVICE - Original Rogue combat formulas
@@ -17,7 +18,8 @@ export interface CombatResult {
 export class CombatService {
   constructor(
     private random: IRandomService,
-    private hungerService?: HungerService
+    private hungerService?: HungerService,
+    private debugService?: DebugService
   ) {}
 
   /**
@@ -69,7 +71,18 @@ export class CombatService {
   /**
    * Monster attacks player
    */
-  monsterAttack(monster: Monster, player: Player): CombatResult {
+  monsterAttack(monster: Monster, player: Player, state?: GameState): CombatResult {
+    // Check god mode - player is invincible
+    if (state && this.debugService?.isGodModeActive(state)) {
+      return {
+        hit: false,
+        damage: 0,
+        attacker: monster.name,
+        defender: 'Player',
+        killed: false,
+      }
+    }
+
     const acBonus = this.getACBonus(player)
     const effectiveAC = player.ac - acBonus // Lower AC is better
     const hit = this.calculateHit(monster.level, effectiveAC)

@@ -157,6 +157,15 @@ export interface MonsterAIProfile {
   special: string[]
 }
 
+export interface DebugState {
+  godMode: boolean              // Player invincible, infinite resources
+  mapRevealed: boolean          // All tiles visible
+  debugConsoleVisible: boolean  // Debug console UI visible
+  fovOverlay: boolean           // FOV visualization (Phase 6)
+  pathOverlay: boolean          // Pathfinding visualization (Phase 6)
+  aiOverlay: boolean            // AI state visualization (Phase 6)
+}
+
 export interface GameState {
   player: Player
   currentLevel: number
@@ -170,6 +179,7 @@ export interface GameState {
   hasWon: boolean
   itemNameMap: ItemNameMap // Random descriptive names for this game
   identifiedItems: Set<string> // Item types that have been identified
+  debug?: DebugState // Debug state (optional for production builds)
 }
 
 export interface ItemNameMap {
