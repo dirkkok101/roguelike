@@ -168,6 +168,15 @@ export interface GameState {
   gameId: string
   isGameOver: boolean
   hasWon: boolean
+  itemNameMap: ItemNameMap // Random descriptive names for this game
+  identifiedItems: Set<string> // Item types that have been identified
+}
+
+export interface ItemNameMap {
+  potions: Map<PotionType, string> // PotionType -> "blue potion"
+  scrolls: Map<ScrollType, string> // ScrollType -> "scroll labeled XYZZY"
+  rings: Map<RingType, string> // RingType -> "ruby ring"
+  wands: Map<WandType, string> // WandType -> "oak wand"
 }
 
 export interface Message {
