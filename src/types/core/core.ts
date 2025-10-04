@@ -178,6 +178,7 @@ export interface GameState {
   isGameOver: boolean
   hasWon: boolean
   hasAmulet: boolean // Player has retrieved the Amulet of Yendor
+  deathCause?: string // Reason for player death (e.g., "Killed by Orc")
   itemNameMap: ItemNameMap // Random descriptive names for this game
   identifiedItems: Set<string> // Item types that have been identified
   debug?: DebugState // Debug state (optional for production builds)

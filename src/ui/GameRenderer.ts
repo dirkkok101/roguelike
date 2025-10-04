@@ -11,6 +11,7 @@ import { ContextualCommandBar } from './ContextualCommandBar'
 import { MessageHistoryModal } from './MessageHistoryModal'
 import { HelpModal } from './HelpModal'
 import { VictoryScreen } from './VictoryScreen'
+import { DeathScreen, DeathStats } from './DeathScreen'
 
 // ============================================================================
 // GAME RENDERER - DOM rendering for game state
@@ -27,6 +28,7 @@ export class GameRenderer {
   private messageHistoryModal: MessageHistoryModal
   private helpModal: HelpModal
   private victoryScreen: VictoryScreen
+  private deathScreen: DeathScreen
 
   constructor(
     private renderingService: RenderingService,
@@ -53,12 +55,32 @@ export class GameRenderer {
     this.messageHistoryModal = new MessageHistoryModal()
     this.helpModal = new HelpModal(contextService)
     this.victoryScreen = new VictoryScreen()
+    this.deathScreen = new DeathScreen()
   }
 
   /**
    * Render complete game state
    */
   render(state: GameState): void {
+    // Check for death before rendering
+    if (state.isGameOver && !state.hasWon && !this.deathScreen.isVisible()) {
+      const stats: DeathStats = {
+        cause: state.deathCause || 'Unknown cause',
+        finalLevel: state.player.level,
+        totalGold: state.player.gold,
+        totalXP: state.player.xp,
+        totalTurns: state.turnCount,
+        deepestLevel: Math.max(...Array.from(state.levels.keys())),
+        seed: state.seed,
+      }
+
+      this.deathScreen.show(stats, () => {
+        // New game callback - reload page
+        window.location.reload()
+      })
+      return // Don't render game when death screen shown
+    }
+
     // Check for victory before rendering
     if (state.hasWon && !this.victoryScreen.isVisible()) {
       const stats = this.victoryService.getVictoryStats(state)
