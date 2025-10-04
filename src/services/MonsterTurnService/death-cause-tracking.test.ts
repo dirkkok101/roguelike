@@ -19,7 +19,7 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
     const pathfindingService = new PathfindingService()
     const fovService = new FOVService()
     const aiService = new MonsterAIService(pathfindingService, mockRandom, fovService)
-    combatService = new CombatService(mockRandom, undefined, undefined)
+    combatService = new CombatService(mockRandom, undefined, undefined, messageService)
     const abilityService = new SpecialAbilityService(mockRandom)
 
     service = new MonsterTurnService(aiService, combatService, abilityService, messageService)

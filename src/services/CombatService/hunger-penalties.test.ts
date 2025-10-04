@@ -1,17 +1,20 @@
 import { CombatService } from './CombatService'
 import { HungerService } from '@services/HungerService'
 import { MockRandom } from '@services/RandomService'
+import { MessageService } from '@services/MessageService'
 import { Player, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
 
 describe('CombatService - Hunger Penalties', () => {
   let combatService: CombatService
   let hungerService: HungerService
   let mockRandom: MockRandom
+  let messageService: MessageService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
     hungerService = new HungerService(mockRandom)
-    combatService = new CombatService(mockRandom, hungerService)
+    messageService = new MessageService()
+    combatService = new CombatService(mockRandom, hungerService, undefined, messageService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {

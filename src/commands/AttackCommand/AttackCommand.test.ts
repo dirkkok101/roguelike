@@ -13,8 +13,8 @@ describe('AttackCommand', () => {
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    combatService = new CombatService(mockRandom)
     messageService = new MessageService()
+    combatService = new CombatService(mockRandom, undefined, undefined, messageService)
     levelingService = new LevelingService(mockRandom)
   })
 

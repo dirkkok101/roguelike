@@ -1,14 +1,17 @@
 import { CombatService } from './CombatService'
 import { MockRandom } from '@services/RandomService'
+import { MessageService } from '@services/MessageService'
 import { Player, Monster, Ring, RingType, ItemType } from '@game/core/core'
 
 describe('CombatService - Equipment Bonuses', () => {
   let service: CombatService
   let mockRandom: MockRandom
+  let messageService: MessageService
 
   beforeEach(() => {
     mockRandom = new MockRandom([])
-    service = new CombatService(mockRandom)
+    messageService = new MessageService()
+    service = new CombatService(mockRandom, undefined, undefined, messageService)
   })
 
   function createTestPlayer(): Player {

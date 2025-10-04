@@ -96,76 +96,8 @@ export class MoveCommand implements ICommand {
         return { ...state, messages }
       }
 
-      // Execute combat
-      const result = this.combatService.playerAttack(state.player, monster)
-      let messages = state.messages
-
-      if (result.hit) {
-        messages = this.messageService.addMessage(
-          messages,
-          `You hit the ${result.defender} for ${result.damage} damage!`,
-          'combat',
-          state.turnCount
-        )
-
-        if (result.killed) {
-          messages = this.messageService.addMessage(
-            messages,
-            `You killed the ${result.defender}!`,
-            'success',
-            state.turnCount
-          )
-
-          // Remove monster and award XP
-          const updatedMonsters = level.monsters.filter((m) => m.id !== monster.id)
-          const xp = this.combatService.calculateXP(monster)
-
-          const updatedLevel = { ...level, monsters: updatedMonsters }
-          const updatedLevels = new Map(state.levels)
-          updatedLevels.set(state.currentLevel, updatedLevel)
-
-          return {
-            ...state,
-            player: { ...state.player, xp: state.player.xp + xp },
-            levels: updatedLevels,
-            messages,
-            turnCount: state.turnCount + 1,
-          }
-        } else {
-          // Apply damage to monster
-          const updatedMonster = this.combatService.applyDamageToMonster(
-            monster,
-            result.damage
-          )
-          const updatedMonsters = level.monsters.map((m) =>
-            m.id === monster.id ? updatedMonster : m
-          )
-
-          const updatedLevel = { ...level, monsters: updatedMonsters }
-          const updatedLevels = new Map(state.levels)
-          updatedLevels.set(state.currentLevel, updatedLevel)
-
-          return {
-            ...state,
-            levels: updatedLevels,
-            messages,
-            turnCount: state.turnCount + 1,
-          }
-        }
-      } else {
-        messages = this.messageService.addMessage(
-          messages,
-          `You miss the ${result.defender}.`,
-          'combat',
-          state.turnCount
-        )
-
-        return {
-          ...state,
-          messages,
-          turnCount: state.turnCount + 1,
-        }
-      }
+      // Delegate to CombatService - pure orchestration
+      return this.combatService.executeBumpAttack(state, monster, state.turnCount)
     }
 
     // 4. Move player

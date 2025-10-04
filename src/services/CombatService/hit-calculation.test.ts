@@ -1,14 +1,17 @@
 import { CombatService } from './CombatService'
 import { MockRandom } from '@services/RandomService'
+import { MessageService } from '@services/MessageService'
 import { Player, Monster, MonsterBehavior } from '@game/core/core'
 
 describe('CombatService - Hit Calculation', () => {
   let service: CombatService
   let mockRandom: MockRandom
+  let messageService: MessageService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    service = new CombatService(mockRandom)
+    messageService = new MessageService()
+    service = new CombatService(mockRandom, undefined, undefined, messageService)
   })
 
   function createTestPlayer(): Player {
