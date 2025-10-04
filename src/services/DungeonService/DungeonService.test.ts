@@ -1,5 +1,5 @@
 import { DungeonService, DungeonConfig } from './DungeonService'
-import { SeededRandom } from './RandomService'
+import { SeededRandom } from '@services/RandomService'
 
 describe('DungeonService', () => {
   const seed = 'test-dungeon-seed'

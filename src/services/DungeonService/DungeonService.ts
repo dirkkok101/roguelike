@@ -22,8 +22,8 @@ import {
   PotionType,
   ScrollType,
   RingType,
-} from '../types/core/core'
-import { IRandomService } from './RandomService'
+} from '@game/core/core'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // DUNGEON SERVICE - Procedural dungeon generation with MST

@@ -1,7 +1,7 @@
 import { SearchCommand } from './SearchCommand'
-import { MessageService } from '../services/MessageService'
-import { MockRandom } from '../services/RandomService'
-import { GameState, DoorState, Door, Player, Trap, TrapType, Position } from '../types/core/core'
+import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { GameState, DoorState, Door, Player, Trap, TrapType, Position } from '@game/core/core'
 
 describe('SearchCommand', () => {
   let messageService: MessageService

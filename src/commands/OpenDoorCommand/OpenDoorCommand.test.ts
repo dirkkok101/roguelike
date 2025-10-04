@@ -1,6 +1,6 @@
 import { OpenDoorCommand } from './OpenDoorCommand'
-import { MessageService } from '../services/MessageService'
-import { GameState, DoorState, Door, Player, Position } from '../types/core/core'
+import { MessageService } from '@services/MessageService'
+import { GameState, DoorState, Door, Player, Position } from '@game/core/core'
 
 describe('OpenDoorCommand', () => {
   let messageService: MessageService

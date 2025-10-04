@@ -1,7 +1,7 @@
-import { GameState, DoorState } from '../types/core/core'
-import { ICommand } from './ICommand'
-import { MessageService } from '../services/MessageService'
-import { IRandomService } from '../services/RandomService'
+import { GameState, DoorState } from '@game/core/core'
+import { ICommand } from '../ICommand'
+import { MessageService } from '@services/MessageService'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // SEARCH COMMAND - Find secret doors and traps

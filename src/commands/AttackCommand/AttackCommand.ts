@@ -1,7 +1,7 @@
-import { GameState, Monster } from '../types/core/core'
-import { ICommand } from './ICommand'
-import { CombatService } from '../services/CombatService'
-import { MessageService } from '../services/MessageService'
+import { GameState, Monster } from '@game/core/core'
+import { ICommand } from '../ICommand'
+import { CombatService } from '@services/CombatService'
+import { MessageService } from '@services/MessageService'
 
 // ============================================================================
 // ATTACK COMMAND - Player attacks monster

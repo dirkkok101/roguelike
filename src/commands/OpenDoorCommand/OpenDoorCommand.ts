@@ -1,6 +1,6 @@
-import { GameState, Position, DoorState } from '../types/core/core'
-import { ICommand } from './ICommand'
-import { MessageService } from '../services/MessageService'
+import { GameState, Position, DoorState } from '@game/core/core'
+import { ICommand } from '../ICommand'
+import { MessageService } from '@services/MessageService'
 
 // ============================================================================
 // OPEN DOOR COMMAND - Open closed or locked doors

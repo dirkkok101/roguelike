@@ -1,9 +1,9 @@
-import { GameState } from '../types/core/core'
-import { ICommand } from './ICommand'
-import { MessageService } from '../services/MessageService'
-import { DungeonService, DungeonConfig } from '../services/DungeonService'
-import { FOVService } from '../services/FOVService'
-import { LightingService } from '../services/LightingService'
+import { GameState } from '@game/core/core'
+import { ICommand } from '../ICommand'
+import { MessageService } from '@services/MessageService'
+import { DungeonService, DungeonConfig } from '@services/DungeonService'
+import { FOVService } from '@services/FOVService'
+import { LightingService } from '@services/LightingService'
 
 // ============================================================================
 // MOVE STAIRS COMMAND - Navigate between dungeon levels

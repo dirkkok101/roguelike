@@ -1,10 +1,10 @@
 import { MoveStairsCommand } from './MoveStairsCommand'
-import { MessageService } from '../services/MessageService'
-import { DungeonService, DungeonConfig } from '../services/DungeonService'
-import { FOVService } from '../services/FOVService'
-import { LightingService } from '../services/LightingService'
-import { SeededRandom } from '../services/RandomService'
-import { GameState, Player, Position, Level } from '../types/core/core'
+import { MessageService } from '@services/MessageService'
+import { DungeonService, DungeonConfig } from '@services/DungeonService'
+import { FOVService } from '@services/FOVService'
+import { LightingService } from '@services/LightingService'
+import { SeededRandom } from '@services/RandomService'
+import { GameState, Player, Position, Level } from '@game/core/core'
 
 describe('MoveStairsCommand', () => {
   let messageService: MessageService

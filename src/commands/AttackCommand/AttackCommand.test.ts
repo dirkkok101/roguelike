@@ -1,8 +1,8 @@
 import { AttackCommand } from './AttackCommand'
-import { CombatService } from '../services/CombatService'
-import { MessageService } from '../services/MessageService'
-import { MockRandom } from '../services/RandomService'
-import { GameState, Player, Monster, MonsterBehavior } from '../types/core/core'
+import { CombatService } from '@services/CombatService'
+import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { GameState, Player, Monster, MonsterBehavior } from '@game/core/core'
 
 describe('AttackCommand', () => {
   let combatService: CombatService

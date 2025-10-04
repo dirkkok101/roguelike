@@ -1,5 +1,5 @@
 import { CloseDoorCommand } from './CloseDoorCommand'
-import { MessageService } from '../services/MessageService'
+import { MessageService } from '@services/MessageService'
 import {
   GameState,
   DoorState,
@@ -8,7 +8,7 @@ import {
   Monster,
   MonsterBehavior,
   Position,
-} from '../types/core/core'
+} from '@game/core/core'
 
 describe('CloseDoorCommand', () => {
   let messageService: MessageService
