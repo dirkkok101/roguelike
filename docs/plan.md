@@ -525,65 +525,71 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Full item system with inventory management
 
-**Status**: ⚪ Not Started (0/15 complete)
+**Status**: 🟡 In Progress (4/15 complete - 27%)
 
 ### Tasks
 
 #### Data Loading
-- [ ] Create /data/items.json
-  - [ ] Weapons with damage dice
-  - [ ] Armor with AC values
-  - [ ] Light sources (torches, lanterns, artifacts, oil)
-  - [ ] Potions with effects
-  - [ ] Scrolls with effects
-  - [ ] Rings with effects
-  - [ ] Wands with effects
-  - [ ] Food
+- [x] Create /data/items.json
+  - [x] Weapons with damage dice
+  - [x] Armor with AC values
+  - [x] Light sources (torches, lanterns, artifacts, oil)
+  - [x] Potions with effects
+  - [x] Scrolls with effects
+  - [x] Rings with effects
+  - [x] Wands with effects
+  - [x] Food
 - [ ] Load item data at game start
 
-**Reference**: [Architecture - items.json](./architecture.md#itemsjson)  
+**Reference**: [Architecture - items.json](./architecture.md#itemsjson)
 **Item List**: [Game Design - Items](./game-design.md#items-equipment)
 
 #### Item Data Structures
-- [ ] Create Item base interface
-- [ ] Create Weapon interface
-- [ ] Create Armor interface
-- [ ] Create Potion interface
-- [ ] Create Scroll interface
-- [ ] Create Ring interface
-- [ ] Create Wand interface
-- [ ] Create Food interface
-- [ ] Create LightSource interface
-- [ ] Create OilFlask interface
+- [x] Create Item base interface (already exists)
+- [x] Create Weapon interface (already exists)
+- [x] Create Armor interface (already exists)
+- [x] Create Potion interface
+- [x] Create Scroll interface
+- [x] Create Ring interface (enhanced)
+- [x] Create Wand interface
+- [x] Create Food interface
+- [x] Create LightSource interface (already exists)
+- [x] Create OilFlask interface
 
 #### InventoryService
-- [ ] Implement InventoryService class
-  - [ ] addItem() method
-  - [ ] removeItem() method
-  - [ ] equipWeapon() method
-  - [ ] equipArmor() method
-  - [ ] equipRing() method
-  - [ ] unequipRing() method
-  - [ ] equipLightSource() method
-  - [ ] canCarry() method
-  - [ ] useConsumable() method
-- [ ] Write unit tests
-  - [ ] inventory-management.test.ts
-  - [ ] equip-unequip.test.ts
-  - [ ] carry-capacity.test.ts
+- [x] Implement InventoryService class
+  - [x] addItem() method
+  - [x] removeItem() method
+  - [x] equipWeapon() method
+  - [x] equipArmor() method
+  - [x] equipRing() method
+  - [x] unequipRing() method
+  - [x] canCarry() method (26-item limit)
+  - [x] findItem(), findItemByType() methods
+  - [x] getEquippedItems(), isEquipped() methods
+  - [x] getInventoryCount(), getAvailableSlots() methods
+- [x] Write unit tests
+  - [x] inventory-management.test.ts
+  - [x] equip-unequip.test.ts
+  - [x] carry-capacity.test.ts
+
+**Note**: Light sources managed by LightingService, not through inventory
 
 **Reference**: [Architecture - InventoryService](./architecture.md#inventoryservice)
 
 #### IdentificationService
-- [ ] Implement IdentificationService class
-  - [ ] generateItemNames() method (seeded random)
-  - [ ] identifyItem() method
-  - [ ] isIdentified() method
-  - [ ] getDisplayName() method
-- [ ] Write unit tests
-  - [ ] name-generation.test.ts
-  - [ ] identification.test.ts
-  - [ ] persistence.test.ts
+- [x] Implement IdentificationService class
+  - [x] generateItemNames() method (seeded random)
+  - [x] identifyItem() method
+  - [x] isIdentified() method
+  - [x] getDisplayName() method
+  - [x] getItemTypeKey() method
+  - [x] identifyByUse() method
+- [x] Write unit tests
+  - [x] name-generation.test.ts
+  - [x] identification.test.ts
+  - [x] persistence.test.ts
+- [x] Extend GameState with itemNameMap and identifiedItems
 
 **Reference**: [Architecture - IdentificationService](./architecture.md#identificationservice)  
 **Identification System**: [Game Design - Item Identification](./game-design.md#item-identification)
