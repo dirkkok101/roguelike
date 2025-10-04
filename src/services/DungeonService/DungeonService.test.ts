@@ -236,5 +236,51 @@ describe('DungeonService', () => {
         positions.add(key)
       }
     })
+
+    test('should place doors on wall tiles at room boundaries, not floor tiles', () => {
+      const level = dungeonService.generateLevel(1, defaultConfig)
+
+      expect(level.doors.length).toBeGreaterThan(0)
+
+      for (const door of level.doors) {
+        const tile = level.tiles[door.position.y][door.position.x]
+
+        // Door tile should be type DOOR (converted from WALL)
+        expect(tile.type).toBe('DOOR')
+
+        // Verify door is at room boundary (wall position), not inside room floor
+        let isAtWallBoundary = false
+
+        for (const room of level.rooms) {
+          // Check if door is at the wall boundary of this room
+          const atTopWall =
+            door.position.y === room.y - 1 &&
+            door.position.x >= room.x &&
+            door.position.x < room.x + room.width
+
+          const atBottomWall =
+            door.position.y === room.y + room.height &&
+            door.position.x >= room.x &&
+            door.position.x < room.x + room.width
+
+          const atLeftWall =
+            door.position.x === room.x - 1 &&
+            door.position.y >= room.y &&
+            door.position.y < room.y + room.height
+
+          const atRightWall =
+            door.position.x === room.x + room.width &&
+            door.position.y >= room.y &&
+            door.position.y < room.y + room.height
+
+          if (atTopWall || atBottomWall || atLeftWall || atRightWall) {
+            isAtWallBoundary = true
+            break
+          }
+        }
+
+        expect(isAtWallBoundary).toBe(true)
+      }
+    })
   })
 })

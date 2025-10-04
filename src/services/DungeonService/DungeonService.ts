@@ -478,24 +478,24 @@ export class DungeonService {
 
     // Check all edges of the room
     for (let x = room.x; x < room.x + room.width; x++) {
-      // Top edge
+      // Top edge - place door on wall tile where corridor meets room
       if (room.y > 0 && tiles[room.y - 1]?.[x]?.walkable) {
-        entries.push({ x, y: room.y })
+        entries.push({ x, y: room.y - 1 })
       }
-      // Bottom edge
+      // Bottom edge - place door on wall tile where corridor meets room
       if (room.y + room.height < tiles.length && tiles[room.y + room.height]?.[x]?.walkable) {
-        entries.push({ x, y: room.y + room.height - 1 })
+        entries.push({ x, y: room.y + room.height })
       }
     }
 
     for (let y = room.y; y < room.y + room.height; y++) {
-      // Left edge
+      // Left edge - place door on wall tile where corridor meets room
       if (room.x > 0 && tiles[y]?.[room.x - 1]?.walkable) {
-        entries.push({ x: room.x, y })
+        entries.push({ x: room.x - 1, y })
       }
-      // Right edge
+      // Right edge - place door on wall tile where corridor meets room
       if (room.x + room.width < tiles[0].length && tiles[y]?.[room.x + room.width]?.walkable) {
-        entries.push({ x: room.x + room.width - 1, y })
+        entries.push({ x: room.x + room.width, y })
       }
     }
 
@@ -550,6 +550,9 @@ export class DungeonService {
   private updateTileForDoor(tiles: Tile[][], door: Door): void {
     const tile = tiles[door.position.y][door.position.x]
     if (!tile) return
+
+    // Set tile type to DOOR
+    tile.type = TileType.DOOR
 
     switch (door.state) {
       case DoorState.OPEN:
