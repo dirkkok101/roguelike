@@ -4,6 +4,11 @@ import { OpenDoorCommand } from '@commands/OpenDoorCommand'
 import { CloseDoorCommand } from '@commands/CloseDoorCommand'
 import { SearchCommand } from '@commands/SearchCommand'
 import { MoveStairsCommand } from '@commands/MoveStairsCommand'
+import { PickUpCommand } from '@commands/PickUpCommand'
+import { DropCommand } from '@commands/DropCommand'
+import { EquipCommand } from '@commands/EquipCommand'
+import { UnequipCommand } from '@commands/UnequipCommand'
+import { UseItemCommand } from '@commands/UseItemCommand'
 import { MovementService } from '@services/MovementService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
@@ -11,6 +16,10 @@ import { MessageService } from '@services/MessageService'
 import { IRandomService } from '@services/RandomService'
 import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { CombatService } from '@services/CombatService'
+import { InventoryService } from '@services/InventoryService'
+import { IdentificationService } from '@services/IdentificationService'
+import { GameState } from '@game/core/core'
+import { ModalController } from './ModalController'
 
 // ============================================================================
 // INPUT HANDLER - Keyboard input to commands
@@ -20,6 +29,7 @@ type InputMode = 'normal' | 'open_door' | 'close_door'
 
 export class InputHandler {
   private mode: InputMode = 'normal'
+  private pendingCommand: ICommand | null = null
 
   constructor(
     private movementService: MovementService,
@@ -29,14 +39,27 @@ export class InputHandler {
     private random: IRandomService,
     private dungeonService: DungeonService,
     private dungeonConfig: DungeonConfig,
-    private combatService: CombatService
+    private combatService: CombatService,
+    private inventoryService: InventoryService,
+    private identificationService: IdentificationService,
+    private modalController: ModalController
   ) {}
 
   /**
    * Handle keyboard event and return command (if any)
+   * @param event Keyboard event
+   * @param state Current game state (needed for modal item selection)
    */
-  handleKeyPress(event: KeyboardEvent): ICommand | null {
-    // Handle modal input (waiting for direction)
+  handleKeyPress(event: KeyboardEvent, state: GameState): ICommand | null {
+    // 1. Check if modal is handling input first
+    if (this.modalController.handleInput(event)) {
+      // Modal handled the input, check if we have a pending command
+      const cmd = this.pendingCommand
+      this.pendingCommand = null
+      return cmd
+    }
+
+    // 2. Handle modal input (waiting for direction)
     if (this.mode === 'open_door' || this.mode === 'close_door') {
       const direction = this.getDirectionFromKey(event.key)
       if (direction) {
@@ -120,7 +143,6 @@ export class InputHandler {
         return new SearchCommand(this.messageService, this.random)
 
       case '>':
-      case '.':
         event.preventDefault()
         return new MoveStairsCommand(
           'down',
@@ -132,7 +154,6 @@ export class InputHandler {
         )
 
       case '<':
-      case ',':
         event.preventDefault()
         return new MoveStairsCommand(
           'up',
@@ -142,6 +163,157 @@ export class InputHandler {
           this.lightingService,
           this.messageService
         )
+
+      // =====================================================================
+      // ITEM COMMANDS
+      // =====================================================================
+
+      case ',':
+        // Pickup item at current position
+        event.preventDefault()
+        return new PickUpCommand(this.inventoryService, this.messageService)
+
+      case 'i':
+        // Show inventory
+        event.preventDefault()
+        this.modalController.showInventory(state)
+        return null
+
+      case 'd':
+        // Drop item
+        event.preventDefault()
+        this.modalController.showItemSelection('all', 'Drop which item?', state, (item) => {
+          if (item) {
+            this.pendingCommand = new DropCommand(
+              item.id,
+              this.inventoryService,
+              this.messageService
+            )
+          }
+        })
+        return null
+
+      case 'q':
+        // Quaff potion
+        event.preventDefault()
+        this.modalController.showItemSelection('potion', 'Quaff which potion?', state, (item) => {
+          if (item) {
+            this.pendingCommand = new UseItemCommand(
+              item.id,
+              'quaff',
+              this.inventoryService,
+              this.messageService,
+              this.random,
+              this.identificationService
+            )
+          }
+        })
+        return null
+
+      case 'r':
+        // Read scroll
+        event.preventDefault()
+        this.modalController.showItemSelection('scroll', 'Read which scroll?', state, (item) => {
+          if (item) {
+            this.pendingCommand = new UseItemCommand(
+              item.id,
+              'read',
+              this.inventoryService,
+              this.messageService,
+              this.random,
+              this.identificationService
+            )
+          }
+        })
+        return null
+
+      case 'z':
+        // Zap wand
+        event.preventDefault()
+        this.modalController.showItemSelection('wand', 'Zap which wand?', state, (item) => {
+          if (item) {
+            this.pendingCommand = new UseItemCommand(
+              item.id,
+              'zap',
+              this.inventoryService,
+              this.messageService,
+              this.random,
+              this.identificationService
+            )
+          }
+        })
+        return null
+
+      case 'e':
+        // Eat food
+        event.preventDefault()
+        this.modalController.showItemSelection('food', 'Eat what?', state, (item) => {
+          if (item) {
+            this.pendingCommand = new UseItemCommand(
+              item.id,
+              'eat',
+              this.inventoryService,
+              this.messageService,
+              this.random,
+              this.identificationService
+            )
+          }
+        })
+        return null
+
+      case 'w':
+        // Wield weapon
+        event.preventDefault()
+        this.modalController.showItemSelection('weapon', 'Wield which weapon?', state, (item) => {
+          if (item) {
+            this.pendingCommand = new EquipCommand(
+              item.id,
+              null, // No ring slot for weapons
+              this.inventoryService,
+              this.messageService
+            )
+          }
+        })
+        return null
+
+      case 'W':
+        // Wear armor
+        event.preventDefault()
+        this.modalController.showItemSelection('armor', 'Wear which armor?', state, (item) => {
+          if (item) {
+            this.pendingCommand = new EquipCommand(
+              item.id,
+              null, // No ring slot for armor
+              this.inventoryService,
+              this.messageService
+            )
+          }
+        })
+        return null
+
+      case 'P':
+        // Put on ring
+        event.preventDefault()
+        this.modalController.showItemSelection('ring', 'Put on which ring?', state, (item) => {
+          if (item) {
+            // Choose first available slot (left preferred)
+            const slot = !state.player.equipment.leftRing ? 'left' : 'right'
+            this.pendingCommand = new EquipCommand(
+              item.id,
+              slot,
+              this.inventoryService,
+              this.messageService
+            )
+          }
+        })
+        return null
+
+      case 'R':
+        // Remove ring
+        event.preventDefault()
+        // Remove from left if present, else right
+        const ringSlot = state.player.equipment.leftRing ? 'left' : 'right'
+        return new UnequipCommand(ringSlot, this.inventoryService, this.messageService)
 
       default:
         return null
