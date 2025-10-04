@@ -1,4 +1,4 @@
-import { Player, Monster, Weapon } from '@game/core/core'
+import { Player, Monster, Weapon, Ring, RingType } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
@@ -20,7 +20,9 @@ export class CombatService {
    * Player attacks monster
    */
   playerAttack(player: Player, monster: Monster): CombatResult {
-    const hit = this.calculateHit(player.level + player.strength, monster.ac)
+    const strengthBonus = this.getStrengthBonus(player)
+    const effectiveStrength = player.strength + strengthBonus
+    const hit = this.calculateHit(player.level + effectiveStrength, monster.ac)
 
     if (!hit) {
       return {
@@ -50,7 +52,9 @@ export class CombatService {
    * Monster attacks player
    */
   monsterAttack(monster: Monster, player: Player): CombatResult {
-    const hit = this.calculateHit(monster.level, player.ac)
+    const acBonus = this.getACBonus(player)
+    const effectiveAC = player.ac - acBonus // Lower AC is better
+    const hit = this.calculateHit(monster.level, effectiveAC)
 
     if (!hit) {
       return {
@@ -127,5 +131,47 @@ export class CombatService {
 
     // Unarmed: 1d4
     return this.random.roll('1d4')
+  }
+
+  /**
+   * Get total strength bonus from equipped rings
+   */
+  private getStrengthBonus(player: Player): number {
+    let bonus = 0
+
+    if (player.equipment.leftRing?.ringType === RingType.ADD_STRENGTH) {
+      bonus += player.equipment.leftRing.bonus
+    }
+
+    if (player.equipment.rightRing?.ringType === RingType.ADD_STRENGTH) {
+      bonus += player.equipment.rightRing.bonus
+    }
+
+    return bonus
+  }
+
+  /**
+   * Get total AC bonus from equipped rings (lower is better, so bonus reduces AC)
+   */
+  private getACBonus(player: Player): number {
+    let bonus = 0
+
+    if (player.equipment.leftRing?.ringType === RingType.PROTECTION) {
+      bonus += player.equipment.leftRing.bonus
+    }
+
+    if (player.equipment.rightRing?.ringType === RingType.PROTECTION) {
+      bonus += player.equipment.rightRing.bonus
+    }
+
+    if (player.equipment.leftRing?.ringType === RingType.DEXTERITY) {
+      bonus += player.equipment.leftRing.bonus
+    }
+
+    if (player.equipment.rightRing?.ringType === RingType.DEXTERITY) {
+      bonus += player.equipment.rightRing.bonus
+    }
+
+    return bonus
   }
 }
