@@ -177,6 +177,7 @@ export interface GameState {
   gameId: string
   isGameOver: boolean
   hasWon: boolean
+  hasAmulet: boolean // Player has retrieved the Amulet of Yendor
   itemNameMap: ItemNameMap // Random descriptive names for this game
   identifiedItems: Set<string> // Item types that have been identified
   debug?: DebugState // Debug state (optional for production builds)

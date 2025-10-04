@@ -158,6 +158,7 @@ async function initializeGame() {
     gameId: 'game-' + Date.now(),
     isGameOver: false,
     hasWon: false,
+    hasAmulet: false,
     itemNameMap,
     identifiedItems: new Set(),
     debug: debugService.initializeDebugState(),

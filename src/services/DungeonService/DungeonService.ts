@@ -118,7 +118,8 @@ export class DungeonService {
     const itemCount = this.random.nextInt(3, 6) // 3-6 items per level
     const items = this.spawnItems(spawnRooms, itemCount, tiles, monsters, depth)
 
-    return {
+    // Create initial level
+    const level: Level = {
       depth,
       width: config.width,
       height: config.height,
@@ -135,6 +136,9 @@ export class DungeonService {
         .fill(null)
         .map(() => Array(config.width).fill(false)),
     }
+
+    // Spawn Amulet of Yendor on Level 10
+    return this.spawnAmulet(level)
   }
 
   // ============================================================================
@@ -1034,5 +1038,39 @@ export class DungeonService {
     }
 
     return items
+  }
+
+  // ============================================================================
+  // AMULET OF YENDOR SPAWNING
+  // ============================================================================
+
+  /**
+   * Spawn Amulet of Yendor on Level 10
+   * Places in center of last room
+   */
+  spawnAmulet(level: Level): Level {
+    // Only spawn on Level 10
+    if (level.depth !== 10) {
+      return level
+    }
+
+    // Find center of last room
+    const lastRoom = level.rooms[level.rooms.length - 1]
+    const centerX = lastRoom.x + Math.floor(lastRoom.width / 2)
+    const centerY = lastRoom.y + Math.floor(lastRoom.height / 2)
+
+    // Create amulet item
+    const amulet: Item = {
+      id: `amulet_${Date.now()}`,
+      name: 'Amulet of Yendor',
+      type: ItemType.AMULET,
+      identified: true, // Always identified
+      position: { x: centerX, y: centerY },
+    }
+
+    return {
+      ...level,
+      items: [...level.items, amulet],
+    }
   }
 }

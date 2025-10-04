@@ -1,4 +1,4 @@
-import { GameState } from '@game/core/core'
+import { GameState, ItemType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
@@ -39,6 +39,17 @@ export class DropCommand implements ICommand {
       const messages = this.messageService.addMessage(
         state.messages,
         'You do not have that item.',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // Prevent dropping the Amulet of Yendor
+    if (item.type === ItemType.AMULET) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'The Amulet of Yendor cannot be dropped!',
         'warning',
         state.turnCount
       )

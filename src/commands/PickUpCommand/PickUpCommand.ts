@@ -1,4 +1,4 @@
-import { GameState } from '@game/core/core'
+import { GameState, ItemType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
@@ -54,18 +54,33 @@ export class PickUpCommand implements ICommand {
     const updatedLevels = new Map(state.levels)
     updatedLevels.set(state.currentLevel, updatedLevel)
 
-    const messages = this.messageService.addMessage(
+    // Check if picked up amulet
+    const isAmulet = itemAtPosition.type === ItemType.AMULET
+    const hasAmulet = state.hasAmulet || isAmulet
+
+    // Add appropriate message
+    let messages = this.messageService.addMessage(
       state.messages,
       `You pick up ${itemAtPosition.name}.`,
       'success',
       state.turnCount
     )
 
+    if (isAmulet) {
+      messages = this.messageService.addMessage(
+        messages,
+        'You have retrieved the Amulet of Yendor! Return to Level 1 to win!',
+        'success',
+        state.turnCount
+      )
+    }
+
     return {
       ...state,
       player: updatedPlayer,
       levels: updatedLevels,
       messages,
+      hasAmulet,
       turnCount: state.turnCount + 1,
     }
   }
