@@ -195,4 +195,25 @@ export class FOVService {
     const [x, y] = key.split(',').map(Number)
     return { x, y }
   }
+
+  /**
+   * Update explored tiles based on visible cells
+   * Returns new Level with updated explored array (immutable)
+   */
+  updateExploredTiles(level: Level, visibleCells: Set<string>): Level {
+    // Create new explored array (immutability)
+    const updatedExplored = level.explored.map((row) => [...row])
+
+    // Mark all visible cells as explored
+    visibleCells.forEach((key) => {
+      const pos = this.keyToPos(key)
+      // Bounds checking for safety
+      if (updatedExplored[pos.y] && updatedExplored[pos.y][pos.x] !== undefined) {
+        updatedExplored[pos.y][pos.x] = true
+      }
+    })
+
+    // Return new Level object with updated explored array
+    return { ...level, explored: updatedExplored }
+  }
 }

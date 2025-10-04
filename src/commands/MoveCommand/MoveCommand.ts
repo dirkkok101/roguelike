@@ -177,16 +177,7 @@ export class MoveCommand implements ICommand {
     )
 
     // 8. Update explored tiles
-    const updatedLevel = {
-      ...level,
-      explored: level.explored.map((row) => [...row]),
-    }
-    visibleCells.forEach((key) => {
-      const pos = this.fovService.keyToPos(key)
-      if (updatedLevel.explored[pos.y]) {
-        updatedLevel.explored[pos.y][pos.x] = true
-      }
-    })
+    const updatedLevel = this.fovService.updateExploredTiles(level, visibleCells)
 
     // 9. Update levels map
     const updatedLevels = new Map(state.levels)
