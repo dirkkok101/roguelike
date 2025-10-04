@@ -208,8 +208,94 @@ export interface Armor extends Item {
 }
 
 export interface Ring extends Item {
+  ringType: RingType
   effect: string
   bonus: number
+  materialName: string // e.g., "ruby", "sapphire", "wooden"
+  hungerModifier: number // multiplier for hunger rate (1.5 = 50% faster)
+}
+
+export enum RingType {
+  PROTECTION = 'PROTECTION',
+  REGENERATION = 'REGENERATION',
+  SEARCHING = 'SEARCHING',
+  SEE_INVISIBLE = 'SEE_INVISIBLE',
+  SLOW_DIGESTION = 'SLOW_DIGESTION',
+  ADD_STRENGTH = 'ADD_STRENGTH',
+  SUSTAIN_STRENGTH = 'SUSTAIN_STRENGTH',
+  DEXTERITY = 'DEXTERITY',
+  TELEPORTATION = 'TELEPORTATION',
+  STEALTH = 'STEALTH',
+}
+
+export interface Potion extends Item {
+  potionType: PotionType
+  effect: string
+  power: string // dice notation for healing, etc.
+  descriptorName: string // e.g., "blue potion", "fizzy potion"
+}
+
+export enum PotionType {
+  HEAL = 'HEAL',
+  EXTRA_HEAL = 'EXTRA_HEAL',
+  GAIN_STRENGTH = 'GAIN_STRENGTH',
+  RESTORE_STRENGTH = 'RESTORE_STRENGTH',
+  POISON = 'POISON',
+  CONFUSION = 'CONFUSION',
+  BLINDNESS = 'BLINDNESS',
+  HASTE_SELF = 'HASTE_SELF',
+  DETECT_MONSTERS = 'DETECT_MONSTERS',
+  DETECT_MAGIC = 'DETECT_MAGIC',
+  RAISE_LEVEL = 'RAISE_LEVEL',
+}
+
+export interface Scroll extends Item {
+  scrollType: ScrollType
+  effect: string
+  labelName: string // e.g., "scroll labeled XYZZY"
+}
+
+export enum ScrollType {
+  IDENTIFY = 'IDENTIFY',
+  ENCHANT_WEAPON = 'ENCHANT_WEAPON',
+  ENCHANT_ARMOR = 'ENCHANT_ARMOR',
+  MAGIC_MAPPING = 'MAGIC_MAPPING',
+  TELEPORTATION = 'TELEPORTATION',
+  REMOVE_CURSE = 'REMOVE_CURSE',
+  CREATE_MONSTER = 'CREATE_MONSTER',
+  SCARE_MONSTER = 'SCARE_MONSTER',
+  LIGHT = 'LIGHT',
+  SLEEP = 'SLEEP',
+  HOLD_MONSTER = 'HOLD_MONSTER',
+}
+
+export interface Wand extends Item {
+  wandType: WandType
+  damage: string // dice notation for damage wands
+  charges: number // max charges
+  currentCharges: number
+  woodName: string // e.g., "oak wand", "pine staff"
+}
+
+export enum WandType {
+  LIGHTNING = 'LIGHTNING',
+  FIRE = 'FIRE',
+  COLD = 'COLD',
+  MAGIC_MISSILE = 'MAGIC_MISSILE',
+  SLEEP = 'SLEEP',
+  HASTE_MONSTER = 'HASTE_MONSTER',
+  SLOW_MONSTER = 'SLOW_MONSTER',
+  POLYMORPH = 'POLYMORPH',
+  TELEPORT_AWAY = 'TELEPORT_AWAY',
+  CANCELLATION = 'CANCELLATION',
+}
+
+export interface Food extends Item {
+  nutrition: number // hunger units restored
+}
+
+export interface OilFlask extends Item {
+  fuelAmount: number // fuel units provided (typically 500)
 }
 
 export interface GoldPile {
