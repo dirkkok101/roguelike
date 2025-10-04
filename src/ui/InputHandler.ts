@@ -7,6 +7,7 @@ import { MoveStairsCommand } from '@commands/MoveStairsCommand'
 import { PickUpCommand } from '@commands/PickUpCommand'
 import { DropCommand } from '@commands/DropCommand'
 import { SaveCommand } from '@commands/SaveCommand'
+import { QuitCommand } from '@commands/QuitCommand'
 import { EquipCommand } from '@commands/EquipCommand'
 import { UnequipCommand } from '@commands/UnequipCommand'
 import { UseItemCommand } from '@commands/UseItemCommand'
@@ -178,6 +179,10 @@ export class InputHandler {
       case 'S':
         event.preventDefault()
         return new SaveCommand(this.localStorageService, this.messageService)
+
+      case 'Q':
+        event.preventDefault()
+        return new QuitCommand(this.localStorageService)
 
       case '>':
         event.preventDefault()

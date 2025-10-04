@@ -18,6 +18,7 @@ import { ContextService } from '@services/ContextService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
+import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -53,6 +54,7 @@ async function initializeGame() {
   const notificationService = new NotificationService()
   const victoryService = new VictoryService()
   const localStorageService = new LocalStorageService()
+  const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
   const monsterAIService = new MonsterAIService(pathfindingService, random)
@@ -187,6 +189,7 @@ async function initializeGame() {
     const command = inputHandler.handleKeyPress(event, gameState)
     if (command) {
       gameState = command.execute(gameState)
+      autoSaveMiddleware.afterTurn(gameState)
       renderer.render(gameState)
     }
   })
