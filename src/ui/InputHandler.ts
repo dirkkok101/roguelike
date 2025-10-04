@@ -18,7 +18,7 @@ import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { CombatService } from '@services/CombatService'
 import { InventoryService } from '@services/InventoryService'
 import { IdentificationService } from '@services/IdentificationService'
-import { GameState } from '@game/core/core'
+import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
 // ============================================================================
@@ -213,10 +213,76 @@ export class InputHandler {
       case 'r':
         // Read scroll
         event.preventDefault()
-        this.modalController.showItemSelection('scroll', 'Read which scroll?', state, (item) => {
-          if (item) {
+        this.modalController.showItemSelection('scroll', 'Read which scroll?', state, (scroll) => {
+          if (!scroll) return
+
+          // Check scroll type to determine if we need item selection
+          const scrollItem = scroll as Scroll
+
+          if (scrollItem.scrollType === ScrollType.IDENTIFY) {
+            // Show unidentified items
+            this.modalController.showItemSelection(
+              'unidentified',
+              'Identify which item?',
+              state,
+              (targetItem) => {
+                if (targetItem) {
+                  this.pendingCommand = new UseItemCommand(
+                    scroll.id,
+                    'read',
+                    this.inventoryService,
+                    this.messageService,
+                    this.random,
+                    this.identificationService,
+                    targetItem.id
+                  )
+                }
+              }
+            )
+          } else if (scrollItem.scrollType === ScrollType.ENCHANT_WEAPON) {
+            // Show weapons
+            this.modalController.showItemSelection(
+              'weapon',
+              'Enchant which weapon?',
+              state,
+              (targetItem) => {
+                if (targetItem) {
+                  this.pendingCommand = new UseItemCommand(
+                    scroll.id,
+                    'read',
+                    this.inventoryService,
+                    this.messageService,
+                    this.random,
+                    this.identificationService,
+                    targetItem.id
+                  )
+                }
+              }
+            )
+          } else if (scrollItem.scrollType === ScrollType.ENCHANT_ARMOR) {
+            // Show armor
+            this.modalController.showItemSelection(
+              'armor',
+              'Enchant which armor?',
+              state,
+              (targetItem) => {
+                if (targetItem) {
+                  this.pendingCommand = new UseItemCommand(
+                    scroll.id,
+                    'read',
+                    this.inventoryService,
+                    this.messageService,
+                    this.random,
+                    this.identificationService,
+                    targetItem.id
+                  )
+                }
+              }
+            )
+          } else {
+            // Other scrolls (no selection needed)
             this.pendingCommand = new UseItemCommand(
-              item.id,
+              scroll.id,
               'read',
               this.inventoryService,
               this.messageService,

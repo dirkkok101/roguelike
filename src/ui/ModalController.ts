@@ -15,6 +15,7 @@ type ItemFilter =
   | 'armor'
   | 'ring'
   | 'oil_flask'
+  | 'unidentified'
 type SelectionCallback = (item: Item | null) => void
 
 export class ModalController {
@@ -39,9 +40,10 @@ export class ModalController {
   ): void {
     this.currentState = state
     this.currentCallback = callback
+    this.currentFilter = filter
 
     // Filter items
-    const items = this.filterItems(state.player.inventory, filter)
+    const items = this.filterItems(state.player.inventory, filter, state)
 
     // Create modal DOM
     this.modalContainer = this.createSelectionModal(title, items, state)
@@ -115,13 +117,14 @@ export class ModalController {
   // PRIVATE METHODS
   // ============================================================================
 
+  private currentFilter: ItemFilter = 'all'
+
   private getFilteredItemsForCurrentModal(): Item[] {
-    // This is a workaround - in a real implementation we'd store the filter type
-    // For now, just return all inventory items
-    return this.currentState?.player.inventory || []
+    if (!this.currentState) return []
+    return this.filterItems(this.currentState.player.inventory, this.currentFilter, this.currentState)
   }
 
-  private filterItems(inventory: Item[], filter: ItemFilter): Item[] {
+  private filterItems(inventory: Item[], filter: ItemFilter, state: GameState): Item[] {
     if (filter === 'all') return inventory
 
     return inventory.filter((item) => {
@@ -142,6 +145,15 @@ export class ModalController {
           return item.type === ItemType.RING
         case 'oil_flask':
           return item.type === ItemType.OIL_FLASK
+        case 'unidentified':
+          // Filter items that are not yet identified
+          return (
+            !this.identificationService.isIdentified(item, state) &&
+            (item.type === ItemType.POTION ||
+              item.type === ItemType.SCROLL ||
+              item.type === ItemType.RING ||
+              item.type === ItemType.WAND)
+          )
         default:
           return false
       }

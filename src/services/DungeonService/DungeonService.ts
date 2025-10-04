@@ -24,6 +24,7 @@ import {
   RingType,
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
+import { ItemData } from '../../data/ItemDataLoader'
 
 // ============================================================================
 // DUNGEON SERVICE - Procedural dungeon generation with MST
@@ -58,7 +59,10 @@ export interface DungeonConfig {
 }
 
 export class DungeonService {
-  constructor(private random: IRandomService) {}
+  constructor(
+    private random: IRandomService,
+    private itemData?: ItemData
+  ) {}
 
   /**
    * Generate a complete dungeon level
@@ -790,64 +794,92 @@ export class DungeonService {
     // Rarity weights (common: 60%, uncommon: 30%, rare: 10%)
     const rarityWeights = { common: 0.6, uncommon: 0.3, rare: 0.1 }
 
-    // Item templates based on items.json (TODO: load from file)
-    const weaponTemplates = [
-      { name: 'Dagger', damage: '1d6', rarity: 'common' },
-      { name: 'Short Sword', damage: '1d8', rarity: 'common' },
-      { name: 'Mace', damage: '2d4', rarity: 'common' },
-      { name: 'Spear', damage: '2d3', rarity: 'common' },
-      { name: 'Long Sword', damage: '1d12', rarity: 'uncommon' },
-      { name: 'Battle Axe', damage: '2d8', rarity: 'uncommon' },
-      { name: 'Flail', damage: '2d5', rarity: 'uncommon' },
-      { name: 'Two-Handed Sword', damage: '3d6', rarity: 'rare' },
-    ]
+    // Item templates - use loaded data if available, otherwise fall back to hardcoded
+    const weaponTemplates =
+      this.itemData?.weapons ||
+      [
+        { name: 'Dagger', damage: '1d6', rarity: 'common' },
+        { name: 'Short Sword', damage: '1d8', rarity: 'common' },
+        { name: 'Mace', damage: '2d4', rarity: 'common' },
+        { name: 'Spear', damage: '2d3', rarity: 'common' },
+        { name: 'Long Sword', damage: '1d12', rarity: 'uncommon' },
+        { name: 'Battle Axe', damage: '2d8', rarity: 'uncommon' },
+        { name: 'Flail', damage: '2d5', rarity: 'uncommon' },
+        { name: 'Two-Handed Sword', damage: '3d6', rarity: 'rare' },
+      ]
 
-    const armorTemplates = [
-      { name: 'Leather Armor', ac: 8, rarity: 'common' },
-      { name: 'Studded Leather', ac: 7, rarity: 'common' },
-      { name: 'Ring Mail', ac: 7, rarity: 'uncommon' },
-      { name: 'Scale Mail', ac: 6, rarity: 'uncommon' },
-      { name: 'Chain Mail', ac: 5, rarity: 'uncommon' },
-      { name: 'Splint Mail', ac: 4, rarity: 'rare' },
-      { name: 'Plate Mail', ac: 3, rarity: 'rare' },
-    ]
+    const armorTemplates =
+      this.itemData?.armor ||
+      [
+        { name: 'Leather Armor', ac: 8, rarity: 'common' },
+        { name: 'Studded Leather', ac: 7, rarity: 'common' },
+        { name: 'Ring Mail', ac: 7, rarity: 'uncommon' },
+        { name: 'Scale Mail', ac: 6, rarity: 'uncommon' },
+        { name: 'Chain Mail', ac: 5, rarity: 'uncommon' },
+        { name: 'Splint Mail', ac: 4, rarity: 'rare' },
+        { name: 'Plate Mail', ac: 3, rarity: 'rare' },
+      ]
 
-    const potionTemplates = [
-      { type: PotionType.HEAL, effect: 'restore_hp', power: '1d8', rarity: 'common' },
-      { type: PotionType.EXTRA_HEAL, effect: 'restore_hp', power: '3d8', rarity: 'uncommon' },
-      { type: PotionType.GAIN_STRENGTH, effect: 'increase_strength', power: '1', rarity: 'uncommon' },
-      {
-        type: PotionType.RESTORE_STRENGTH,
-        effect: 'restore_strength',
-        power: '1',
-        rarity: 'common',
-      },
-      { type: PotionType.POISON, effect: 'damage', power: '1d6', rarity: 'common' },
-      { type: PotionType.HASTE_SELF, effect: 'haste', power: '1d10', rarity: 'uncommon' },
-      { type: PotionType.RAISE_LEVEL, effect: 'level_up', power: '1', rarity: 'rare' },
-    ]
+    const potionTemplates =
+      this.itemData?.potions.map((p) => ({
+        type: PotionType[p.type as keyof typeof PotionType],
+        effect: p.effect,
+        power: p.power,
+        rarity: p.rarity,
+      })) ||
+      [
+        { type: PotionType.HEAL, effect: 'restore_hp', power: '1d8', rarity: 'common' },
+        { type: PotionType.EXTRA_HEAL, effect: 'restore_hp', power: '3d8', rarity: 'uncommon' },
+        { type: PotionType.GAIN_STRENGTH, effect: 'increase_strength', power: '1', rarity: 'uncommon' },
+        {
+          type: PotionType.RESTORE_STRENGTH,
+          effect: 'restore_strength',
+          power: '1',
+          rarity: 'common',
+        },
+        { type: PotionType.POISON, effect: 'damage', power: '1d6', rarity: 'common' },
+        { type: PotionType.HASTE_SELF, effect: 'haste', power: '1d10', rarity: 'uncommon' },
+        { type: PotionType.RAISE_LEVEL, effect: 'level_up', power: '1', rarity: 'rare' },
+      ]
 
-    const scrollTemplates = [
-      { type: ScrollType.IDENTIFY, effect: 'identify_item', rarity: 'common' },
-      { type: ScrollType.ENCHANT_WEAPON, effect: 'enchant_weapon', rarity: 'uncommon' },
-      { type: ScrollType.ENCHANT_ARMOR, effect: 'enchant_armor', rarity: 'uncommon' },
-      { type: ScrollType.MAGIC_MAPPING, effect: 'reveal_map', rarity: 'uncommon' },
-      { type: ScrollType.TELEPORTATION, effect: 'teleport', rarity: 'common' },
-      { type: ScrollType.REMOVE_CURSE, effect: 'remove_curse', rarity: 'uncommon' },
-      { type: ScrollType.SCARE_MONSTER, effect: 'scare', rarity: 'rare' },
-      { type: ScrollType.HOLD_MONSTER, effect: 'hold', rarity: 'rare' },
-    ]
+    const scrollTemplates =
+      this.itemData?.scrolls.map((s) => ({
+        type: ScrollType[s.type as keyof typeof ScrollType],
+        effect: s.effect,
+        rarity: s.rarity,
+      })) ||
+      [
+        { type: ScrollType.IDENTIFY, effect: 'identify_item', rarity: 'common' },
+        { type: ScrollType.ENCHANT_WEAPON, effect: 'enchant_weapon', rarity: 'uncommon' },
+        { type: ScrollType.ENCHANT_ARMOR, effect: 'enchant_armor', rarity: 'uncommon' },
+        { type: ScrollType.MAGIC_MAPPING, effect: 'reveal_map', rarity: 'uncommon' },
+        { type: ScrollType.TELEPORTATION, effect: 'teleport', rarity: 'common' },
+        { type: ScrollType.REMOVE_CURSE, effect: 'remove_curse', rarity: 'uncommon' },
+        { type: ScrollType.SCARE_MONSTER, effect: 'scare', rarity: 'rare' },
+        { type: ScrollType.HOLD_MONSTER, effect: 'hold', rarity: 'rare' },
+      ]
 
-    const ringTemplates = [
-      { type: RingType.PROTECTION, effect: 'ac_bonus', rarity: 'uncommon' },
-      { type: RingType.REGENERATION, effect: 'regen', rarity: 'uncommon' },
-      { type: RingType.ADD_STRENGTH, effect: 'strength_bonus', rarity: 'uncommon' },
-      { type: RingType.SLOW_DIGESTION, effect: 'slow_hunger', rarity: 'uncommon' },
-      { type: RingType.SEE_INVISIBLE, effect: 'see_invisible', rarity: 'rare' },
-      { type: RingType.STEALTH, effect: 'stealth', rarity: 'rare' },
-    ]
+    const ringTemplates =
+      this.itemData?.rings.map((r) => ({
+        type: RingType[r.type as keyof typeof RingType],
+        effect: r.effect,
+        rarity: r.rarity,
+      })) ||
+      [
+        { type: RingType.PROTECTION, effect: 'ac_bonus', rarity: 'uncommon' },
+        { type: RingType.REGENERATION, effect: 'regen', rarity: 'uncommon' },
+        { type: RingType.ADD_STRENGTH, effect: 'strength_bonus', rarity: 'uncommon' },
+        { type: RingType.SLOW_DIGESTION, effect: 'slow_hunger', rarity: 'uncommon' },
+        { type: RingType.SEE_INVISIBLE, effect: 'see_invisible', rarity: 'rare' },
+        { type: RingType.STEALTH, effect: 'stealth', rarity: 'rare' },
+      ]
 
-    const foodTemplates = [{ name: 'Food Ration', nutrition: 900, rarity: 'common' }]
+    const foodTemplates =
+      this.itemData?.food.map((f) => ({
+        name: f.name,
+        nutrition: parseInt(f.nutrition),
+        rarity: f.rarity,
+      })) || [{ name: 'Food Ration', nutrition: 900, rarity: 'common' }]
 
     // Spawn items
     for (let i = 0; i < count; i++) {

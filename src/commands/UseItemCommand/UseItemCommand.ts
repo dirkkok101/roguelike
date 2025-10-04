@@ -10,6 +10,8 @@ import {
   Food,
   OilFlask,
   Item,
+  Weapon,
+  Armor,
 } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
@@ -30,7 +32,8 @@ export class UseItemCommand implements ICommand {
     private inventoryService: InventoryService,
     private messageService: MessageService,
     private random: IRandomService,
-    private identificationService: IdentificationService
+    private identificationService: IdentificationService,
+    private targetItemId?: string
   ) {}
 
   execute(state: GameState): GameState {
@@ -232,9 +235,118 @@ export class UseItemCommand implements ICommand {
     newState = this.identificationService.identifyByUse(scroll, newState)
     const displayName = this.identificationService.getDisplayName(scroll, newState)
 
-    // TODO: Implement scroll effects
-    // Most scrolls require additional UI (item selection, targeting, etc.)
-    const effectMessage = `You read ${displayName}. (Effect not yet implemented)`
+    let effectMessage = ''
+
+    // Apply scroll effect based on type
+    switch (scroll.scrollType) {
+      case ScrollType.IDENTIFY:
+        {
+          if (!this.targetItemId) {
+            effectMessage = `You read ${displayName}, but nothing happens.`
+            break
+          }
+
+          // Find target item in inventory
+          const targetItem = this.inventoryService.findItem(newState.player, this.targetItemId)
+          if (!targetItem) {
+            effectMessage = `You read ${displayName}, but the item is gone.`
+            break
+          }
+
+          // Identify the target item
+          newState = this.identificationService.identifyItem(targetItem, newState)
+          const targetName = this.identificationService.getDisplayName(targetItem, newState)
+          effectMessage = `You read ${displayName}. This is ${targetName}!`
+        }
+        break
+
+      case ScrollType.ENCHANT_WEAPON:
+        {
+          if (!this.targetItemId) {
+            effectMessage = `You read ${displayName}, but nothing happens.`
+            break
+          }
+
+          // Find target weapon in inventory
+          const targetItem = this.inventoryService.findItem(newState.player, this.targetItemId)
+          if (!targetItem || targetItem.type !== ItemType.WEAPON) {
+            effectMessage = `You read ${displayName}, but the item is not a weapon.`
+            break
+          }
+
+          const weapon = targetItem as Weapon
+
+          // Check max enchantment (+3)
+          if (weapon.bonus >= 3) {
+            effectMessage = `You read ${displayName}. ${weapon.name} is already at maximum enchantment!`
+            break
+          }
+
+          // Enchant weapon (increase bonus by 1)
+          const enchantedWeapon: Weapon = { ...weapon, bonus: weapon.bonus + 1 }
+
+          // Update inventory (remove old, add enchanted)
+          let updatedPlayer = this.inventoryService.removeItem(newState.player, weapon.id)
+          updatedPlayer = this.inventoryService.addItem(updatedPlayer, enchantedWeapon)
+
+          // If weapon was equipped, update equipment too
+          if (updatedPlayer.equipment.weapon?.id === weapon.id) {
+            updatedPlayer = {
+              ...updatedPlayer,
+              equipment: { ...updatedPlayer.equipment, weapon: enchantedWeapon },
+            }
+          }
+
+          newState = { ...newState, player: updatedPlayer }
+          effectMessage = `You read ${displayName}. ${enchantedWeapon.name} glows brightly! (+${enchantedWeapon.bonus})`
+        }
+        break
+
+      case ScrollType.ENCHANT_ARMOR:
+        {
+          if (!this.targetItemId) {
+            effectMessage = `You read ${displayName}, but nothing happens.`
+            break
+          }
+
+          const targetItem = this.inventoryService.findItem(newState.player, this.targetItemId)
+          if (!targetItem || targetItem.type !== ItemType.ARMOR) {
+            effectMessage = `You read ${displayName}, but the item is not armor.`
+            break
+          }
+
+          const armor = targetItem as Armor
+
+          // Check max enchantment (+3)
+          if (armor.bonus >= 3) {
+            effectMessage = `You read ${displayName}. ${armor.name} is already at maximum enchantment!`
+            break
+          }
+
+          // Enchant armor (increase bonus by 1, which LOWERS effective AC - better protection)
+          const enchantedArmor: Armor = { ...armor, bonus: armor.bonus + 1 }
+
+          // Update inventory
+          let updatedPlayer = this.inventoryService.removeItem(newState.player, armor.id)
+          updatedPlayer = this.inventoryService.addItem(updatedPlayer, enchantedArmor)
+
+          // If armor was equipped, update equipment
+          if (updatedPlayer.equipment.armor?.id === armor.id) {
+            updatedPlayer = {
+              ...updatedPlayer,
+              equipment: { ...updatedPlayer.equipment, armor: enchantedArmor },
+            }
+          }
+
+          newState = { ...newState, player: updatedPlayer }
+          const effectiveAC = enchantedArmor.ac - enchantedArmor.bonus
+          effectMessage = `You read ${displayName}. ${enchantedArmor.name} glows with protection! [AC ${effectiveAC}]`
+        }
+        break
+
+      default:
+        effectMessage = `You read ${displayName}. (Effect not yet implemented)`
+    }
 
     // Remove scroll from inventory
     const updatedPlayer = this.inventoryService.removeItem(newState.player, scroll.id)

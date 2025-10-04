@@ -14,56 +14,68 @@ import { IdentificationService } from '@services/IdentificationService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
+import { loadItemData, ItemData } from './data/ItemDataLoader'
 
 // ============================================================================
 // MAIN - Game initialization and loop
 // ============================================================================
 
-// Create services
-const random = new SeededRandom('test-seed')
-const lightingService = new LightingService(random)
-const fovService = new FOVService()
-const renderingService = new RenderingService(fovService)
-const movementService = new MovementService()
-const messageService = new MessageService()
-const dungeonService = new DungeonService(random)
-const combatService = new CombatService(random)
-const pathfindingService = new PathfindingService()
-const monsterAIService = new MonsterAIService(pathfindingService, random)
-const inventoryService = new InventoryService()
-const identificationService = new IdentificationService(random)
-const modalController = new ModalController(identificationService)
+// Initialize game asynchronously to load item data
+async function initializeGame() {
+  // Load item data from JSON
+  let itemData: ItemData | undefined
+  try {
+    itemData = await loadItemData()
+    console.log('Items loaded from items.json')
+  } catch (error) {
+    console.warn('Failed to load items.json, using hardcoded items:', error)
+  }
 
-// Dungeon configuration
-const dungeonConfig = {
-  width: 80,
-  height: 22,
-  minRooms: 4,
-  maxRooms: 9,
-  minRoomSize: 3,
-  maxRoomSize: 8,
-  minSpacing: 2,
-  loopChance: 0.25,
-}
+  // Create services
+  const random = new SeededRandom('test-seed')
+  const lightingService = new LightingService(random)
+  const fovService = new FOVService()
+  const renderingService = new RenderingService(fovService)
+  const movementService = new MovementService()
+  const messageService = new MessageService()
+  const dungeonService = new DungeonService(random, itemData)
+  const combatService = new CombatService(random)
+  const pathfindingService = new PathfindingService()
+  const monsterAIService = new MonsterAIService(pathfindingService, random)
+  const inventoryService = new InventoryService()
+  const identificationService = new IdentificationService(random)
+  const modalController = new ModalController(identificationService)
 
-// Create UI
-const renderer = new GameRenderer(renderingService)
-const inputHandler = new InputHandler(
-  movementService,
-  lightingService,
-  fovService,
-  messageService,
-  random,
-  dungeonService,
-  dungeonConfig,
-  combatService,
-  inventoryService,
-  identificationService,
-  modalController
-)
+  // Dungeon configuration
+  const dungeonConfig = {
+    width: 80,
+    height: 22,
+    minRooms: 4,
+    maxRooms: 9,
+    minRoomSize: 3,
+    maxRoomSize: 8,
+    minSpacing: 2,
+    loopChance: 0.25,
+  }
 
-// Create initial game state
-function createInitialState(): GameState {
+  // Create UI
+  const renderer = new GameRenderer(renderingService)
+  const inputHandler = new InputHandler(
+    movementService,
+    lightingService,
+    fovService,
+    messageService,
+    random,
+    dungeonService,
+    dungeonConfig,
+    combatService,
+    inventoryService,
+    identificationService,
+    modalController
+  )
+
+  // Create initial game state
+  function createInitialState(): GameState {
   // Generate procedural dungeon using DungeonService
 
   const level = dungeonService.generateLevel(1, dungeonConfig)
@@ -133,26 +145,30 @@ function createInitialState(): GameState {
     itemNameMap,
     identifiedItems: new Set(),
   }
-}
+  }
 
-// Game state
-let gameState = createInitialState()
+  // Game state
+  let gameState = createInitialState()
 
-// Render initial state
-const app = document.getElementById('app')
-if (app) {
-  app.innerHTML = ''
-  app.appendChild(renderer.getContainer())
-  renderer.render(gameState)
-}
-
-// Input handling
-document.addEventListener('keydown', (event) => {
-  const command = inputHandler.handleKeyPress(event, gameState)
-  if (command) {
-    gameState = command.execute(gameState)
+  // Render initial state
+  const app = document.getElementById('app')
+  if (app) {
+    app.innerHTML = ''
+    app.appendChild(renderer.getContainer())
     renderer.render(gameState)
   }
-})
 
-console.log('Game initialized. Use arrow keys to move.')
+  // Input handling
+  document.addEventListener('keydown', (event) => {
+    const command = inputHandler.handleKeyPress(event, gameState)
+    if (command) {
+      gameState = command.execute(gameState)
+      renderer.render(gameState)
+    }
+  })
+
+  console.log('Game initialized. Use arrow keys to move.')
+}
+
+// Start the game
+initializeGame()

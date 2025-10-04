@@ -405,7 +405,7 @@ describe('UseItemCommand', () => {
       expect(result.identifiedItems.has(ScrollType.IDENTIFY)).toBe(true)
     })
 
-    test('shows not implemented message', () => {
+    test('identify scroll without target shows nothing happens', () => {
       const player = createTestPlayer()
       const scroll = createTestScroll('scroll-1', ScrollType.IDENTIFY)
       player.inventory = [scroll]
@@ -421,7 +421,7 @@ describe('UseItemCommand', () => {
       )
       const result = command.execute(state)
 
-      expect(result.messages[0].text).toContain('not yet implemented')
+      expect(result.messages[0].text).toContain('nothing happens')
     })
   })
 
