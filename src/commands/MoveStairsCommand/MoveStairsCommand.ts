@@ -4,6 +4,7 @@ import { MessageService } from '@services/MessageService'
 import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
+import { VictoryService } from '@services/VictoryService'
 
 // ============================================================================
 // MOVE STAIRS COMMAND - Navigate between dungeon levels
@@ -16,7 +17,8 @@ export class MoveStairsCommand implements ICommand {
     private dungeonConfig: DungeonConfig,
     private fovService: FOVService,
     private lightingService: LightingService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private victoryService: VictoryService
   ) {}
 
   execute(state: GameState): GameState {
@@ -142,7 +144,8 @@ export class MoveStairsCommand implements ICommand {
       state.turnCount
     )
 
-    return {
+    // Create new state after level change
+    const newState = {
       ...state,
       player: updatedPlayer,
       currentLevel: newDepth,
@@ -151,6 +154,23 @@ export class MoveStairsCommand implements ICommand {
       messages,
       turnCount: state.turnCount + 1,
     }
+
+    // Check victory condition after moving to new level
+    if (this.victoryService.checkVictory(newState)) {
+      return {
+        ...newState,
+        hasWon: true,
+        isGameOver: true,
+        messages: this.messageService.addMessage(
+          newState.messages,
+          'You have escaped with the Amulet of Yendor! You win!',
+          'success',
+          newState.turnCount
+        ),
+      }
+    }
+
+    return newState
   }
 
   private getRandomFloor(level: any): { x: number; y: number } {

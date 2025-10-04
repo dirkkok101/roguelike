@@ -32,6 +32,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { NotificationService } from '@services/NotificationService'
+import { VictoryService } from '@services/VictoryService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -61,6 +62,7 @@ export class InputHandler {
     private modalController: ModalController,
     private debugService: DebugService,
     private notificationService: NotificationService,
+    private victoryService: VictoryService,
     private messageHistoryModal?: any, // MessageHistoryModal
     private helpModal?: any // HelpModal
   ) {}
@@ -178,7 +180,8 @@ export class InputHandler {
           this.dungeonConfig,
           this.fovService,
           this.lightingService,
-          this.messageService
+          this.messageService,
+          this.victoryService
         )
 
       case '<':
@@ -189,7 +192,8 @@ export class InputHandler {
           this.dungeonConfig,
           this.fovService,
           this.lightingService,
-          this.messageService
+          this.messageService,
+          this.victoryService
         )
 
       // =====================================================================

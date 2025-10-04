@@ -16,6 +16,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
 import { NotificationService } from '@services/NotificationService'
+import { VictoryService } from '@services/VictoryService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -49,6 +50,7 @@ async function initializeGame() {
   const debugService = new DebugService(messageService)
   const contextService = new ContextService()
   const notificationService = new NotificationService()
+  const victoryService = new VictoryService()
   const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
   const monsterAIService = new MonsterAIService(pathfindingService, random)
@@ -86,6 +88,7 @@ async function initializeGame() {
     modalController,
     debugService,
     notificationService,
+    victoryService,
     renderer.getMessageHistoryModal(),
     renderer.getHelpModal()
   )

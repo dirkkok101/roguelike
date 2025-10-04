@@ -3,6 +3,7 @@ import { MessageService } from '@services/MessageService'
 import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
+import { VictoryService } from '@services/VictoryService'
 import { SeededRandom } from '@services/RandomService'
 import { GameState, Player, Position, Level } from '@game/core/core'
 
@@ -11,6 +12,7 @@ describe('MoveStairsCommand', () => {
   let dungeonService: DungeonService
   let fovService: FOVService
   let lightingService: LightingService
+  let victoryService: VictoryService
   let dungeonConfig: DungeonConfig
 
   beforeEach(() => {
@@ -19,6 +21,7 @@ describe('MoveStairsCommand', () => {
     dungeonService = new DungeonService(random)
     fovService = new FOVService()
     lightingService = new LightingService()
+    victoryService = new VictoryService()
 
     dungeonConfig = {
       width: 80,
@@ -102,7 +105,18 @@ describe('MoveStairsCommand', () => {
       messages: [],
       turnCount: 0,
       isGameOver: false,
+      hasWon: false,
+      hasAmulet: false,
       visibleCells: new Set(),
+      seed: 'test-seed',
+      gameId: 'test-game-id',
+      itemNameMap: {
+        potions: new Map(),
+        scrolls: new Map(),
+        rings: new Map(),
+        wands: new Map(),
+      },
+      identifiedItems: new Set(),
     }
   }
 
@@ -117,7 +131,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -136,7 +151,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -154,7 +170,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -174,7 +191,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -195,7 +213,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -220,7 +239,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -242,7 +262,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -263,7 +284,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -280,7 +302,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -305,7 +328,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -327,7 +351,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -345,7 +370,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -369,7 +395,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
@@ -389,7 +416,8 @@ describe('MoveStairsCommand', () => {
         dungeonConfig,
         fovService,
         lightingService,
-        messageService
+        messageService,
+        victoryService
       )
       const result = command.execute(state)
 
