@@ -1,0 +1,429 @@
+{
+  "weapons": [
+    {
+      "name": "Mace",
+      "damage": "2d4",
+      "rarity": "common"
+    },
+    {
+      "name": "Long Sword",
+      "damage": "1d12",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Short Sword",
+      "damage": "1d8",
+      "rarity": "common"
+    },
+    {
+      "name": "Two-Handed Sword",
+      "damage": "3d6",
+      "rarity": "rare"
+    },
+    {
+      "name": "Dagger",
+      "damage": "1d6",
+      "rarity": "common"
+    },
+    {
+      "name": "Spear",
+      "damage": "2d3",
+      "rarity": "common"
+    },
+    {
+      "name": "Battle Axe",
+      "damage": "2d8",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Flail",
+      "damage": "2d5",
+      "rarity": "uncommon"
+    }
+  ],
+  "armor": [
+    {
+      "name": "Leather Armor",
+      "ac": 8,
+      "rarity": "common"
+    },
+    {
+      "name": "Studded Leather",
+      "ac": 7,
+      "rarity": "common"
+    },
+    {
+      "name": "Ring Mail",
+      "ac": 7,
+      "rarity": "common"
+    },
+    {
+      "name": "Chain Mail",
+      "ac": 5,
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Banded Mail",
+      "ac": 4,
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Splint Mail",
+      "ac": 4,
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Plate Mail",
+      "ac": 3,
+      "rarity": "rare"
+    }
+  ],
+  "lightSources": [
+    {
+      "type": "torch",
+      "name": "Torch",
+      "radius": 1,
+      "fuel": 500,
+      "isPermanent": false,
+      "rarity": "common"
+    },
+    {
+      "type": "lantern",
+      "name": "Lantern",
+      "radius": 2,
+      "fuel": 500,
+      "isPermanent": false,
+      "rarity": "uncommon"
+    },
+    {
+      "type": "artifact",
+      "name": "Phial of Galadriel",
+      "radius": 3,
+      "isPermanent": true,
+      "rarity": "legendary"
+    },
+    {
+      "type": "artifact",
+      "name": "Star of Elendil",
+      "radius": 2,
+      "isPermanent": true,
+      "rarity": "legendary"
+    }
+  ],
+  "potions": [
+    {
+      "type": "HEAL",
+      "effect": "restore_hp",
+      "power": "1d8",
+      "rarity": "common",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "EXTRA_HEAL",
+      "effect": "restore_hp_extra",
+      "power": "2d8+2",
+      "rarity": "uncommon",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "GAIN_STRENGTH",
+      "effect": "gain_strength",
+      "power": "1",
+      "rarity": "uncommon",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "RESTORE_STRENGTH",
+      "effect": "restore_strength",
+      "power": "0",
+      "rarity": "common",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "POISON",
+      "effect": "poison",
+      "power": "1d6",
+      "rarity": "common",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "CONFUSION",
+      "effect": "confuse_self",
+      "power": "0",
+      "rarity": "uncommon",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "BLINDNESS",
+      "effect": "blind_self",
+      "power": "0",
+      "rarity": "uncommon",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "HASTE_SELF",
+      "effect": "haste",
+      "power": "0",
+      "rarity": "rare",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "DETECT_MONSTERS",
+      "effect": "detect_monsters",
+      "power": "0",
+      "rarity": "uncommon",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "DETECT_MAGIC",
+      "effect": "detect_magic",
+      "power": "0",
+      "rarity": "uncommon",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "RAISE_LEVEL",
+      "effect": "raise_level",
+      "power": "1",
+      "rarity": "legendary",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    }
+  ],
+  "scrolls": [
+    {
+      "type": "IDENTIFY",
+      "effect": "identify_item",
+      "rarity": "common",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "ENCHANT_WEAPON",
+      "effect": "enchant_weapon",
+      "rarity": "uncommon",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "ENCHANT_ARMOR",
+      "effect": "enchant_armor",
+      "rarity": "uncommon",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "MAGIC_MAPPING",
+      "effect": "reveal_map",
+      "rarity": "uncommon",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "TELEPORTATION",
+      "effect": "teleport_self",
+      "rarity": "common",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "REMOVE_CURSE",
+      "effect": "remove_curse",
+      "rarity": "uncommon",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "CREATE_MONSTER",
+      "effect": "spawn_monster",
+      "rarity": "uncommon",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "SCARE_MONSTER",
+      "effect": "scare_adjacent",
+      "rarity": "rare",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "LIGHT",
+      "effect": "light_room",
+      "rarity": "common",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "SLEEP",
+      "effect": "sleep_monsters",
+      "rarity": "rare",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    },
+    {
+      "type": "HOLD_MONSTER",
+      "effect": "hold_monster",
+      "rarity": "rare",
+      "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
+    }
+  ],
+  "rings": [
+    {
+      "type": "PROTECTION",
+      "effect": "ac_bonus",
+      "power": "1d3",
+      "hungerModifier": 1.5,
+      "rarity": "uncommon",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "REGENERATION",
+      "effect": "regen_hp",
+      "power": "1",
+      "hungerModifier": 2.0,
+      "rarity": "rare",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "SEARCHING",
+      "effect": "auto_search",
+      "power": "0",
+      "hungerModifier": 1.5,
+      "rarity": "uncommon",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "SEE_INVISIBLE",
+      "effect": "see_invisible",
+      "power": "0",
+      "hungerModifier": 1.5,
+      "rarity": "uncommon",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "SLOW_DIGESTION",
+      "effect": "reduce_hunger",
+      "power": "0",
+      "hungerModifier": 0.5,
+      "rarity": "rare",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "ADD_STRENGTH",
+      "effect": "strength_bonus",
+      "power": "1d3",
+      "hungerModifier": 1.5,
+      "rarity": "uncommon",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "SUSTAIN_STRENGTH",
+      "effect": "sustain_str",
+      "power": "0",
+      "hungerModifier": 1.5,
+      "rarity": "uncommon",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "DEXTERITY",
+      "effect": "dex_bonus",
+      "power": "1d3",
+      "hungerModifier": 1.5,
+      "rarity": "uncommon",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "TELEPORTATION",
+      "effect": "random_teleport",
+      "power": "0",
+      "hungerModifier": 1.5,
+      "rarity": "rare",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    },
+    {
+      "type": "STEALTH",
+      "effect": "stealth",
+      "power": "0",
+      "hungerModifier": 1.5,
+      "rarity": "uncommon",
+      "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
+    }
+  ],
+  "wands": [
+    {
+      "type": "LIGHTNING",
+      "damage": "6d6",
+      "charges": "3d3",
+      "rarity": "uncommon",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "FIRE",
+      "damage": "6d6",
+      "charges": "3d3",
+      "rarity": "uncommon",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "COLD",
+      "damage": "6d6",
+      "charges": "3d3",
+      "rarity": "uncommon",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "MAGIC_MISSILE",
+      "damage": "2d6",
+      "charges": "4d4",
+      "rarity": "common",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "SLEEP",
+      "damage": "0",
+      "charges": "3d3",
+      "rarity": "uncommon",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "HASTE_MONSTER",
+      "damage": "0",
+      "charges": "3d3",
+      "rarity": "rare",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "SLOW_MONSTER",
+      "damage": "0",
+      "charges": "3d3",
+      "rarity": "uncommon",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "POLYMORPH",
+      "damage": "0",
+      "charges": "3d3",
+      "rarity": "rare",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "TELEPORT_AWAY",
+      "damage": "0",
+      "charges": "3d3",
+      "rarity": "uncommon",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    },
+    {
+      "type": "CANCELLATION",
+      "damage": "0",
+      "charges": "3d3",
+      "rarity": "rare",
+      "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
+    }
+  ],
+  "food": [
+    {
+      "name": "Food Ration",
+      "nutrition": "1300",
+      "rarity": "common"
+    }
+  ],
+  "consumables": [
+    {
+      "name": "Oil Flask",
+      "type": "lantern_fuel",
+      "fuelAmount": 500,
+      "rarity": "uncommon"
+    }
+  ]
+}
