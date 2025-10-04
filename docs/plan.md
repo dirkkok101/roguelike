@@ -525,7 +525,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Full item system with inventory management
 
-**Status**: 🟡 In Progress (4/15 complete - 27%)
+**Status**: 🟡 In Progress (5/15 complete - 33%)
 
 ### Tasks
 
@@ -595,11 +595,12 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 **Identification System**: [Game Design - Item Identification](./game-design.md#item-identification)
 
 #### Item Spawning
-- [ ] Implement spawnItems() in DungeonService
-- [ ] Use rarity weights
-- [ ] Include light sources in spawn tables
-- [ ] Place items in rooms
-- [ ] Render items with correct symbols and colors
+- [x] Implement spawnItems() in DungeonService
+- [x] Use rarity weights (common 60%, uncommon 30%, rare 10%)
+- [x] Place items in rooms (3-6 per level)
+- [x] Avoid monster and occupied positions
+- [x] Item categories: weapons, armor, potions, scrolls, rings, food
+- [ ] Render items with correct symbols and colors (UI task)
 
 #### Item Commands
 - [ ] Implement PickUpCommand
