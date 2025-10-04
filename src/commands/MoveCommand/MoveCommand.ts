@@ -5,6 +5,7 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
+import { HungerService, HungerState } from '@services/HungerService'
 
 // ============================================================================
 // MOVE COMMAND - Handle player movement and combat
@@ -17,7 +18,8 @@ export class MoveCommand implements ICommand {
     private lightingService: LightingService,
     private fovService: FOVService,
     private messageService: MessageService,
-    private combatService?: CombatService
+    private combatService?: CombatService,
+    private hungerService?: HungerService
   ) {}
 
   execute(state: GameState): GameState {
@@ -165,10 +167,30 @@ export class MoveCommand implements ICommand {
     }
 
     // 4. Move player
-    const player = this.movementService.movePlayer(state.player, newPosition)
+    let player = this.movementService.movePlayer(state.player, newPosition)
 
-    // 5. Tick hunger (placeholder for Phase 6)
-    // const player = hungerService.tick(player)
+    // 5. Tick hunger
+    let hungerMessages: string[] = []
+    if (this.hungerService) {
+      const oldHungerState = this.hungerService.getHungerState(player.hunger)
+      player = this.hungerService.tickHunger(player)
+      const newHungerState = this.hungerService.getHungerState(player.hunger)
+
+      // Generate hunger warning if state changed
+      const hungerWarning = this.hungerService.generateHungerWarning(
+        oldHungerState,
+        newHungerState
+      )
+      if (hungerWarning) {
+        hungerMessages.push(hungerWarning)
+      }
+
+      // Apply starvation damage if starving
+      if (newHungerState === HungerState.STARVING) {
+        player = this.hungerService.applyStarvationDamage(player)
+        hungerMessages.push('You are fainting from hunger!')
+      }
+    }
 
     // 6. Tick light fuel
     let updatedPlayer = player
@@ -219,11 +241,23 @@ export class MoveCommand implements ICommand {
     const updatedLevels = new Map(state.levels)
     updatedLevels.set(state.currentLevel, updatedLevel)
 
+    // 10. Add hunger messages if any
+    let messages = state.messages
+    hungerMessages.forEach((msg) => {
+      messages = this.messageService.addMessage(
+        messages,
+        msg,
+        msg.includes('fainting') ? 'critical' : 'warning',
+        state.turnCount + 1
+      )
+    })
+
     return {
       ...state,
       player: updatedPlayer,
       visibleCells,
       levels: updatedLevels,
+      messages,
       turnCount: state.turnCount + 1,
     }
   }
@@ -253,7 +287,30 @@ export class MoveCommand implements ICommand {
     tile.transparent = true
 
     // 3. Move player through the now-open door
-    const player = this.movementService.movePlayer(state.player, newPosition)
+    let player = this.movementService.movePlayer(state.player, newPosition)
+
+    // 3.5. Tick hunger
+    let hungerMessages: string[] = []
+    if (this.hungerService) {
+      const oldHungerState = this.hungerService.getHungerState(player.hunger)
+      player = this.hungerService.tickHunger(player)
+      const newHungerState = this.hungerService.getHungerState(player.hunger)
+
+      // Generate hunger warning if state changed
+      const hungerWarning = this.hungerService.generateHungerWarning(
+        oldHungerState,
+        newHungerState
+      )
+      if (hungerWarning) {
+        hungerMessages.push(hungerWarning)
+      }
+
+      // Apply starvation damage if starving
+      if (newHungerState === HungerState.STARVING) {
+        player = this.hungerService.applyStarvationDamage(player)
+        hungerMessages.push('You are fainting from hunger!')
+      }
+    }
 
     // 4. Tick light fuel
     let updatedPlayer = player
@@ -312,12 +369,22 @@ export class MoveCommand implements ICommand {
     updatedLevels.set(state.currentLevel, updatedLevel)
 
     // 8. Add message
-    const messages = this.messageService.addMessage(
+    let messages = this.messageService.addMessage(
       state.messages,
       'You open the door and move through.',
       'info',
       state.turnCount + 1
     )
+
+    // 9. Add hunger messages if any
+    hungerMessages.forEach((msg) => {
+      messages = this.messageService.addMessage(
+        messages,
+        msg,
+        msg.includes('fainting') ? 'critical' : 'warning',
+        state.turnCount + 1
+      )
+    })
 
     return {
       ...state,

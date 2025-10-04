@@ -1,5 +1,6 @@
 import { Player, Monster, Weapon, Ring, RingType } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
+import { HungerService } from '@services/HungerService'
 
 // ============================================================================
 // COMBAT SERVICE - Original Rogue combat formulas
@@ -14,7 +15,10 @@ export interface CombatResult {
 }
 
 export class CombatService {
-  constructor(private random: IRandomService) {}
+  constructor(
+    private random: IRandomService,
+    private hungerService?: HungerService
+  ) {}
 
   /**
    * Player attacks monster
@@ -22,7 +26,20 @@ export class CombatService {
   playerAttack(player: Player, monster: Monster): CombatResult {
     const strengthBonus = this.getStrengthBonus(player)
     const effectiveStrength = player.strength + strengthBonus
-    const hit = this.calculateHit(player.level + effectiveStrength, monster.ac)
+
+    // Apply hunger penalties if service available
+    let toHitModifier = 0
+    let damageModifier = 0
+    if (this.hungerService) {
+      const penalties = this.hungerService.applyHungerEffects(player)
+      toHitModifier = penalties.toHitPenalty
+      damageModifier = penalties.damagePenalty
+    }
+
+    const hit = this.calculateHit(
+      player.level + effectiveStrength + toHitModifier,
+      monster.ac
+    )
 
     if (!hit) {
       return {
@@ -35,7 +52,8 @@ export class CombatService {
     }
 
     const weapon = player.equipment.weapon
-    const damage = this.calculatePlayerDamage(player, weapon)
+    const baseDamage = this.calculatePlayerDamage(player, weapon)
+    const damage = Math.max(0, baseDamage + damageModifier) // Don't go negative
     const newHp = Math.max(0, monster.hp - damage)
     const killed = newHp === 0
 
