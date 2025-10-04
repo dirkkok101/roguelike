@@ -11,6 +11,17 @@ import {
   Monster,
   MonsterBehavior,
   MonsterState,
+  Item,
+  ItemType,
+  Weapon,
+  Armor,
+  Potion,
+  Scroll,
+  Ring,
+  Food,
+  PotionType,
+  ScrollType,
+  RingType,
 } from '../types/core/core'
 import { IRandomService } from './RandomService'
 
@@ -99,6 +110,10 @@ export class DungeonService {
     const monsterCount = Math.min(depth + 1, 7) // 2-8 monsters based on depth
     const monsters = this.spawnMonsters(spawnRooms, monsterCount, tiles, depth)
 
+    // Spawn items (exclude starting room, avoid monster positions)
+    const itemCount = this.random.nextInt(3, 6) // 3-6 items per level
+    const items = this.spawnItems(spawnRooms, itemCount, tiles, monsters, depth)
+
     return {
       depth,
       width: config.width,
@@ -108,7 +123,7 @@ export class DungeonService {
       doors,
       traps,
       monsters,
-      items: [],
+      items,
       gold: [],
       stairsUp: stairsUpPos,
       stairsDown: stairsDownPos,
@@ -747,5 +762,242 @@ export class DungeonService {
     }
 
     return monsters
+  }
+
+  // ============================================================================
+  // ITEM SPAWNING
+  // ============================================================================
+
+  /**
+   * Spawn items in dungeon rooms with rarity-based selection
+   */
+  spawnItems(
+    rooms: Room[],
+    count: number,
+    tiles: Tile[][],
+    monsters: Monster[],
+    depth: number
+  ): Item[] {
+    const items: Item[] = []
+    const itemPositions = new Set<string>()
+
+    // Build occupied positions set (monsters + items)
+    monsters.forEach((m) => itemPositions.add(`${m.position.x},${m.position.y}`))
+
+    // Rarity weights (common: 60%, uncommon: 30%, rare: 10%)
+    const rarityWeights = { common: 0.6, uncommon: 0.3, rare: 0.1 }
+
+    // Item templates based on items.json (TODO: load from file)
+    const weaponTemplates = [
+      { name: 'Dagger', damage: '1d6', rarity: 'common' },
+      { name: 'Short Sword', damage: '1d8', rarity: 'common' },
+      { name: 'Mace', damage: '2d4', rarity: 'common' },
+      { name: 'Spear', damage: '2d3', rarity: 'common' },
+      { name: 'Long Sword', damage: '1d12', rarity: 'uncommon' },
+      { name: 'Battle Axe', damage: '2d8', rarity: 'uncommon' },
+      { name: 'Flail', damage: '2d5', rarity: 'uncommon' },
+      { name: 'Two-Handed Sword', damage: '3d6', rarity: 'rare' },
+    ]
+
+    const armorTemplates = [
+      { name: 'Leather Armor', ac: 8, rarity: 'common' },
+      { name: 'Studded Leather', ac: 7, rarity: 'common' },
+      { name: 'Ring Mail', ac: 7, rarity: 'uncommon' },
+      { name: 'Scale Mail', ac: 6, rarity: 'uncommon' },
+      { name: 'Chain Mail', ac: 5, rarity: 'uncommon' },
+      { name: 'Splint Mail', ac: 4, rarity: 'rare' },
+      { name: 'Plate Mail', ac: 3, rarity: 'rare' },
+    ]
+
+    const potionTemplates = [
+      { type: PotionType.HEAL, effect: 'restore_hp', power: '1d8', rarity: 'common' },
+      { type: PotionType.EXTRA_HEAL, effect: 'restore_hp', power: '3d8', rarity: 'uncommon' },
+      { type: PotionType.GAIN_STRENGTH, effect: 'increase_strength', power: '1', rarity: 'uncommon' },
+      {
+        type: PotionType.RESTORE_STRENGTH,
+        effect: 'restore_strength',
+        power: '1',
+        rarity: 'common',
+      },
+      { type: PotionType.POISON, effect: 'damage', power: '1d6', rarity: 'common' },
+      { type: PotionType.HASTE_SELF, effect: 'haste', power: '1d10', rarity: 'uncommon' },
+      { type: PotionType.RAISE_LEVEL, effect: 'level_up', power: '1', rarity: 'rare' },
+    ]
+
+    const scrollTemplates = [
+      { type: ScrollType.IDENTIFY, effect: 'identify_item', rarity: 'common' },
+      { type: ScrollType.ENCHANT_WEAPON, effect: 'enchant_weapon', rarity: 'uncommon' },
+      { type: ScrollType.ENCHANT_ARMOR, effect: 'enchant_armor', rarity: 'uncommon' },
+      { type: ScrollType.MAGIC_MAPPING, effect: 'reveal_map', rarity: 'uncommon' },
+      { type: ScrollType.TELEPORTATION, effect: 'teleport', rarity: 'common' },
+      { type: ScrollType.REMOVE_CURSE, effect: 'remove_curse', rarity: 'uncommon' },
+      { type: ScrollType.SCARE_MONSTER, effect: 'scare', rarity: 'rare' },
+      { type: ScrollType.HOLD_MONSTER, effect: 'hold', rarity: 'rare' },
+    ]
+
+    const ringTemplates = [
+      { type: RingType.PROTECTION, effect: 'ac_bonus', rarity: 'uncommon' },
+      { type: RingType.REGENERATION, effect: 'regen', rarity: 'uncommon' },
+      { type: RingType.ADD_STRENGTH, effect: 'strength_bonus', rarity: 'uncommon' },
+      { type: RingType.SLOW_DIGESTION, effect: 'slow_hunger', rarity: 'uncommon' },
+      { type: RingType.SEE_INVISIBLE, effect: 'see_invisible', rarity: 'rare' },
+      { type: RingType.STEALTH, effect: 'stealth', rarity: 'rare' },
+    ]
+
+    const foodTemplates = [{ name: 'Food Ration', nutrition: 900, rarity: 'common' }]
+
+    // Spawn items
+    for (let i = 0; i < count; i++) {
+      if (rooms.length === 0) break
+
+      // Pick random room
+      const room = rooms[this.random.nextInt(0, rooms.length - 1)]
+
+      // Pick random position in room
+      const x = this.random.nextInt(room.x + 1, room.x + room.width - 2)
+      const y = this.random.nextInt(room.y + 1, room.y + room.height - 2)
+      const key = `${x},${y}`
+
+      // Check if position is valid
+      if (!itemPositions.has(key) && tiles[y] && tiles[y][x] && tiles[y][x].walkable) {
+        itemPositions.add(key)
+
+        // Roll for rarity
+        const rarityRoll = this.random.chance(rarityWeights.common)
+          ? 'common'
+          : this.random.chance(rarityWeights.uncommon / (1 - rarityWeights.common))
+            ? 'uncommon'
+            : 'rare'
+
+        // Pick item category
+        const category = this.random.pickRandom([
+          'weapon',
+          'armor',
+          'potion',
+          'scroll',
+          'ring',
+          'food',
+        ])
+
+        // Create item based on category and rarity
+        let item: Item | null = null
+        const itemId = `item-${items.length}-${this.random.nextInt(1000, 9999)}`
+
+        switch (category) {
+          case 'weapon': {
+            const templates = weaponTemplates.filter((t) => t.rarity === rarityRoll)
+            if (templates.length > 0) {
+              const template = this.random.pickRandom(templates)
+              const bonus = rarityRoll === 'rare' ? this.random.nextInt(1, 2) : 0
+              item = {
+                id: itemId,
+                name: bonus > 0 ? `${template.name} +${bonus}` : template.name,
+                type: ItemType.WEAPON,
+                identified: false,
+                position: { x, y },
+                damage: template.damage,
+                bonus,
+              } as Weapon
+            }
+            break
+          }
+
+          case 'armor': {
+            const templates = armorTemplates.filter((t) => t.rarity === rarityRoll)
+            if (templates.length > 0) {
+              const template = this.random.pickRandom(templates)
+              const bonus = rarityRoll === 'rare' ? this.random.nextInt(1, 2) : 0
+              item = {
+                id: itemId,
+                name: bonus > 0 ? `${template.name} +${bonus}` : template.name,
+                type: ItemType.ARMOR,
+                identified: false,
+                position: { x, y },
+                ac: template.ac,
+                bonus,
+              } as Armor
+            }
+            break
+          }
+
+          case 'potion': {
+            const templates = potionTemplates.filter((t) => t.rarity === rarityRoll)
+            if (templates.length > 0) {
+              const template = this.random.pickRandom(templates)
+              item = {
+                id: itemId,
+                name: `Potion of ${template.type}`,
+                type: ItemType.POTION,
+                identified: false,
+                position: { x, y },
+                potionType: template.type,
+                effect: template.effect,
+                power: template.power,
+                descriptorName: 'unknown', // Set by IdentificationService
+              } as Potion
+            }
+            break
+          }
+
+          case 'scroll': {
+            const templates = scrollTemplates.filter((t) => t.rarity === rarityRoll)
+            if (templates.length > 0) {
+              const template = this.random.pickRandom(templates)
+              item = {
+                id: itemId,
+                name: `Scroll of ${template.type}`,
+                type: ItemType.SCROLL,
+                identified: false,
+                position: { x, y },
+                scrollType: template.type,
+                effect: template.effect,
+                labelName: 'unknown', // Set by IdentificationService
+              } as Scroll
+            }
+            break
+          }
+
+          case 'ring': {
+            const templates = ringTemplates.filter((t) => t.rarity === rarityRoll)
+            if (templates.length > 0) {
+              const template = this.random.pickRandom(templates)
+              const bonus = this.random.nextInt(1, 3)
+              item = {
+                id: itemId,
+                name: `Ring of ${template.type} +${bonus}`,
+                type: ItemType.RING,
+                identified: false,
+                position: { x, y },
+                ringType: template.type,
+                effect: template.effect,
+                bonus,
+                materialName: 'unknown', // Set by IdentificationService
+                hungerModifier: 1.5,
+              } as Ring
+            }
+            break
+          }
+
+          case 'food': {
+            const template = this.random.pickRandom(foodTemplates)
+            item = {
+              id: itemId,
+              name: template.name,
+              type: ItemType.FOOD,
+              identified: false,
+              position: { x, y },
+              nutrition: template.nutrition,
+            } as Food
+            break
+          }
+        }
+
+        if (item) {
+          items.push(item)
+        }
+      }
+    }
+
+    return items
   }
 }
