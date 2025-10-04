@@ -1,6 +1,6 @@
 import { TrapService } from './TrapService'
-import { MockRandom } from '../RandomService'
-import { Trap, TrapType } from '../../types/core/core'
+import { MockRandom } from '@services/RandomService'
+import { Trap, TrapType } from '@game/core/core'
 
 describe('TrapService - Trap Triggering', () => {
   let service: TrapService

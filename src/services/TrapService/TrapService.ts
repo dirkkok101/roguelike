@@ -1,5 +1,5 @@
-import { Player, Trap, TrapType, GameState } from '../../types/core/core'
-import { IRandomService } from '../RandomService'
+import { Player, Trap, TrapType, GameState } from '@game/core/core'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // TRAP SERVICE - Trap effects and triggering

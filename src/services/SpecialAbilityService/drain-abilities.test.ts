@@ -1,6 +1,6 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
-import { MockRandom } from '../RandomService'
-import { Player } from '../../types/core/core'
+import { MockRandom } from '@services/RandomService'
+import { Player } from '@game/core/core'
 
 describe('SpecialAbilityService - Drain Abilities', () => {
   let service: SpecialAbilityService

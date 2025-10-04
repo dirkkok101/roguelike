@@ -1,6 +1,6 @@
 import { TrapService } from './TrapService'
-import { MockRandom } from '../RandomService'
-import { Player, Trap, TrapType, GameState } from '../../types/core/core'
+import { MockRandom } from '@services/RandomService'
+import { Player, Trap, TrapType, GameState } from '@game/core/core'
 
 describe('TrapService - Trap Effects', () => {
   let service: TrapService

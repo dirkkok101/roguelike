@@ -1,5 +1,5 @@
 import { PathfindingService } from './PathfindingService'
-import { Level, Position } from '../../types/core/core'
+import { Level, Position } from '@game/core/core'
 
 describe('PathfindingService - Path Optimization', () => {
   let service: PathfindingService

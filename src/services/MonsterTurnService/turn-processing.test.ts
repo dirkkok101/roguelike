@@ -1,12 +1,12 @@
 import { MonsterTurnService } from './MonsterTurnService'
-import { MonsterAIService } from '../MonsterAIService'
-import { CombatService } from '../CombatService'
-import { SpecialAbilityService } from '../SpecialAbilityService'
-import { MessageService } from '../MessageService'
-import { PathfindingService } from '../PathfindingService'
-import { FOVService } from '../FOVService'
-import { MockRandom } from '../RandomService'
-import { GameState, Monster, MonsterBehavior, Player } from '../../types/core/core'
+import { MonsterAIService } from '@services/MonsterAIService'
+import { CombatService } from '@services/CombatService'
+import { SpecialAbilityService } from '@services/SpecialAbilityService'
+import { MessageService } from '@services/MessageService'
+import { PathfindingService } from '@services/PathfindingService'
+import { FOVService } from '@services/FOVService'
+import { MockRandom } from '@services/RandomService'
+import { GameState, Monster, MonsterBehavior, Player } from '@game/core/core'
 
 describe('MonsterTurnService - Turn Processing', () => {
   let service: MonsterTurnService

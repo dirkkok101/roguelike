@@ -1,5 +1,5 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
-import { MockRandom } from '../RandomService'
+import { MockRandom } from '@services/RandomService'
 
 describe('SpecialAbilityService - Multiple Attacks', () => {
   let service: SpecialAbilityService

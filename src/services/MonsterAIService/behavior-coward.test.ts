@@ -1,8 +1,8 @@
 import { MonsterAIService } from './MonsterAIService'
-import { PathfindingService } from '../PathfindingService'
-import { MockRandom } from '../RandomService'
-import { FOVService } from '../FOVService'
-import { GameState, Monster, MonsterBehavior } from '../../types/core/core'
+import { PathfindingService } from '@services/PathfindingService'
+import { MockRandom } from '@services/RandomService'
+import { FOVService } from '@services/FOVService'
+import { GameState, Monster, MonsterBehavior } from '@game/core/core'
 
 describe('MonsterAIService - COWARD Behavior', () => {
   let service: MonsterAIService

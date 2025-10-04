@@ -1,6 +1,6 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
-import { MockRandom } from '../RandomService'
-import { Monster, MonsterBehavior } from '../../types/core/core'
+import { MockRandom } from '@services/RandomService'
+import { Monster, MonsterBehavior } from '@game/core/core'
 
 describe('SpecialAbilityService - Breath Weapon', () => {
   let service: SpecialAbilityService

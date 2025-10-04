@@ -1,6 +1,6 @@
 import { CombatService } from './CombatService'
-import { MockRandom } from '../RandomService'
-import { Player, Monster, MonsterBehavior } from '../../types/core/core'
+import { MockRandom } from '@services/RandomService'
+import { Player, Monster, MonsterBehavior } from '@game/core/core'
 
 describe('CombatService - Hit Calculation', () => {
   let service: CombatService

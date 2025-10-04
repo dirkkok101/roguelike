@@ -1,6 +1,6 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
-import { MockRandom } from '../RandomService'
-import { Player, Monster, MonsterBehavior, Armor } from '../../types/core/core'
+import { MockRandom } from '@services/RandomService'
+import { Player, Monster, MonsterBehavior, Armor } from '@game/core/core'
 
 describe('SpecialAbilityService - Debuff Abilities', () => {
   let service: SpecialAbilityService
