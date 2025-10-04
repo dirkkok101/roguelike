@@ -9,8 +9,11 @@ import { DungeonService } from '@services/DungeonService'
 import { CombatService } from '@services/CombatService'
 import { PathfindingService } from '@services/PathfindingService'
 import { MonsterAIService } from '@services/MonsterAIService'
+import { InventoryService } from '@services/InventoryService'
+import { IdentificationService } from '@services/IdentificationService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
+import { ModalController } from '@ui/ModalController'
 
 // ============================================================================
 // MAIN - Game initialization and loop
@@ -27,6 +30,9 @@ const dungeonService = new DungeonService(random)
 const combatService = new CombatService(random)
 const pathfindingService = new PathfindingService()
 const monsterAIService = new MonsterAIService(pathfindingService, random)
+const inventoryService = new InventoryService()
+const identificationService = new IdentificationService(random)
+const modalController = new ModalController(identificationService)
 
 // Dungeon configuration
 const dungeonConfig = {
@@ -50,7 +56,10 @@ const inputHandler = new InputHandler(
   random,
   dungeonService,
   dungeonConfig,
-  combatService
+  combatService,
+  inventoryService,
+  identificationService,
+  modalController
 )
 
 // Create initial game state
@@ -101,6 +110,9 @@ function createInitialState(): GameState {
     level.explored[pos.y][pos.x] = true
   })
 
+  // Generate item names for this game
+  const itemNameMap = identificationService.generateItemNames()
+
   return {
     player,
     currentLevel: 1,
@@ -118,6 +130,8 @@ function createInitialState(): GameState {
     gameId: 'game-' + Date.now(),
     isGameOver: false,
     hasWon: false,
+    itemNameMap,
+    identifiedItems: new Set(),
   }
 }
 
@@ -134,7 +148,7 @@ if (app) {
 
 // Input handling
 document.addEventListener('keydown', (event) => {
-  const command = inputHandler.handleKeyPress(event)
+  const command = inputHandler.handleKeyPress(event, gameState)
   if (command) {
     gameState = command.execute(gameState)
     renderer.render(gameState)
