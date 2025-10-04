@@ -227,6 +227,7 @@ export class GameRenderer {
         ? '#FF8800'
         : '#FF0000'
     const hpBlink = hpPercent < 10 ? 'animation: blink 1s infinite;' : ''
+    const hpWarning = hpPercent < 25 ? ' ⚠️' : ''
 
     // Hunger bar (green > yellow > orange > red)
     const hungerPercent = Math.min(100, (player.hunger / 1300) * 100)
@@ -240,6 +241,8 @@ export class GameRenderer {
         : '#FF0000'
     const hungerBar =
       '█'.repeat(Math.floor(hungerPercent / 10)) + '▒'.repeat(10 - Math.floor(hungerPercent / 10))
+    const hungerWarning = hungerPercent < 25 ? ' 🍖' : ''
+    const hungerStatus = hungerPercent === 0 ? ' STARVING!' : hungerPercent < 10 ? ' Fainting' : hungerPercent < 25 ? ' Hungry' : ''
 
     // Inventory color
     const invCount = player.inventory.length
@@ -249,15 +252,17 @@ export class GameRenderer {
     // Light status
     let lightDisplay = 'None (darkness!)'
     let lightColor = '#FF0000'
+    let fuelWarning = ''
     if (lightSource) {
       const fuel = lightSource.fuel || 0
       const maxFuel = lightSource.maxFuel || 1
       const fuelPercent = (fuel / maxFuel) * 100
 
       lightColor = fuelPercent >= 50 ? '#FFDD00' : fuelPercent >= 20 ? '#FF8800' : '#FF0000'
+      fuelWarning = fuelPercent < 10 && fuel > 0 ? ' 🔥' : fuelPercent === 0 ? ' OUT!' : ''
 
       const fuelText = lightSource.fuel !== undefined ? ` (${fuel})` : ''
-      lightDisplay = `${lightSource.name}${fuelText}`
+      lightDisplay = `${lightSource.name}${fuelText}${fuelWarning}`
     }
 
     // Get XP progress for display
@@ -273,7 +278,7 @@ export class GameRenderer {
         }
       </style>
       <div class="stats">
-        <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}</div>
+        <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
         <div>Str: ${player.strength}/${player.maxStrength}</div>
         <div>AC: ${player.ac}</div>
         <div>Level: ${player.level}</div>
@@ -285,8 +290,8 @@ export class GameRenderer {
         </div>
         <div>Gold: ${player.gold}</div>
         <div style="margin-top: 8px;">
-          <span style="color: #888;">Hunger:</span><br>
-          <span style="color: ${hungerColor};">[${hungerBar}]</span>
+          <span style="color: #888;">Hunger:</span>${hungerWarning}<br>
+          <span style="color: ${hungerColor};">[${hungerBar}]${hungerStatus}</span>
         </div>
         <div>Depth: ${state.currentLevel}</div>
         <div>Turn: ${state.turnCount}</div>

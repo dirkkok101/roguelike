@@ -56,7 +56,18 @@ export class MainMenu {
       justify-content: center;
       align-items: center;
       z-index: 3000;
+      animation: fadeIn 0.3s ease-in;
     `
+
+    // Add keyframes for fade-in animation
+    const style = document.createElement('style')
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    `
+    document.head.appendChild(style)
 
     const modal = document.createElement('div')
     modal.className = 'modal-content main-menu-content'
