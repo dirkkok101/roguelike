@@ -8,6 +8,7 @@ import {
   Wand,
   WandType,
   Food,
+  OilFlask,
   Item,
 } from '@game/core/core'
 import { ICommand } from '../ICommand'
@@ -17,10 +18,10 @@ import { IRandomService } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 
 // ============================================================================
-// USE ITEM COMMAND - Consume items (potions, scrolls, wands, food)
+// USE ITEM COMMAND - Consume items (potions, scrolls, wands, food, oil)
 // ============================================================================
 
-export type UseItemAction = 'quaff' | 'read' | 'zap' | 'eat'
+export type UseItemAction = 'quaff' | 'read' | 'zap' | 'eat' | 'refill'
 
 export class UseItemCommand implements ICommand {
   constructor(
@@ -72,6 +73,9 @@ export class UseItemCommand implements ICommand {
       case 'eat':
         newState = this.eatFood(state, item as Food)
         break
+      case 'refill':
+        newState = this.refillLantern(state, item as OilFlask)
+        break
     }
 
     return newState
@@ -101,6 +105,11 @@ export class UseItemCommand implements ICommand {
       case 'eat':
         if (item.type !== ItemType.FOOD) {
           return { valid: false, message: 'You cannot eat that.' }
+        }
+        break
+      case 'refill':
+        if (item.type !== ItemType.OIL_FLASK) {
+          return { valid: false, message: 'You cannot use that to refill a lantern.' }
         }
         break
     }
@@ -319,6 +328,88 @@ export class UseItemCommand implements ICommand {
     const messages = this.messageService.addMessage(
       newState.messages,
       effectMessage,
+      'info',
+      newState.turnCount
+    )
+
+    return {
+      ...newState,
+      messages,
+      turnCount: newState.turnCount + 1,
+    }
+  }
+
+  // ============================================================================
+  // LANTERN REFILL
+  // ============================================================================
+
+  private refillLantern(state: GameState, oilFlask: OilFlask): GameState {
+    let newState = state
+
+    // Check if lantern is equipped
+    const lantern = newState.player.equipment.lightSource
+    if (!lantern) {
+      const messages = this.messageService.addMessage(
+        newState.messages,
+        'You do not have a lantern equipped.',
+        'warning',
+        newState.turnCount
+      )
+      return { ...newState, messages }
+    }
+
+    // Check if it's a lantern (not torch or artifact)
+    if (lantern.type !== 'lantern') {
+      const messages = this.messageService.addMessage(
+        newState.messages,
+        'You can only refill lanterns, not other light sources.',
+        'warning',
+        newState.turnCount
+      )
+      return { ...newState, messages }
+    }
+
+    // Check if lantern is already full
+    if (lantern.fuel !== undefined && lantern.maxFuel !== undefined) {
+      if (lantern.fuel >= lantern.maxFuel) {
+        const messages = this.messageService.addMessage(
+          newState.messages,
+          'Your lantern is already full.',
+          'info',
+          newState.turnCount
+        )
+        return { ...newState, messages }
+      }
+    }
+
+    // Refill lantern (add fuel, cap at maxFuel)
+    const newFuel = Math.min(
+      (lantern.fuel || 0) + oilFlask.fuelAmount,
+      lantern.maxFuel || 500
+    )
+    const fuelAdded = newFuel - (lantern.fuel || 0)
+
+    const updatedLantern = {
+      ...lantern,
+      fuel: newFuel,
+    }
+
+    const updatedPlayer = {
+      ...newState.player,
+      equipment: {
+        ...newState.player.equipment,
+        lightSource: updatedLantern,
+      },
+    }
+
+    // Remove oil flask from inventory
+    const finalPlayer = this.inventoryService.removeItem(updatedPlayer, oilFlask.id)
+    newState = { ...newState, player: finalPlayer }
+
+    // Add message
+    const messages = this.messageService.addMessage(
+      newState.messages,
+      `You refill your lantern. (+${fuelAdded} fuel, ${newFuel}/${lantern.maxFuel} total)`,
       'info',
       newState.turnCount
     )
