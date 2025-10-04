@@ -6,6 +6,7 @@ import { SearchCommand } from '@commands/SearchCommand'
 import { MoveStairsCommand } from '@commands/MoveStairsCommand'
 import { PickUpCommand } from '@commands/PickUpCommand'
 import { DropCommand } from '@commands/DropCommand'
+import { SaveCommand } from '@commands/SaveCommand'
 import { EquipCommand } from '@commands/EquipCommand'
 import { UnequipCommand } from '@commands/UnequipCommand'
 import { UseItemCommand } from '@commands/UseItemCommand'
@@ -33,6 +34,7 @@ import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
+import { LocalStorageService } from '@services/LocalStorageService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -63,6 +65,7 @@ export class InputHandler {
     private debugService: DebugService,
     private notificationService: NotificationService,
     private victoryService: VictoryService,
+    private localStorageService: LocalStorageService,
     private messageHistoryModal?: any, // MessageHistoryModal
     private helpModal?: any // HelpModal
   ) {}
@@ -171,6 +174,10 @@ export class InputHandler {
       case 's':
         event.preventDefault()
         return new SearchCommand(this.messageService, this.random)
+
+      case 'S':
+        event.preventDefault()
+        return new SaveCommand(this.localStorageService, this.messageService)
 
       case '>':
         event.preventDefault()

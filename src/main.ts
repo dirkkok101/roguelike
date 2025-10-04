@@ -17,6 +17,7 @@ import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
+import { LocalStorageService } from '@services/LocalStorageService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -51,6 +52,7 @@ async function initializeGame() {
   const contextService = new ContextService()
   const notificationService = new NotificationService()
   const victoryService = new VictoryService()
+  const localStorageService = new LocalStorageService()
   const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
   const monsterAIService = new MonsterAIService(pathfindingService, random)
@@ -89,6 +91,7 @@ async function initializeGame() {
     debugService,
     notificationService,
     victoryService,
+    localStorageService,
     renderer.getMessageHistoryModal(),
     renderer.getHelpModal()
   )
