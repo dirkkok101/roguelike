@@ -11,36 +11,7 @@ describe('LightingService - Fuel Consumption', () => {
     service = new LightingService(mockRandom)
   })
 
-  describe('tickFuel()', () => {
-    test('reduces fuel by 1 each tick', () => {
-      const torch = service.createTorch()
-      expect(torch.fuel).toBe(500)
-
-      const ticked = service.tickFuel(torch)
-      expect(ticked.fuel).toBe(499)
-    })
-
-    test('does not affect permanent lights', () => {
-      const artifact = service.createArtifact('Phial', 3)
-      const ticked = service.tickFuel(artifact)
-      expect(ticked.fuel).toBeUndefined()
-    })
-
-    test('does not go below zero', () => {
-      let torch: LightSource = { ...service.createTorch(), fuel: 0 }
-      const ticked = service.tickFuel(torch)
-      expect(ticked.fuel).toBe(0)
-    })
-
-    test('returns new object (immutability)', () => {
-      const torch = service.createTorch()
-      const ticked = service.tickFuel(torch)
-
-      expect(ticked).not.toBe(torch) // Different reference
-      expect(torch.fuel).toBe(500) // Original unchanged
-      expect(ticked.fuel).toBe(499) // New object updated
-    })
-  })
+  // NOTE: tickFuel() tests moved to fuel-tick-result.test.ts with new Player-based signature
 
   describe('generateFuelWarning()', () => {
     test('warns at 50 turns remaining', () => {

@@ -401,7 +401,7 @@ tickHunger(player: Player): HungerTickResult {
 - `src/services/LightingService/fuel-tick-result.test.ts` (new)
 - `src/commands/MoveCommand/MoveCommand.ts`
 
-**Task**: ☐ Create FuelTickResult and update tickFuel()
+**Task**: ☑ Create FuelTickResult and update tickFuel()
 
 **Current Implementation** (lines 16-29):
 ```typescript
@@ -460,12 +460,12 @@ tickFuel(player: Player): FuelTickResult {
 ```
 
 **Subtasks**:
-- ☐ Define `FuelTickResult` interface
-- ☐ Update `tickFuel(player: Player)` signature and implementation
-- ☐ Add test: `fuel-tick-result.test.ts`
-- ☐ Update `MoveCommand.performMovement()` to use new result
-- ☐ Delete manual fuel checking code from MoveCommand (25 lines removed)
-- ☐ Run tests: `npm test LightingService && npm test MoveCommand`
+- ☑ Define `FuelTickResult` interface
+- ☑ Update `tickFuel(player: Player)` signature and implementation
+- ☑ Add test: `fuel-tick-result.test.ts`
+- ☑ Update `MoveCommand.performMovement()` to use new result
+- ☑ Delete manual fuel checking code from MoveCommand (25 lines removed)
+- ☑ Run tests: `npm test LightingService && npm test MoveCommand`
 
 **Acceptance Criteria**:
 - ✓ LightingService returns player + messages in one call

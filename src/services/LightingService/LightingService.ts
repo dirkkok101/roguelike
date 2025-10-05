@@ -1,5 +1,14 @@
-import { LightSource } from '@game/core/core'
+import { LightSource, Player } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
+
+// ============================================================================
+// RESULT TYPES
+// ============================================================================
+
+export interface FuelTickResult {
+  player: Player
+  messages: string[]
+}
 
 // ============================================================================
 // LIGHTING SERVICE - Light source management and fuel tracking
@@ -11,21 +20,43 @@ export class LightingService {
   }
 
   /**
-   * Tick fuel consumption for a light source (call each turn)
+   * Tick fuel consumption (call each turn)
+   * Returns complete result with player and fuel warning messages
    */
-  tickFuel(lightSource: LightSource): LightSource {
-    if (lightSource.isPermanent) {
-      return lightSource
+  tickFuel(player: Player): FuelTickResult {
+    const messages: string[] = []
+
+    // No light source equipped
+    if (!player.equipment.lightSource) {
+      return { player, messages }
     }
 
-    if (lightSource.fuel === undefined || lightSource.fuel <= 0) {
-      return lightSource
+    const light = player.equipment.lightSource
+
+    // Permanent light (artifact)
+    if (light.isPermanent) {
+      return { player, messages }
     }
 
-    return {
-      ...lightSource,
-      fuel: lightSource.fuel - 1,
+    // Already out of fuel
+    if (light.fuel === undefined || light.fuel <= 0) {
+      return { player, messages }
     }
+
+    // Tick fuel
+    const tickedLight = { ...light, fuel: light.fuel - 1 }
+    const updatedPlayer = {
+      ...player,
+      equipment: { ...player.equipment, lightSource: tickedLight }
+    }
+
+    // Generate warning if needed
+    const warning = this.generateFuelWarning(tickedLight)
+    if (warning) {
+      messages.push(warning)
+    }
+
+    return { player: updatedPlayer, messages }
   }
 
   /**

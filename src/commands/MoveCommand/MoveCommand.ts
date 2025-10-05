@@ -1,7 +1,7 @@
 import { GameState, DoorState, Position, Level, Monster } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MovementService } from '@services/MovementService'
-import { LightingService } from '@services/LightingService'
+import { LightingService, FuelTickResult } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
@@ -205,34 +205,9 @@ export class MoveCommand implements ICommand {
     }
 
     // 3. Tick light fuel
-    let updatedPlayer = player
-    if (player.equipment.lightSource) {
-      const tickedLight = this.lightingService.tickFuel(player.equipment.lightSource)
-      updatedPlayer = {
-        ...player,
-        equipment: {
-          ...player.equipment,
-          lightSource: tickedLight,
-        },
-      }
-
-      // Check for fuel warning
-      const warning = this.lightingService.generateFuelWarning(tickedLight)
-      if (warning) {
-        const messages = this.messageService.addMessage(
-          state.messages,
-          warning,
-          'warning',
-          state.turnCount + 1
-        )
-        return {
-          ...state,
-          player: updatedPlayer,
-          messages,
-          turnCount: state.turnCount + 1,
-        }
-      }
-    }
+    const fuelResult: FuelTickResult = this.lightingService.tickFuel(player)
+    const updatedPlayer = fuelResult.player
+    messages.push(...fuelResult.messages)
 
     // 4. Recompute FOV
     const lightRadius = this.lightingService.getLightRadius(

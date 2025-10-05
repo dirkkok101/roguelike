@@ -1,1 +1,1 @@
-export { LightingService } from './LightingService'
+export { LightingService, FuelTickResult } from './LightingService'
