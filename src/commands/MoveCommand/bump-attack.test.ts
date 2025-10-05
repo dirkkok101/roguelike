@@ -6,6 +6,7 @@ import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
+import { TurnService } from '@services/TurnService'
 import { MockRandom } from '@services/RandomService'
 import {
   GameState,
@@ -24,6 +25,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
   let combatService: CombatService
   let levelingService: LevelingService
   let doorService: DoorService
+  let turnService: TurnService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -35,6 +37,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
     combatService = new CombatService(mockRandom)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
+    turnService = new TurnService()
   })
 
   function createTestState(): GameState {
@@ -148,7 +151,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         messageService,
         combatService,
         levelingService,
-        doorService
+        doorService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -175,7 +179,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         messageService,
         combatService,
         levelingService,
-        doorService
+        doorService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -201,7 +206,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         messageService,
         combatService,
         levelingService,
-        doorService
+        doorService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -226,7 +232,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         messageService,
         combatService,
         levelingService,
-        doorService
+        doorService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -252,7 +259,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         messageService,
         combatService,
         levelingService,
-        doorService
+        doorService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -276,7 +284,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         messageService,
         combatService,
         levelingService,
-        doorService
+        doorService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -302,7 +311,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         messageService,
         combatService,
         levelingService,
-        doorService
+        doorService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -328,7 +338,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         messageService,
         combatService,
         levelingService,
-        doorService
+        doorService,
+        turnService
       )
 
       const newState = command.execute(state)

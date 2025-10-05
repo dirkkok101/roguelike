@@ -3,6 +3,11 @@ import { MovementService } from '@services/MovementService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
+import { CombatService } from '@services/CombatService'
+import { LevelingService } from '@services/LevelingService'
+import { DoorService } from '@services/DoorService'
+import { TurnService } from '@services/TurnService'
+import { HungerService } from '@services/HungerService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType } from '@game/core/core'
 
@@ -11,12 +16,24 @@ describe('MoveCommand - Basic Movement', () => {
   let lightingService: LightingService
   let fovService: FOVService
   let messageService: MessageService
+  let combatService: CombatService
+  let levelingService: LevelingService
+  let doorService: DoorService
+  let turnService: TurnService
+  let hungerService: HungerService
+  let mockRandom: MockRandom
 
   beforeEach(() => {
+    mockRandom = new MockRandom()
     movementService = new MovementService()
-    lightingService = new LightingService(new MockRandom())
+    lightingService = new LightingService(mockRandom)
     fovService = new FOVService()
     messageService = new MessageService()
+    combatService = new CombatService(mockRandom)
+    levelingService = new LevelingService()
+    doorService = new DoorService()
+    turnService = new TurnService()
+    hungerService = new HungerService(mockRandom)
   })
 
   function createTestState(): GameState {
@@ -91,7 +108,12 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -106,7 +128,12 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -121,7 +148,12 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -136,7 +168,12 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -153,7 +190,12 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -169,14 +211,24 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
       const down = new MoveCommand(
         'down',
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       state = right.execute(state)
@@ -198,7 +250,12 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       command.execute(state)
@@ -214,7 +271,12 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -234,14 +296,24 @@ describe('MoveCommand - Basic Movement', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
       const left = new MoveCommand(
         'left',
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        turnService,
+        hungerService
       )
 
       const newState1 = up.execute(state)
@@ -274,10 +346,10 @@ describe('MoveCommand - Basic Movement', () => {
       let state = createTestState()
 
       const commands = [
-        new MoveCommand('right', movementService, lightingService, fovService, messageService),
-        new MoveCommand('right', movementService, lightingService, fovService, messageService),
-        new MoveCommand('down', movementService, lightingService, fovService, messageService),
-        new MoveCommand('left', movementService, lightingService, fovService, messageService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, turnService, hungerService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, turnService, hungerService),
+        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, turnService, hungerService),
+        new MoveCommand('left', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, turnService, hungerService),
       ]
 
       for (const command of commands) {

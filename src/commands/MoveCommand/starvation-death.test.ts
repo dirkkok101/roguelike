@@ -7,6 +7,7 @@ import { HungerService } from '@services/HungerService'
 import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
+import { TurnService } from '@services/TurnService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
 
@@ -19,6 +20,7 @@ describe('MoveCommand - Starvation Death', () => {
   let combatService: CombatService
   let levelingService: LevelingService
   let doorService: DoorService
+  let turnService: TurnService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -31,6 +33,7 @@ describe('MoveCommand - Starvation Death', () => {
     combatService = new CombatService(mockRandom)
     levelingService = new LevelingService()
     doorService = new DoorService()
+    turnService = new TurnService()
   })
 
   function createTestPlayer(overrides: Partial<Player> = {}): Player {
@@ -122,6 +125,7 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
+      turnService,
       hungerService
     )
 
@@ -144,6 +148,7 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
+      turnService,
       hungerService
     )
 
@@ -168,6 +173,7 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
+      turnService,
       hungerService
     )
 
@@ -192,6 +198,7 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
+      turnService,
       hungerService
     )
 
@@ -216,6 +223,7 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
+      turnService,
       hungerService
     )
 

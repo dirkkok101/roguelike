@@ -9,6 +9,7 @@ import { HungerService, HungerTickResult } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
+import { TurnService } from '@services/TurnService'
 import { AttackCommand } from '../AttackCommand'
 
 // ============================================================================
@@ -25,6 +26,7 @@ export class MoveCommand implements ICommand {
     private combatService: CombatService,
     private levelingService: LevelingService,
     private doorService: DoorService,
+    private turnService: TurnService,
     private hungerService?: HungerService,
     private notificationService?: NotificationService
   ) {}
@@ -193,14 +195,13 @@ export class MoveCommand implements ICommand {
           'critical',
           state.turnCount + 1
         )
-        return {
+        return this.turnService.incrementTurn({
           ...state,
           player,
           messages: finalMessages,
           isGameOver: true,
           deathCause: hungerResult.death.cause,
-          turnCount: state.turnCount + 1,
-        }
+        })
       }
     }
 
@@ -251,14 +252,13 @@ export class MoveCommand implements ICommand {
     })
 
     // 7. Return with turn increment
-    return {
+    return this.turnService.incrementTurn({
       ...state,
       player: updatedPlayer,
       visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
       messages: finalMessages,
-      turnCount: state.turnCount + 1,
-    }
+    })
   }
 
 }

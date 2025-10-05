@@ -6,6 +6,7 @@ import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
+import { TurnService } from '@services/TurnService'
 import { HungerService } from '@services/HungerService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
@@ -18,6 +19,7 @@ describe('MoveCommand - Collision Detection', () => {
   let combatService: CombatService
   let levelingService: LevelingService
   let doorService: DoorService
+  let turnService: TurnService
   let hungerService: HungerService
   let mockRandom: MockRandom
 
@@ -30,6 +32,7 @@ describe('MoveCommand - Collision Detection', () => {
     combatService = new CombatService(mockRandom)
     levelingService = new LevelingService()
     doorService = new DoorService()
+    turnService = new TurnService()
     hungerService = new HungerService(mockRandom)
   })
 
@@ -149,6 +152,7 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
+        turnService,
         hungerService
       )
 
@@ -179,6 +183,7 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
+        turnService,
         hungerService
       )
 
@@ -211,6 +216,7 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
+        turnService,
         hungerService
       )
 
@@ -236,6 +242,7 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
+        turnService,
         hungerService
       )
 
@@ -278,6 +285,7 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
+        turnService,
         hungerService
       )
 
@@ -314,6 +322,7 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
+        turnService,
         hungerService
       )
 
