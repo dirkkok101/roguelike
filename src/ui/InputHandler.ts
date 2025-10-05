@@ -41,6 +41,7 @@ import { PotionService } from '@services/PotionService'
 import { ScrollService } from '@services/ScrollService'
 import { WandService } from '@services/WandService'
 import { TurnService } from '@services/TurnService'
+import { SearchService } from '@services/SearchService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -196,7 +197,9 @@ export class InputHandler {
 
       case 's':
         event.preventDefault()
-        return new SearchCommand(this.messageService, this.random)
+        // Create SearchService (stateless, can be instantiated on demand)
+        const searchService = new SearchService(this.random, this.doorService)
+        return new SearchCommand(searchService, this.messageService, this.turnService)
 
       case 'S':
         event.preventDefault()
