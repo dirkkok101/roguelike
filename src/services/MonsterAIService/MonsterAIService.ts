@@ -264,30 +264,38 @@ export class MonsterAIService {
 
   /**
    * SIMPLE behavior - Move directly toward player (greedy)
+   * Tries primary axis first, then secondary axis if blocked
    */
   private simpleBehavior(
     monster: Monster,
     playerPos: Position,
     level: any
   ): MonsterAction {
-    // Move directly toward player (greedy)
     const dx = playerPos.x - monster.position.x
     const dy = playerPos.y - monster.position.y
 
-    let target: Position
+    // Build movement priority: primary axis first, secondary axis second
+    const movements: Position[] = []
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      target = { x: monster.position.x + Math.sign(dx), y: monster.position.y }
+      // Horizontal movement is primary (larger distance)
+      if (dx !== 0) movements.push({ x: monster.position.x + Math.sign(dx), y: monster.position.y })
+      if (dy !== 0) movements.push({ x: monster.position.x, y: monster.position.y + Math.sign(dy) })
     } else {
-      target = { x: monster.position.x, y: monster.position.y + Math.sign(dy) }
+      // Vertical movement is primary (larger distance)
+      if (dy !== 0) movements.push({ x: monster.position.x, y: monster.position.y + Math.sign(dy) })
+      if (dx !== 0) movements.push({ x: monster.position.x + Math.sign(dx), y: monster.position.y })
     }
 
-    // Check if walkable
-    const tile = level.tiles[target.y]?.[target.x]
-    if (tile?.walkable) {
-      return { type: 'move', target }
+    // Try each movement in priority order
+    for (const target of movements) {
+      const tile = level.tiles[target.y]?.[target.x]
+      if (tile?.walkable) {
+        return { type: 'move', target }
+      }
     }
 
+    // No valid moves available
     return { type: 'wait' }
   }
 
