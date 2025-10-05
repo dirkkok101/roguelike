@@ -122,7 +122,10 @@ describe('LightingService - Fuel Tick Result', () => {
       const result = service.tickFuel(player)
 
       expect(result.player.equipment.lightSource?.fuel).toBe(50)
-      expect(result.messages).toContain('Your torch is getting dim...')
+      expect(result.messages).toContainEqual({
+        text: 'Your torch is getting dim...',
+        type: 'warning'
+      })
     })
 
     test('warns at 10 fuel remaining', () => {
@@ -139,7 +142,10 @@ describe('LightingService - Fuel Tick Result', () => {
       const result = service.tickFuel(player)
 
       expect(result.player.equipment.lightSource?.fuel).toBe(10)
-      expect(result.messages).toContain('Your lantern flickers...')
+      expect(result.messages).toContainEqual({
+        text: 'Your lantern flickers...',
+        type: 'critical'
+      })
     })
 
     test('warns when light goes out (0 fuel)', () => {
@@ -156,7 +162,10 @@ describe('LightingService - Fuel Tick Result', () => {
       const result = service.tickFuel(player)
 
       expect(result.player.equipment.lightSource?.fuel).toBe(0)
-      expect(result.messages).toContain('Your torch goes out! You are in darkness!')
+      expect(result.messages).toContainEqual({
+        text: 'Your torch goes out! You are in darkness!',
+        type: 'critical'
+      })
     })
 
     test('does not warn between milestones', () => {
@@ -226,7 +235,10 @@ describe('LightingService - Fuel Tick Result', () => {
       // Tick 2: 51 -> 50 (warning)
       result = service.tickFuel(result.player)
       expect(result.player.equipment.lightSource?.fuel).toBe(50)
-      expect(result.messages).toContain('Your torch is getting dim...')
+      expect(result.messages).toContainEqual({
+        text: 'Your torch is getting dim...',
+        type: 'warning'
+      })
 
       // Tick 3: 50 -> 49 (no warning)
       result = service.tickFuel(result.player)

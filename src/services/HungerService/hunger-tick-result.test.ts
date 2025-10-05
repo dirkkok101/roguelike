@@ -62,7 +62,10 @@ describe('HungerService - Tick Result Complete', () => {
       const result = service.tickHunger(player)
 
       expect(result.player.hunger).toBe(300)
-      expect(result.messages).toContain('You are getting hungry')
+      expect(result.messages).toContainEqual({
+        text: 'You are getting hungry',
+        type: 'warning'
+      })
       expect(result.death).toBeUndefined()
     })
 
@@ -72,7 +75,10 @@ describe('HungerService - Tick Result Complete', () => {
       const result = service.tickHunger(player)
 
       expect(result.player.hunger).toBe(149)
-      expect(result.messages).toContain('You are weak from hunger!')
+      expect(result.messages).toContainEqual({
+        text: 'You are weak from hunger!',
+        type: 'warning'
+      })
       expect(result.death).toBeUndefined()
     })
 
@@ -82,9 +88,15 @@ describe('HungerService - Tick Result Complete', () => {
       const result = service.tickHunger(player)
 
       expect(result.player.hunger).toBe(0)
-      expect(result.messages).toContain('You are fainting!')
+      expect(result.messages).toContainEqual({
+        text: 'You are fainting!',
+        type: 'warning'
+      })
       // Should also have starvation message
-      expect(result.messages).toContain('You are fainting from hunger!')
+      expect(result.messages).toContainEqual({
+        text: 'You are fainting from hunger!',
+        type: 'critical'
+      })
       expect(result.death).toBeUndefined()
     })
 
@@ -118,7 +130,10 @@ describe('HungerService - Tick Result Complete', () => {
 
       expect(result.player.hunger).toBe(0)
       expect(result.player.hp).toBe(9)
-      expect(result.messages).toContain('You are fainting from hunger!')
+      expect(result.messages).toContainEqual({
+        text: 'You are fainting from hunger!',
+        type: 'critical'
+      })
       expect(result.death).toBeUndefined()
     })
 
@@ -129,7 +144,10 @@ describe('HungerService - Tick Result Complete', () => {
 
       expect(result.player.hunger).toBe(0)
       expect(result.player.hp).toBe(0)
-      expect(result.messages).toContain('You are fainting from hunger!')
+      expect(result.messages).toContainEqual({
+        text: 'You are fainting from hunger!',
+        type: 'critical'
+      })
       expect(result.death).toEqual({ cause: 'Died of starvation' })
     })
 
@@ -148,8 +166,14 @@ describe('HungerService - Tick Result Complete', () => {
       const result = service.tickHunger(player)
 
       expect(result.messages).toHaveLength(2)
-      expect(result.messages).toContain('You are fainting!')
-      expect(result.messages).toContain('You are fainting from hunger!')
+      expect(result.messages).toContainEqual({
+        text: 'You are fainting!',
+        type: 'warning'
+      })
+      expect(result.messages).toContainEqual({
+        text: 'You are fainting from hunger!',
+        type: 'critical'
+      })
     })
   })
 

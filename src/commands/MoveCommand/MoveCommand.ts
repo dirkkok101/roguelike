@@ -1,11 +1,11 @@
 import { GameState, DoorState, Position, Level, Monster } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MovementService } from '@services/MovementService'
-import { LightingService, FuelTickResult } from '@services/LightingService'
+import { LightingService, FuelTickResult, Message as LightMessage } from '@services/LightingService'
 import { FOVService, FOVUpdateResult } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
-import { HungerService, HungerTickResult } from '@services/HungerService'
+import { HungerService, HungerTickResult, Message as HungerMessage } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
@@ -134,7 +134,7 @@ export class MoveCommand implements ICommand {
   private performMovement(state: GameState, position: Position, level: Level): GameState {
     // 1. Move player
     let player = this.movementService.movePlayer(state.player, position)
-    let messages: string[] = []
+    let messages: (HungerMessage | LightMessage)[] = []
 
     // 2. Tick hunger
     const hungerResult: HungerTickResult = this.hungerService.tickHunger(player)
@@ -148,8 +148,8 @@ export class MoveCommand implements ICommand {
       messages.forEach((msg) => {
         finalMessages = this.messageService.addMessage(
           finalMessages,
-          msg,
-          msg.includes('fainting') ? 'critical' : 'warning',
+          msg.text,
+          msg.type,
           state.turnCount + 1
         )
       })
@@ -205,8 +205,8 @@ export class MoveCommand implements ICommand {
     messages.forEach((msg) => {
       finalMessages = this.messageService.addMessage(
         finalMessages,
-        msg,
-        msg.includes('fainting') ? 'critical' : 'warning',
+        msg.text,
+        msg.type,
         state.turnCount + 1
       )
     })

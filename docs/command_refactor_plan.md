@@ -1734,7 +1734,7 @@ export class EatCommand implements ICommand {
 - `src/commands/MoveCommand/MoveCommand.ts`
 - All affected test files
 
-**Task**: ☐ Change service results from `string[]` to `Message[]` with type
+**Task**: ✅ Change service results from `string[]` to `Message[]` with type
 
 **Current Problem** (MoveCommand.ts lines 182-188):
 ```typescript
@@ -1889,16 +1889,16 @@ private performMovement(/*...*/): GameState {
 ```
 
 **Subtasks**:
-- ☐ Define `Message` interface (text + type)
-- ☐ Update `HungerTickResult` to use `Message[]`
-- ☐ Update `FuelTickResult` to use `Message[]`
-- ☐ Update `FoodConsumptionResult` to use `Message[]` (from Task 2.2)
-- ☐ Update HungerService to return typed messages
-- ☐ Update LightingService to return typed messages
-- ☐ Remove message type logic from MoveCommand
-- ☐ Update all service tests for new result types
-- ☐ Update MoveCommand tests
-- ☐ Run tests: `npm test`
+- ✅ Define `Message` interface (text + type)
+- ✅ Update `HungerTickResult` to use `Message[]`
+- ✅ Update `FuelTickResult` to use `Message[]`
+- ✅ Update `FoodConsumptionResult` to use `Message[]` (from Task 2.2)
+- ✅ Update HungerService to return typed messages
+- ✅ Update LightingService to return typed messages
+- ✅ Remove message type logic from MoveCommand
+- ✅ Update all service tests for new result types
+- ✅ Update MoveCommand tests
+- ✅ Run tests: `npm test` (1438 tests passing)
 
 **Acceptance Criteria**:
 - ✓ All service results use `Message[]` with type
@@ -1906,15 +1906,17 @@ private performMovement(/*...*/): GameState {
 - ✓ Services determine appropriate message types
 - ✓ All tests passing
 
+**Completed**: 2025-10-05 (1438 tests passing, message type logic moved to services)
+
 **Phase 2 Completion Checklist**:
-- ☐ Task 2.1 complete (MovementService enhanced)
-- ☐ Task 2.2 complete (HungerService enhanced)
-- ☐ Task 2.3 complete (Message types in services)
-- ☐ MoveCommand reduced by ~30 lines
-- ☐ EatCommand reduced from 121 → ~60 lines
-- ☐ No message type logic in commands
-- ☐ All tests passing
-- ☐ Git commit: "refactor: move logic from commands to services (Command Refactor Phase 2)"
+- ✅ Task 2.1 complete (MovementService enhanced) - commit 3ff8f2b
+- ✅ Task 2.2 complete (HungerService enhanced) - pending commit
+- ✅ Task 2.3 complete (Message types in services) - pending commit
+- ✅ MoveCommand reduced by ~30 lines (263 → 230 lines)
+- ✅ EatCommand reduced from 121 → 64 lines
+- ✅ No message type logic in commands
+- ✅ All tests passing (1438 tests)
+- ☐ Git commit: "refactor: enhance service result types with message metadata (Phase 2 Task 2.3)"
 
 ---
 

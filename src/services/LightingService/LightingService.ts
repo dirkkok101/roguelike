@@ -5,9 +5,14 @@ import { IRandomService } from '@services/RandomService'
 // RESULT TYPES
 // ============================================================================
 
+export interface Message {
+  text: string
+  type: 'info' | 'success' | 'warning' | 'critical' | 'combat'
+}
+
 export interface FuelTickResult {
   player: Player
-  messages: string[]
+  messages: Message[]
 }
 
 export interface LanternRefillResult {
@@ -30,7 +35,7 @@ export class LightingService {
    * Returns complete result with player and fuel warning messages
    */
   tickFuel(player: Player): FuelTickResult {
-    const messages: string[] = []
+    const messages: Message[] = []
 
     // No light source equipped
     if (!player.equipment.lightSource) {
@@ -56,10 +61,22 @@ export class LightingService {
       equipment: { ...player.equipment, lightSource: tickedLight }
     }
 
-    // Generate warning if needed
-    const warning = this.generateFuelWarning(tickedLight)
-    if (warning) {
-      messages.push(warning)
+    // Generate warnings with types based on severity
+    if (tickedLight.fuel === 0) {
+      messages.push({
+        text: `Your ${tickedLight.name.toLowerCase()} goes out! You are in darkness!`,
+        type: 'critical'
+      })
+    } else if (tickedLight.fuel === 10) {
+      messages.push({
+        text: `Your ${tickedLight.name.toLowerCase()} flickers...`,
+        type: 'critical'
+      })
+    } else if (tickedLight.fuel === 50) {
+      messages.push({
+        text: `Your ${tickedLight.name.toLowerCase()} is getting dim...`,
+        type: 'warning'
+      })
     }
 
     return { player: updatedPlayer, messages }

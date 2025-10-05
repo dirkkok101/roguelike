@@ -16,9 +16,14 @@ export enum HungerState {
 // RESULT TYPES
 // ============================================================================
 
+export interface Message {
+  text: string
+  type: 'info' | 'success' | 'warning' | 'critical' | 'combat'
+}
+
 export interface HungerTickResult {
   player: Player
-  messages: string[]
+  messages: Message[]
   death?: {
     cause: string
   }
@@ -26,7 +31,7 @@ export interface HungerTickResult {
 
 export interface FoodConsumptionResult {
   player: Player
-  messages: Array<{ text: string; type: 'info' | 'success' | 'warning' | 'critical' | 'combat' }>
+  messages: Message[]
   improved: boolean
 }
 
@@ -65,18 +70,24 @@ export class HungerService {
     // 4. Calculate new state
     const newState = this.getHungerState(newHunger)
 
-    // 5. Build messages array
-    const messages: string[] = []
+    // 5. Build messages array with types
+    const messages: Message[] = []
     const warning = this.generateHungerWarning(oldState, newState)
     if (warning) {
-      messages.push(warning)
+      messages.push({
+        text: warning,
+        type: 'warning'
+      })
     }
 
     // 6. Apply starvation damage if starving
     let death = undefined
     if (newState === HungerState.STARVING) {
       updatedPlayer = this.applyStarvationDamage(updatedPlayer)
-      messages.push('You are fainting from hunger!')
+      messages.push({
+        text: 'You are fainting from hunger!',
+        type: 'critical'
+      })
 
       if (updatedPlayer.hp <= 0) {
         death = { cause: 'Died of starvation' }
