@@ -112,63 +112,200 @@ import { GameState } from '../types/core/core'  // Use @game instead
 
 ---
 
-## Coding Conventions
+## Core Architectural Principles
 
-### 1. Dependency Injection
+This project follows **Clean Architecture** and **Functional Programming** principles. Understanding these is critical for maintaining code quality.
 
-Always inject dependencies (especially RandomService):
+---
 
-```typescript
-// ✅ Good
-class CombatService {
-  constructor(private random: IRandomService) {}
-}
+### SOLID Principles
 
-// ❌ Bad
-class CombatService {
-  calculateDamage() {
-    return Math.random() * 10  // Not testable!
-  }
-}
+#### Single Responsibility Principle (SRP)
+**Each class/service has ONE reason to change**
+
+- **Services**: One domain concern only
+  - ✅ `CombatService`: Combat calculations only
+  - ✅ `MovementService`: Position/collision only
+  - ❌ Bad: `GameService` doing combat + movement + inventory
+
+- **Commands**: One user action only
+  - ✅ `MoveCommand`: Handle movement
+  - ✅ `AttackCommand`: Handle attack
+  - ❌ Bad: `PlayerActionCommand` handling 10 different actions
+
+**When Violated**: Classes grow to 500+ lines, tests become complex, changes ripple unexpectedly
+
+**Real Example**: TurnService extracted from 26 commands → single source of truth for turn logic
+
+---
+
+#### Open/Closed Principle (OCP)
+**Open for extension, closed for modification**
+
+- **Extend via composition**, not editing existing code
+- **Strategy Pattern**: Different AI behaviors without modifying MonsterAIService
+- **Result Objects**: DoorService returns `{level, message}` - extend by adding fields, not changing signature
+
+**When Violated**: Adding features breaks existing code, tests need updates for unrelated changes
+
+---
+
+#### Liskov Substitution Principle (LSP)
+**Subtypes must be substitutable for base types**
+
+- **IRandomService** interface:
+  - `SeededRandom`: Production (reproducible dungeons)
+  - `MockRandom`: Testing (deterministic results)
+  - **Interchangeable** without changing service behavior
+
+**When Violated**: Tests fail when swapping implementations, instanceof checks needed
+
+---
+
+#### Interface Segregation Principle (ISP)
+**Clients shouldn't depend on methods they don't use**
+
+- **Focused Interfaces**:
+  - `ICommand`: Single `execute()` method
+  - `IRandomService`: Only RNG methods
+  - ❌ Bad: `IGameService` with 50 methods most clients don't need
+
+**When Violated**: Services import interfaces just to use 1-2 methods, forced to implement unused methods
+
+---
+
+#### Dependency Inversion Principle (DIP)
+**Depend on abstractions, not concretions**
+
+- **Inject dependencies** via constructor:
+  - Depend on `IRandomService` (interface)
+  - NOT on `Math.random()` (concrete global)
+
+- **Testability**: Swap real dependencies for mocks
+- **Flexibility**: Change implementations without touching clients
+
+**When Violated**: Services use globals (`Math.random()`, `Date.now()`), testing requires monkey-patching
+
+**Real Example**: All services receive `IRandomService` → 100% testable with `MockRandom`
+
+---
+
+### DRY (Don't Repeat Yourself)
+
+**Principle**: Every piece of knowledge has a single source of truth
+
+**Applied**:
+- **TurnService** eliminated 26 copies of `turnCount + 1`
+- **LevelService** eliminated level transition logic from 3 commands
+- **DoorService** eliminated door opening logic from MoveCommand, OpenDoorCommand
+
+**When Violated**:
+- Same code copy-pasted across files
+- Bug fixes need to be applied in multiple places
+- Logic inconsistencies emerge between duplicates
+
+**Red Flags**:
+- Code blocks that look similar but slightly different
+- Comments saying "same as X but for Y"
+- Multiple methods with similar names (`movePlayer`, `moveMonster`, `moveItem`)
+
+---
+
+### YAGNI (You Aren't Gonna Need It)
+
+**Principle**: Build features when needed, not speculatively
+
+**Applied**:
+- **WandService** pending targeting system (Phase 5)
+  - Charge management implemented NOW (needed)
+  - Wand effects postponed UNTIL targeting exists (speculative)
+
+- **ContextService** planned but not implemented
+  - Not needed yet
+  - Will build when UI polish phase arrives
+
+**When Violated**:
+- 50% of code never used
+- Premature abstractions make simple changes hard
+- "We might need this later" creates complexity debt
+
+**Red Flags**:
+- Code for features not in current phase
+- Generic abstractions without 3+ use cases
+- Configuration for non-existent features
+
+---
+
+### Immutability Principle
+
+**Principle**: Never mutate state, always return new objects
+
+**Why**:
+- **Predictability**: No action-at-a-distance bugs
+- **Time-Travel**: Undo/redo becomes trivial
+- **Testing**: State before/after comparison
+- **Concurrency**: Safe for future async features
+
+**Pattern**: Spread operator creates new objects
+```
+newState = { ...oldState, field: newValue }
+newArray = [...oldArray, newItem]
 ```
 
-### 2. Immutability
+**When Violated**:
+- UI doesn't update (stale references)
+- Undo/redo breaks
+- Subtle bugs from unexpected mutations
+- Tests become flaky
 
-State updates must return new objects:
+**Real Example**: All services return new objects, never mutate parameters
 
-```typescript
-// ✅ Good
-tickFuel(light: LightSource): LightSource {
-  return { ...light, fuel: light.fuel - 1 }
-}
+---
 
-// ❌ Bad
-tickFuel(light: LightSource): LightSource {
-  light.fuel -= 1  // Mutation!
-  return light
-}
+### Separation of Concerns
+
+**Principle**: Each layer does one thing, delegates the rest
+
+**Layered Architecture**:
+```
+UI Layer      → Rendering ONLY (zero logic)
+Command Layer → Orchestration ONLY (zero implementation)
+Service Layer → Logic ONLY (zero UI/commands)
+Data Layer    → State ONLY (zero behavior)
 ```
 
-### 3. Command Pattern
+**Applied**:
+- **UI**: Reads state, renders DOM, captures input
+- **Commands**: Call services in order, return new state
+- **Services**: Implement game rules, return results
+- **Data**: Plain objects/interfaces
 
-Commands orchestrate services, contain NO logic:
+**When Violated**:
+- UI has `if` statements for game logic
+- Commands have loops or calculations
+- Services manipulate DOM
+- Data has methods
 
-```typescript
-class MoveCommand implements ICommand {
-  constructor(
-    private movement: MovementService,
-    private lighting: LightingService,
-    private fov: FOVService
-  ) {}
-  
-  execute(state: GameState): GameState {
-    // 1. Move player (MovementService)
-    // 2. Tick fuel (LightingService)
-    // 3. Recompute FOV (FOVService)
-    // 4. Return new state
-  }
-}
-```
+**Real Example**: MoveCommand orchestrates 7 services, contains ZERO logic
+
+---
+
+### Key Patterns Summary
+
+| Principle | What | Why | Red Flag |
+|-----------|------|-----|----------|
+| **Single Responsibility** | One reason to change | Focused, testable | 500+ line files |
+| **Dependency Inversion** | Inject abstractions | Testable, flexible | Globals usage |
+| **DRY** | Single source of truth | Consistency, maintainability | Copy-paste code |
+| **YAGNI** | Build when needed | Simplicity, focus | Unused features |
+| **Immutability** | Return new objects | Predictability, debugging | Mutations |
+| **Separation of Concerns** | Layered responsibilities | Modularity, clarity | Logic in wrong layer |
+
+---
+
+**See Also**:
+- [ARCHITECTURAL_REVIEW.md](./docs/ARCHITECTURAL_REVIEW.md) - Pre-commit checklist
+- Real refactoring examples below (sections 5-8)
 
 ---
 
@@ -176,50 +313,66 @@ class MoveCommand implements ICommand {
 
 ### Coverage Goals
 
-- **>80% coverage** required (lines, branches, functions)
-- Services: aim for 100%
-- Commands: >80%
+- **Services**: Aim for 100% coverage (pure logic, fully testable)
+- **Commands**: >80% coverage (orchestration, less critical)
+- **Overall**: >80% lines, branches, functions
 
-### Test Naming
+**Why**: Services contain business logic → must be bulletproof
 
-```typescript
-// ✅ Good - scenario-based
-describe('LightingService - Fuel Consumption', () => {
-  test('reduces fuel by 1 each tick')
-  test('warns at 50 turns remaining')
-})
+---
 
-// ❌ Bad - implementation-focused
-describe('LightingService', () => {
-  test('tickFuel')
-})
+### Test Organization
+
+**Principle**: Tests grouped by behavior/scenario, not by method name
+
+- ✅ **Good**: `fuel-consumption.test.ts`, `warning-messages.test.ts`
+- ❌ **Bad**: `LightingService.test.ts` (one giant file)
+
+**Pattern**: One test file per scenario/feature
+```
+LightingService/
+├── LightingService.ts
+├── fuel-consumption.test.ts      # Fuel tracking behavior
+├── warning-messages.test.ts      # Warning generation
+├── refill-mechanics.test.ts      # Lantern refilling
+└── light-sources.test.ts         # Torch/lantern/artifact creation
 ```
 
-### Test Pattern (AAA)
+**See**: [Testing Strategy](./testing-strategy.md) for complete organization
 
-```typescript
-test('reduces fuel by 1 each tick', () => {
-  // Arrange
-  const torch = service.createTorch()
-  
-  // Act
-  const ticked = service.tickFuel(torch)
-  
-  // Assert
-  expect(ticked.fuel).toBe(499)
-})
+---
+
+### Test Pattern: AAA (Arrange-Act-Assert)
+
+**Structure every test**:
+1. **Arrange**: Set up test data
+2. **Act**: Call method under test
+3. **Assert**: Verify result
+
+**Benefits**:
+- Clear test structure
+- Easy to understand
+- Consistent across codebase
+
+---
+
+### MockRandom: Deterministic Testing
+
+**Principle**: Inject `IRandomService` interface, swap for `MockRandom` in tests
+
+**Why**:
+- **Predictable**: Tests don't flake from random values
+- **Targeted**: Test specific edge cases (max roll, min roll)
+- **Fast**: No retry logic needed
+
+**Pattern**:
+```
+Create MockRandom with predetermined values
+Inject into service constructor
+Assert exact expected results
 ```
 
-### Use MockRandom
-
-```typescript
-test('damage calculation', () => {
-  const mockRandom = new MockRandom([8])  // Deterministic
-  const service = new CombatService(mockRandom)
-  
-  expect(service.calculateDamage('1d8')).toBe(8)
-})
-```
+**See**: `src/services/RandomService/MockRandom.ts`
 
 ---
 
@@ -288,59 +441,22 @@ Three states:
 
 ---
 
-## Data Structures (Key Ones)
+## Data Structures
 
-```typescript
-interface GameState {
-  player: Player
-  currentLevel: number
-  levels: Map<number, Level>  // Persisted levels
-  messageLog: string[]
-  turnCount: number
-  seed: string
-  // ... more
-}
+**All type definitions** live in `src/types/core/core.ts`
 
-interface Player {
-  position: Position
-  hp: number
-  maxHp: number
-  strength: number
-  level: number
-  xp: number
-  gold: number
-  armorClass: number
-  inventory: Item[]
-  equipped: Equipment
-  foodUnits: number
-  lightSource: LightSource | null
-  visibleCells: Set<Position>
-  // ... more
-}
+**Key Structures**:
+- **GameState**: Root game state (player, levels, messages, turn count)
+- **Player**: Player state (position, stats, inventory, equipment)
+- **Level**: Dungeon level (tiles, monsters, items, doors, traps)
+- **Monster**: AI-controlled entity (behavior, state, pathfinding)
+- **Item Types**: Weapon, Armor, Potion, Scroll, Ring, Wand, Food
+- **Equipment**: Worn/wielded items (weapon, armor, rings, light)
+- **LightSource**: Torches, lanterns, artifacts (radius, fuel)
 
-interface LightSource {
-  type: 'torch' | 'lantern' | 'artifact'
-  radius: number  // 1-3
-  isPermanent: boolean
-  fuel?: number
-  maxFuel?: number
-  name: string
-}
-
-interface Monster {
-  letter: string  // 'A'-'Z'
-  name: string
-  position: Position
-  hp: number
-  aiProfile: MonsterAIProfile
-  state: MonsterState  // SLEEPING, HUNTING, FLEEING
-  visibleCells: Set<Position>
-  currentPath: Position[] | null
-  // ... more
-}
-```
-
-Full specs: [Architecture - Data Structures](./architecture.md#data-structures)
+**See**:
+- Type definitions: `src/types/core/core.ts`
+- Detailed specs: [Architecture - Data Structures](./architecture.md#data-structures)
 
 ---
 
@@ -368,123 +484,147 @@ See [Plan - Phase 1](./plan.md#phase-1-foundation--core-loop-week-1-2) for detai
 
 ## Common Pitfalls
 
-### 1. Don't Put Logic in UI
-```typescript
-// ❌ Bad
-button.onclick = () => {
-  player.hp -= damage  // Logic in UI!
-}
+### 1. Logic in UI Layer
+**Violates**: Separation of Concerns
 
-// ✅ Good
-button.onclick = () => {
-  const command = new AttackCommand(services)
-  const newState = command.execute(state)
-  render(newState)
-}
+❌ **Problem**: UI components contain game logic (damage calculation, state mutation)
+
+✅ **Solution**: UI only renders state and captures input → delegates to commands
+
+**Pattern**:
+```
+Input Event → Create Command → Execute → Render New State
 ```
 
-### 2. Don't Put Logic in Commands
-```typescript
-// ❌ Bad
-execute(state: GameState) {
-  const damage = Math.floor(Math.random() * 10)  // Logic!
-  return { ...state, player: { ...state.player, hp: hp - damage }}
-}
+**Red Flags**:
+- `if/else` logic in UI event handlers
+- Direct state mutation from UI
+- Calculations in render functions
 
-// ✅ Good
-execute(state: GameState) {
-  const damage = this.combatService.calculateDamage(attacker, weapon)
-  return this.combatService.applyDamage(state, damage)
-}
+**See**: UI has ZERO logic rule above
+
+---
+
+### 2. Logic in Command Layer
+**Violates**: Single Responsibility, Dependency Inversion
+
+❌ **Problem**: Commands implement game logic (calculations, algorithms, rules)
+
+✅ **Solution**: Commands orchestrate services, each service call is one line
+
+**Pattern**:
+```
+Command.execute():
+  1. Call ServiceA.method()
+  2. Call ServiceB.method()
+  3. Call ServiceC.method()
+  4. Return new state
 ```
 
-### 3. Always Test with MockRandom
-```typescript
-// ❌ Bad - flaky test
-test('damage varies', () => {
-  const damage = service.calculateDamage('1d8')
-  expect(damage).toBeGreaterThan(0)  // Could randomly fail!
-})
+**Red Flags**:
+- Loops (`for`, `forEach`, `map`)
+- Calculations (`Math.*`, arithmetic)
+- Conditional logic beyond simple routing
+- Array/object manipulation
 
-// ✅ Good - deterministic
-test('rolls specified die', () => {
-  const mock = new MockRandom([8])
-  const service = new CombatService(mock)
-  expect(service.calculateDamage('1d8')).toBe(8)
-})
+**See**: Sections 5-8 below for real refactoring examples
+
+---
+
+### 3. Non-Deterministic Tests
+**Violates**: Dependency Inversion (using concrete `Math.random()`)
+
+❌ **Problem**: Tests use real randomness → flaky, unreliable, hard to debug
+
+✅ **Solution**: Inject `IRandomService`, use `MockRandom` with predetermined values
+
+**Why This Matters**:
+- Flaky tests destroy CI/CD confidence
+- Can't test specific edge cases (max damage, min damage)
+- Debugging random failures wastes hours
+
+**Pattern**:
+```
+Test Setup:
+  Create MockRandom with controlled values
+  Inject into service
+  Assert exact expected result
 ```
 
-### 4. Don't Mutate State
-```typescript
-// ❌ Bad
-function movePlayer(state: GameState, pos: Position) {
-  state.player.position = pos  // Mutation!
-  return state
-}
+**See**: MockRandom section above
 
-// ✅ Good
-function movePlayer(state: GameState, pos: Position) {
-  return {
-    ...state,
-    player: { ...state.player, position: pos }
-  }
-}
+---
+
+### 4. State Mutation
+**Violates**: Immutability Principle
+
+❌ **Problem**: Direct modification of state objects
+
+✅ **Solution**: Return new objects with spread operator
+
+**Why This Matters**:
+- React-style frameworks won't detect changes
+- Breaks time-travel debugging
+- Creates action-at-a-distance bugs
+- Makes undo/redo impossible
+
+**Pattern**: Always use spread operator
+```
+newObject = { ...oldObject, field: newValue }
+newArray = [...oldArray, newItem]
 ```
 
-### 5. Real Example: MoveCommand Exploration Logic (Fixed in commit 9be65e6)
+**Red Flags**:
+- Assignment to object properties after creation
+- `push()`, `splice()`, direct array index assignment
+- `++`, `--` operators on object fields
 
-**The Problem**: We found logic in MoveCommand that iterated through visible cells and marked tiles as explored:
+**See**: Immutability Principle above
 
-```typescript
-// ❌ Bad - Logic in Command (MoveCommand.ts lines 179-189)
-const updatedLevel = {
-  ...level,
-  explored: level.explored.map((row) => [...row]),
-}
-visibleCells.forEach((key) => {
-  const pos = this.fovService.keyToPos(key)
-  if (updatedLevel.explored[pos.y]) {
-    updatedLevel.explored[pos.y][pos.x] = true  // Logic in command!
-  }
-})
+---
+
+### 5. Real Example: FOV Exploration Logic Extraction
+**Principle Applied**: Single Responsibility Principle
+
+**Commit**: `9be65e6`
+
+**Problem Identified**: MoveCommand contained exploration tracking logic
+- `forEach` loop iterating visible cells
+- Array manipulation (map, direct index access)
+- Business logic (marking tiles as explored)
+
+**Principle Violated**: Commands should orchestrate, not implement
+
+**Conceptual Before**:
+```
+MoveCommand.execute():
+  Calculate new position
+  Create explored tile copy
+  FOR EACH visible cell:           ← Logic in command!
+    Convert position key
+    Update explored array           ← Data manipulation!
+  Return new state
 ```
 
-**Red Flags Detected**:
-- `forEach` loop in command
-- Array manipulation (`map`, direct array access)
-- Game logic (marking tiles as explored)
-
-**The Fix**: Extract to FOVService method, command becomes one line:
-
-```typescript
-// ✅ Good - Orchestration Only
-const updatedLevel = this.fovService.updateExploredTiles(level, visibleCells)
+**Conceptual After**:
+```
+MoveCommand.execute():
+  Calculate new position
+  Update explored via service       ← One line orchestration
+  Return new state
 ```
 
-**FOVService gains the method**:
-```typescript
-// In FOVService.ts
-updateExploredTiles(level: Level, visibleCells: Set<string>): Level {
-  const updatedExplored = level.explored.map((row) => [...row])
-
-  visibleCells.forEach((key) => {
-    const pos = this.keyToPos(key)
-    if (updatedExplored[pos.y] && updatedExplored[pos.y][pos.x] !== undefined) {
-      updatedExplored[pos.y][pos.x] = true
-    }
-  })
-
-  return { ...level, explored: updatedExplored }
-}
-```
-
-**Benefits**:
+**Extraction**:
+- Moved logic to `FOVService.updateExploredTiles()`
 - Command reduced from 11 lines to 1
-- Logic testable in isolation (exploration-tracking.test.ts)
-- Method reusable across codebase
-- Follows architecture: commands orchestrate, services contain logic
+- Logic now testable in isolation
 
-**Lesson**: If you see loops, conditionals, or data manipulation in a command, extract to a service!
+**Why This Matters**:
+- **Single Responsibility**: FOVService owns all FOV/exploration logic
+- **Testability**: Can test exploration without command overhead
+- **Reusability**: Other commands can now call same method
+
+**See**: `src/services/FOVService/exploration-tracking.test.ts`
 
 ### 6. Real Example: TurnService Standardization (Fixed in commit 1902d9c)
 
