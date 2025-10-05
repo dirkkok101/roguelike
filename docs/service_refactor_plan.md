@@ -1510,7 +1510,7 @@ export class CorridorGenerationService {
 - `src/commands/MoveCommand/MoveCommand.ts`
 - Main game initialization (wherever MoveCommand is created)
 
-**Task**: ☐ Make all MoveCommand dependencies required
+**Task**: ☑ Make all MoveCommand dependencies required
 
 **Current** (lines 28-29):
 ```typescript
@@ -1566,7 +1566,7 @@ constructor(
 **Files**:
 - `src/services/MonsterTurnService/MonsterTurnService.ts`
 
-**Task**: ☐ Inject RandomService instead of accessing CombatService private field
+**Task**: ☑ Inject RandomService instead of accessing CombatService private field
 
 **Current** (lines 273, 284):
 ```typescript
@@ -1620,7 +1620,7 @@ class MonsterTurnService {
 **Files**:
 - `src/services/CombatService/CombatService.ts`
 
-**Task**: ☐ Confirm executeBumpAttack was removed (appears to be done)
+**Task**: ☑ Confirm executeBumpAttack was removed (appears to be done)
 
 **Checklist**:
 - ☐ Search CombatService for `executeBumpAttack`
@@ -1647,7 +1647,7 @@ class MonsterTurnService {
 **Estimated Time**: 2-3 hours
 **Files**: All commands
 
-**Task**: ☐ Find and remove all optional service dependencies
+**Task**: ☑ Find and remove all optional service dependencies
 
 **Search Strategy**:
 ```bash
@@ -1679,7 +1679,7 @@ grep -r "private.*Service?" src/commands/
 **Files**:
 - `src/services/MessageService/MessageService.ts`
 
-**Task**: ☐ Verify MessageService.addMessages() exists
+**Task**: ☑ Verify MessageService.addMessages() exists
 
 **Current** (MessageService.ts lines 47-59):
 ```typescript
@@ -1707,12 +1707,12 @@ addMessages(
 - ✓ Commands use it where appropriate
 
 **Phase 4 Completion Checklist**:
-- ☐ All optional dependencies removed or justified
-- ☐ Encapsulation violations fixed
-- ☐ CombatService verified clean
-- ☐ All commands have clear contracts
-- ☐ All tests passing
-- ☐ Git commit: "refactor: remove optional dependencies and fix violations (Phase 4)"
+- ☑ All optional dependencies removed or justified
+- ☑ Encapsulation violations fixed
+- ☑ CombatService verified clean
+- ☑ All commands have clear contracts
+- ☑ All tests passing (1357/1357)
+- ☑ Git commit: ae4bd4d "refactor: complete Phase 4 - remove optional dependencies and fix violations"
 
 ---
 
