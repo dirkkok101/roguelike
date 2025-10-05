@@ -4,6 +4,9 @@ import {
   Weapon,
   Armor,
   Ring,
+  Torch,
+  Lantern,
+  Artifact,
   ItemType,
 } from '@game/core/core'
 
@@ -131,8 +134,71 @@ export class InventoryService {
     }
   }
 
-  // Note: Light sources are managed by LightingService and equipped directly,
-  // not through InventoryService. They don't go through inventory as regular items.
+  /**
+   * Equip light source (torch, lantern, or artifact)
+   * Auto-drops burnt-out torches (fuel = 0) instead of returning to inventory
+   */
+  equipLightSource(player: Player, lightSource: Torch | Lantern | Artifact): Player {
+    const oldLight = player.equipment.lightSource
+
+    // Remove new light source from inventory
+    let newInventory = player.inventory.filter((item) => item.id !== lightSource.id)
+
+    // Return old light source to inventory if it should not be auto-dropped
+    if (oldLight && !this.shouldAutoDropLight(oldLight)) {
+      newInventory = [...newInventory, oldLight]
+    }
+
+    return {
+      ...player,
+      inventory: newInventory,
+      equipment: {
+        ...player.equipment,
+        lightSource,
+      },
+    }
+  }
+
+  /**
+   * Unequip light source (returns to inventory)
+   */
+  unequipLightSource(player: Player): Player {
+    const lightSource = player.equipment.lightSource
+
+    if (!lightSource) {
+      return player // No light source to unequip
+    }
+
+    return {
+      ...player,
+      inventory: [...player.inventory, lightSource],
+      equipment: {
+        ...player.equipment,
+        lightSource: null,
+      },
+    }
+  }
+
+  /**
+   * Check if light source should be auto-dropped (burnt out)
+   * - Torches with fuel = 0: auto-drop
+   * - Lanterns: never auto-drop (can be refilled)
+   * - Artifacts: never auto-drop (permanent)
+   */
+  private shouldAutoDropLight(light: Torch | Lantern | Artifact): boolean {
+    // Permanent lights never drop
+    if (light.isPermanent) return false
+
+    // Lanterns can be refilled, so never drop
+    if (light.type === ItemType.LANTERN) return false
+
+    // Torches with no fuel should be dropped
+    if (light.type === ItemType.TORCH && 'fuel' in light) {
+      return light.fuel <= 0
+    }
+
+    return false
+  }
 
   /**
    * Check if player can carry more items

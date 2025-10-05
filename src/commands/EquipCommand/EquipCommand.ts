@@ -1,4 +1,4 @@
-import { GameState, ItemType, Weapon, Armor, Ring } from '@game/core/core'
+import { GameState, ItemType, Weapon, Armor, Ring, Torch, Lantern, Artifact } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
@@ -79,6 +79,15 @@ export class EquipCommand implements ICommand {
           this.ringSlot
         )
         equipMessage = `You put on ${displayName} on your ${this.ringSlot} hand.`
+        break
+
+      case ItemType.TORCH:
+      case ItemType.LANTERN:
+        updatedPlayer = this.inventoryService.equipLightSource(
+          state.player,
+          item as Torch | Lantern | Artifact
+        )
+        equipMessage = `You light and wield ${displayName}.`
         break
 
       default:
