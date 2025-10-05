@@ -1,4 +1,13 @@
-import { Position, Level, Player } from '@game/core/core'
+import { Position, Level, Player, Monster, Door, DoorState } from '@game/core/core'
+
+// ============================================================================
+// RESULT TYPES
+// ============================================================================
+
+export interface ObstacleResult {
+  type: 'none' | 'monster' | 'door' | 'wall'
+  data?: Monster | Door
+}
 
 // ============================================================================
 // MOVEMENT SERVICE - Position validation and collision detection
@@ -80,6 +89,54 @@ export class MovementService {
   hasGold(position: Position, level: Level): boolean {
     return level.gold.some(
       (gold) => gold.position.x === position.x && gold.position.y === position.y
+    )
+  }
+
+  /**
+   * Detect obstacle at target position
+   * Checks for monsters, blocking doors, and walls in that order
+   */
+  detectObstacle(position: Position, level: Level): ObstacleResult {
+    // Check for monster
+    const monster = this.getMonsterAt(position, level)
+    if (monster) {
+      return { type: 'monster', data: monster }
+    }
+
+    // Check for blocking door
+    const door = this.getDoorAt(position, level)
+    if (door && this.isBlockingDoor(door)) {
+      return { type: 'door', data: door }
+    }
+
+    // Check walkability (walls)
+    if (!this.isWalkable(position, level)) {
+      return { type: 'wall' }
+    }
+
+    return { type: 'none' }
+  }
+
+  /**
+   * Get door at position (if any)
+   */
+  private getDoorAt(position: Position, level: Level): Door | null {
+    return (
+      level.doors.find(
+        (d) => d.position.x === position.x && d.position.y === position.y
+      ) || null
+    )
+  }
+
+  /**
+   * Check if door blocks movement
+   * Closed, locked, or undiscovered secret doors block movement
+   */
+  private isBlockingDoor(door: Door): boolean {
+    return (
+      door.state === DoorState.CLOSED ||
+      door.state === DoorState.LOCKED ||
+      (door.state === DoorState.SECRET && !door.discovered)
     )
   }
 }

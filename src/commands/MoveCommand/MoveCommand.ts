@@ -42,7 +42,7 @@ export class MoveCommand implements ICommand {
     )
 
     // Detect obstacle
-    const obstacle = this.detectObstacle(newPosition, level)
+    const obstacle = this.movementService.detectObstacle(newPosition, level)
 
     // ROUTE 1: Monster → Delegate to AttackCommand (early return)
     if (obstacle.type === 'monster') {
@@ -122,40 +122,6 @@ export class MoveCommand implements ICommand {
 
     // ROUTE 4: Clear path → Normal movement
     return this.performMovement(state, newPosition, level)
-  }
-
-  /**
-   * Detects what obstacle (if any) is at the target position
-   */
-  private detectObstacle(
-    position: Position,
-    level: Level
-  ): { type: 'none' | 'monster' | 'door' | 'wall'; data?: any } {
-    // Check for monster
-    const monster = level.monsters.find(
-      (m) => m.position.x === position.x && m.position.y === position.y
-    )
-    if (monster) return { type: 'monster', data: monster }
-
-    // Check for closed/locked/secret door
-    const door = level.doors.find(
-      (d) => d.position.x === position.x && d.position.y === position.y
-    )
-    if (
-      door &&
-      (door.state === DoorState.CLOSED ||
-        door.state === DoorState.LOCKED ||
-        (door.state === DoorState.SECRET && !door.discovered))
-    ) {
-      return { type: 'door', data: door }
-    }
-
-    // Check walkability
-    if (!this.movementService.isWalkable(position, level)) {
-      return { type: 'wall' }
-    }
-
-    return { type: 'none' }
   }
 
   /**
