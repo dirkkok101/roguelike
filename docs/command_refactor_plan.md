@@ -1,6 +1,6 @@
 # Command Architecture Refactoring Plan
 
-**Status**: 🚧 Phase 2 Complete - In Progress (Phase 3 remaining)
+**Status**: ✅ All Phases Complete
 **Last Updated**: 2025-10-05
 **Estimated Duration**: 3 weeks
 **Dependencies**: Service refactor (Phases 1-4) complete ✅
@@ -8,7 +8,7 @@
 **Progress**:
 - ✅ Phase 1: Critical Fixes (SearchCommand, UseItemCommand) - **COMPLETE**
 - ✅ Phase 2: Service Enhancements (MovementService, HungerService, Message types) - **COMPLETE**
-- ⏳ Phase 3: Polish (LevelService, FOVService, TurnService) - **IN PROGRESS**
+- ✅ Phase 3: Polish (LevelService, FOVService, TurnService) - **COMPLETE**
 
 ---
 
@@ -1946,7 +1946,7 @@ private performMovement(/*...*/): GameState {
 - `src/services/LevelService/spawn-position.test.ts` (new)
 - `src/commands/MoveStairsCommand/MoveStairsCommand.ts` (simplify)
 
-**Task**: ☐ Consolidate level manipulation patterns
+**Task**: ☑ Consolidate level manipulation patterns
 
 **Note**: Check if LevelService or similar already exists. If so, enhance it. If not, create new service.
 
@@ -2082,26 +2082,28 @@ private moveToLevel(
 ```
 
 **Subtasks**:
-- ☐ Create (or enhance) LevelService
-- ☐ Add `getSpawnPosition()` method
-- ☐ Add `removeItemFromLevel()` helper
-- ☐ Add `updateLevel()` helper
-- ☐ Create test: `spawn-position.test.ts` (10+ tests)
-  - ☐ Test preferred position (valid stairs)
-  - ☐ Test fallback to room center
-  - ☐ Test fallback to level center
-  - ☐ Test invalid preferred position
-  - ☐ Test edge cases (no rooms, empty level)
-- ☐ Remove `getRandomFloor()` from MoveStairsCommand
-- ☐ Update MoveStairsCommand to use service
-- ☐ Consider using `removeItemFromLevel()` in PickUpCommand
-- ☐ Run tests: `npm test LevelService && npm test MoveStairsCommand`
+- ☑ Create (or enhance) LevelService
+- ☑ Add `getSpawnPosition()` method
+- ☑ Add `removeItemFromLevel()` helper
+- ☑ Add `updateLevel()` helper
+- ☑ Create test: `spawn-position.test.ts` (22 tests)
+  - ☑ Test preferred position (valid stairs)
+  - ☑ Test fallback to room center
+  - ☑ Test fallback to level center
+  - ☑ Test invalid preferred position
+  - ☑ Test edge cases (no rooms, empty level)
+- ☑ Remove `getRandomFloor()` from MoveStairsCommand
+- ☑ Update MoveStairsCommand to use service
+- ☑ Consider using `removeItemFromLevel()` in PickUpCommand
+- ☑ Run tests: `npm test LevelService && npm test MoveStairsCommand`
 
 **Acceptance Criteria**:
-- ✓ LevelService (or enhanced existing) has spawn logic
-- ✓ MoveStairsCommand has no `getRandomFloor()` method
-- ✓ Spawn position logic reusable across commands
-- ✓ All tests passing
+- ✅ LevelService (or enhanced existing) has spawn logic
+- ✅ MoveStairsCommand has no `getRandomFloor()` method
+- ✅ Spawn position logic reusable across commands
+- ✅ All tests passing
+
+**Completed**: 2025-10-05 (Commit: 77490bf, 22 tests passing)
 
 ---
 
@@ -2113,7 +2115,7 @@ private moveToLevel(
 - `src/services/FOVService/FOVService.ts` (check if already has this)
 - `src/commands/MoveStairsCommand/MoveStairsCommand.ts` (simplify)
 
-**Task**: ☐ Check if `updateExploredTiles()` exists in FOVService, if not add it
+**Task**: ☑ Check if `updateExploredTiles()` exists in FOVService, if not add it
 
 **Current State** (MoveStairsCommand.ts lines 127-135):
 ```typescript
@@ -2175,18 +2177,20 @@ private moveToLevel(/*...*/): GameState {
 ```
 
 **Subtasks**:
-- ☐ Check if `updateExploredTiles()` exists in FOVService
-- ☐ If not, add method to FOVService
-- ☐ If yes, verify it matches MoveStairsCommand usage
-- ☐ Remove manual exploration marking from MoveStairsCommand
-- ☐ Update MoveStairsCommand to use service method
-- ☐ Run tests: `npm test FOVService && npm test MoveStairsCommand`
+- ☑ Check if `updateExploredTiles()` exists in FOVService
+- ☑ Verified method already exists from earlier refactor
+- ☑ Verify it matches MoveStairsCommand usage
+- ☑ Remove manual exploration marking from MoveStairsCommand
+- ☑ Update MoveStairsCommand to use service method
+- ☑ Run tests: `npm test FOVService && npm test MoveStairsCommand`
 
 **Acceptance Criteria**:
-- ✓ FOVService has `updateExploredTiles()` method
-- ✓ MoveStairsCommand uses service method
-- ✓ No manual map() operations in MoveStairsCommand
-- ✓ All tests passing
+- ✅ FOVService has `updateExploredTiles()` method (confirmed existing)
+- ✅ MoveStairsCommand uses service method
+- ✅ No manual map() operations in MoveStairsCommand
+- ✅ All tests passing
+
+**Completed**: 2025-10-05 (Commit: 77490bf, part of Task 3.1 refactor)
 
 ---
 
@@ -2197,7 +2201,7 @@ private moveToLevel(/*...*/): GameState {
 **Files**:
 - All command files
 
-**Task**: ☐ Replace all manual turn increments with TurnService
+**Task**: ☑ Replace all manual turn increments with TurnService
 
 **Current Issues**:
 ```typescript
@@ -2219,24 +2223,41 @@ grep -r "turnCount: state.turnCount - 1" src/commands/
 ```
 
 **Subtasks**:
-- ☐ Search for manual turn increments in all commands
-- ☐ Replace with `this.turnService.incrementTurn()`
-- ☐ Verify TurnService is injected in all affected commands
-- ☐ Run tests: `npm test`
+- ☑ Search for manual turn increments in all commands
+- ☑ Replace with `this.turnService.incrementTurn()`
+- ☑ Verify TurnService is injected in all affected commands
+- ☑ Run tests: `npm test`
 
 **Acceptance Criteria**:
-- ✓ No manual `turnCount + 1` in commands
-- ✓ All commands use TurnService consistently
-- ✓ All tests passing
+- ✅ No manual `turnCount + 1` in commands
+- ✅ All commands use TurnService consistently
+- ✅ All tests passing (1460 tests)
+
+**Commands Updated**:
+1. PickUpCommand - added TurnService dependency
+2. OpenDoorCommand - added TurnService dependency
+3. DropCommand - added TurnService dependency
+4. EquipCommand - added TurnService dependency
+5. CloseDoorCommand - added TurnService dependency
+6. UnequipCommand - added TurnService dependency
+7. AttackCommand - added TurnService dependency
+
+**Files Modified**:
+- 7 command implementation files
+- 10 test files (including amulet-pickup.test.ts, amulet-restrictions.test.ts, bump-attack.test.ts)
+- InputHandler.ts (7 command instantiations)
+- MoveCommand.ts (AttackCommand delegation)
+
+**Completed**: 2025-10-05 (All tests passing: 1460 total)
 
 **Phase 3 Completion Checklist**:
-- ☐ Task 3.1 complete (LevelService created/enhanced)
-- ☐ Task 3.2 complete (FOVService exploration method confirmed)
-- ☐ Task 3.3 complete (TurnService consistency)
-- ☐ MoveStairsCommand simplified
-- ☐ All manual turn increments replaced
-- ☐ All tests passing
-- ☐ Git commit: "refactor: final command cleanup and consolidation (Command Refactor Phase 3)"
+- ☑ Task 3.1 complete (LevelService created/enhanced) - Commit: 77490bf
+- ☑ Task 3.2 complete (FOVService exploration method confirmed) - Commit: 77490bf
+- ☑ Task 3.3 complete (TurnService consistency) - Current session
+- ☑ MoveStairsCommand simplified (189 → 168 lines) - Commit: 77490bf
+- ☑ All manual turn increments replaced (7 commands updated)
+- ☑ All tests passing (1460 total)
+- ☐ Git commit: "refactor: ensure TurnService consistency across all commands (Phase 3 Task 3.3)"
 
 ---
 

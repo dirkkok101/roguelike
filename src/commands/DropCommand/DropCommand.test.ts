@@ -1,15 +1,18 @@
 import { DropCommand } from './DropCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 import { GameState, Player, Item, ItemType, Weapon, Position } from '@game/core/core'
 
 describe('DropCommand', () => {
   let inventoryService: InventoryService
   let messageService: MessageService
+  let turnService: TurnService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
+    turnService = new TurnService()
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {
@@ -112,7 +115,7 @@ describe('DropCommand', () => {
       player.inventory = [item as any]
 
       const state = createTestState(player)
-      const command = new DropCommand('sword-1', inventoryService, messageService)
+      const command = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.player.inventory).toHaveLength(0)
@@ -128,7 +131,7 @@ describe('DropCommand', () => {
       player.inventory = [item as any]
 
       const state = createTestState(player)
-      const command = new DropCommand('sword-1', inventoryService, messageService)
+      const command = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       const level = result.levels.get(1)
@@ -141,7 +144,7 @@ describe('DropCommand', () => {
       player.inventory = [item as any]
 
       const state = createTestState(player)
-      const command = new DropCommand('sword-1', inventoryService, messageService)
+      const command = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(1)
@@ -153,7 +156,7 @@ describe('DropCommand', () => {
       player.inventory = [item as any]
 
       const state = createTestState(player)
-      const command = new DropCommand('sword-1', inventoryService, messageService)
+      const command = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -167,7 +170,7 @@ describe('DropCommand', () => {
       player.inventory = [item as any]
 
       const state = createTestState(player)
-      const command = new DropCommand('sword-1', inventoryService, messageService)
+      const command = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const originalInventoryLength = state.player.inventory.length
 
       command.execute(state)
@@ -181,7 +184,7 @@ describe('DropCommand', () => {
       const player = createTestPlayer({ x: 5, y: 5 })
       const state = createTestState(player)
 
-      const command = new DropCommand('nonexistent', inventoryService, messageService)
+      const command = new DropCommand('nonexistent', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.player.inventory).toHaveLength(0)
@@ -192,7 +195,7 @@ describe('DropCommand', () => {
       const player = createTestPlayer({ x: 5, y: 5 })
       const state = createTestState(player)
 
-      const command = new DropCommand('nonexistent', inventoryService, messageService)
+      const command = new DropCommand('nonexistent', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -204,7 +207,7 @@ describe('DropCommand', () => {
       const player = createTestPlayer({ x: 5, y: 5 })
       const state = createTestState(player)
 
-      const command = new DropCommand('nonexistent', inventoryService, messageService)
+      const command = new DropCommand('nonexistent', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(0)
@@ -228,7 +231,7 @@ describe('DropCommand', () => {
       const playerWithEquippedWeapon = inventoryService.equipWeapon(player, weapon)
 
       const state = createTestState(playerWithEquippedWeapon)
-      const command = new DropCommand('sword-1', inventoryService, messageService)
+      const command = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       // Item should still be equipped
@@ -251,7 +254,7 @@ describe('DropCommand', () => {
       const playerWithEquippedWeapon = inventoryService.equipWeapon(player, weapon)
 
       const state = createTestState(playerWithEquippedWeapon)
-      const command = new DropCommand('sword-1', inventoryService, messageService)
+      const command = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -274,7 +277,7 @@ describe('DropCommand', () => {
       const playerWithEquippedWeapon = inventoryService.equipWeapon(player, weapon)
 
       const state = createTestState(playerWithEquippedWeapon)
-      const command = new DropCommand('sword-1', inventoryService, messageService)
+      const command = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(0)
@@ -290,7 +293,7 @@ describe('DropCommand', () => {
       player.inventory = [item1 as any, item2 as any, item3 as any]
 
       const state = createTestState(player)
-      const command = new DropCommand('mace-1', inventoryService, messageService)
+      const command = new DropCommand('mace-1', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.player.inventory).toHaveLength(2)
@@ -309,7 +312,7 @@ describe('DropCommand', () => {
       player.inventory = [item1 as any]
 
       const state = createTestState(player)
-      const command1 = new DropCommand('sword-1', inventoryService, messageService)
+      const command1 = new DropCommand('sword-1', inventoryService, messageService, turnService)
       const result1 = command1.execute(state)
 
       // Move player
@@ -318,7 +321,7 @@ describe('DropCommand', () => {
       movedPlayer.inventory = [item2 as any]
 
       const state2 = { ...result1, player: movedPlayer }
-      const command2 = new DropCommand('mace-1', inventoryService, messageService)
+      const command2 = new DropCommand('mace-1', inventoryService, messageService, turnService)
       const result2 = command2.execute(state2)
 
       const level = result2.levels.get(1)

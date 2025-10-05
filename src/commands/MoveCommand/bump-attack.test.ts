@@ -6,6 +6,8 @@ import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
+import { HungerService } from '@services/HungerService'
+import { NotificationService } from '@services/NotificationService'
 import { TurnService } from '@services/TurnService'
 import { MockRandom } from '@services/RandomService'
 import {
@@ -25,6 +27,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
   let combatService: CombatService
   let levelingService: LevelingService
   let doorService: DoorService
+  let hungerService: HungerService
+  let notificationService: NotificationService
   let turnService: TurnService
   let mockRandom: MockRandom
 
@@ -37,6 +41,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
     combatService = new CombatService(mockRandom)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
+    hungerService = new HungerService(mockRandom)
+    notificationService = new NotificationService()
     turnService = new TurnService()
   })
 
@@ -152,6 +158,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         combatService,
         levelingService,
         doorService,
+        hungerService,
+        notificationService,
         turnService
       )
 
@@ -180,6 +188,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         combatService,
         levelingService,
         doorService,
+        hungerService,
+        notificationService,
         turnService
       )
 
@@ -207,6 +217,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         combatService,
         levelingService,
         doorService,
+        hungerService,
+        notificationService,
         turnService
       )
 
@@ -233,6 +245,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         combatService,
         levelingService,
         doorService,
+        hungerService,
+        notificationService,
         turnService
       )
 
@@ -260,6 +274,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         combatService,
         levelingService,
         doorService,
+        hungerService,
+        notificationService,
         turnService
       )
 
@@ -285,6 +301,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         combatService,
         levelingService,
         doorService,
+        hungerService,
+        notificationService,
         turnService
       )
 
@@ -312,6 +330,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         combatService,
         levelingService,
         doorService,
+        hungerService,
+        notificationService,
         turnService
       )
 
@@ -339,6 +359,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         combatService,
         levelingService,
         doorService,
+        hungerService,
+        notificationService,
         turnService
       )
 

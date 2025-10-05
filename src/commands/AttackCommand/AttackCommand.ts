@@ -3,6 +3,7 @@ import { ICommand } from '../ICommand'
 import { CombatService } from '@services/CombatService'
 import { MessageService } from '@services/MessageService'
 import { LevelingService } from '@services/LevelingService'
+import { TurnService } from '@services/TurnService'
 
 // ============================================================================
 // ATTACK COMMAND - Player attacks monster
@@ -13,7 +14,8 @@ export class AttackCommand implements ICommand {
     private monsterId: string,
     private combatService: CombatService,
     private messageService: MessageService,
-    private levelingService: LevelingService
+    private levelingService: LevelingService,
+    private turnService: TurnService
   ) {}
 
   execute(state: GameState): GameState {
@@ -81,13 +83,12 @@ export class AttackCommand implements ICommand {
         const updatedLevels = new Map(state.levels)
         updatedLevels.set(state.currentLevel, updatedLevel)
 
-        return {
+        return this.turnService.incrementTurn({
           ...state,
           player: updatedPlayer,
           levels: updatedLevels,
           messages,
-          turnCount: state.turnCount + 1,
-        }
+        })
       } else {
         // Apply damage to monster
         const updatedMonster = this.combatService.applyDamageToMonster(
@@ -102,12 +103,11 @@ export class AttackCommand implements ICommand {
         const updatedLevels = new Map(state.levels)
         updatedLevels.set(state.currentLevel, updatedLevel)
 
-        return {
+        return this.turnService.incrementTurn({
           ...state,
           levels: updatedLevels,
           messages,
-          turnCount: state.turnCount + 1,
-        }
+        })
       }
     } else {
       messages = this.messageService.addMessage(
@@ -117,11 +117,10 @@ export class AttackCommand implements ICommand {
         state.turnCount
       )
 
-      return {
+      return this.turnService.incrementTurn({
         ...state,
         messages,
-        turnCount: state.turnCount + 1,
-      }
+      })
     }
   }
 }

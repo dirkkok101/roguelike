@@ -2,6 +2,7 @@ import { GameState, ItemType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 
 // ============================================================================
 // UNEQUIP COMMAND - Unequip rings (weapons/armor swap automatically)
@@ -11,7 +12,8 @@ export class UnequipCommand implements ICommand {
   constructor(
     private ringSlot: 'left' | 'right',
     private inventoryService: InventoryService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private turnService: TurnService
   ) {}
 
   execute(state: GameState): GameState {
@@ -51,11 +53,10 @@ export class UnequipCommand implements ICommand {
       state.turnCount
     )
 
-    return {
+    return this.turnService.incrementTurn({
       ...state,
       player: updatedPlayer,
       messages,
-      turnCount: state.turnCount + 1,
-    }
+    })
   }
 }

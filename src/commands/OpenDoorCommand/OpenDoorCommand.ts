@@ -2,6 +2,7 @@ import { GameState, Position, DoorState } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
 import { DoorService } from '@services/DoorService'
+import { TurnService } from '@services/TurnService'
 
 // ============================================================================
 // OPEN DOOR COMMAND - Open closed or locked doors
@@ -11,7 +12,8 @@ export class OpenDoorCommand implements ICommand {
   constructor(
     private direction: Position,
     private messageService: MessageService,
-    private doorService: DoorService
+    private doorService: DoorService,
+    private turnService: TurnService
   ) {}
 
   execute(state: GameState): GameState {
@@ -50,11 +52,10 @@ export class OpenDoorCommand implements ICommand {
       state.turnCount
     )
 
-    return {
+    return this.turnService.incrementTurn({
       ...state,
       levels: updatedLevels,
       messages,
-      turnCount: state.turnCount + 1,
-    }
+    })
   }
 }

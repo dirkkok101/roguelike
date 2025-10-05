@@ -1,15 +1,18 @@
 import { UnequipCommand } from './UnequipCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 import { GameState, Player, Ring, ItemType, Position, RingType } from '@game/core/core'
 
 describe('UnequipCommand', () => {
   let inventoryService: InventoryService
   let messageService: MessageService
+  let turnService: TurnService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
+    turnService = new TurnService()
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {
@@ -117,7 +120,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing).toBeNull()
@@ -133,7 +136,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'right')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('right', inventoryService, messageService)
+      const command = new UnequipCommand('right', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.player.equipment.rightRing).toBeNull()
@@ -149,7 +152,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(1)
@@ -163,7 +166,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -179,7 +182,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
 
       command.execute(state)
 
@@ -193,7 +196,7 @@ describe('UnequipCommand', () => {
       const player = createTestPlayer()
       const state = createTestState(player)
 
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.player.inventory).toHaveLength(0)
@@ -204,7 +207,7 @@ describe('UnequipCommand', () => {
       const player = createTestPlayer()
       const state = createTestState(player)
 
-      const command = new UnequipCommand('right', inventoryService, messageService)
+      const command = new UnequipCommand('right', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.player.inventory).toHaveLength(0)
@@ -215,7 +218,7 @@ describe('UnequipCommand', () => {
       const player = createTestPlayer()
       const state = createTestState(player)
 
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -231,7 +234,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('right', inventoryService, messageService)
+      const command = new UnequipCommand('right', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       // Left ring still equipped, right hand empty
@@ -259,7 +262,7 @@ describe('UnequipCommand', () => {
       playerWithRing.inventory = fullInventory as any
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing?.id).toBe('ring-1')
@@ -282,7 +285,7 @@ describe('UnequipCommand', () => {
       playerWithRing.inventory = fullInventory as any
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -306,7 +309,7 @@ describe('UnequipCommand', () => {
       playerWithRing.inventory = fullInventory as any
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(0)
@@ -324,7 +327,7 @@ describe('UnequipCommand', () => {
       result = inventoryService.equipRing(result, rightRing, 'right')
 
       const state = createTestState(result)
-      const command = new UnequipCommand('left', inventoryService, messageService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService)
       const finalResult = command.execute(state)
 
       expect(finalResult.player.equipment.leftRing).toBeNull()

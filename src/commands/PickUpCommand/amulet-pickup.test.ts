@@ -1,17 +1,20 @@
 import { PickUpCommand } from './PickUpCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 import { GameState, Level, Player, TileType, ItemType, Item } from '@game/core/core'
 
 describe('PickUpCommand - Amulet Pickup', () => {
   let command: PickUpCommand
   let inventoryService: InventoryService
   let messageService: MessageService
+  let turnService: TurnService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
-    command = new PickUpCommand(inventoryService, messageService)
+    turnService = new TurnService()
+    command = new PickUpCommand(inventoryService, messageService, turnService)
   })
 
   function createTestLevel(items: Item[]): Level {

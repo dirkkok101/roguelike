@@ -1,6 +1,7 @@
 import { CloseDoorCommand } from './CloseDoorCommand'
 import { MessageService } from '@services/MessageService'
 import { DoorService } from '@services/DoorService'
+import { TurnService } from '@services/TurnService'
 import {
   GameState,
   DoorState,
@@ -14,10 +15,12 @@ import {
 describe('CloseDoorCommand', () => {
   let messageService: MessageService
   let doorService: DoorService
+  let turnService: TurnService
 
   beforeEach(() => {
     messageService = new MessageService()
     doorService = new DoorService()
+    turnService = new TurnService()
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {
@@ -141,7 +144,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 6, y: 5 }, DoorState.OPEN)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       const level = result.levels.get(1)!
@@ -157,7 +160,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 6, y: 5 }, DoorState.OPEN)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       const level = result.levels.get(1)!
@@ -173,7 +176,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 6, y: 5 }, DoorState.OPEN)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result).not.toBe(state)
@@ -188,7 +191,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 6, y: 5 }, DoorState.CLOSED)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('That door is already closed.')
@@ -200,7 +203,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 6, y: 5 }, DoorState.LOCKED)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('That door is already closed.')
@@ -214,7 +217,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 6, y: 5 }, DoorState.BROKEN)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('The door is broken and cannot be closed.')
@@ -227,7 +230,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 6, y: 5 }, DoorState.ARCHWAY)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('There is no door to close, only an archway.')
@@ -243,7 +246,7 @@ describe('CloseDoorCommand', () => {
       const monster = createTestMonster({ x: 6, y: 5 })
       const state = createTestState(player, [door], [monster])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('There is a monster in the way!')
@@ -258,7 +261,7 @@ describe('CloseDoorCommand', () => {
       const monster = createTestMonster({ x: 10, y: 10 })
       const state = createTestState(player, [door], [monster])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.doors[0].state).toBe(DoorState.CLOSED)
@@ -272,7 +275,7 @@ describe('CloseDoorCommand', () => {
       const player = createTestPlayer({ x: 5, y: 5 })
       const state = createTestState(player, [])
 
-      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('There is no door there.')
@@ -286,7 +289,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 4, y: 5 }, DoorState.OPEN)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: -1, y: 0 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: -1, y: 0 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.doors[0].state).toBe(DoorState.CLOSED)
@@ -297,7 +300,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 5, y: 4 }, DoorState.OPEN)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 0, y: -1 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 0, y: -1 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.doors[0].state).toBe(DoorState.CLOSED)
@@ -308,7 +311,7 @@ describe('CloseDoorCommand', () => {
       const door = createTestDoor({ x: 5, y: 6 }, DoorState.OPEN)
       const state = createTestState(player, [door])
 
-      const command = new CloseDoorCommand({ x: 0, y: 1 }, messageService, doorService)
+      const command = new CloseDoorCommand({ x: 0, y: 1 }, messageService, doorService, turnService)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.doors[0].state).toBe(DoorState.CLOSED)

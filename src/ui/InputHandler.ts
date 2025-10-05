@@ -108,8 +108,8 @@ export class InputHandler {
         event.preventDefault()
         const command =
           this.mode === 'open_door'
-            ? new OpenDoorCommand(direction, this.messageService, this.doorService)
-            : new CloseDoorCommand(direction, this.messageService, this.doorService)
+            ? new OpenDoorCommand(direction, this.messageService, this.doorService, this.turnService)
+            : new CloseDoorCommand(direction, this.messageService, this.doorService, this.turnService)
         this.mode = 'normal'
         return command
       }
@@ -249,7 +249,7 @@ export class InputHandler {
       case ',':
         // Pickup item at current position
         event.preventDefault()
-        return new PickUpCommand(this.inventoryService, this.messageService)
+        return new PickUpCommand(this.inventoryService, this.messageService, this.turnService)
 
       case 'i':
         // Show inventory
@@ -265,7 +265,8 @@ export class InputHandler {
             this.pendingCommand = new DropCommand(
               item.id,
               this.inventoryService,
-              this.messageService
+              this.messageService,
+              this.turnService
             )
           }
         })
@@ -417,7 +418,8 @@ export class InputHandler {
               item.id,
               null, // No ring slot for weapons
               this.inventoryService,
-              this.messageService
+              this.messageService,
+              this.turnService
             )
           }
         })
@@ -432,7 +434,8 @@ export class InputHandler {
               item.id,
               null, // No ring slot for armor
               this.inventoryService,
-              this.messageService
+              this.messageService,
+              this.turnService
             )
           }
         })
@@ -449,7 +452,8 @@ export class InputHandler {
               item.id,
               slot,
               this.inventoryService,
-              this.messageService
+              this.messageService,
+              this.turnService
             )
           }
         })
@@ -460,7 +464,7 @@ export class InputHandler {
         event.preventDefault()
         // Remove from left if present, else right
         const ringSlot = state.player.equipment.leftRing ? 'left' : 'right'
-        return new UnequipCommand(ringSlot, this.inventoryService, this.messageService)
+        return new UnequipCommand(ringSlot, this.inventoryService, this.messageService, this.turnService)
 
       // =====================================================================
       // DEBUG COMMANDS (dev only)

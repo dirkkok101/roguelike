@@ -2,6 +2,7 @@ import { GameState, ItemType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 
 // ============================================================================
 // PICK UP COMMAND - Pick up items from the dungeon floor
@@ -10,7 +11,8 @@ import { MessageService } from '@services/MessageService'
 export class PickUpCommand implements ICommand {
   constructor(
     private inventoryService: InventoryService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private turnService: TurnService
   ) {}
 
   execute(state: GameState): GameState {
@@ -75,13 +77,12 @@ export class PickUpCommand implements ICommand {
       )
     }
 
-    return {
+    return this.turnService.incrementTurn({
       ...state,
       player: updatedPlayer,
       levels: updatedLevels,
       messages,
       hasAmulet,
-      turnCount: state.turnCount + 1,
-    }
+    })
   }
 }

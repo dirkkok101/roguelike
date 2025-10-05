@@ -2,6 +2,7 @@ import { GameState, ItemType, Weapon, Armor, Ring } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 
 // ============================================================================
 // EQUIP COMMAND - Equip weapons, armor, and rings
@@ -12,7 +13,8 @@ export class EquipCommand implements ICommand {
     private itemId: string,
     private ringSlot: 'left' | 'right' | null,
     private inventoryService: InventoryService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private turnService: TurnService
   ) {}
 
   execute(state: GameState): GameState {
@@ -93,11 +95,10 @@ export class EquipCommand implements ICommand {
       state.turnCount
     )
 
-    return {
+    return this.turnService.incrementTurn({
       ...state,
       player: updatedPlayer,
       messages,
-      turnCount: state.turnCount + 1,
-    }
+    })
   }
 }

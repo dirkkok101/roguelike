@@ -50,7 +50,8 @@ export class MoveCommand implements ICommand {
         obstacle.data.id,
         this.combatService,
         this.messageService,
-        this.levelingService
+        this.levelingService,
+        this.turnService
       )
       return attackCommand.execute(state)
       // AttackCommand handles: combat, XP, level-up, messages, turn increment

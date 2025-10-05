@@ -1,17 +1,20 @@
 import { PickUpCommand } from './PickUpCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 import { GameState, Player, Item, ItemType, Position } from '@game/core/core'
 
 describe('PickUpCommand', () => {
   let inventoryService: InventoryService
   let messageService: MessageService
+  let turnService: TurnService
   let command: PickUpCommand
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
-    command = new PickUpCommand(inventoryService, messageService)
+    turnService = new TurnService()
+    command = new PickUpCommand(inventoryService, messageService, turnService)
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {
