@@ -1,1 +1,2 @@
-export { ScrollService, ScrollEffectResult } from './ScrollService'
+export { ScrollService } from './ScrollService'
+export type { ScrollEffectResult } from './ScrollService'

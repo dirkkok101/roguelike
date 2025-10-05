@@ -1,1 +1,2 @@
-export { PotionService, PotionEffectResult } from './PotionService'
+export { PotionService } from './PotionService'
+export type { PotionEffectResult } from './PotionService'

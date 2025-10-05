@@ -1,1 +1,2 @@
-export { RoomGenerationService, RoomGenerationConfig } from './RoomGenerationService'
+export { RoomGenerationService } from './RoomGenerationService'
+export type { RoomGenerationConfig } from './RoomGenerationService'

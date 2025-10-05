@@ -1,2 +1,2 @@
-export { HungerService, HungerTickResult, FoodConsumptionResult, Message } from './HungerService'
-export { HungerState } from './HungerService'
+export { HungerService, HungerState } from './HungerService'
+export type { HungerTickResult, FoodConsumptionResult, Message } from './HungerService'

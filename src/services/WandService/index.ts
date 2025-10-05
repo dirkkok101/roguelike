@@ -1,1 +1,2 @@
-export { WandService, WandEffectResult } from './WandService'
+export { WandService } from './WandService'
+export type { WandEffectResult } from './WandService'
