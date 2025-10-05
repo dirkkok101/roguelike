@@ -87,6 +87,31 @@ export class MoveCommand implements ICommand {
         return { ...state, messages }
       }
 
+      // Discovered secret door - open and move through
+      if (door.state === DoorState.SECRET && door.discovered) {
+        // Open door via DoorService (no turn increment)
+        const updatedLevel = this.doorService.openDoor(level, door)
+        const stateWithOpenDoor = {
+          ...state,
+          levels: new Map(state.levels).set(state.currentLevel, updatedLevel),
+        }
+
+        // Add message
+        const messages = this.messageService.addMessage(
+          stateWithOpenDoor.messages,
+          'You open the secret door.',
+          'info',
+          state.turnCount + 1
+        )
+
+        // Continue with movement (hunger, fuel, FOV, turn increment)
+        return this.performMovement(
+          { ...stateWithOpenDoor, messages },
+          newPosition,
+          updatedLevel
+        )
+      }
+
       // Closed door - open and move through
       if (door.state === DoorState.CLOSED) {
         // Open door via DoorService (no turn increment)
