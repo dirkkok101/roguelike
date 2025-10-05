@@ -199,22 +199,15 @@ class DungeonService {
 
 **Responsibilities**: Item management and equipment
 
-**Methods**:
-```typescript
-class InventoryService {
-  addItem(inventory: Inventory, item: Item): Inventory
-  removeItem(inventory: Inventory, itemId: string): Inventory
-  equipWeapon(entity: Entity, weapon: Weapon): Entity
-  equipArmor(entity: Entity, armor: Armor): Entity
-  equipRing(entity: Entity, ring: Ring, slot: 'left' | 'right'): Entity
-  unequipRing(entity: Entity, slot: 'left' | 'right'): Entity
-  equipLightSource(entity: Entity, lightSource: LightSource): Entity
-  canCarry(inventory: Inventory): boolean
-  useConsumable(entity: Entity, item: Consumable): Entity
-}
-```
+**Key Capabilities**:
+- Add/remove items from inventory
+- Equip/unequip weapons, armor, rings, light sources
+- Inventory capacity checks
+- Consumable item usage
 
 **Dependencies**: None
+
+**See**: [InventoryService Documentation](./services/InventoryService.md)
 
 ---
 
@@ -222,20 +215,16 @@ class InventoryService {
 
 **Responsibilities**: Hunger tracking and effects
 
-**Methods**:
-```typescript
-class HungerService {
-  tickHunger(entity: Entity, rings: Ring[]): Entity
-  feed(entity: Entity, food: Food): Entity
-  getHungerState(foodUnits: number): HungerState
-  applyHungerEffects(entity: Entity): Entity
-  calculateHungerRate(rings: Ring[]): number
-}
-```
-
-**Hunger States**: Normal, Hungry, Weak, Starving (see [Game Design](./game-design.md#hunger-system))
+**Key Capabilities**:
+- Tick hunger each turn (affected by rings)
+- Feed player with food items
+- Calculate hunger state (Normal → Hungry → Weak → Starving)
+- Apply hunger effects (strength penalties, damage)
+- Variable hunger rates (rings modify consumption)
 
 **Dependencies**: RandomService (for food randomization)
+
+**See**: [Game Design - Hunger System](./game-design.md#hunger-system)
 
 ---
 
@@ -243,18 +232,14 @@ class HungerService {
 
 **Responsibilities**: Experience and level progression
 
-**Methods**:
-```typescript
-class LevelingService {
-  addExperience(entity: Entity, xp: number): Entity
-  checkLevelUp(entity: Entity): boolean
-  levelUp(entity: Entity): Entity
-  getXPForLevel(level: number): number
-  calculateXPReward(monster: Monster): number
-}
-```
+**Key Capabilities**:
+- Add experience points from combat
+- Check and trigger level-ups
+- Calculate XP thresholds per level
+- Determine monster XP rewards
+- Apply level-up stat increases
 
-**Dependencies**: None
+**Dependencies**: RandomService (for stat increases)
 
 ---
 
@@ -262,21 +247,17 @@ class LevelingService {
 
 **Responsibilities**: Item identification and name generation
 
-**Methods**:
-```typescript
-class IdentificationService {
-  constructor(private random: IRandomService) {}
+**Key Capabilities**:
+- Generate seeded random item names per game (e.g., "red potion", "oak wand")
+- Track identified items across game state
+- Get display names (identified vs unidentified)
+- Identify items (reading scrolls, using items)
 
-  generateItemNames(seed: string): ItemNameMap
-  identifyItem(item: Item, state: GameState): GameState
-  isIdentified(item: Item, state: GameState): boolean
-  getDisplayName(item: Item, state: GameState): string
-}
-```
-
-**Name Generation**: Seeded random mapping (consistent per game)
+**Name Generation**: Seeded random mapping ensures consistency per save file
 
 **Dependencies**: RandomService
+
+**See**: [IdentificationService Documentation](./services/IdentificationService.md)
 
 ---
 
@@ -284,19 +265,18 @@ class IdentificationService {
 
 **Responsibilities**: Combat and action log management
 
-**Methods**:
-```typescript
-class MessageService {
-  addMessage(log: MessageLog, message: string): MessageLog
-  addMessages(log: MessageLog, messages: string[]): MessageLog
-  getRecentMessages(log: MessageLog, count: number): string[]
-  clearLog(log: MessageLog): MessageLog
-}
-```
+**Key Capabilities**:
+- Add single or multiple messages to log
+- Retrieve recent messages (for UI display)
+- Clear message log
+- Message grouping by importance (combat, warnings, info)
+- Turn-based message filtering
 
-**Message Types**: Combat, item pickup, level change, hunger warnings, light warnings, death
+**Message Categories**: Combat, item pickup, level change, hunger warnings, light warnings, death
 
 **Dependencies**: None
+
+**See**: [MessageService Documentation](./services/MessageService.md)
 
 ---
 
@@ -304,22 +284,20 @@ class MessageService {
 
 **Responsibilities**: Centralized RNG for deterministic testing
 
-**Interface**:
-```typescript
-interface IRandomService {
-  nextInt(min: number, max: number): number
-  roll(dice: string): number  // e.g., "2d8", "1d20+3"
-  shuffle<T>(array: T[]): T[]
-  chance(probability: number): boolean  // 0.0 to 1.0
-  pickRandom<T>(array: T[]): T
-}
-```
+**Key Capabilities**:
+- Integer generation within range
+- Dice rolling (supports notation: "2d8", "1d20+3")
+- Array shuffling
+- Probability checks (0.0 to 1.0)
+- Random element selection
 
 **Implementations**:
-1. **SeededRandom**: Uses seed string for reproducibility
-2. **MockRandom**: Returns predefined values for testing
+1. **SeededRandom**: Uses seed string for reproducible dungeon generation
+2. **MockRandom**: Returns predefined values for deterministic tests
 
-**Usage**: Injected into services that need randomness (Combat, Dungeon, Hunger, Identification, Lighting, AI)
+**Usage**: Injected via DI into Combat, Dungeon, Hunger, Identification, Lighting, and AI services
+
+**Pattern**: Dependency Inversion Principle - all services depend on `IRandomService` interface
 
 ---
 
@@ -327,23 +305,17 @@ interface IRandomService {
 
 **Responsibilities**: Field of view calculations using recursive shadowcasting
 
-**Methods**:
-```typescript
-class FOVService {
-  computeFOV(origin: Position, radius: number, level: Level): Set<string>
-  updateFOVAndExploration(position: Position, radius: number, level: Level): FOVUpdateResult
-  updateExploredTiles(level: Level, visibleCells: Set<string>): Level
-  isInFOV(position: Position, visibleCells: Set<string>): boolean
-  isBlocking(position: Position, level: Level): boolean
-  posToKey(position: Position): string
-  keyToPos(key: string): Position
-}
-```
+**Key Capabilities**:
+- Compute FOV from position with radius (8-octant shadowcasting)
+- Update explored tiles based on visible cells
+- Check if position is in FOV
+- Determine blocking tiles (walls, closed doors)
+- Position ↔ string key conversion (for Set storage)
 
 **Algorithm**: 8-octant recursive shadowcasting
 **Dependencies**: None
 
-See [Core Systems - FOV System](./systems-core.md#fov-system) for algorithm details.
+**See**: [Core Systems - FOV System](./systems-core.md#fov-system)
 
 ---
 
@@ -351,27 +323,21 @@ See [Core Systems - FOV System](./systems-core.md#fov-system) for algorithm deta
 
 **Responsibilities**: Light source management and fuel tracking
 
-**Methods**:
-```typescript
-class LightingService {
-  createTorch(): LightSource
-  createLantern(): LightSource
-  createArtifact(name: string): LightSource
-  tickFuel(player: Player): FuelTickResult
-  refillLantern(lightSource: LightSource, oilFlask: Item): LightSource
-  getLightRadius(lightSource: LightSource | null): number
-  getFuelWarnings(fuel: number): string[]
-}
-```
+**Key Capabilities**:
+- Create light sources (torches, lanterns, artifacts)
+- Tick fuel consumption each turn
+- Refill lanterns with oil flasks
+- Calculate light radius (determines FOV)
+- Generate fuel warnings (50, 10, 0 turns remaining)
 
-**Light Sources**:
-- **Torch**: Radius 1, 500 fuel
+**Light Source Types**:
+- **Torch**: Radius 2, 500 fuel, consumable
 - **Lantern**: Radius 2, 500 fuel, refillable
 - **Artifact**: Radius 3, permanent (no fuel)
 
-**Dependencies**: None
+**Dependencies**: RandomService
 
-See [Core Systems - Lighting System](./systems-core.md#lighting-system) for mechanics.
+**See**: [Core Systems - Lighting System](./systems-core.md#lighting-system)
 
 ---
 
@@ -379,24 +345,20 @@ See [Core Systems - Lighting System](./systems-core.md#lighting-system) for mech
 
 **Responsibilities**: Visibility states and color selection for rendering
 
-**Methods**:
-```typescript
-class RenderingService {
-  getVisibilityState(position: Position, visibleCells: Set<string>, level: Level): VisibilityState
-  getTileColor(tile: Tile, visibilityState: VisibilityState): string
-  getMonsterColor(monster: Monster, visibilityState: VisibilityState): string
-  shouldRenderMonster(monster: Monster, position: Position, visibleCells: Set<string>): boolean
-}
-```
+**Key Capabilities**:
+- Determine visibility state (visible/explored/unexplored)
+- Select colors based on visibility (full color vs dimmed)
+- Filter entity rendering (monsters only in FOV)
+- Apply fog-of-war effects
 
 **Visibility States**:
 - `VISIBLE`: In FOV (full color)
-- `EXPLORED`: Memory (dimmed)
+- `EXPLORED`: Memory (dimmed/grayscale)
 - `HIDDEN`: Unexplored (black)
 
-**Dependencies**: None
+**Dependencies**: FOVService
 
-See [Core Systems - Visibility System](./systems-core.md#visibility-color-system) for color specs.
+**See**: [Core Systems - Visibility System](./systems-core.md#visibility-color-system)
 
 ---
 
@@ -404,16 +366,16 @@ See [Core Systems - Visibility System](./systems-core.md#visibility-color-system
 
 **Responsibilities**: Turn counter management and turn-based effects
 
-**Methods**:
-```typescript
-class TurnService {
-  incrementTurn(state: GameState): GameState
-  getCurrentTurn(state: GameState): number
-}
-```
+**Key Capabilities**:
+- Increment turn counter (single source of truth)
+- Retrieve current turn number
+- Future: trigger turn-based effects (poison, regeneration, status decay)
 
-**Usage**: Standardized across all 26 commands (replaces inline `turnCount + 1`)
+**Usage**: Standardized across all 26 commands (eliminates `turnCount + 1` duplication)
+
 **Dependencies**: None
+
+**See**: [TurnService Documentation](./services/TurnService.md)
 
 ---
 
@@ -421,23 +383,18 @@ class TurnService {
 
 **Responsibilities**: Contextual auto-notifications for player awareness
 
-**Methods**:
-```typescript
-class NotificationService {
-  constructor(private identificationService: IdentificationService) {}
+**Key Capabilities**:
+- Generate position-based notifications (items, gold, stairs, doors)
+- Resource warnings (full inventory, no food, low fuel)
+- Proximity alerts (monsters in adjacent cells)
+- Smart deduplication (avoid spam)
+- Priority-based filtering (critical warnings first)
 
-  generateNotifications(state: GameState, previousPosition?: Position): string[]
-}
-```
+**Features**: Context-aware, only shows relevant info for current position
 
-**Notification Types**:
-- Items/gold at position
-- Nearby doors/stairs
-- Resource warnings (full inventory, no food)
-- Proximity alerts (monsters nearby)
-
-**Features**: Smart deduplication, priority-based, context-aware
 **Dependencies**: IdentificationService
+
+**See**: [NotificationService Documentation](./services/NotificationService.md)
 
 ---
 
@@ -445,21 +402,14 @@ class NotificationService {
 
 **Responsibilities**: Execute monster turns and state updates
 
-**Methods**:
-```typescript
-class MonsterTurnService {
-  constructor(
-    private monsterAI: MonsterAIService,
-    private combat: CombatService,
-    private messageService: MessageService
-  ) {}
+**Key Capabilities**:
+- Process all monster turns after player action
+- Coordinate AI decision → action execution
+- Handle monster attacks (via CombatService)
+- Generate combat messages
+- Update monster states (sleeping → hunting → fleeing)
 
-  executeMonsterTurns(state: GameState): GameState
-  processMonsterAction(monster: Monster, state: GameState): GameState
-}
-```
-
-**Dependencies**: MonsterAIService, CombatService, MessageService
+**Dependencies**: MonsterAIService, CombatService, MessageService, SpecialAbilityService
 
 ---
 
@@ -467,33 +417,24 @@ class MonsterTurnService {
 
 **Responsibilities**: Monster behavior and decision-making
 
-**Methods**:
-```typescript
-class MonsterAIService {
-  constructor(
-    private pathfinding: PathfindingService,
-    private fov: FOVService,
-    private random: IRandomService
-  ) {}
+**Key Capabilities**:
+- Decide monster actions based on AI profile
+- Update monster state (sleeping → hunting → fleeing)
+- Wake up checks (proximity, noise)
+- Implement 7 AI behaviors (see below)
 
-  decideAction(monster: Monster, state: GameState): MonsterAction
-  updateMonsterState(monster: Monster, canSeePlayer: boolean): Monster
-  shouldWakeUp(monster: Monster, state: GameState): boolean
-}
-```
-
-**AI Behaviors**:
-- SMART (A* pathfinding)
-- SIMPLE (greedy movement)
-- ERRATIC (50% random)
-- GREEDY (prioritize gold)
-- THIEF (steal and flee)
-- STATIONARY (don't move)
-- COWARD (flee at low HP)
+**AI Behavior Types**:
+- **SMART**: A* pathfinding to player
+- **SIMPLE**: Greedy movement (move toward player)
+- **ERRATIC**: 50% random, 50% greedy
+- **GREEDY**: Prioritize gold over player
+- **THIEF**: Steal items and flee
+- **STATIONARY**: No movement
+- **COWARD**: Flee when HP < 25%
 
 **Dependencies**: PathfindingService, FOVService, RandomService
 
-See [Advanced Systems - Monster AI](./systems-advanced.md#monster-ai) for behavior details.
+**See**: [Advanced Systems - Monster AI](./systems-advanced.md#monster-ai)
 
 ---
 
@@ -501,19 +442,17 @@ See [Advanced Systems - Monster AI](./systems-advanced.md#monster-ai) for behavi
 
 **Responsibilities**: A* pathfinding for monster movement
 
-**Methods**:
-```typescript
-class PathfindingService {
-  findPath(start: Position, goal: Position, level: Level, maxDepth: number): Position[] | null
-  getNeighbors(position: Position, level: Level): Position[]
-  heuristic(a: Position, b: Position): number  // Manhattan distance
-}
-```
+**Key Capabilities**:
+- Find optimal path from start to goal
+- Calculate neighbor positions (walkable cells)
+- Manhattan distance heuristic
+- Max depth limiting (performance optimization)
 
 **Algorithm**: A* with Manhattan heuristic
+
 **Dependencies**: None
 
-See [Advanced Systems - Pathfinding](./systems-advanced.md#pathfinding-algorithm) for details.
+**See**: [Advanced Systems - Pathfinding](./systems-advanced.md#pathfinding-algorithm)
 
 ---
 
@@ -521,37 +460,37 @@ See [Advanced Systems - Pathfinding](./systems-advanced.md#pathfinding-algorithm
 
 **Responsibilities**: Door manipulation and state management
 
-**Methods**:
-```typescript
-class DoorService {
-  openDoor(level: Level, door: Door): Level
-  openDoorWithResult(level: Level, door: Door): DoorOpenResult
-  closeDoor(level: Level, door: Door): Level
-  revealSecretDoor(level: Level, door: Door): Level
-  getDoorAt(level: Level, position: Position): Door | null
-  canOpenDoor(door: Door | null): { canOpen: boolean; reason?: string }
-  canCloseDoor(door: Door | null, level: Level, position: Position): { canClose: boolean; reason?: string }
-}
-```
+**Key Capabilities**:
+- Open/close doors with state updates
+- Result object pattern (returns updated level + message)
+- Reveal secret doors
+- Find door at position
+- Validation (can open/close checks)
 
 **Door States**: OPEN, CLOSED, LOCKED, BROKEN, SECRET, ARCHWAY
+
 **Dependencies**: None
+
+**See**: [DoorService Documentation](./services/DoorService.md)
 
 ---
 
 ### 4.19 LevelService
 
-**Responsibilities**: Level spawn positioning and helper methods
+**Responsibilities**: Level transition logic and spawn positioning
 
-**Methods**:
-```typescript
-class LevelService {
-  getSpawnPosition(level: Level, preferredPosition?: Position | null): Position
-}
-```
+**Key Capabilities**:
+- Transition between dungeon levels (up/down stairs)
+- Boundary validation (levels 1-10)
+- Victory condition checking (amulet + surface)
+- Level generation coordination
+- Spawn position calculation (opposite stairs)
 
-**Usage**: Used by MoveStairsCommand for level transitions
-**Dependencies**: None
+**Usage**: Centralizes level transition logic from MoveStairsCommand
+
+**Dependencies**: None (coordinates with DungeonService)
+
+**See**: [LevelService Documentation](./services/LevelService.md)
 
 ---
 
@@ -559,15 +498,13 @@ class LevelService {
 
 **Responsibilities**: Secret door and trap discovery
 
-**Methods**:
-```typescript
-class SearchService {
-  constructor(private random: IRandomService) {}
+**Key Capabilities**:
+- Search for hidden doors/traps at position
+- Progressive success chance (50% + 5% per player level)
+- Reveal secrets on success
+- Adjacent tile checking
 
-  searchForSecrets(position: Position, level: Level, playerLevel: number): SearchResult
-  getSearchChance(playerLevel: number): number  // 50% + (5% × level)
-}
-```
+**Search Formula**: 50% base + (5% × player level)
 
 **Dependencies**: RandomService
 
@@ -577,22 +514,18 @@ class SearchService {
 
 **Responsibilities**: Trap effects and trigger logic
 
-**Methods**:
-```typescript
-class TrapService {
-  constructor(private random: IRandomService) {}
-
-  triggerTrap(trap: Trap, player: Player, state: GameState): TrapEffect
-  shouldTriggerTrap(trap: Trap): boolean
-}
-```
+**Key Capabilities**:
+- Trigger trap effects on player
+- Probability-based activation
+- Apply damage, status effects, teleportation
+- Result object pattern (damage, status, message)
 
 **Trap Types**:
-- BEAR (1d4 damage, held)
-- DART (1d6 damage, 30% poison)
-- TELEPORT (random teleport)
-- SLEEP (2-4 turns asleep)
-- PIT (2d6 damage, 20% fall-through)
+- **BEAR**: 1d4 damage, held condition
+- **DART**: 1d6 damage, 30% poison
+- **TELEPORT**: Random level teleport
+- **SLEEP**: 2-4 turns asleep
+- **PIT**: 2d6 damage, 20% fall to next level
 
 **Dependencies**: RandomService
 
@@ -602,19 +535,14 @@ class TrapService {
 
 **Responsibilities**: Potion effects and identification
 
-**Methods**:
-```typescript
-class PotionService {
-  constructor(
-    private random: IRandomService,
-    private identificationService: IdentificationService
-  ) {}
+**Key Capabilities**:
+- Apply potion effects to player
+- Auto-identify on use
+- Result object pattern (stat changes, messages)
+- Randomized healing (e.g., 1d8 for HEAL)
 
-  applyPotion(player: Player, potion: Potion, state: GameState): PotionEffectResult
-}
-```
+**Potion Types**: HEAL, EXTRA_HEAL, RESTORE_STRENGTH, GAIN_LEVEL, POISON, BLINDNESS, CONFUSION, etc.
 
-**Potion Types**: HEAL, EXTRA_HEAL, RESTORE_STRENGTH, GAIN_LEVEL, POISON, etc.
 **Dependencies**: RandomService, IdentificationService
 
 ---
@@ -623,22 +551,14 @@ class PotionService {
 
 **Responsibilities**: Scroll effects with item targeting
 
-**Methods**:
-```typescript
-class ScrollService {
-  constructor(
-    private identificationService: IdentificationService,
-    private inventoryService: InventoryService
-  ) {}
+**Key Capabilities**:
+- Apply scroll effects with optional item targeting
+- Identify items (reveal true type)
+- Enchant weapons/armor (+1 bonus, max +3)
+- Auto-identify scroll on use
+- Validation (enchant limits, target types)
 
-  applyScroll(player: Player, scroll: Scroll, state: GameState, targetItemId?: string): ScrollEffectResult
-}
-```
-
-**Scroll Types**:
-- IDENTIFY (reveal item type)
-- ENCHANT_WEAPON (+1 damage, max +3)
-- ENCHANT_ARMOR (+1 AC, max +3)
+**Scroll Types**: IDENTIFY, ENCHANT_WEAPON, ENCHANT_ARMOR, TELEPORT, MAPPING, REMOVE_CURSE
 
 **Dependencies**: IdentificationService, InventoryService
 
