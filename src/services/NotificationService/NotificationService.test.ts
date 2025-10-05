@@ -1,4 +1,5 @@
 import { NotificationService } from './NotificationService'
+import { IdentificationService } from '@services/IdentificationService'
 import {
   GameState,
   Level,
@@ -20,9 +21,15 @@ describe('NotificationService - Auto-Notifications', () => {
   let service: NotificationService
   let mockState: GameState
   let mockLevel: Level
+  let mockIdentificationService: jest.Mocked<IdentificationService>
 
   beforeEach(() => {
-    service = new NotificationService()
+    // Create mock IdentificationService
+    mockIdentificationService = {
+      getDisplayName: jest.fn((item: Item) => item.name),
+    } as any
+
+    service = new NotificationService(mockIdentificationService)
 
     // Create minimal level
     mockLevel = {

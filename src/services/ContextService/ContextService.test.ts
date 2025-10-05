@@ -1,4 +1,5 @@
 import { ContextService } from './ContextService'
+import { IdentificationService } from '@services/IdentificationService'
 import {
   GameState,
   Level,
@@ -21,9 +22,15 @@ describe('ContextService - Context Detection', () => {
   let service: ContextService
   let mockState: GameState
   let mockLevel: Level
+  let mockIdentificationService: jest.Mocked<IdentificationService>
 
   beforeEach(() => {
-    service = new ContextService()
+    // Create mock IdentificationService
+    mockIdentificationService = {
+      getDisplayName: jest.fn((item: Item) => item.name),
+    } as any
+
+    service = new ContextService(mockIdentificationService)
 
     // Create minimal level
     mockLevel = {
@@ -176,6 +183,28 @@ describe('ContextService - Context Detection', () => {
       expect(context.actions).toContainEqual(
         expect.objectContaining({ key: 'P', label: 'put on' })
       )
+    })
+
+    test('uses IdentificationService to get display name for items', () => {
+      // Arrange: unidentified ring at position
+      const ring: Item = {
+        id: 'ring-1',
+        name: 'Ring of SLOW_DIGESTION +2',
+        type: ItemType.RING,
+        identified: false,
+        position: { x: 10, y: 10 },
+      }
+      mockLevel.items = [ring]
+
+      // Mock getDisplayName to return unidentified name
+      mockIdentificationService.getDisplayName.mockReturnValue('ruby ring')
+
+      // Act
+      const context = service.analyzeContext(mockState)
+
+      // Assert
+      expect(mockIdentificationService.getDisplayName).toHaveBeenCalledWith(ring, mockState)
+      expect(context.primaryHint).toBe('Item here: ruby ring')
     })
   })
 

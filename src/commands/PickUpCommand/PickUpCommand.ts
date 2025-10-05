@@ -3,6 +3,7 @@ import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { IdentificationService } from '@services/IdentificationService'
 
 // ============================================================================
 // PICK UP COMMAND - Pick up items from the dungeon floor
@@ -12,7 +13,8 @@ export class PickUpCommand implements ICommand {
   constructor(
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private identificationService: IdentificationService
   ) {}
 
   execute(state: GameState): GameState {
@@ -61,9 +63,10 @@ export class PickUpCommand implements ICommand {
     const hasAmulet = state.hasAmulet || isAmulet
 
     // Add appropriate message
+    const displayName = this.identificationService.getDisplayName(itemAtPosition, state)
     let messages = this.messageService.addMessage(
       state.messages,
-      `You pick up ${itemAtPosition.name}.`,
+      `You pick up ${displayName}.`,
       'success',
       state.turnCount
     )

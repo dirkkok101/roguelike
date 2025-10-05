@@ -189,7 +189,7 @@ describe('DungeonService', () => {
 
       // All doors should have valid states
       for (const door of level.doors) {
-        expect(['OPEN', 'CLOSED', 'LOCKED', 'SECRET', 'BROKEN', 'ARCHWAY']).toContain(door.state)
+        expect(['OPEN', 'CLOSED', 'SECRET', 'BROKEN', 'ARCHWAY']).toContain(door.state)
       }
     })
 

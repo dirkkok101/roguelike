@@ -48,6 +48,10 @@ export class MonsterTurnService {
         }
       }
 
+      // Save updated monster to level BEFORE executing actions
+      // This ensures state changes (wake-up, FOV, memory) persist even if action is 'wait'
+      currentState = this.updateMonsterInLevel(updatedMonster, currentState)
+
       // Decide action
       const action = this.aiService.decideAction(updatedMonster, currentState)
 
@@ -62,6 +66,24 @@ export class MonsterTurnService {
     }
 
     return currentState
+  }
+
+  /**
+   * Update a monster in the current level
+   */
+  private updateMonsterInLevel(monster: Monster, state: GameState): GameState {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return state
+
+    const updatedMonsters = level.monsters.map((m) =>
+      m.id === monster.id ? monster : m
+    )
+
+    const updatedLevel = { ...level, monsters: updatedMonsters }
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    return { ...state, levels: updatedLevels }
   }
 
   /**

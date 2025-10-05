@@ -249,7 +249,7 @@ export class InputHandler {
       case ',':
         // Pickup item at current position
         event.preventDefault()
-        return new PickUpCommand(this.inventoryService, this.messageService, this.turnService)
+        return new PickUpCommand(this.inventoryService, this.messageService, this.turnService, this.identificationService)
 
       case 'i':
         // Show inventory

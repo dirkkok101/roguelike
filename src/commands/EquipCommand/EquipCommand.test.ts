@@ -2,6 +2,7 @@ import { EquipCommand } from './EquipCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { IdentificationService } from '@services/IdentificationService'
 import {
   GameState,
   Player,
@@ -11,17 +12,24 @@ import {
   ItemType,
   Position,
   RingType,
+  Item,
 } from '@game/core/core'
 
 describe('EquipCommand', () => {
   let inventoryService: InventoryService
   let messageService: MessageService
   let turnService: TurnService
+  let mockIdentificationService: jest.Mocked<IdentificationService>
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
     turnService = new TurnService()
+
+    // Create mock IdentificationService
+    mockIdentificationService = {
+      getDisplayName: jest.fn((item: Item) => item.name),
+    } as any
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {
@@ -149,7 +157,7 @@ describe('EquipCommand', () => {
       player.inventory = [weapon]
 
       const state = createTestState(player)
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.player.equipment.weapon?.id).toBe('sword-1')
@@ -162,7 +170,7 @@ describe('EquipCommand', () => {
       player.inventory = [weapon]
 
       const state = createTestState(player)
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -176,7 +184,7 @@ describe('EquipCommand', () => {
       player.inventory = [weapon]
 
       const state = createTestState(player)
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(1)
@@ -192,7 +200,7 @@ describe('EquipCommand', () => {
       result.inventory = [...result.inventory, newWeapon]
 
       const state = createTestState(result)
-      const command = new EquipCommand('sword-2', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('sword-2', null, inventoryService, messageService, turnService, mockIdentificationService)
       const finalResult = command.execute(state)
 
       expect(finalResult.player.equipment.weapon?.id).toBe('sword-2')
@@ -207,7 +215,7 @@ describe('EquipCommand', () => {
       player.inventory = [armor]
 
       const state = createTestState(player)
-      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.player.equipment.armor?.id).toBe('armor-1')
@@ -220,7 +228,7 @@ describe('EquipCommand', () => {
       player.inventory = [armor]
 
       const state = createTestState(player)
-      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.player.ac).toBe(5)
@@ -232,7 +240,7 @@ describe('EquipCommand', () => {
       player.inventory = [armor]
 
       const state = createTestState(player)
-      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -248,7 +256,7 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
-      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService)
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing?.id).toBe('ring-1')
@@ -261,7 +269,7 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
-      const command = new EquipCommand('ring-1', 'right', inventoryService, messageService, turnService)
+      const command = new EquipCommand('ring-1', 'right', inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.player.equipment.rightRing?.id).toBe('ring-1')
@@ -273,7 +281,7 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
-      const command = new EquipCommand('ring-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('ring-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing).toBeNull()
@@ -289,7 +297,7 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
-      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService)
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('You put on Ring of Protection on your left hand.')
@@ -301,7 +309,7 @@ describe('EquipCommand', () => {
       const player = createTestPlayer()
       const state = createTestState(player)
 
-      const command = new EquipCommand('nonexistent', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('nonexistent', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.player.equipment.weapon).toBeNull()
@@ -316,7 +324,7 @@ describe('EquipCommand', () => {
       let result = inventoryService.equipWeapon(player, weapon)
       const state = createTestState(result)
 
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const finalResult = command.execute(state)
 
       expect(finalResult.messages[0].text).toBe('Short Sword is already equipped.')
@@ -334,7 +342,7 @@ describe('EquipCommand', () => {
       player.inventory = [potion as any]
 
       const state = createTestState(player)
-      const command = new EquipCommand('potion-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('potion-1', null, inventoryService, messageService, turnService, mockIdentificationService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('You cannot equip that item.')
@@ -347,7 +355,7 @@ describe('EquipCommand', () => {
       player.inventory = [weapon]
 
       const state = createTestState(player)
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
 
       command.execute(state)
 

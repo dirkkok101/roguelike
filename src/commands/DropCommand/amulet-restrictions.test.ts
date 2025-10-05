@@ -2,17 +2,24 @@ import { DropCommand } from './DropCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { IdentificationService } from '@services/IdentificationService'
 import { GameState, Level, Player, TileType, ItemType, Item, Potion, PotionType } from '@game/core/core'
 
 describe('DropCommand - Amulet Restrictions', () => {
   let inventoryService: InventoryService
   let messageService: MessageService
   let turnService: TurnService
+  let mockIdentificationService: jest.Mocked<IdentificationService>
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
     turnService = new TurnService()
+
+    // Create mock IdentificationService
+    mockIdentificationService = {
+      getDisplayName: jest.fn((item: Item) => item.name),
+    } as any
   })
 
   function createTestLevel(): Level {
@@ -117,7 +124,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const amulet = createAmulet()
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
 
     const result = command.execute(state)
 
@@ -130,7 +137,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const amulet = createAmulet()
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
 
     const result = command.execute(state)
 
@@ -143,7 +150,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const amulet = createAmulet()
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
 
     const result = command.execute(state)
 
@@ -155,7 +162,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const amulet = createAmulet()
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
 
     const result = command.execute(state)
 
@@ -166,7 +173,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const potion = createPotion()
     const player = createTestPlayer([potion])
     const state = createTestState(player)
-    const command = new DropCommand(potion.id, inventoryService, messageService, turnService)
+    const command = new DropCommand(potion.id, inventoryService, messageService, turnService, mockIdentificationService)
 
     const result = command.execute(state)
 
@@ -185,7 +192,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const potion = createPotion()
     const player = createTestPlayer([amulet, potion])
     const state = createTestState(player)
-    const command = new DropCommand(potion.id, inventoryService, messageService, turnService)
+    const command = new DropCommand(potion.id, inventoryService, messageService, turnService, mockIdentificationService)
 
     const result = command.execute(state)
 
@@ -204,7 +211,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
     const originalInventoryLength = state.player.inventory.length
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
 
     command.execute(state)
 

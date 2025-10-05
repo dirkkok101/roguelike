@@ -13,6 +13,7 @@ import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { PathfindingService } from '@services/PathfindingService'
 import { DoorService } from '@services/DoorService'
 import { NotificationService } from '@services/NotificationService'
+import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
 import { SeededRandom } from '@services/RandomService'
 
@@ -58,7 +59,8 @@ describe('Integration: Game Loop', () => {
     const combat = new CombatService(random, hunger)
     const leveling = new LevelingService(random)
     const door = new DoorService()
-    const notification = new NotificationService()
+    const identificationService = new IdentificationService(random)
+    const notification = new NotificationService(identificationService)
     const turn = new TurnService()
     const pathfinding = new PathfindingService()
     const ai = new MonsterAIService(pathfinding, random, fov)
@@ -88,25 +90,41 @@ describe('Integration: Game Loop', () => {
     // Create a simple 20x20 level with a room
     // Important: Create unique tile objects, not shared references!
     const tiles = Array(20).fill(null).map(() =>
-      Array(20).fill(null).map(() => ({ type: 'WALL' as const, char: '#', color: 'gray' }))
+      Array(20).fill(null).map(() => ({
+        type: 'WALL' as const,
+        char: '#',
+        walkable: false,
+        transparent: false,
+        colorVisible: '#8B7355',
+        colorExplored: '#4A4A4A'
+      }))
     )
 
     // Carve out a room (5,5) to (15,15)
     for (let y = 5; y <= 15; y++) {
       for (let x = 5; x <= 15; x++) {
-        tiles[y][x] = { type: 'FLOOR' as const, char: '.', color: 'white' }
+        tiles[y][x] = {
+          type: 'FLOOR' as const,
+          char: '.',
+          walkable: true,
+          transparent: true,
+          colorVisible: '#A89078',
+          colorExplored: '#5A5A5A'
+        }
       }
     }
 
     return {
+      depth: 1,
       tiles,
       rooms: [{ x: 5, y: 5, width: 11, height: 11 }],
-      corridors: [],
       doors: [],
-      stairs: [],
       monsters: [],
       items: [],
+      gold: [],
       traps: [],
+      stairsUp: null,
+      stairsDown: null,
       explored: Array(20).fill(null).map(() => Array(20).fill(false)),
       width: 20,
       height: 20,
@@ -299,23 +317,29 @@ describe('Integration: Game Loop', () => {
         services.turn
       )
 
-      // Execute 2 right moves
+      // Execute first right move
       let currentState = state
       currentState = moveRight.execute(currentState)
       currentState = services.monsterTurn.processMonsterTurns(currentState)
       expect(currentState.player.position.x).toBe(11)
 
+      // Execute second right move
+      // Monster should wake up and move towards player, potentially blocking the path
       currentState = moveRight.execute(currentState)
       currentState = services.monsterTurn.processMonsterTurns(currentState)
-      expect(currentState.player.position.x).toBe(12)
 
-      // Monster should have woken up (player now adjacent or close)
+      // Player may not move if monster blocks the position (combat occurs instead)
+      // The important thing is that the monster woke up and is now hunting
       const updatedLevel = currentState.levels.get(1)!
       expect(updatedLevel.monsters.length).toBeGreaterThan(0)
       const updatedMonster = updatedLevel.monsters[0]
 
+      // Verify monster woke up and is hunting
       expect(updatedMonster.isAsleep).toBe(false)
       expect(updatedMonster.state).toBe('HUNTING')
+
+      // Monster should have moved towards player (from 13 to closer position)
+      expect(updatedMonster.position.x).toBeLessThan(13)
     })
 
     test('hunger depletes each turn', () => {

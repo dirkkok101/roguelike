@@ -1,4 +1,5 @@
 import { GameState, Position, Level, Item, Monster, Door, DoorState } from '@game/core/core'
+import { IdentificationService } from '@services/IdentificationService'
 
 // ============================================================================
 // CONTEXT SERVICE - Analyzes game state to determine available actions
@@ -38,6 +39,8 @@ export interface GameContext {
  * - UI components consume this data
  */
 export class ContextService {
+  constructor(private identificationService: IdentificationService) {}
+
   /**
    * Analyze game state and return available actions
    */
@@ -54,7 +57,8 @@ export class ContextService {
     // Check player position for items
     const itemAtPosition = this.getItemAtPosition(level, state.player.position)
     if (itemAtPosition) {
-      primaryHint = `Item here: ${itemAtPosition.name}`
+      const displayName = this.identificationService.getDisplayName(itemAtPosition, state)
+      primaryHint = `Item here: ${displayName}`
       actions.push(
         { key: ',', label: 'pickup', priority: 100, category: 'primary' },
         { key: 'i', label: 'inventory', priority: 90, category: 'primary' }

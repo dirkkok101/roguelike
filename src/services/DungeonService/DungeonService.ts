@@ -291,9 +291,8 @@ export class DungeonService {
   private randomDoorType(): DoorState {
     const roll = this.random.next()
 
-    if (roll < 0.4) return DoorState.OPEN // 40%
-    if (roll < 0.7) return DoorState.CLOSED // 30%
-    if (roll < 0.8) return DoorState.LOCKED // 10%
+    if (roll < 0.5) return DoorState.OPEN // 50%
+    if (roll < 0.8) return DoorState.CLOSED // 30%
     if (roll < 0.9) return DoorState.SECRET // 10%
     if (roll < 0.95) return DoorState.BROKEN // 5%
     return DoorState.ARCHWAY // 5%
