@@ -77,34 +77,16 @@ Player starts with one of the following (random choice):
 
 **Responsibilities**: Light source management, fuel tracking, FOV radius calculation
 
-**Methods**:
-```typescript
-class LightingService {
-  constructor(private random: IRandomService) {}
-
-  // Fuel management
-  tickFuel(lightSource: LightSource): LightSource
-  refillLantern(lantern: LightSource, oilFlask: Item): LightSource
-  
-  // Light properties
-  getLightRadius(lightSource: LightSource | null): number
-  isFuelLow(lightSource: LightSource): boolean
-  generateFuelWarning(lightSource: LightSource): string | null
-  
-  // Equipment
-  equipLightSource(player: Player, lightSource: LightSource): Player
-  
-  // Creation (for testing/spawning)
-  createTorch(): LightSource
-  createLantern(): LightSource
-  createArtifact(name: string, radius: number): LightSource
-}
-```
+**Key Capabilities**:
+- Fuel Management: Tick fuel each turn, refill lanterns with oil flasks
+- Light Properties: Calculate radius, check fuel levels, generate warnings
+- Equipment: Equip/unequip light sources
+- Creation: Factory methods for torches, lanterns, artifacts (testing/spawning)
 
 **Key Implementation Details**:
-- `tickFuel()`: Decrements fuel by 1, returns new LightSource (immutable)
-- Permanent lights skip fuel depletion
-- Warnings triggered at 50, 10, and 0 fuel thresholds
+- Fuel decrements by 1 per turn (immutable updates)
+- Permanent lights (artifacts) skip fuel depletion
+- Warning thresholds: 50 turns ("getting dim"), 10 turns ("flickers"), 0 turns ("goes out")
 
 **See**:
 - Implementation: `src/services/LightingService/LightingService.ts`
@@ -153,51 +135,18 @@ For each octant:
 
 **Responsibilities**: Field of view calculations using recursive shadowcasting
 
-**Methods**:
-```typescript
-class FOVService {
-  // Main FOV computation
-  computeFOV(
-    origin: Position,
-    radius: number,
-    level: Level
-  ): Set<Position>
-
-  // Check if position is in visible set
-  isInFOV(
-    position: Position,
-    visibleCells: Set<Position>
-  ): boolean
-
-  // Check if position blocks vision
-  isBlocking(position: Position, level: Level): boolean
-
-  // Update explored tiles based on visible cells (immutable)
-  updateExploredTiles(
-    level: Level,
-    visibleCells: Set<string>
-  ): Level
-
-  // Internal: Process one octant of FOV
-  private castLight(
-    row: number,
-    start: number,
-    end: number,
-    radius: number,
-    xx: number, xy: number,
-    yx: number, yy: number,
-    origin: Position,
-    level: Level,
-    visible: Set<Position>
-  ): void
-}
-```
+**Key Capabilities**:
+- Compute FOV from origin with radius (8-octant recursive shadowcasting)
+- Check if position is in FOV
+- Determine blocking tiles (walls, closed doors, secret doors)
+- Update explored tiles based on visible cells (immutable)
+- Internal shadowcasting algorithm (castLight for each octant)
 
 **Algorithm Benefits**:
-- Fast in confined dungeon spaces
-- Only visits visible cells
+- Fast in confined dungeon spaces (only visits visible cells)
 - Accurate sight lines around corners
-- Natural difficulty scaling with light sources
+- Natural difficulty scaling with light source radius
+- Efficient recalculation (only when player moves or light changes)
 
 **Recalculation Triggers**:
 - Player moves
@@ -324,117 +273,79 @@ class FOVService {
 
 **Responsibilities**: Determine visibility states, apply color schemes, filter entity rendering
 
-### 4.1 Methods
+### 4.1 Key Capabilities
 
-```typescript
-class RenderingService {
-  constructor(private fovService: FOVService) {}
+**Visibility State Determination**:
+- Check if position in FOV → visible
+- Check if previously explored → explored
+- Otherwise → unexplored
 
-  // Visibility state determination
-  getVisibilityState(
-    position: Position,
-    visibleCells: Set<Position>,
-    level: Level
-  ): 'visible' | 'explored' | 'unexplored'
+**Entity Rendering Decisions**:
+- Monsters: Only render in FOV (never in memory)
+- Items/Gold: Render in FOV + optionally in explored
+- Stairs: Render in FOV and explored
+- Traps: Render if discovered AND (visible or explored)
 
-  // Entity rendering decisions
-  shouldRenderEntity(
-    entityPosition: Position,
-    entityType: 'monster' | 'item' | 'gold' | 'stairs' | 'trap',
-    visibilityState: 'visible' | 'explored' | 'unexplored',
-    config: RenderConfig
-  ): boolean
+**Color Selection**:
+- Unexplored: Black (#000000)
+- Visible: Full color (from tile/entity properties)
+- Explored: Dimmed/grayscale versions
 
-  // Color selection
-  getColorForTile(
-    tile: Tile,
-    visibilityState: 'visible' | 'explored' | 'unexplored'
-  ): string
-
-  getColorForEntity(
-    entity: Monster | Item | GoldPile,
-    visibilityState: 'visible' | 'explored' | 'unexplored'
-  ): string
-
-  // CSS class generation
-  getCSSClass(
-    visibilityState: 'visible' | 'explored' | 'unexplored',
-    entityType?: string
-  ): string
-}
-```
+**CSS Class Generation**: Applies state-based styling classes
 
 ---
 
-### 4.2 Visibility Logic
+### 4.2 Visibility Logic Flow
 
-```typescript
-getVisibilityState(position, visibleCells, level): VisibilityState {
-  if (position in visibleCells) {
-    return 'visible'
-  } else if (level.explored[position.y][position.x]) {
-    return 'explored'
-  } else {
-    return 'unexplored'
-  }
-}
 ```
+Determine State:
+  IF position in visibleCells:
+    RETURN 'visible'
+  ELSE IF level.explored[position] == true:
+    RETURN 'explored'
+  ELSE:
+    RETURN 'unexplored'
+```
+
+**Usage**: Called for every tile/entity during rendering
 
 ---
 
 ### 4.3 Entity Rendering Rules
 
-```typescript
-shouldRenderEntity(
-  entityPosition: Position,
-  entityType: EntityType,
-  visibilityState: VisibilityState,
-  config: RenderConfig
-): boolean {
-  // Monsters only render in FOV
-  if (entityType === 'monster') {
-    return visibilityState === 'visible';
-  }
-  
-  // Items/Gold: render in FOV, optionally in explored
-  if (entityType === 'item' || entityType === 'gold') {
-    return visibilityState === 'visible' || 
-           (visibilityState === 'explored' && config.showItemsInMemory);
-  }
-  
-  // Stairs: render in FOV and explored
-  if (entityType === 'stairs') {
-    return visibilityState === 'visible' || visibilityState === 'explored';
-  }
-  
-  // Traps: render if discovered AND (visible or explored)
-  if (entityType === 'trap') {
-    return trap.discovered && 
-           (visibilityState === 'visible' || visibilityState === 'explored');
-  }
-  
-  return false;
-}
 ```
+Monster Rendering:
+  ONLY render if state == 'visible'
+
+Item/Gold Rendering:
+  Render if state == 'visible'
+  OR (state == 'explored' AND config.showItemsInMemory)
+
+Stairs Rendering:
+  Render if state == 'visible' OR state == 'explored'
+
+Trap Rendering:
+  Render if trap.discovered == true
+  AND (state == 'visible' OR state == 'explored')
+```
+
+**Design Principle**: Monsters disappear when out of FOV (creates suspense)
 
 ---
 
-### 4.4 Color Mappings
+### 4.4 Color Selection Logic
 
-```typescript
-getColorForTile(tile: Tile, state: VisibilityState): string {
-  if (state === 'unexplored') {
-    return '#000000';
-  }
-  
-  if (state === 'visible') {
-    return tile.colorVisible;  // Full color
-  }
-  
-  // Explored state uses dimmed colors
-  return tile.colorExplored;
-}
 ```
+Color Mapping:
+  IF state == 'unexplored':
+    RETURN black
+  IF state == 'visible':
+    RETURN full color (from tile/entity data)
+  IF state == 'explored':
+    RETURN dimmed color (grayscale/darkened version)
+```
+
+**Implementation**: Tiles/entities store both `colorVisible` and `colorExplored` properties
 
 ---
 
@@ -452,77 +363,50 @@ See [Testing Strategy](./testing-strategy.md) - `RenderingService/` folder
 
 ## 5. Integration Example: Movement Turn
 
-This example shows how all core systems work together during a player movement turn:
+**How Core Systems Coordinate** during a player movement:
 
-```typescript
-class MoveCommand implements ICommand {
-  execute(state: GameState): GameState {
-    // 1. Calculate new position
-    const newPos = this.movementService.calculateNewPosition(
-      state.player.position,
-      this.direction
-    );
-    
-    // 2. Check collision
-    if (!this.movementService.canMoveTo(newPos, state.currentLevel)) {
-      return state;  // Blocked by wall
-    }
-    
-    // 3. Move player
-    const movedPlayer = {
-      ...state.player,
-      position: newPos
-    };
-    
-    // 4. Tick light fuel
-    let newLightSource = movedPlayer.lightSource;
-    if (newLightSource && !newLightSource.isPermanent) {
-      newLightSource = this.lightingService.tickFuel(newLightSource);
-      
-      // Check for warnings
-      const warning = this.lightingService.generateFuelWarning(newLightSource);
-      if (warning) {
-        state = this.messageService.addMessage(state, warning);
-      }
-      
-      movedPlayer.lightSource = newLightSource;
-    }
-    
-    // 5. Recompute FOV with new position and light radius
-    const lightRadius = this.lightingService.getLightRadius(newLightSource);
-    const visibleCells = this.fovService.computeFOV(
-      newPos,
-      lightRadius,
-      state.currentLevel
-    );
-    
-    // 6. Update explored tiles
-    const updatedLevel = {
-      ...state.currentLevel,
-      explored: this.updateExploredTiles(
-        state.currentLevel.explored,
-        visibleCells
-      )
-    };
-    
-    // 7. Tick hunger
-    const finalPlayer = this.hungerService.tickHunger(movedPlayer, []);
-    
-    // 8. Return new state
-    return {
-      ...state,
-      player: {
-        ...finalPlayer,
-        visibleCells
-      },
-      currentLevel: updatedLevel,
-      turnCount: state.turnCount + 1
-    };
-  }
-}
+```
+MoveCommand Flow:
+  1. Calculate new position (MovementService)
+     → newPos = current + direction vector
+
+  2. Check collision (MovementService)
+     → IF blocked: return unchanged state
+     → IF monster: delegate to combat flow
+
+  3. Move player (immutable update)
+     → player = { ...player, position: newPos }
+
+  4. Tick light fuel (LightingService)
+     → IF permanent light: skip
+     → ELSE: fuel = fuel - 1
+     → Generate warning if needed (50/10/0 thresholds)
+
+  5. Recompute FOV (FOVService + LightingService)
+     → radius = getLightRadius(lightSource)
+     → visibleCells = computeFOV(newPos, radius, level)
+
+  6. Update explored tiles (FOVService)
+     → Mark all visibleCells as explored
+     → Immutable level update
+
+  7. Tick hunger (HungerService)
+     → Apply hunger effects based on state
+
+  8. Increment turn (TurnService)
+     → turnCount = turnCount + 1
+
+  9. Return new GameState
+     → All updates immutable (spread operators)
 ```
 
-**Note**: This example shows the coordination role of commands. All actual logic lives in services.
+**Key Principles Demonstrated**:
+- **Orchestration**: Command coordinates 6 services
+- **Immutability**: Every update returns new objects
+- **Separation**: Logic lives in services, not commands
+- **Order Matters**: FOV must wait for position update, hunger waits for FOV
+
+**See**: `src/commands/MoveCommand/MoveCommand.ts` for implementation
 
 ---
 
