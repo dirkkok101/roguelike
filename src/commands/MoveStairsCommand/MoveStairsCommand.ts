@@ -5,6 +5,8 @@ import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
 import { VictoryService } from '@services/VictoryService'
+import { LevelService } from '@services/LevelService'
+import { TurnService } from '@services/TurnService'
 
 // ============================================================================
 // MOVE STAIRS COMMAND - Navigate between dungeon levels
@@ -18,7 +20,9 @@ export class MoveStairsCommand implements ICommand {
     private fovService: FOVService,
     private lightingService: LightingService,
     private messageService: MessageService,
-    private victoryService: VictoryService
+    private victoryService: VictoryService,
+    private levelService: LevelService,
+    private turnService: TurnService
   ) {}
 
   execute(state: GameState): GameState {
@@ -108,11 +112,9 @@ export class MoveStairsCommand implements ICommand {
       levels.set(newDepth, level)
     }
 
-    // Determine spawn position (opposite stairs)
-    const spawnPos =
-      direction === 'down'
-        ? level.stairsUp || this.getRandomFloor(level)
-        : level.stairsDown || this.getRandomFloor(level)
+    // Determine spawn position using LevelService (opposite stairs)
+    const preferredPosition = direction === 'down' ? level.stairsUp : level.stairsDown
+    const spawnPos = this.levelService.getSpawnPosition(level, preferredPosition)
 
     // Update player position
     const updatedPlayer = { ...state.player, position: spawnPos }
@@ -123,16 +125,8 @@ export class MoveStairsCommand implements ICommand {
     )
     const visibleCells = this.fovService.computeFOV(spawnPos, lightRadius, level)
 
-    // Mark visible tiles as explored
-    const updatedLevel = {
-      ...level,
-      explored: level.explored.map((row, y) =>
-        row.map((explored, x) => {
-          const key = `${x},${y}`
-          return explored || visibleCells.has(key)
-        })
-      ),
-    }
+    // Mark visible tiles as explored using FOVService
+    const updatedLevel = this.fovService.updateExploredTiles(level, visibleCells)
     levels.set(newDepth, updatedLevel)
 
     const messages = this.messageService.addMessage(
@@ -144,16 +138,15 @@ export class MoveStairsCommand implements ICommand {
       state.turnCount
     )
 
-    // Create new state after level change
-    const newState = {
+    // Create new state after level change using TurnService
+    const newState = this.turnService.incrementTurn({
       ...state,
       player: updatedPlayer,
       currentLevel: newDepth,
       levels,
       visibleCells,
       messages,
-      turnCount: state.turnCount + 1,
-    }
+    })
 
     // Check victory condition after moving to new level
     if (this.victoryService.checkVictory(newState)) {
@@ -171,18 +164,5 @@ export class MoveStairsCommand implements ICommand {
     }
 
     return newState
-  }
-
-  private getRandomFloor(level: any): { x: number; y: number } {
-    // Fallback: return center of first room
-    if (level.rooms.length > 0) {
-      const room = level.rooms[0]
-      return {
-        x: room.x + Math.floor(room.width / 2),
-        y: room.y + Math.floor(room.height / 2),
-      }
-    }
-    // Ultimate fallback
-    return { x: Math.floor(level.width / 2), y: Math.floor(level.height / 2) }
   }
 }

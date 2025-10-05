@@ -4,7 +4,9 @@ import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
 import { VictoryService } from '@services/VictoryService'
-import { SeededRandom } from '@services/RandomService'
+import { LevelService } from '@services/LevelService'
+import { TurnService } from '@services/TurnService'
+import { SeededRandom, MockRandom } from '@services/RandomService'
 import { GameState, Player, Position, Level } from '@game/core/core'
 
 describe('MoveStairsCommand', () => {
@@ -13,15 +15,20 @@ describe('MoveStairsCommand', () => {
   let fovService: FOVService
   let lightingService: LightingService
   let victoryService: VictoryService
+  let levelService: LevelService
+  let turnService: TurnService
   let dungeonConfig: DungeonConfig
 
   beforeEach(() => {
     messageService = new MessageService()
     const random = new SeededRandom('test-seed')
+    const mockRandom = new MockRandom()
     dungeonService = new DungeonService(random)
     fovService = new FOVService()
-    lightingService = new LightingService()
+    lightingService = new LightingService(mockRandom)
     victoryService = new VictoryService()
+    levelService = new LevelService()
+    turnService = new TurnService()
 
     dungeonConfig = {
       width: 80,
@@ -132,7 +139,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -152,7 +161,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -171,7 +182,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -192,7 +205,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -214,7 +229,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -240,7 +257,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -263,7 +282,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -285,7 +306,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -303,7 +326,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -329,7 +354,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -352,7 +379,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -371,7 +400,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -396,7 +427,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 
@@ -417,7 +450,9 @@ describe('MoveStairsCommand', () => {
         fovService,
         lightingService,
         messageService,
-        victoryService
+        victoryService,
+        levelService,
+        turnService
       )
       const result = command.execute(state)
 

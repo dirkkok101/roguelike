@@ -45,6 +45,7 @@ import { ScrollService } from '@services/ScrollService'
 import { WandService } from '@services/WandService'
 import { TurnService } from '@services/TurnService'
 import { SearchService } from '@services/SearchService'
+import { LevelService } from '@services/LevelService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -81,6 +82,7 @@ export class InputHandler {
     private scrollService: ScrollService,
     private wandService: WandService,
     private turnService: TurnService,
+    private levelService: LevelService,
     private messageHistoryModal?: any, // MessageHistoryModal
     private helpModal?: any // HelpModal
   ) {}
@@ -221,7 +223,9 @@ export class InputHandler {
           this.fovService,
           this.lightingService,
           this.messageService,
-          this.victoryService
+          this.victoryService,
+          this.levelService,
+          this.turnService
         )
 
       case '<':
@@ -233,7 +237,9 @@ export class InputHandler {
           this.fovService,
           this.lightingService,
           this.messageService,
-          this.victoryService
+          this.victoryService,
+          this.levelService,
+          this.turnService
         )
 
       // =====================================================================
