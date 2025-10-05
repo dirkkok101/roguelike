@@ -36,6 +36,7 @@ import { CombatService } from '@services/CombatService'
 import { InventoryService } from '@services/InventoryService'
 import { IdentificationService } from '@services/IdentificationService'
 import { HungerService } from '@services/HungerService'
+import { RegenerationService } from '@services/RegenerationService'
 import { LevelingService } from '@services/LevelingService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
@@ -72,6 +73,7 @@ export class InputHandler {
     private inventoryService: InventoryService,
     private identificationService: IdentificationService,
     private hungerService: HungerService,
+    private regenerationService: RegenerationService,
     private levelingService: LevelingService,
     private modalController: ModalController,
     private debugService: DebugService,
@@ -137,6 +139,7 @@ export class InputHandler {
           this.levelingService,
           this.doorService,
           this.hungerService,
+          this.regenerationService,
           this.notificationService,
           this.turnService
         )
@@ -153,6 +156,7 @@ export class InputHandler {
           this.levelingService,
           this.doorService,
           this.hungerService,
+          this.regenerationService,
           this.notificationService,
           this.turnService
         )
@@ -169,6 +173,7 @@ export class InputHandler {
           this.levelingService,
           this.doorService,
           this.hungerService,
+          this.regenerationService,
           this.notificationService,
           this.turnService
         )
@@ -185,6 +190,7 @@ export class InputHandler {
           this.levelingService,
           this.doorService,
           this.hungerService,
+          this.regenerationService,
           this.notificationService,
           this.turnService
         )

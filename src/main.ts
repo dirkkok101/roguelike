@@ -14,6 +14,7 @@ import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { InventoryService } from '@services/InventoryService'
 import { IdentificationService } from '@services/IdentificationService'
 import { HungerService } from '@services/HungerService'
+import { RegenerationService } from '@services/RegenerationService'
 import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
@@ -58,6 +59,7 @@ async function initializeGame() {
   const messageService = new MessageService()
   const dungeonService = new DungeonService(random, itemData)
   const hungerService = new HungerService(random)
+  const regenerationService = new RegenerationService()
   const levelingService = new LevelingService(random)
   const debugService = new DebugService(messageService)
   const inventoryService = new InventoryService()
@@ -112,6 +114,7 @@ async function initializeGame() {
     inventoryService,
     identificationService,
     hungerService,
+    regenerationService,
     levelingService,
     modalController,
     debugService,

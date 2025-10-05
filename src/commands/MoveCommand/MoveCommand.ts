@@ -9,6 +9,8 @@ import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
 import { HungerService } from '@services/HungerService'
 import type { HungerTickResult, Message as HungerMessage } from '@services/HungerService'
+import { RegenerationService } from '@services/RegenerationService'
+import type { RegenerationTickResult, Message as RegenMessage } from '@services/RegenerationService'
 import { NotificationService } from '@services/NotificationService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
@@ -30,6 +32,7 @@ export class MoveCommand implements ICommand {
     private levelingService: LevelingService,
     private doorService: DoorService,
     private hungerService: HungerService,
+    private regenerationService: RegenerationService,
     private notificationService: NotificationService,
     private turnService: TurnService
   ) {}
@@ -139,7 +142,7 @@ export class MoveCommand implements ICommand {
   private performMovement(state: GameState, position: Position, level: Level): GameState {
     // 1. Move player
     let player = this.movementService.movePlayer(state.player, position)
-    let messages: (HungerMessage | LightMessage)[] = []
+    let messages: (HungerMessage | LightMessage | RegenMessage)[] = []
 
     // 2. Tick hunger
     const hungerResult: HungerTickResult = this.hungerService.tickHunger(player)
@@ -173,6 +176,15 @@ export class MoveCommand implements ICommand {
         deathCause: hungerResult.death.cause,
       })
     }
+
+    // 2.5. Tick regeneration (after hunger, before fuel)
+    // Check if in combat (any monsters in visible cells from previous turn)
+    const inCombat = level.monsters.some((monster) =>
+      state.visibleCells.has(`${monster.position.x},${monster.position.y}`)
+    )
+    const regenResult: RegenerationTickResult = this.regenerationService.tickRegeneration(player, inCombat)
+    player = regenResult.player
+    messages.push(...regenResult.messages)
 
     // 3. Tick light fuel
     const fuelResult: FuelTickResult = this.lightingService.tickFuel(player)
