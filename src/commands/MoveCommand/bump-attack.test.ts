@@ -4,6 +4,8 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
+import { LevelingService } from '@services/LevelingService'
+import { DoorService } from '@services/DoorService'
 import { MockRandom } from '@services/RandomService'
 import {
   GameState,
@@ -20,6 +22,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
   let fovService: FOVService
   let messageService: MessageService
   let combatService: CombatService
+  let levelingService: LevelingService
+  let doorService: DoorService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -29,6 +33,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
     fovService = new FOVService()
     messageService = new MessageService()
     combatService = new CombatService(mockRandom)
+    levelingService = new LevelingService(mockRandom)
+    doorService = new DoorService()
   })
 
   function createTestState(): GameState {
@@ -140,7 +146,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         lightingService,
         fovService,
         messageService,
-        combatService
+        combatService,
+        levelingService,
+        doorService
       )
 
       const newState = command.execute(state)
@@ -164,7 +172,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         lightingService,
         fovService,
         messageService,
-        combatService
+        combatService,
+        levelingService,
+        doorService
       )
 
       const newState = command.execute(state)
@@ -187,7 +197,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         lightingService,
         fovService,
         messageService,
-        combatService
+        combatService,
+        levelingService,
+        doorService
       )
 
       const newState = command.execute(state)
@@ -209,7 +221,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         lightingService,
         fovService,
         messageService,
-        combatService
+        combatService,
+        levelingService,
+        doorService
       )
 
       const newState = command.execute(state)
@@ -233,7 +247,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         lightingService,
         fovService,
         messageService,
-        combatService
+        combatService,
+        levelingService,
+        doorService
       )
 
       const newState = command.execute(state)
@@ -255,7 +271,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         lightingService,
         fovService,
         messageService,
-        combatService
+        combatService,
+        levelingService,
+        doorService
       )
 
       const newState = command.execute(state)
@@ -279,7 +297,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         lightingService,
         fovService,
         messageService,
-        combatService
+        combatService,
+        levelingService,
+        doorService
       )
 
       const newState = command.execute(state)
@@ -302,7 +322,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         lightingService,
         fovService,
         messageService,
-        combatService
+        combatService,
+        levelingService,
+        doorService
       )
 
       const newState = command.execute(state)

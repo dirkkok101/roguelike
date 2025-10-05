@@ -121,6 +121,8 @@ export class InputHandler {
           this.fovService,
           this.messageService,
           this.combatService,
+          this.levelingService,
+          this.doorService,
           this.hungerService,
           this.notificationService
         )
@@ -134,6 +136,8 @@ export class InputHandler {
           this.fovService,
           this.messageService,
           this.combatService,
+          this.levelingService,
+          this.doorService,
           this.hungerService,
           this.notificationService
         )
@@ -147,6 +151,8 @@ export class InputHandler {
           this.fovService,
           this.messageService,
           this.combatService,
+          this.levelingService,
+          this.doorService,
           this.hungerService,
           this.notificationService
         )
@@ -160,6 +166,8 @@ export class InputHandler {
           this.fovService,
           this.messageService,
           this.combatService,
+          this.levelingService,
+          this.doorService,
           this.hungerService,
           this.notificationService
         )
