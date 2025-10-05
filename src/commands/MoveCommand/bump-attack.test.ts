@@ -28,7 +28,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
     lightingService = new LightingService(mockRandom)
     fovService = new FOVService()
     messageService = new MessageService()
-    combatService = new CombatService(mockRandom, undefined, undefined, messageService)
+    combatService = new CombatService(mockRandom)
   })
 
   function createTestState(): GameState {

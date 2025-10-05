@@ -23,7 +23,7 @@ describe('MonsterTurnService - Turn Processing', () => {
     messageService = new MessageService()
 
     aiService = new MonsterAIService(pathfinding, mockRandom, fovService)
-    combatService = new CombatService(mockRandom, undefined, undefined, messageService)
+    combatService = new CombatService(mockRandom)
     abilityService = new SpecialAbilityService(mockRandom)
 
     service = new MonsterTurnService(aiService, combatService, abilityService, messageService)

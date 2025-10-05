@@ -58,7 +58,7 @@ async function initializeGame() {
   const victoryService = new VictoryService()
   const localStorageService = new LocalStorageService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
-  const combatService = new CombatService(random, hungerService, debugService, messageService)
+  const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
   const monsterAIService = new MonsterAIService(pathfindingService, random)
   const inventoryService = new InventoryService()

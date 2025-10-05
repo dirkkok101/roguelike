@@ -19,7 +19,7 @@ describe('MonsterTurnService - Theft Mechanics', () => {
     const messageService = new MessageService()
 
     const aiService = new MonsterAIService(pathfinding, mockRandom, fovService)
-    const combatService = new CombatService(mockRandom, undefined, undefined, messageService)
+    const combatService = new CombatService(mockRandom)
     const abilityService = new SpecialAbilityService(mockRandom)
 
     service = new MonsterTurnService(aiService, combatService, abilityService, messageService)
