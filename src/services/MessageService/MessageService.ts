@@ -35,6 +35,11 @@ export class MessageService {
     const newMessage: Message = { text, type, turn, importance }
     const updated = [...messages, newMessage]
 
+    // Debug: Log important messages (warnings, critical, combat)
+    if (type === 'warning' || type === 'critical' || type === 'combat' || importance >= 4) {
+      console.log(`[MSG:${type}] ${text}`)
+    }
+
     // Trim to max length
     if (updated.length > this.maxMessages) {
       return updated.slice(-this.maxMessages)

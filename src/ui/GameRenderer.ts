@@ -329,7 +329,7 @@ export class GameRenderer {
   }
 
   private renderMessages(state: GameState): void {
-    const recent = state.messages.slice(-8)
+    const recent = state.messages.slice(-15) // Increased from 8 to 15 to show more context
     this.messagesContainer.innerHTML = `
       <div class="messages">
         ${recent
@@ -342,6 +342,9 @@ export class GameRenderer {
           .join('')}
       </div>
     `
+
+    // Auto-scroll to bottom to show latest messages
+    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight
   }
 
   /**

@@ -62,14 +62,18 @@ export class NotificationService {
       const item = itemsHere[0]
       const key = `item-${item.id}`
       if (!this.context.recentNotifications.has(key)) {
-        notifications.push(`You see ${this.getArticle(item.name)} ${item.name} here.`)
+        const notification = `You see ${this.getArticle(item.name)} ${item.name} here.`
+        notifications.push(notification)
+        console.log(`[NOTIFICATION] ${notification}`)
         this.context.recentNotifications.add(key)
         this.context.lastItemSeen = item.id
       }
     } else if (itemsHere.length > 1) {
       const key = `items-${currentPos.x}-${currentPos.y}`
       if (!this.context.recentNotifications.has(key)) {
-        notifications.push(`You see several items here. Press [,] to pick up.`)
+        const notification = `You see several items here. Press [,] to pick up.`
+        notifications.push(notification)
+        console.log(`[NOTIFICATION] ${notification}`)
         this.context.recentNotifications.add(key)
       }
     }
@@ -82,7 +86,9 @@ export class NotificationService {
     if (goldHere) {
       const key = `gold-${goldHere.amount}`
       if (!this.context.recentNotifications.has(key)) {
-        notifications.push(`You see ${goldHere.amount} gold piece${goldHere.amount !== 1 ? 's' : ''} here.`)
+        const notification = `You see ${goldHere.amount} gold piece${goldHere.amount !== 1 ? 's' : ''} here.`
+        notifications.push(notification)
+        console.log(`[NOTIFICATION] ${notification}`)
         this.context.recentNotifications.add(key)
         this.context.lastGoldSeen = goldHere.amount
       }
