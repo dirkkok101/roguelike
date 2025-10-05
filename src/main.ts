@@ -20,6 +20,7 @@ import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { DoorService } from '@services/DoorService'
+import { ItemEffectService } from '@services/ItemEffectService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -64,6 +65,7 @@ async function initializeGame() {
   const identificationService = new IdentificationService(random)
   const modalController = new ModalController(identificationService)
   const doorService = new DoorService()
+  const itemEffectService = new ItemEffectService(random, inventoryService, identificationService)
 
   // Dungeon configuration
   const dungeonConfig = {
@@ -98,6 +100,7 @@ async function initializeGame() {
     victoryService,
     localStorageService,
     doorService,
+    itemEffectService,
     renderer.getMessageHistoryModal(),
     renderer.getHelpModal()
   )

@@ -37,6 +37,7 @@ import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { DoorService } from '@services/DoorService'
+import { ItemEffectService } from '@services/ItemEffectService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -69,6 +70,7 @@ export class InputHandler {
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
     private doorService: DoorService,
+    private itemEffectService: ItemEffectService,
     private messageHistoryModal?: any, // MessageHistoryModal
     private helpModal?: any // HelpModal
   ) {}
@@ -249,8 +251,7 @@ export class InputHandler {
               'quaff',
               this.inventoryService,
               this.messageService,
-              this.random,
-              this.identificationService
+              this.itemEffectService
             )
           }
         })
@@ -278,8 +279,7 @@ export class InputHandler {
                     'read',
                     this.inventoryService,
                     this.messageService,
-                    this.random,
-                    this.identificationService,
+                    this.itemEffectService,
                     targetItem.id
                   )
                 }
@@ -298,8 +298,7 @@ export class InputHandler {
                     'read',
                     this.inventoryService,
                     this.messageService,
-                    this.random,
-                    this.identificationService,
+                    this.itemEffectService,
                     targetItem.id
                   )
                 }
@@ -318,8 +317,7 @@ export class InputHandler {
                     'read',
                     this.inventoryService,
                     this.messageService,
-                    this.random,
-                    this.identificationService,
+                    this.itemEffectService,
                     targetItem.id
                   )
                 }
@@ -332,8 +330,7 @@ export class InputHandler {
               'read',
               this.inventoryService,
               this.messageService,
-              this.random,
-              this.identificationService
+              this.itemEffectService
             )
           }
         })
@@ -349,8 +346,7 @@ export class InputHandler {
               'zap',
               this.inventoryService,
               this.messageService,
-              this.random,
-              this.identificationService
+              this.itemEffectService
             )
           }
         })
