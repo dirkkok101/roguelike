@@ -1,9 +1,14 @@
 # Command Architecture Refactoring Plan
 
-**Status**: 📋 Planning Complete - Ready for Implementation
+**Status**: 🚧 Phase 2 Complete - In Progress (Phase 3 remaining)
 **Last Updated**: 2025-10-05
 **Estimated Duration**: 3 weeks
 **Dependencies**: Service refactor (Phases 1-4) complete ✅
+
+**Progress**:
+- ✅ Phase 1: Critical Fixes (SearchCommand, UseItemCommand) - **COMPLETE**
+- ✅ Phase 2: Service Enhancements (MovementService, HungerService, Message types) - **COMPLETE**
+- ⏳ Phase 3: Polish (LevelService, FOVService, TurnService) - **IN PROGRESS**
 
 ---
 
@@ -1910,13 +1915,15 @@ private performMovement(/*...*/): GameState {
 
 **Phase 2 Completion Checklist**:
 - ✅ Task 2.1 complete (MovementService enhanced) - commit 3ff8f2b
-- ✅ Task 2.2 complete (HungerService enhanced) - pending commit
-- ✅ Task 2.3 complete (Message types in services) - pending commit
+- ✅ Task 2.2 complete (HungerService enhanced) - commit 8709ab7
+- ✅ Task 2.3 complete (Message types in services) - commit 49cfa5c
 - ✅ MoveCommand reduced by ~30 lines (263 → 230 lines)
 - ✅ EatCommand reduced from 121 → 64 lines
 - ✅ No message type logic in commands
 - ✅ All tests passing (1438 tests)
-- ☐ Git commit: "refactor: enhance service result types with message metadata (Phase 2 Task 2.3)"
+- ✅ Phase 2 COMPLETE - All service enhancements done
+
+**Phase 2 Completed**: 2025-10-05 (All tasks complete, 1438 tests passing)
 
 ---
 
