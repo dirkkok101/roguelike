@@ -1,4 +1,4 @@
-import { LightSource, Player } from '@game/core/core'
+import { Player, Torch, Lantern, Artifact, ItemType } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
@@ -85,14 +85,14 @@ export class LightingService {
   /**
    * Refill lantern with oil flask (low-level method)
    */
-  refillLantern(lantern: LightSource, oilAmount: number = 500): LightSource {
-    if (lantern.type !== 'lantern') {
+  refillLantern(lantern: Lantern, oilAmount: number = 500): Lantern {
+    if (lantern.type !== ItemType.LANTERN) {
       throw new Error('Can only refill lanterns')
     }
 
     const newFuel = Math.min(
-      (lantern.fuel || 0) + oilAmount,
-      lantern.maxFuel || 1000
+      lantern.fuel + oilAmount,
+      lantern.maxFuel
     )
 
     return {
@@ -117,7 +117,7 @@ export class LightingService {
     }
 
     // Check if it's a lantern (not torch or artifact)
-    if (lantern.type !== 'lantern') {
+    if (lantern.type !== ItemType.LANTERN) {
       return {
         player,
         message: 'You can only refill lanterns, not other light sources.',
@@ -126,19 +126,17 @@ export class LightingService {
     }
 
     // Check if lantern is already full
-    if (lantern.fuel !== undefined && lantern.maxFuel !== undefined) {
-      if (lantern.fuel >= lantern.maxFuel) {
-        return {
-          player,
-          message: 'Your lantern is already full.',
-          success: false,
-        }
+    if (lantern.fuel >= lantern.maxFuel) {
+      return {
+        player,
+        message: 'Your lantern is already full.',
+        success: false,
       }
     }
 
     // Refill lantern (add fuel, cap at maxFuel)
-    const oldFuel = lantern.fuel || 0
-    const refilledLantern = this.refillLantern(lantern, oilAmount)
+    const oldFuel = lantern.fuel
+    const refilledLantern = this.refillLantern(lantern as Lantern, oilAmount)
     const fuelAdded = refilledLantern.fuel! - oldFuel
 
     const updatedPlayer = {
@@ -156,26 +154,26 @@ export class LightingService {
   /**
    * Get light radius for FOV calculations
    */
-  getLightRadius(lightSource: LightSource | null): number {
+  getLightRadius(lightSource: Torch | Lantern | Artifact | null): number {
     if (!lightSource) return 0
-    if (lightSource.fuel !== undefined && lightSource.fuel <= 0) return 0
+    if ('fuel' in lightSource && lightSource.fuel <= 0) return 0
     return lightSource.radius
   }
 
   /**
    * Check if fuel is running low
    */
-  isFuelLow(lightSource: LightSource): boolean {
+  isFuelLow(lightSource: Torch | Lantern | Artifact): boolean {
     if (lightSource.isPermanent) return false
-    if (lightSource.fuel === undefined) return false
+    if (!('fuel' in lightSource)) return false
     return lightSource.fuel < 50
   }
 
   /**
    * Generate fuel warning message
    */
-  generateFuelWarning(lightSource: LightSource): string | null {
-    if (lightSource.isPermanent || lightSource.fuel === undefined) {
+  generateFuelWarning(lightSource: Torch | Lantern | Artifact): string | null {
+    if (lightSource.isPermanent || !('fuel' in lightSource)) {
       return null
     }
 
@@ -194,43 +192,6 @@ export class LightingService {
     return null
   }
 
-  /**
-   * Create a new torch
-   */
-  createTorch(): LightSource {
-    return {
-      type: 'torch',
-      radius: 2,
-      isPermanent: false,
-      fuel: 500,
-      maxFuel: 500,
-      name: 'Torch',
-    }
-  }
-
-  /**
-   * Create a new lantern
-   */
-  createLantern(): LightSource {
-    return {
-      type: 'lantern',
-      radius: 2,
-      isPermanent: false,
-      fuel: 500,
-      maxFuel: 1000,
-      name: 'Lantern',
-    }
-  }
-
-  /**
-   * Create artifact light (permanent)
-   */
-  createArtifact(name: string, radius: number): LightSource {
-    return {
-      type: 'artifact',
-      radius,
-      isPermanent: true,
-      name,
-    }
-  }
+  // Factory methods removed - items are now created directly in DungeonService
+  // and other places where they're spawned
 }

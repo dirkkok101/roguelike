@@ -275,15 +275,21 @@ export class GameRenderer {
     let lightColor = '#FF0000'
     let fuelWarning = ''
     if (lightSource) {
-      const fuel = lightSource.fuel || 0
-      const maxFuel = lightSource.maxFuel || 1
-      const fuelPercent = (fuel / maxFuel) * 100
+      if ('fuel' in lightSource && 'maxFuel' in lightSource) {
+        const fuel = lightSource.fuel
+        const maxFuel = lightSource.maxFuel
+        const fuelPercent = (fuel / maxFuel) * 100
 
-      lightColor = fuelPercent >= 50 ? '#FFDD00' : fuelPercent >= 20 ? '#FF8800' : '#FF0000'
-      fuelWarning = fuelPercent < 10 && fuel > 0 ? ' 🔥' : fuelPercent === 0 ? ' OUT!' : ''
+        lightColor = fuelPercent >= 50 ? '#FFDD00' : fuelPercent >= 20 ? '#FF8800' : '#FF0000'
+        fuelWarning = fuelPercent < 10 && fuel > 0 ? ' 🔥' : fuelPercent === 0 ? ' OUT!' : ''
 
-      const fuelText = lightSource.fuel !== undefined ? ` (${fuel})` : ''
-      lightDisplay = `${lightSource.name}${fuelText}${fuelWarning}`
+        const fuelText = ` (${fuel})`
+        lightDisplay = `${lightSource.name}${fuelText}${fuelWarning}`
+      } else {
+        // Artifact - no fuel
+        lightColor = '#00FF00'
+        lightDisplay = `${lightSource.name} (∞)`
+      }
     }
 
     // Get XP progress for display

@@ -1,4 +1,4 @@
-import { GameState, Level, TileType, Position } from '@game/core/core'
+import { GameState, Level, TileType, Position, Torch, ItemType } from '@game/core/core'
 import { SeededRandom } from '@services/RandomService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
@@ -146,7 +146,17 @@ async function initializeGame() {
     x: startRoom.x + Math.floor(startRoom.width / 2),
     y: startRoom.y + Math.floor(startRoom.height / 2),
   }
-  const torch = lightingService.createTorch()
+  const torch: Torch = {
+    id: 'initial-torch',
+    name: 'Torch',
+    type: ItemType.TORCH,
+    identified: true,
+    position: startPos,
+    fuel: 500,
+    maxFuel: 500,
+    radius: 2,
+    isPermanent: false,
+  }
 
   const player = {
     position: startPos,

@@ -80,6 +80,13 @@ export interface Level {
   explored: boolean[][]
 }
 
+/**
+ * @deprecated Use Torch, Lantern, or Artifact interfaces instead.
+ * This interface is kept temporarily for backwards compatibility
+ * but will be removed once all references are updated.
+ *
+ * Fuel now lives directly on Torch/Lantern items, not in a nested object.
+ */
 export interface LightSource {
   type: 'torch' | 'lantern' | 'artifact'
   radius: number
@@ -94,7 +101,7 @@ export interface Equipment {
   armor: Armor | null
   leftRing: Ring | null
   rightRing: Ring | null
-  lightSource: LightSource | null
+  lightSource: Torch | Lantern | Artifact | null
 }
 
 export interface Player {
@@ -327,11 +334,26 @@ export interface OilFlask extends Item {
 }
 
 export interface Torch extends Item {
-  lightSource: LightSource
+  type: ItemType.TORCH
+  fuel: number
+  maxFuel: number
+  radius: number
+  isPermanent: false
 }
 
 export interface Lantern extends Item {
-  lightSource: LightSource
+  type: ItemType.LANTERN
+  fuel: number
+  maxFuel: number
+  radius: number
+  isPermanent: false
+}
+
+export interface Artifact extends Item {
+  type: ItemType.TORCH // Artifacts are magical torches
+  radius: number
+  isPermanent: true
+  // No fuel properties - artifacts never run out
 }
 
 export interface GoldPile {

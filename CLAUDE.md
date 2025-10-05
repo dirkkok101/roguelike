@@ -486,6 +486,261 @@ updateExploredTiles(level: Level, visibleCells: Set<string>): Level {
 
 **Lesson**: If you see loops, conditionals, or data manipulation in a command, extract to a service!
 
+### 6. Real Example: TurnService Standardization (Fixed in commit 1902d9c)
+
+**The Problem**: Multiple commands duplicated turn increment logic with inconsistent patterns:
+
+```typescript
+// ❌ Bad - Duplicated in each command
+// In MoveCommand.ts
+return {
+  ...state,
+  turnCount: state.turnCount + 1,
+}
+
+// In AttackCommand.ts
+return {
+  ...state,
+  turnCount: state.turnCount + 1,
+}
+
+// In PickUpCommand.ts
+return {
+  ...state,
+  turnCount: state.turnCount + 1,
+}
+```
+
+**Red Flags Detected**:
+- Logic duplication across commands
+- Arithmetic operations in commands
+- Future complexity (turn-based effects, monster turns, etc.)
+
+**The Fix**: Create TurnService to centralize turn management:
+
+```typescript
+// ✅ Good - Standardized across all commands
+return this.turnService.incrementTurn(state)
+```
+
+**TurnService handles all turn logic**:
+```typescript
+// In TurnService.ts
+incrementTurn(state: GameState): GameState {
+  return {
+    ...state,
+    turnCount: state.turnCount + 1,
+    // Future: trigger turn-based effects, status decay, etc.
+  }
+}
+```
+
+**Benefits**:
+- Eliminates duplication across 26 commands
+- Single source of truth for turn mechanics
+- Easy to add turn-based effects later (poison damage, status decay, monster regeneration)
+- Testable in isolation
+
+**Lesson**: When you see the same pattern repeated in multiple commands, extract to a service!
+
+### 7. Real Example: LevelService Extraction (Fixed in commit 77490bf)
+
+**The Problem**: MoveStairsCommand contained level transition logic:
+
+```typescript
+// ❌ Bad - Logic in Command (MoveStairsCommand.ts)
+execute(state: GameState): GameState {
+  const direction = this.direction // 'up' or 'down'
+  const newLevel = direction === 'up'
+    ? state.currentLevel - 1
+    : state.currentLevel + 1
+
+  // Validation logic
+  if (newLevel < 1 || newLevel > 10) {
+    return state // Can't go beyond dungeon bounds
+  }
+
+  // Victory check logic
+  if (state.hasAmulet && newLevel === 0) {
+    return { ...state, isVictory: true }
+  }
+
+  // Level loading/creation logic
+  let targetLevel = state.levels.get(newLevel)
+  if (!targetLevel) {
+    targetLevel = this.dungeonService.generateLevel(newLevel, state.seed)
+  }
+
+  // Position calculation logic
+  const newPosition = direction === 'up'
+    ? targetLevel.stairsDown
+    : targetLevel.stairsUp
+
+  // ... more logic
+}
+```
+
+**Red Flags Detected**:
+- Conditional logic (level bounds, victory condition)
+- Calculations (level arithmetic)
+- Multiple responsibilities (validation, generation, positioning)
+- 40+ lines in command
+
+**The Fix**: Extract all logic to LevelService:
+
+```typescript
+// ✅ Good - Orchestration Only (MoveStairsCommand.ts)
+execute(state: GameState): GameState {
+  const result = this.levelService.transitionLevel(
+    state,
+    this.direction,
+    this.dungeonService
+  )
+
+  if (!result.success) {
+    return state // LevelService determined transition invalid
+  }
+
+  return this.turnService.incrementTurn({
+    ...state,
+    ...result.updates // New level, position, victory state
+  })
+}
+```
+
+**LevelService handles transition logic**:
+```typescript
+// In LevelService.ts
+transitionLevel(state: GameState, direction: 'up' | 'down', dungeonService: DungeonService) {
+  const newLevel = this.calculateTargetLevel(state.currentLevel, direction)
+
+  if (!this.isValidLevel(newLevel)) {
+    return { success: false }
+  }
+
+  if (this.checkVictory(state, newLevel)) {
+    return { success: true, updates: { isVictory: true } }
+  }
+
+  const targetLevel = this.getOrGenerateLevel(state.levels, newLevel, state.seed, dungeonService)
+  const newPosition = this.getSpawnPosition(targetLevel, direction)
+
+  return {
+    success: true,
+    updates: {
+      currentLevel: newLevel,
+      levels: state.levels.set(newLevel, targetLevel),
+      player: { ...state.player, position: newPosition }
+    }
+  }
+}
+```
+
+**Benefits**:
+- Command reduced from 40+ lines to 10
+- All level transition logic in one place
+- Testable without full game state
+- Reusable for teleportation, pit falls, etc.
+
+**Lesson**: If a command has multiple responsibilities, extract each domain into its own service!
+
+### 8. Real Example: DoorService Result Objects (Fixed in commit 17e57b9)
+
+**The Problem**: MoveCommand handled door opening with mixed responsibilities:
+
+```typescript
+// ❌ Bad - Door logic in MoveCommand
+if (obstacle.type === 'door' && obstacle.data.state === DoorState.CLOSED) {
+  // Find door in level.doors array
+  const doorIndex = level.doors.findIndex(d =>
+    d.position.x === obstacle.data.position.x &&
+    d.position.y === obstacle.data.position.y
+  )
+
+  // Mutate door state
+  const updatedDoors = [...level.doors]
+  updatedDoors[doorIndex] = { ...updatedDoors[doorIndex], state: DoorState.OPEN }
+
+  // Generate message
+  const message = obstacle.data.wasSecret
+    ? "You discover and open a secret door!"
+    : "You open the door."
+
+  // Update level
+  const updatedLevel = { ...level, doors: updatedDoors }
+  const updatedLevels = new Map(state.levels).set(state.currentLevel, updatedLevel)
+
+  // Add message and continue with movement
+  const messages = this.messageService.addMessage(state.messages, message, 'info')
+  return this.performMovement({ ...state, levels: updatedLevels, messages }, newPosition, updatedLevel)
+}
+```
+
+**Red Flags Detected**:
+- Array search (`findIndex`)
+- Array manipulation (`[...]`, index assignment)
+- Conditional logic for message generation
+- Multiple responsibilities (find, update, message, coordinate movement)
+
+**The Fix**: DoorService returns result objects with updated level and message:
+
+```typescript
+// ✅ Good - Orchestration Only
+if (obstacle.type === 'door' &&
+    (obstacle.data.state === DoorState.CLOSED || obstacle.data.wasSecret)) {
+  const result = this.doorService.openDoorWithResult(level, obstacle.data)
+
+  const stateWithOpenDoor = {
+    ...state,
+    levels: new Map(state.levels).set(state.currentLevel, result.level),
+  }
+
+  const messages = this.messageService.addMessage(
+    stateWithOpenDoor.messages,
+    result.message,
+    'info',
+    state.turnCount + 1
+  )
+
+  return this.performMovement({ ...stateWithOpenDoor, messages }, newPosition, result.level)
+}
+```
+
+**DoorService returns structured results**:
+```typescript
+// In DoorService.ts
+interface DoorOpenResult {
+  level: Level      // Updated level with door state changed
+  message: string   // User-facing message
+}
+
+openDoorWithResult(level: Level, door: Door): DoorOpenResult {
+  const updatedDoors = level.doors.map(d =>
+    d.position.x === door.position.x && d.position.y === door.position.y
+      ? { ...d, state: DoorState.OPEN }
+      : d
+  )
+
+  const message = door.discovered && door.state === DoorState.SECRET
+    ? "You discover and open a secret door!"
+    : "You open the door."
+
+  return {
+    level: { ...level, doors: updatedDoors },
+    message,
+  }
+}
+```
+
+**Benefits**:
+- Command reduced from 20 lines to 7
+- Door logic centralized in DoorService
+- Result object pattern provides type-safe returns
+- Message generation logic testable in isolation
+- Pattern reusable for traps, chests, etc.
+
+**Lesson**: When services need to return multiple related values, use result objects for type-safe, structured returns!
+
 ### How to Detect Logic in Commands (Quick Reference)
 
 **🚨 Red Flags** - If you see these in a command file, review carefully:

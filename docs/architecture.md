@@ -323,6 +323,475 @@ interface IRandomService {
 
 ---
 
+### 4.10 FOVService
+
+**Responsibilities**: Field of view calculations using recursive shadowcasting
+
+**Methods**:
+```typescript
+class FOVService {
+  computeFOV(origin: Position, radius: number, level: Level): Set<string>
+  updateFOVAndExploration(position: Position, radius: number, level: Level): FOVUpdateResult
+  updateExploredTiles(level: Level, visibleCells: Set<string>): Level
+  isInFOV(position: Position, visibleCells: Set<string>): boolean
+  isBlocking(position: Position, level: Level): boolean
+  posToKey(position: Position): string
+  keyToPos(key: string): Position
+}
+```
+
+**Algorithm**: 8-octant recursive shadowcasting
+**Dependencies**: None
+
+See [Core Systems - FOV System](./systems-core.md#fov-system) for algorithm details.
+
+---
+
+### 4.11 LightingService
+
+**Responsibilities**: Light source management and fuel tracking
+
+**Methods**:
+```typescript
+class LightingService {
+  createTorch(): LightSource
+  createLantern(): LightSource
+  createArtifact(name: string): LightSource
+  tickFuel(player: Player): FuelTickResult
+  refillLantern(lightSource: LightSource, oilFlask: Item): LightSource
+  getLightRadius(lightSource: LightSource | null): number
+  getFuelWarnings(fuel: number): string[]
+}
+```
+
+**Light Sources**:
+- **Torch**: Radius 1, 500 fuel
+- **Lantern**: Radius 2, 500 fuel, refillable
+- **Artifact**: Radius 3, permanent (no fuel)
+
+**Dependencies**: None
+
+See [Core Systems - Lighting System](./systems-core.md#lighting-system) for mechanics.
+
+---
+
+### 4.12 RenderingService
+
+**Responsibilities**: Visibility states and color selection for rendering
+
+**Methods**:
+```typescript
+class RenderingService {
+  getVisibilityState(position: Position, visibleCells: Set<string>, level: Level): VisibilityState
+  getTileColor(tile: Tile, visibilityState: VisibilityState): string
+  getMonsterColor(monster: Monster, visibilityState: VisibilityState): string
+  shouldRenderMonster(monster: Monster, position: Position, visibleCells: Set<string>): boolean
+}
+```
+
+**Visibility States**:
+- `VISIBLE`: In FOV (full color)
+- `EXPLORED`: Memory (dimmed)
+- `HIDDEN`: Unexplored (black)
+
+**Dependencies**: None
+
+See [Core Systems - Visibility System](./systems-core.md#visibility-color-system) for color specs.
+
+---
+
+### 4.13 TurnService
+
+**Responsibilities**: Turn counter management and turn-based effects
+
+**Methods**:
+```typescript
+class TurnService {
+  incrementTurn(state: GameState): GameState
+  getCurrentTurn(state: GameState): number
+}
+```
+
+**Usage**: Standardized across all 26 commands (replaces inline `turnCount + 1`)
+**Dependencies**: None
+
+---
+
+### 4.14 NotificationService
+
+**Responsibilities**: Contextual auto-notifications for player awareness
+
+**Methods**:
+```typescript
+class NotificationService {
+  constructor(private identificationService: IdentificationService) {}
+
+  generateNotifications(state: GameState, previousPosition?: Position): string[]
+}
+```
+
+**Notification Types**:
+- Items/gold at position
+- Nearby doors/stairs
+- Resource warnings (full inventory, no food)
+- Proximity alerts (monsters nearby)
+
+**Features**: Smart deduplication, priority-based, context-aware
+**Dependencies**: IdentificationService
+
+---
+
+### 4.15 MonsterTurnService
+
+**Responsibilities**: Execute monster turns and state updates
+
+**Methods**:
+```typescript
+class MonsterTurnService {
+  constructor(
+    private monsterAI: MonsterAIService,
+    private combat: CombatService,
+    private messageService: MessageService
+  ) {}
+
+  executeMonsterTurns(state: GameState): GameState
+  processMonsterAction(monster: Monster, state: GameState): GameState
+}
+```
+
+**Dependencies**: MonsterAIService, CombatService, MessageService
+
+---
+
+### 4.16 MonsterAIService
+
+**Responsibilities**: Monster behavior and decision-making
+
+**Methods**:
+```typescript
+class MonsterAIService {
+  constructor(
+    private pathfinding: PathfindingService,
+    private fov: FOVService,
+    private random: IRandomService
+  ) {}
+
+  decideAction(monster: Monster, state: GameState): MonsterAction
+  updateMonsterState(monster: Monster, canSeePlayer: boolean): Monster
+  shouldWakeUp(monster: Monster, state: GameState): boolean
+}
+```
+
+**AI Behaviors**:
+- SMART (A* pathfinding)
+- SIMPLE (greedy movement)
+- ERRATIC (50% random)
+- GREEDY (prioritize gold)
+- THIEF (steal and flee)
+- STATIONARY (don't move)
+- COWARD (flee at low HP)
+
+**Dependencies**: PathfindingService, FOVService, RandomService
+
+See [Advanced Systems - Monster AI](./systems-advanced.md#monster-ai) for behavior details.
+
+---
+
+### 4.17 PathfindingService
+
+**Responsibilities**: A* pathfinding for monster movement
+
+**Methods**:
+```typescript
+class PathfindingService {
+  findPath(start: Position, goal: Position, level: Level, maxDepth: number): Position[] | null
+  getNeighbors(position: Position, level: Level): Position[]
+  heuristic(a: Position, b: Position): number  // Manhattan distance
+}
+```
+
+**Algorithm**: A* with Manhattan heuristic
+**Dependencies**: None
+
+See [Advanced Systems - Pathfinding](./systems-advanced.md#pathfinding-algorithm) for details.
+
+---
+
+### 4.18 DoorService
+
+**Responsibilities**: Door manipulation and state management
+
+**Methods**:
+```typescript
+class DoorService {
+  openDoor(level: Level, door: Door): Level
+  openDoorWithResult(level: Level, door: Door): DoorOpenResult
+  closeDoor(level: Level, door: Door): Level
+  revealSecretDoor(level: Level, door: Door): Level
+  getDoorAt(level: Level, position: Position): Door | null
+  canOpenDoor(door: Door | null): { canOpen: boolean; reason?: string }
+  canCloseDoor(door: Door | null, level: Level, position: Position): { canClose: boolean; reason?: string }
+}
+```
+
+**Door States**: OPEN, CLOSED, LOCKED, BROKEN, SECRET, ARCHWAY
+**Dependencies**: None
+
+---
+
+### 4.19 LevelService
+
+**Responsibilities**: Level spawn positioning and helper methods
+
+**Methods**:
+```typescript
+class LevelService {
+  getSpawnPosition(level: Level, preferredPosition?: Position | null): Position
+}
+```
+
+**Usage**: Used by MoveStairsCommand for level transitions
+**Dependencies**: None
+
+---
+
+### 4.20 SearchService
+
+**Responsibilities**: Secret door and trap discovery
+
+**Methods**:
+```typescript
+class SearchService {
+  constructor(private random: IRandomService) {}
+
+  searchForSecrets(position: Position, level: Level, playerLevel: number): SearchResult
+  getSearchChance(playerLevel: number): number  // 50% + (5% × level)
+}
+```
+
+**Dependencies**: RandomService
+
+---
+
+### 4.21 TrapService
+
+**Responsibilities**: Trap effects and trigger logic
+
+**Methods**:
+```typescript
+class TrapService {
+  constructor(private random: IRandomService) {}
+
+  triggerTrap(trap: Trap, player: Player, state: GameState): TrapEffect
+  shouldTriggerTrap(trap: Trap): boolean
+}
+```
+
+**Trap Types**:
+- BEAR (1d4 damage, held)
+- DART (1d6 damage, 30% poison)
+- TELEPORT (random teleport)
+- SLEEP (2-4 turns asleep)
+- PIT (2d6 damage, 20% fall-through)
+
+**Dependencies**: RandomService
+
+---
+
+### 4.22 PotionService
+
+**Responsibilities**: Potion effects and identification
+
+**Methods**:
+```typescript
+class PotionService {
+  constructor(
+    private random: IRandomService,
+    private identificationService: IdentificationService
+  ) {}
+
+  applyPotion(player: Player, potion: Potion, state: GameState): PotionEffectResult
+}
+```
+
+**Potion Types**: HEAL, EXTRA_HEAL, RESTORE_STRENGTH, GAIN_LEVEL, POISON, etc.
+**Dependencies**: RandomService, IdentificationService
+
+---
+
+### 4.23 ScrollService
+
+**Responsibilities**: Scroll effects with item targeting
+
+**Methods**:
+```typescript
+class ScrollService {
+  constructor(
+    private identificationService: IdentificationService,
+    private inventoryService: InventoryService
+  ) {}
+
+  applyScroll(player: Player, scroll: Scroll, state: GameState, targetItemId?: string): ScrollEffectResult
+}
+```
+
+**Scroll Types**:
+- IDENTIFY (reveal item type)
+- ENCHANT_WEAPON (+1 damage, max +3)
+- ENCHANT_ARMOR (+1 AC, max +3)
+
+**Dependencies**: IdentificationService, InventoryService
+
+---
+
+### 4.24 WandService
+
+**Responsibilities**: Wand usage and charge management
+
+**Methods**:
+```typescript
+class WandService {
+  constructor(private identificationService: IdentificationService) {}
+
+  applyWand(player: Player, wand: Wand, state: GameState, targetMonsterId?: string): WandEffectResult
+}
+```
+
+**Note**: Full wand effects pending targeting system (Phase 5)
+**Dependencies**: IdentificationService
+
+---
+
+### 4.25 RoomGenerationService
+
+**Responsibilities**: Room placement with collision detection
+
+**Methods**:
+```typescript
+class RoomGenerationService {
+  constructor(private random: IRandomService) {}
+
+  generateRooms(level: Level, config: DungeonConfig): Room[]
+  doesRoomOverlap(room: Room, existingRooms: Room[]): boolean
+}
+```
+
+**Dependencies**: RandomService
+
+---
+
+### 4.26 CorridorGenerationService
+
+**Responsibilities**: Corridor path generation with winding
+
+**Methods**:
+```typescript
+class CorridorGenerationService {
+  constructor(private random: IRandomService) {}
+
+  connectRooms(rooms: Room[], level: Level): Corridor[]
+  generateWindingPath(start: Position, end: Position, windiness: number): Position[]
+}
+```
+
+**Algorithm**: Minimum Spanning Tree + loop chances
+**Dependencies**: RandomService
+
+See [Advanced Systems - Dungeon Generation](./systems-advanced.md#dungeon-generation) for details.
+
+---
+
+### 4.27 VictoryService
+
+**Responsibilities**: Win condition checking and score calculation
+
+**Methods**:
+```typescript
+class VictoryService {
+  checkVictory(state: GameState): boolean
+  calculateScore(state: GameState): number
+  getVictoryStats(state: GameState): VictoryStats
+}
+```
+
+**Win Condition**: Reach Level 1 with Amulet of Yendor
+**Score Formula**: (Gold × 10) + (Level × 100) + (XP × 5) - (Turns ÷ 10)
+**Dependencies**: None
+
+---
+
+### 4.28 DebugService
+
+**Responsibilities**: Debug commands and visualizations
+
+**Methods**:
+```typescript
+class DebugService {
+  toggleGodMode(state: GameState): GameState
+  revealMap(state: GameState): GameState
+  toggleFOVOverlay(state: GameState): GameState
+  togglePathfindingOverlay(state: GameState): GameState
+}
+```
+
+**Debug Commands**: God mode, map reveal, FOV/pathfinding overlays
+**Dependencies**: None
+
+See [Advanced Systems - Debug System](./systems-advanced.md#debug-system) for details.
+
+---
+
+### 4.29 ContextService
+
+**Responsibilities**: Contextual help and command suggestions
+
+**Methods**:
+```typescript
+class ContextService {
+  getAvailableCommands(state: GameState): Command[]
+  getSuggestions(state: GameState, position: Position): string[]
+}
+```
+
+**Dependencies**: None
+
+---
+
+### 4.30 LocalStorageService
+
+**Responsibilities**: Browser localStorage persistence wrapper
+
+**Methods**:
+```typescript
+class LocalStorageService {
+  saveGame(state: GameState): void
+  loadGame(gameId: string): GameState | null
+  listSavedGames(): SavedGameInfo[]
+  deleteGame(gameId: string): void
+}
+```
+
+**Storage Format**: JSON serialization with compression
+**Dependencies**: None
+
+---
+
+### 4.31 SpecialAbilityService
+
+**Responsibilities**: Special monster abilities (rust armor, steal gold, drain strength)
+
+**Methods**:
+```typescript
+class SpecialAbilityService {
+  applySpecialAbility(monster: Monster, player: Player, state: GameState): SpecialAbilityResult
+}
+```
+
+**Abilities**: RUSTS_ARMOR (Aquator), STEALS_GOLD (Leprechaun), DRAINS_STRENGTH (Rattlesnake)
+**Dependencies**: RandomService
+
+---
+
 ## 5. Command Layer Details
 
 **Command Pattern** for user actions:

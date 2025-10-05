@@ -21,8 +21,8 @@ import {
   Food,
   Torch,
   Lantern,
+  Artifact,
   OilFlask,
-  LightSource,
   PotionType,
   ScrollType,
   RingType,
@@ -840,16 +840,12 @@ export class DungeonService {
                 item = {
                   id: itemId,
                   name: artifact.name,
-                  type: ItemType.TORCH, // Using TORCH type for all light sources
+                  type: ItemType.TORCH, // Artifacts use TORCH type
                   identified: true, // Artifacts are always identified
                   position: { x, y },
-                  lightSource: {
-                    type: 'artifact',
-                    radius: artifact.radius,
-                    isPermanent: true,
-                    name: artifact.name,
-                  },
-                } as Torch
+                  radius: artifact.radius,
+                  isPermanent: true,
+                } as Artifact
               }
             } else {
               // Spawn regular torch
@@ -861,14 +857,10 @@ export class DungeonService {
                   type: ItemType.TORCH,
                   identified: true, // Torches are always identified
                   position: { x, y },
-                  lightSource: {
-                    type: 'torch',
-                    radius: torch.radius,
-                    isPermanent: false,
-                    fuel: torch.fuel,
-                    maxFuel: torch.fuel,
-                    name: torch.name,
-                  },
+                  fuel: torch.fuel ?? 500,
+                  maxFuel: torch.fuel ?? 500,
+                  radius: torch.radius,
+                  isPermanent: false,
                 } as Torch
               }
             }
@@ -884,14 +876,10 @@ export class DungeonService {
                 type: ItemType.LANTERN,
                 identified: true, // Lanterns are always identified
                 position: { x, y },
-                lightSource: {
-                  type: 'lantern',
-                  radius: lantern.radius,
-                  isPermanent: false,
-                  fuel: lantern.fuel,
-                  maxFuel: 1000, // Lanterns can hold more fuel
-                  name: lantern.name,
-                },
+                fuel: lantern.fuel ?? 500,
+                maxFuel: 1000, // Lanterns can hold more fuel
+                radius: lantern.radius,
+                isPermanent: false,
               } as Lantern
             }
             break

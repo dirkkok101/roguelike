@@ -605,10 +605,10 @@ interface Equipment {
 - [ ] Update DungeonService - Lantern spawning
 - [ ] Update test data factories
 
-### Phase 6: Testing (4 categories, ~15 tasks)
+### Phase 6: Testing (4 categories, ~18 tasks)
 - [ ] Update unit tests (6 files)
 - [ ] Update integration tests
-- [ ] Create new test scenarios (5 tests)
+- [ ] Create new test scenarios (8 tests, including 3 auto-drop scenarios)
 - [ ] Edge case testing (4 tests)
 
 ### Phase 7: Documentation (5 tasks)
@@ -624,8 +624,8 @@ interface Equipment {
 - [ ] Version bump
 - [ ] Changelog
 
-**Total Tasks**: ~48 tasks
-**Estimated Total Effort**: 20-30 hours
+**Total Tasks**: ~51 tasks
+**Estimated Total Effort**: 22-32 hours
 
 ---
 
@@ -867,11 +867,19 @@ Result:    EquipCommand → InventoryService.equipLightSource()
 
 - This plan assumes **no backwards compatibility** for save files (cleanest approach)
 - Angband uses `F` for fuel, we already use `F` for refill - no change needed
-- Consider adding `L` key for "light source" menu (alternative to `w` for equip)
+- Using generic `w` (wield) for all equipment including light sources (Angband standard)
+- Using generic `t` (take off) for all equipment including light sources (Angband standard)
 - Artifacts use `ItemType.TORCH` with `isPermanent: true` flag
+- **Auto-drop design**: Burnt torches (fuel = 0) automatically drop when equipping new light
+- **Hybrid approach**: EquipCommand uses switch statement (acceptable routing), TakeOffCommand is generic
 
 ---
 
-**Last Updated**: 2025-10-05
+**Last Updated**: 2025-10-05 (Revised after Angband research and architecture review)
 **Author**: Dirk Kok + Claude Code
 **Status**: Ready for Implementation
+**Key Changes from Original**:
+- Changed from UnequipLightSourceCommand to generic TakeOffCommand
+- Added auto-drop burnt torch feature (Phase 2.8)
+- Clarified wield/take-off paradigm (not turn-on/turn-off)
+- Added comprehensive auto-drop design section

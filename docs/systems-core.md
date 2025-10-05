@@ -101,42 +101,14 @@ class LightingService {
 }
 ```
 
-**Fuel Tracking Logic**:
-```typescript
-tickFuel(lightSource: LightSource): LightSource {
-  // Permanent lights never deplete
-  if (lightSource.isPermanent) {
-    return lightSource;
-  }
-  
-  // Reduce fuel by 1
-  const newFuel = Math.max(0, (lightSource.fuel || 0) - 1);
-  
-  return {
-    ...lightSource,
-    fuel: newFuel
-  };
-}
-```
+**Key Implementation Details**:
+- `tickFuel()`: Decrements fuel by 1, returns new LightSource (immutable)
+- Permanent lights skip fuel depletion
+- Warnings triggered at 50, 10, and 0 fuel thresholds
 
-**Warning Generation**:
-```typescript
-generateFuelWarning(lightSource: LightSource): string | null {
-  if (lightSource.isPermanent) return null;
-  
-  const fuel = lightSource.fuel || 0;
-  
-  if (fuel === 50) {
-    return `Your ${lightSource.name.toLowerCase()} is getting dim...`;
-  } else if (fuel === 10) {
-    return `Your ${lightSource.name.toLowerCase()} flickers...`;
-  } else if (fuel === 0) {
-    return `Your ${lightSource.name.toLowerCase()} goes out! You are in darkness!`;
-  }
-  
-  return null;
-}
-```
+**See**:
+- Implementation: `src/services/LightingService/LightingService.ts`
+- Full API: [LightingService Documentation](./services/LightingService.md)
 
 **Testing**: See [Testing Strategy](./testing-strategy.md) - `LightingService/` folder
 - `fuel-consumption.test.ts` - Tick mechanics, depletion

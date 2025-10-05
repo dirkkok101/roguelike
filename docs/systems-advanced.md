@@ -110,27 +110,28 @@ interface MonsterAIProfile {
 class MonsterAIService {
   constructor(
     private pathfinding: PathfindingService,
+    private fov: FOVService,
     private random: IRandomService
   ) {}
 
   // Main decision function
   decideAction(monster: Monster, state: GameState): MonsterAction
-  updateMonsterState(monster: Monster, state: GameState): Monster
+  updateMonsterState(monster: Monster, canSeePlayer: boolean): Monster
+  shouldWakeUp(monster: Monster, state: GameState): boolean
 
-  // Behavior implementations
-  private smartBehavior(monster: Monster, state: GameState): MonsterAction
-  private greedyBehavior(monster: Monster, state: GameState): MonsterAction
-  private erraticBehavior(monster: Monster, state: GameState): MonsterAction
-  private simpleBehavior(monster: Monster, state: GameState): MonsterAction
-  private thiefBehavior(monster: Monster, state: GameState): MonsterAction
-  private stationaryBehavior(monster: Monster, state: GameState): MonsterAction
-
-  // Utilities
-  private canSeePlayer(monster: Monster, state: GameState): boolean
-  private findNearestGold(monster: Monster, state: GameState): Position | null
-  private flee(monster: Monster, state: GameState): MonsterAction
+  // Behavior implementations (private)
+  private smartBehavior(...)
+  private greedyBehavior(...)
+  private erraticBehavior(...)
+  private simpleBehavior(...)
+  private thiefBehavior(...)
+  private stationaryBehavior(...)
 }
 ```
+
+**See**:
+- Implementation: `src/services/MonsterAIService/MonsterAIService.ts`
+- Full API: See architecture.md section 4.16
 
 ---
 
