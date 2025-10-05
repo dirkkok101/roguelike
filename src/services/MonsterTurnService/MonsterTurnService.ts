@@ -1,4 +1,4 @@
-import { GameState, Monster, Position } from '@game/core/core'
+import { GameState, Monster, MonsterState, Position } from '@game/core/core'
 import { MonsterAIService, MonsterAction } from '@services/MonsterAIService'
 import { CombatService } from '@services/CombatService'
 import { SpecialAbilityService } from '@services/SpecialAbilityService'
@@ -34,9 +34,10 @@ export class MonsterTurnService {
         continue
       }
 
-      // Update monster (wake up check, FOV, state transitions)
+      // Update monster (wake up check, FOV, memory, state transitions)
       let updatedMonster = this.aiService.checkWakeUp(monster, currentState)
       updatedMonster = this.aiService.computeMonsterFOV(updatedMonster, currentState)
+      updatedMonster = this.aiService.updateMonsterMemory(updatedMonster, currentState)
       updatedMonster = this.aiService.updateMonsterState(updatedMonster, currentState)
 
       // Apply regeneration if monster has it
@@ -298,7 +299,7 @@ export class MonsterTurnService {
     }
 
     // Mark monster as having stolen
-    const updatedMonster = { ...monster, hasStolen: true, state: 'FLEEING' as const }
+    const updatedMonster = { ...monster, hasStolen: true, state: MonsterState.FLEEING }
     const updatedMonsters = level.monsters.map((m) =>
       m.id === monster.id ? updatedMonster : m
     )

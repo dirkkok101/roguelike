@@ -527,6 +527,8 @@ export class DungeonService {
           visibleCells: new Set(),
           currentPath: null,
           hasStolen: false,
+          lastKnownPlayerPosition: null,
+          turnsWithoutSight: 0,
         })
       }
     }

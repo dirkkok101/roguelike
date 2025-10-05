@@ -15,7 +15,7 @@ describe('LightingService - Light Sources', () => {
       const torch = service.createTorch()
 
       expect(torch.type).toBe('torch')
-      expect(torch.radius).toBe(1)
+      expect(torch.radius).toBe(2)
       expect(torch.isPermanent).toBe(false)
       expect(torch.fuel).toBe(500)
       expect(torch.maxFuel).toBe(500)
@@ -62,7 +62,7 @@ describe('LightingService - Light Sources', () => {
   describe('getLightRadius()', () => {
     test('returns correct radius for torch', () => {
       const torch = service.createTorch()
-      expect(service.getLightRadius(torch)).toBe(1)
+      expect(service.getLightRadius(torch)).toBe(2)
     })
 
     test('returns correct radius for lantern', () => {
@@ -86,7 +86,7 @@ describe('LightingService - Light Sources', () => {
 
     test('returns radius when fuel is low but not empty', () => {
       const torch = { ...service.createTorch(), fuel: 1 }
-      expect(service.getLightRadius(torch)).toBe(1)
+      expect(service.getLightRadius(torch)).toBe(2)
     })
 
     test('returns radius for permanent lights regardless of fuel field', () => {

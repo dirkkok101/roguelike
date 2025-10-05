@@ -130,6 +130,8 @@ export interface Monster {
   currentPath: Position[] | null
   hasStolen: boolean
   level: number
+  lastKnownPlayerPosition?: Position | null // Memory: last position where monster saw player
+  turnsWithoutSight?: number // Counter: how many turns since monster last saw player
 }
 
 export enum MonsterBehavior {

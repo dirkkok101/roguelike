@@ -200,7 +200,7 @@ export class LightingService {
   createTorch(): LightSource {
     return {
       type: 'torch',
-      radius: 1,
+      radius: 2,
       isPermanent: false,
       fuel: 500,
       maxFuel: 500,

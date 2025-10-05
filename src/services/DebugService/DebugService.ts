@@ -223,6 +223,8 @@ export class DebugService {
       currentPath: null,
       hasStolen: false,
       level: state.currentLevel,
+      lastKnownPlayerPosition: null,
+      turnsWithoutSight: 0,
     }
 
     const updatedLevel: Level = {

@@ -1,4 +1,4 @@
-import { Monster, GameState, Position, MonsterBehavior } from '@game/core/core'
+import { Monster, GameState, Position, MonsterBehavior, MonsterState } from '@game/core/core'
 import { PathfindingService } from '@services/PathfindingService'
 import { IRandomService } from '@services/RandomService'
 import { FOVService } from '@services/FOVService'
@@ -46,6 +46,50 @@ export class MonsterAIService {
   }
 
   /**
+   * Update monster memory of player position
+   * Tracks last known position for pursuit after losing sight
+   */
+  updateMonsterMemory(monster: Monster, state: GameState): Monster {
+    // Sleeping monsters don't update memory
+    if (monster.isAsleep || monster.state === MonsterState.SLEEPING) {
+      return monster
+    }
+
+    const playerPos = state.player.position
+    const playerPosKey = `${playerPos.x},${playerPos.y}`
+
+    // Check if player is in monster's FOV
+    const canSeePlayer = monster.visibleCells.has(playerPosKey)
+
+    if (canSeePlayer) {
+      // Update last known position and reset counter
+      return {
+        ...monster,
+        lastKnownPlayerPosition: { ...playerPos },
+        turnsWithoutSight: 0,
+      }
+    } else {
+      // Increment turns without sight (default to 0 if undefined)
+      const turnsWithoutSight = (monster.turnsWithoutSight ?? 0) + 1
+
+      // After 5 turns, forget the last known position
+      if (turnsWithoutSight > 5) {
+        return {
+          ...monster,
+          lastKnownPlayerPosition: null,
+          turnsWithoutSight,
+        }
+      }
+
+      // Keep memory for a few turns
+      return {
+        ...monster,
+        turnsWithoutSight,
+      }
+    }
+  }
+
+  /**
    * Check if monster should wake up
    */
   checkWakeUp(monster: Monster, state: GameState): Monster {
@@ -62,7 +106,7 @@ export class MonsterAIService {
       return {
         ...monster,
         isAsleep: false,
-        state: 'HUNTING',
+        state: MonsterState.HUNTING,
       }
     }
 
@@ -87,44 +131,44 @@ export class MonsterAIService {
 
     // State transitions
     switch (monster.state) {
-      case 'SLEEPING':
+      case MonsterState.SLEEPING:
         // Wake up if player in aggro range
         if (inAggroRange) {
-          return { ...monster, state: 'HUNTING', isAsleep: false }
+          return { ...monster, state: MonsterState.HUNTING, isAsleep: false }
         }
         break
 
-      case 'WANDERING':
+      case MonsterState.WANDERING:
         // Start hunting if player in aggro range
         if (inAggroRange) {
-          return { ...monster, state: 'HUNTING' }
+          return { ...monster, state: MonsterState.HUNTING }
         }
         break
 
-      case 'HUNTING':
+      case MonsterState.HUNTING:
         // Flee if COWARD and HP low
         if (
           monster.aiProfile.behavior === MonsterBehavior.COWARD &&
           hpPercent < monster.aiProfile.fleeThreshold
         ) {
-          return { ...monster, state: 'FLEEING' }
+          return { ...monster, state: MonsterState.FLEEING }
         }
         // Flee if THIEF and hasStolen
         if (
           monster.aiProfile.behavior === MonsterBehavior.THIEF &&
           monster.hasStolen
         ) {
-          return { ...monster, state: 'FLEEING' }
+          return { ...monster, state: MonsterState.FLEEING }
         }
         break
 
-      case 'FLEEING':
+      case MonsterState.FLEEING:
         // Stop fleeing if HP recovered (for COWARD)
         if (
           monster.aiProfile.behavior === MonsterBehavior.COWARD &&
           hpPercent >= monster.aiProfile.fleeThreshold + 0.1
         ) {
-          return { ...monster, state: 'HUNTING' }
+          return { ...monster, state: MonsterState.HUNTING }
         }
         // THIEF continues fleeing once stolen
         break
@@ -146,8 +190,20 @@ export class MonsterAIService {
     if (!level) return { type: 'wait' }
 
     const playerPos = state.player.position
+    const playerPosKey = `${playerPos.x},${playerPos.y}`
 
-    // Check if adjacent to player
+    // Check if player is visible
+    const canSeePlayer = monster.visibleCells.has(playerPosKey)
+
+    // Determine target position:
+    // 1. If player is visible, use current position
+    // 2. If not visible but has last known position, use that
+    // 3. Otherwise fall back to current player position (for backwards compatibility with tests)
+    let targetPos: Position = canSeePlayer
+      ? playerPos
+      : (monster.lastKnownPlayerPosition ?? playerPos)
+
+    // Check if adjacent to player - attack if adjacent (even if can't see through wall)
     if (this.isAdjacent(monster.position, playerPos)) {
       return { type: 'attack', target: playerPos }
     }
@@ -161,25 +217,25 @@ export class MonsterAIService {
 
     switch (primaryBehavior) {
       case MonsterBehavior.SMART:
-        return this.smartBehavior(monster, playerPos, level)
+        return this.smartBehavior(monster, targetPos, level)
 
       case MonsterBehavior.SIMPLE:
-        return this.simpleBehavior(monster, playerPos, level)
+        return this.simpleBehavior(monster, targetPos, level)
 
       case MonsterBehavior.ERRATIC:
-        return this.erraticBehavior(monster, playerPos, level)
+        return this.erraticBehavior(monster, targetPos, level)
 
       case MonsterBehavior.GREEDY:
         return this.greedyBehavior(monster, playerPos, level, state)
 
       case MonsterBehavior.THIEF:
-        return this.thiefBehavior(monster, playerPos, level)
+        return this.thiefBehavior(monster, targetPos, level)
 
       case MonsterBehavior.STATIONARY:
-        return this.stationaryBehavior(monster, playerPos)
+        return this.stationaryBehavior(monster, targetPos)
 
       case MonsterBehavior.COWARD:
-        return this.cowardBehavior(monster, playerPos, level)
+        return this.cowardBehavior(monster, targetPos, level)
 
       default:
         return { type: 'wait' }
