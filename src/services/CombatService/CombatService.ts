@@ -2,7 +2,6 @@ import { Player, Monster, Weapon, Ring, RingType, GameState, Level } from '@game
 import { IRandomService } from '@services/RandomService'
 import { HungerService } from '@services/HungerService'
 import { DebugService } from '@services/DebugService'
-import { MessageService } from '@services/MessageService'
 
 // ============================================================================
 // COMBAT SERVICE - Original Rogue combat formulas
@@ -20,8 +19,7 @@ export class CombatService {
   constructor(
     private random: IRandomService,
     private hungerService?: HungerService,
-    private debugService?: DebugService,
-    private messageService?: MessageService
+    private debugService?: DebugService
   ) {}
 
   /**
@@ -139,94 +137,6 @@ export class CombatService {
     return monster.xpValue
   }
 
-  /**
-   * Execute bump-to-attack combat
-   * Handles complete combat flow: attack, damage, kill, XP, messages, state updates
-   * Used when player moves into monster position
-   */
-  executeBumpAttack(state: GameState, monster: Monster, turnCount: number): GameState {
-    // 1. Execute attack
-    const result = this.playerAttack(state.player, monster)
-    let messages = state.messages
-
-    // 2. Get current level
-    const level = state.levels.get(state.currentLevel)
-    if (!level) return state
-
-    // 3. Handle combat result
-    if (result.hit) {
-      // Add hit message
-      if (this.messageService) {
-        messages = this.messageService.addMessage(
-          messages,
-          `You hit the ${result.defender} for ${result.damage} damage!`,
-          'combat',
-          turnCount
-        )
-      }
-
-      if (result.killed) {
-        // Add killed message
-        if (this.messageService) {
-          messages = this.messageService.addMessage(
-            messages,
-            `You killed the ${result.defender}!`,
-            'success',
-            turnCount
-          )
-        }
-
-        // Remove monster and award XP
-        const updatedMonsters = level.monsters.filter((m) => m.id !== monster.id)
-        const xp = this.calculateXP(monster)
-
-        const updatedLevel: Level = { ...level, monsters: updatedMonsters }
-        const updatedLevels = new Map(state.levels)
-        updatedLevels.set(state.currentLevel, updatedLevel)
-
-        return {
-          ...state,
-          player: { ...state.player, xp: state.player.xp + xp },
-          levels: updatedLevels,
-          messages,
-          turnCount: turnCount + 1,
-        }
-      } else {
-        // Apply damage to monster
-        const updatedMonster = this.applyDamageToMonster(monster, result.damage)
-        const updatedMonsters = level.monsters.map((m) =>
-          m.id === monster.id ? updatedMonster : m
-        )
-
-        const updatedLevel: Level = { ...level, monsters: updatedMonsters }
-        const updatedLevels = new Map(state.levels)
-        updatedLevels.set(state.currentLevel, updatedLevel)
-
-        return {
-          ...state,
-          levels: updatedLevels,
-          messages,
-          turnCount: turnCount + 1,
-        }
-      }
-    } else {
-      // Miss
-      if (this.messageService) {
-        messages = this.messageService.addMessage(
-          messages,
-          `You miss the ${result.defender}.`,
-          'combat',
-          turnCount
-        )
-      }
-
-      return {
-        ...state,
-        messages,
-        turnCount: turnCount + 1,
-      }
-    }
-  }
 
   // ============================================================================
   // PRIVATE: Combat formulas (from original Rogue)
