@@ -235,7 +235,7 @@ export class MoveCommand implements ICommand {
       ? this.notificationService.generateNotifications(stateWithUpdatedLevel, state.player.position)
       : []
 
-    // 8. Add hunger messages to message log
+    // 7. Add hunger/fuel messages to message log
     let finalMessages = state.messages
     messages.forEach((msg) => {
       finalMessages = this.messageService.addMessage(
@@ -246,12 +246,12 @@ export class MoveCommand implements ICommand {
       )
     })
 
-    // 9. Add auto-notifications to message log
+    // 8. Add auto-notifications to message log
     notifications.forEach((msg) => {
       finalMessages = this.messageService.addMessage(finalMessages, msg, 'info', state.turnCount + 1)
     })
 
-    // 7. Return with turn increment
+    // 9. Return with turn increment
     return this.turnService.incrementTurn({
       ...state,
       player: updatedPlayer,
