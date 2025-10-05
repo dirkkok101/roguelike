@@ -3,7 +3,8 @@ import { InventoryService } from '@services/InventoryService'
 import { LightingService } from '@services/LightingService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
-import { GameState, Player, ItemType, OilFlask, LightSource } from '@game/core/core'
+import { GameState, Player, ItemType, OilFlask } from '@game/core/core'
+import { createTestLantern } from '../../test-utils'
 
 describe('RefillLanternCommand', () => {
   let inventoryService: InventoryService
@@ -19,15 +20,6 @@ describe('RefillLanternCommand', () => {
   })
 
   function createTestPlayer(lanternFuel: number = 100): Player {
-    const lantern: LightSource = {
-      type: 'lantern',
-      radius: 2,
-      isPermanent: false,
-      fuel: lanternFuel,
-      maxFuel: 500,
-      name: 'Lantern',
-    }
-
     return {
       position: { x: 5, y: 5 },
       hp: 20,
@@ -44,7 +36,7 @@ describe('RefillLanternCommand', () => {
         armor: null,
         leftRing: null,
         rightRing: null,
-        lightSource: lantern,
+        lightSource: createTestLantern({ fuel: lanternFuel, maxFuel: 1000 }),
       },
       inventory: [],
     }
@@ -92,7 +84,7 @@ describe('RefillLanternCommand', () => {
     )
     const result = command.execute(state)
 
-    expect(result.player.equipment.lightSource?.fuel).toBe(500) // Refilled
+    expect(result.player.equipment.lightSource?.fuel).toBe(600) // 100 + 500
     expect(result.player.inventory).toHaveLength(0) // Oil consumed
     expect(result.messages[0].type).toBe('success')
     expect(result.turnCount).toBe(1)
@@ -163,7 +155,7 @@ describe('RefillLanternCommand', () => {
   })
 
   test('does not consume oil when lantern is already full', () => {
-    const player = createTestPlayer(500) // Already full
+    const player = createTestPlayer(1000) // Already full (maxFuel = 1000)
     const oilFlask = createOilFlask(500)
     player.inventory = [oilFlask]
     const state = createTestState(player)

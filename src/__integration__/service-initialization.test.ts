@@ -33,7 +33,8 @@ describe('Integration: Service Initialization', () => {
     test('LightingService initializes correctly', () => {
       const service = new LightingService(random)
       expect(service).toBeDefined()
-      expect(service.createTorch).toBeDefined()
+      expect(service.tickFuel).toBeDefined()
+      expect(service.getLightRadius).toBeDefined()
     })
 
     test('FOVService initializes correctly', () => {
