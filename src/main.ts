@@ -66,7 +66,7 @@ async function initializeGame() {
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
-  const monsterAIService = new MonsterAIService(pathfindingService, random)
+  const monsterAIService = new MonsterAIService(pathfindingService, random, fovService)
   const specialAbilityService = new SpecialAbilityService(random)
   const monsterTurnService = new MonsterTurnService(
     random,
