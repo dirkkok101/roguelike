@@ -204,7 +204,7 @@ export class HungerService {
   /**
    * Calculate hunger depletion rate based on equipped rings
    * Base: 1
-   * Each ring: +0.5 (except SLOW_DIGESTION: -0.5)
+   * Each ring: +0.5 (except SLOW_DIGESTION: -0.5, REGENERATION: +0.3)
    */
   calculateHungerRate(rings: Ring[]): number {
     let rate = 1.0 // Base rate
@@ -214,6 +214,8 @@ export class HungerService {
 
       if (ring.ringType === RingType.SLOW_DIGESTION) {
         rate -= 0.5 // Reduces hunger
+      } else if (ring.ringType === RingType.REGENERATION) {
+        rate += 0.3 // Ring of Regeneration: +30% hunger
       } else {
         rate += 0.5 // Most rings increase hunger
       }
