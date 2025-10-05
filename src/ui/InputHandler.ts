@@ -383,7 +383,7 @@ export class InputHandler {
           this.inventoryService,
           this.hungerService,
           this.messageService,
-          this.random
+          this.turnService
         )
 
       case 'F':

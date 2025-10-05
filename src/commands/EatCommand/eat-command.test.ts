@@ -2,6 +2,7 @@ import { EatCommand } from './EatCommand'
 import { InventoryService } from '@services/InventoryService'
 import { HungerService, HungerState } from '@services/HungerService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 import { MockRandom } from '@services/RandomService'
 import {
   GameState,
@@ -16,6 +17,7 @@ describe('EatCommand', () => {
   let inventoryService: InventoryService
   let hungerService: HungerService
   let messageService: MessageService
+  let turnService: TurnService
   let mockRandom: MockRandom
   let command: EatCommand
 
@@ -24,6 +26,7 @@ describe('EatCommand', () => {
     mockRandom = new MockRandom()
     hungerService = new HungerService(mockRandom)
     messageService = new MessageService()
+    turnService = new TurnService()
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {
@@ -125,7 +128,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -149,7 +152,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -172,7 +175,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -194,7 +197,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -218,7 +221,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -239,7 +242,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -265,7 +268,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -287,7 +290,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -313,7 +316,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act
@@ -342,7 +345,7 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        mockRandom
+        turnService
       )
 
       // Act

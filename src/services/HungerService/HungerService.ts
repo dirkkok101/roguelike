@@ -24,6 +24,12 @@ export interface HungerTickResult {
   }
 }
 
+export interface FoodConsumptionResult {
+  player: Player
+  messages: Array<{ text: string; type: 'info' | 'success' | 'warning' | 'critical' | 'combat' }>
+  improved: boolean
+}
+
 // ============================================================================
 // HUNGER SERVICE - Hunger mechanics and food consumption
 // ============================================================================
@@ -104,11 +110,55 @@ export class HungerService {
   }
 
   /**
-   * Consume food item
-   * Wrapper around feed() for item consumption
+   * Consume food - handles nutrition calculation and improvement messages
+   * @param player Player consuming food
+   * @param explicitNutrition Optional explicit nutrition value (for items with set nutrition)
    */
-  consumeFood(player: Player, nutrition: number): { player: Player; message: string } {
-    return this.feed(player, nutrition)
+  consumeFood(player: Player, explicitNutrition?: number): FoodConsumptionResult {
+    // Generate nutrition if not provided (1100-1499 for standard food)
+    const nutrition = explicitNutrition ?? this.random.nextInt(1100, 1499)
+
+    // Track old state for improvement detection
+    const oldState = this.getHungerState(player.hunger)
+
+    // Feed player (handles capping at 2000)
+    const feedResult = this.feed(player, nutrition)
+    const newState = this.getHungerState(feedResult.player.hunger)
+
+    // Generate all messages
+    const messages: Array<{ text: string; type: 'info' | 'success' | 'warning' | 'critical' | 'combat' }> = []
+
+    // Base eating message
+    messages.push({
+      text: 'You eat the food ration.',
+      type: 'info'
+    })
+
+    // Random "yuck" message (30% chance)
+    if (this.random.chance(0.3)) {
+      messages.push({
+        text: 'Yuck, that food tasted awful!',
+        type: 'info'
+      })
+    }
+
+    // Improvement messages
+    const improved = this.isImproving(oldState, newState)
+    if (improved) {
+      const improvementMessage = this.generateImprovementMessage(oldState, newState)
+      if (improvementMessage) {
+        messages.push({
+          text: improvementMessage,
+          type: 'success'
+        })
+      }
+    }
+
+    return {
+      player: feedResult.player,
+      messages,
+      improved
+    }
   }
 
   /**
@@ -217,5 +267,27 @@ export class HungerService {
     }
 
     return stateOrder[newState] > stateOrder[oldState]
+  }
+
+  /**
+   * Generate improvement message based on state transition
+   */
+  private generateImprovementMessage(
+    oldState: HungerState,
+    newState: HungerState
+  ): string | null {
+    if (newState === HungerState.NORMAL) {
+      return 'You feel satisfied.'
+    }
+
+    if (newState === HungerState.HUNGRY && oldState === HungerState.WEAK) {
+      return 'You feel a bit better.'
+    }
+
+    if (newState === HungerState.WEAK && oldState === HungerState.STARVING) {
+      return 'You feel slightly stronger.'
+    }
+
+    return null
   }
 }
