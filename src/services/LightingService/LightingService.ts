@@ -10,6 +10,12 @@ export interface FuelTickResult {
   messages: string[]
 }
 
+export interface LanternRefillResult {
+  player: Player
+  message: string
+  success: boolean
+}
+
 // ============================================================================
 // LIGHTING SERVICE - Light source management and fuel tracking
 // ============================================================================
@@ -60,7 +66,7 @@ export class LightingService {
   }
 
   /**
-   * Refill lantern with oil flask
+   * Refill lantern with oil flask (low-level method)
    */
   refillLantern(lantern: LightSource, oilAmount: number = 500): LightSource {
     if (lantern.type !== 'lantern') {
@@ -75,6 +81,58 @@ export class LightingService {
     return {
       ...lantern,
       fuel: newFuel,
+    }
+  }
+
+  /**
+   * Refill player's equipped lantern with oil
+   * Returns complete result with player, message, and success status
+   */
+  refillPlayerLantern(player: Player, oilAmount: number = 500): LanternRefillResult {
+    // Check if lantern is equipped
+    const lantern = player.equipment.lightSource
+    if (!lantern) {
+      return {
+        player,
+        message: 'You do not have a lantern equipped.',
+        success: false,
+      }
+    }
+
+    // Check if it's a lantern (not torch or artifact)
+    if (lantern.type !== 'lantern') {
+      return {
+        player,
+        message: 'You can only refill lanterns, not other light sources.',
+        success: false,
+      }
+    }
+
+    // Check if lantern is already full
+    if (lantern.fuel !== undefined && lantern.maxFuel !== undefined) {
+      if (lantern.fuel >= lantern.maxFuel) {
+        return {
+          player,
+          message: 'Your lantern is already full.',
+          success: false,
+        }
+      }
+    }
+
+    // Refill lantern (add fuel, cap at maxFuel)
+    const oldFuel = lantern.fuel || 0
+    const refilledLantern = this.refillLantern(lantern, oilAmount)
+    const fuelAdded = refilledLantern.fuel! - oldFuel
+
+    const updatedPlayer = {
+      ...player,
+      equipment: { ...player.equipment, lightSource: refilledLantern },
+    }
+
+    return {
+      player: updatedPlayer,
+      message: `You refill your lantern. (+${fuelAdded} fuel, ${refilledLantern.fuel}/${refilledLantern.maxFuel} total)`,
+      success: true,
     }
   }
 

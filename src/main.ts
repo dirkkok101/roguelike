@@ -20,7 +20,10 @@ import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { DoorService } from '@services/DoorService'
-import { ItemEffectService } from '@services/ItemEffectService'
+import { PotionService } from '@services/PotionService'
+import { ScrollService } from '@services/ScrollService'
+import { WandService } from '@services/WandService'
+import { TurnService } from '@services/TurnService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -65,7 +68,10 @@ async function initializeGame() {
   const identificationService = new IdentificationService(random)
   const modalController = new ModalController(identificationService)
   const doorService = new DoorService()
-  const itemEffectService = new ItemEffectService(random, inventoryService, identificationService)
+  const potionService = new PotionService(random, identificationService)
+  const scrollService = new ScrollService(identificationService, inventoryService)
+  const wandService = new WandService(identificationService)
+  const turnService = new TurnService()
 
   // Dungeon configuration
   const dungeonConfig = {
@@ -100,7 +106,10 @@ async function initializeGame() {
     victoryService,
     localStorageService,
     doorService,
-    itemEffectService,
+    potionService,
+    scrollService,
+    wandService,
+    turnService,
     renderer.getMessageHistoryModal(),
     renderer.getHelpModal()
   )

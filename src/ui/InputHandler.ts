@@ -37,7 +37,10 @@ import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { DoorService } from '@services/DoorService'
-import { ItemEffectService } from '@services/ItemEffectService'
+import { PotionService } from '@services/PotionService'
+import { ScrollService } from '@services/ScrollService'
+import { WandService } from '@services/WandService'
+import { TurnService } from '@services/TurnService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -70,7 +73,10 @@ export class InputHandler {
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
     private doorService: DoorService,
-    private itemEffectService: ItemEffectService,
+    private potionService: PotionService,
+    private scrollService: ScrollService,
+    private wandService: WandService,
+    private turnService: TurnService,
     private messageHistoryModal?: any, // MessageHistoryModal
     private helpModal?: any // HelpModal
   ) {}
@@ -259,7 +265,12 @@ export class InputHandler {
               'quaff',
               this.inventoryService,
               this.messageService,
-              this.itemEffectService
+              this.potionService,
+              this.scrollService,
+              this.wandService,
+              this.hungerService,
+              this.lightingService,
+              this.turnService
             )
           }
         })
@@ -287,7 +298,12 @@ export class InputHandler {
                     'read',
                     this.inventoryService,
                     this.messageService,
-                    this.itemEffectService,
+                    this.potionService,
+                    this.scrollService,
+                    this.wandService,
+                    this.hungerService,
+                    this.lightingService,
+                    this.turnService,
                     targetItem.id
                   )
                 }
@@ -306,7 +322,12 @@ export class InputHandler {
                     'read',
                     this.inventoryService,
                     this.messageService,
-                    this.itemEffectService,
+                    this.potionService,
+                    this.scrollService,
+                    this.wandService,
+                    this.hungerService,
+                    this.lightingService,
+                    this.turnService,
                     targetItem.id
                   )
                 }
@@ -325,7 +346,12 @@ export class InputHandler {
                     'read',
                     this.inventoryService,
                     this.messageService,
-                    this.itemEffectService,
+                    this.potionService,
+                    this.scrollService,
+                    this.wandService,
+                    this.hungerService,
+                    this.lightingService,
+                    this.turnService,
                     targetItem.id
                   )
                 }
@@ -338,7 +364,12 @@ export class InputHandler {
               'read',
               this.inventoryService,
               this.messageService,
-              this.itemEffectService
+              this.potionService,
+              this.scrollService,
+              this.wandService,
+              this.hungerService,
+              this.lightingService,
+              this.turnService
             )
           }
         })
@@ -354,7 +385,12 @@ export class InputHandler {
               'zap',
               this.inventoryService,
               this.messageService,
-              this.itemEffectService
+              this.potionService,
+              this.scrollService,
+              this.wandService,
+              this.hungerService,
+              this.lightingService,
+              this.turnService
             )
           }
         })

@@ -104,6 +104,14 @@ export class HungerService {
   }
 
   /**
+   * Consume food item
+   * Wrapper around feed() for item consumption
+   */
+  consumeFood(player: Player, nutrition: number): { player: Player; message: string } {
+    return this.feed(player, nutrition)
+  }
+
+  /**
    * Get current hunger state based on food units
    */
   getHungerState(foodUnits: number): HungerState {

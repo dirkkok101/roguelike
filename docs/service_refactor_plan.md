@@ -722,7 +722,7 @@ private createDeathState(
 - `src/services/PotionService/poison-potion.test.ts` (new)
 - `src/commands/UseItemCommand/UseItemCommand.ts`
 
-**Task**: ☐ Extract all potion logic from ItemEffectService
+**Task**: ☑ Extract all potion logic from ItemEffectService
 
 **Implementation**:
 ```typescript
@@ -806,12 +806,12 @@ export class PotionService {
 ```
 
 **Subtasks**:
-- ☐ Create PotionService with all potion logic from ItemEffectService
-- ☐ Extract 5 potion types: HEAL, EXTRA_HEAL, GAIN_STRENGTH, RESTORE_STRENGTH, POISON
-- ☐ Write tests for each potion type (5 test files)
-- ☐ Update UseItemCommand to use PotionService
-- ☐ Remove potion logic from ItemEffectService (95 lines removed)
-- ☐ Run tests: `npm test PotionService && npm test UseItemCommand`
+- ☑ Create PotionService with all potion logic from ItemEffectService
+- ☑ Extract 5 potion types: HEAL, EXTRA_HEAL, GAIN_STRENGTH, RESTORE_STRENGTH, POISON
+- ☑ Write tests for each potion type (5 test files)
+- ☑ Update UseItemCommand to use PotionService
+- ☑ Remove potion logic from ItemEffectService (95 lines removed)
+- ☑ Run tests: `npm test PotionService && npm test UseItemCommand`
 
 **Acceptance Criteria**:
 - ✓ PotionService owns all potion logic
@@ -831,7 +831,7 @@ export class PotionService {
 - `src/services/ScrollService/enchant-scrolls.test.ts` (new)
 - `src/commands/UseItemCommand/UseItemCommand.ts`
 
-**Task**: ☐ Extract all scroll logic from ItemEffectService
+**Task**: ☑ Extract all scroll logic from ItemEffectService
 
 **Implementation**:
 ```typescript
@@ -912,12 +912,12 @@ export class ScrollService {
 ```
 
 **Subtasks**:
-- ☐ Create ScrollService with all scroll logic
-- ☐ Extract 3 scroll types: IDENTIFY, ENCHANT_WEAPON, ENCHANT_ARMOR
-- ☐ Write tests for each scroll type
-- ☐ Update UseItemCommand to use ScrollService
-- ☐ Remove scroll logic from ItemEffectService (133 lines removed)
-- ☐ Run tests: `npm test ScrollService && npm test UseItemCommand`
+- ☑ Create ScrollService with all scroll logic
+- ☑ Extract 3 scroll types: IDENTIFY, ENCHANT_WEAPON, ENCHANT_ARMOR
+- ☑ Write tests for each scroll type
+- ☑ Update UseItemCommand to use ScrollService
+- ☑ Remove scroll logic from ItemEffectService (133 lines removed)
+- ☑ Run tests: `npm test ScrollService && npm test UseItemCommand`
 
 **Acceptance Criteria**:
 - ✓ ScrollService owns all scroll logic
@@ -936,7 +936,7 @@ export class ScrollService {
 - `src/services/WandService/wand-charges.test.ts` (new)
 - `src/commands/UseItemCommand/UseItemCommand.ts`
 
-**Task**: ☐ Extract wand logic from ItemEffectService
+**Task**: ☑ Extract wand logic from ItemEffectService
 
 **Implementation**:
 ```typescript
@@ -986,12 +986,12 @@ export class WandService {
 ```
 
 **Subtasks**:
-- ☐ Create WandService with placeholder wand logic
-- ☐ Handle charge depletion
-- ☐ Write tests for charge system
-- ☐ Update UseItemCommand to use WandService
-- ☐ Remove wand logic from ItemEffectService (30 lines removed)
-- ☐ Run tests: `npm test WandService && npm test UseItemCommand`
+- ☑ Create WandService with placeholder wand logic
+- ☑ Handle charge depletion
+- ☑ Write tests for charge system
+- ☑ Update UseItemCommand to use WandService
+- ☑ Remove wand logic from ItemEffectService (30 lines removed)
+- ☑ Run tests: `npm test WandService && npm test UseItemCommand`
 
 **Acceptance Criteria**:
 - ✓ WandService handles wand usage and charges
@@ -1010,7 +1010,7 @@ export class WandService {
 - `src/commands/UseItemCommand/UseItemCommand.ts`
 - `src/commands/EatCommand/EatCommand.ts`
 
-**Task**: ☐ Move consumeFood() from ItemEffectService to HungerService
+**Task**: ☑ Move consumeFood() from ItemEffectService to HungerService
 
 **Current** (ItemEffectService lines 318-338):
 ```typescript
@@ -1045,12 +1045,12 @@ class HungerService {
 ```
 
 **Subtasks**:
-- ☐ Add `consumeFood()` method to HungerService
-- ☐ Write tests for food consumption
-- ☐ Update EatCommand to use HungerService.consumeFood()
-- ☐ Update UseItemCommand (if it handles food)
-- ☐ Remove consumeFood() from ItemEffectService
-- ☐ Run tests: `npm test HungerService && npm test EatCommand`
+- ☑ Add `consumeFood()` method to HungerService
+- ☑ Write tests for food consumption
+- ☑ Update EatCommand to use HungerService.consumeFood()
+- ☑ Update UseItemCommand (if it handles food)
+- ☑ Remove consumeFood() from ItemEffectService
+- ☑ Run tests: `npm test HungerService && npm test EatCommand`
 
 **Acceptance Criteria**:
 - ✓ Food consumption logic in HungerService
@@ -1068,7 +1068,7 @@ class HungerService {
 - `src/services/LightingService/lantern-refill.test.ts` (exists, update)
 - `src/commands/UseItemCommand/UseItemCommand.ts`
 
-**Task**: ☐ Move refillLantern() from ItemEffectService to LightingService
+**Task**: ☑ Move refillLantern() from ItemEffectService to LightingService
 
 **Current** (ItemEffectService lines 343-401):
 ```typescript
@@ -1143,11 +1143,11 @@ class LightingService {
 ```
 
 **Subtasks**:
-- ☐ Add `refillPlayerLantern()` method to LightingService
-- ☐ Update UseItemCommand to use LightingService.refillPlayerLantern()
-- ☐ Update existing lantern-refill tests
-- ☐ Remove refillLantern() from ItemEffectService (58 lines removed)
-- ☐ Run tests: `npm test LightingService && npm test UseItemCommand`
+- ☑ Add `refillPlayerLantern()` method to LightingService
+- ☑ Update UseItemCommand to use LightingService.refillPlayerLantern()
+- ☑ Update existing lantern-refill tests
+- ☑ Remove refillLantern() from ItemEffectService (58 lines removed)
+- ☑ Run tests: `npm test LightingService && npm test UseItemCommand`
 
 **Acceptance Criteria**:
 - ✓ Lantern refill logic in LightingService
@@ -1164,7 +1164,7 @@ class LightingService {
 - `src/commands/UseItemCommand/UseItemCommand.ts`
 - All files importing ItemEffectService
 
-**Task**: ☐ Remove ItemEffectService entirely
+**Task**: ☑ Remove ItemEffectService entirely
 
 **Before** (UseItemCommand):
 ```typescript
@@ -1257,12 +1257,12 @@ execute(state: GameState): GameState {
 ```
 
 **Subtasks**:
-- ☐ Update UseItemCommand to use new services
-- ☐ Search for all ItemEffectService imports: `grep -r "ItemEffectService" src/`
-- ☐ Update all imports to use new services
-- ☐ Delete `src/services/ItemEffectService/` folder entirely
-- ☐ Run full test suite: `npm test`
-- ☐ Manual testing: quaff potion, read scroll, zap wand, eat food, refill lantern
+- ☑ Update UseItemCommand to use new services
+- ☑ Search for all ItemEffectService imports: `grep -r "ItemEffectService" src/`
+- ☑ Update all imports to use new services
+- ☑ Delete `src/services/ItemEffectService/` folder entirely
+- ☑ Run full test suite: `npm test`
+- ☑ Manual testing: quaff potion, read scroll, zap wand, eat food, refill lantern
 
 **Acceptance Criteria**:
 - ✓ ItemEffectService deleted
@@ -1271,12 +1271,12 @@ execute(state: GameState): GameState {
 - ✓ All tests passing
 
 **Phase 2 Completion Checklist**:
-- ☐ All 6 tasks complete
-- ☐ 5 new services created (Potion, Scroll, Wand, + moves to Hunger/Lighting)
-- ☐ ItemEffectService deleted (402 lines removed, replaced with ~300 lines across 5 services)
-- ☐ Each service focused on single domain
-- ☐ All tests passing
-- ☐ Git commit: "feat: split ItemEffectService into domain services (Phase 2)"
+- ☑ All 6 tasks complete
+- ☑ 5 new services created (Potion, Scroll, Wand, + moves to Hunger/Lighting)
+- ☑ ItemEffectService deleted (402 lines removed, replaced with ~300 lines across 5 services)
+- ☑ Each service focused on single domain
+- ☑ All tests passing (1314/1314)
+- ☑ Git commit: "feat: split ItemEffectService into domain services (Phase 2)"
 
 ---
 
