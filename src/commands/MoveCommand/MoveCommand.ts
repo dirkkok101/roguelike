@@ -87,19 +87,20 @@ export class MoveCommand implements ICommand {
         return { ...state, messages }
       }
 
-      // Discovered secret door - open and move through
-      if (door.state === DoorState.SECRET && door.discovered) {
-        // Open door via DoorService (no turn increment)
-        const updatedLevel = this.doorService.openDoor(level, door)
+      // Discovered secret door OR closed door - open and move through
+      if ((door.state === DoorState.SECRET && door.discovered) ||
+          door.state === DoorState.CLOSED) {
+        // Open door via DoorService (gets message and updated level)
+        const result = this.doorService.openDoorWithResult(level, door)
         const stateWithOpenDoor = {
           ...state,
-          levels: new Map(state.levels).set(state.currentLevel, updatedLevel),
+          levels: new Map(state.levels).set(state.currentLevel, result.level),
         }
 
-        // Add message
+        // Add message from result
         const messages = this.messageService.addMessage(
           stateWithOpenDoor.messages,
-          'You open the secret door.',
+          result.message,
           'info',
           state.turnCount + 1
         )
@@ -108,32 +109,7 @@ export class MoveCommand implements ICommand {
         return this.performMovement(
           { ...stateWithOpenDoor, messages },
           newPosition,
-          updatedLevel
-        )
-      }
-
-      // Closed door - open and move through
-      if (door.state === DoorState.CLOSED) {
-        // Open door via DoorService (no turn increment)
-        const updatedLevel = this.doorService.openDoor(level, door)
-        const stateWithOpenDoor = {
-          ...state,
-          levels: new Map(state.levels).set(state.currentLevel, updatedLevel),
-        }
-
-        // Add message
-        const messages = this.messageService.addMessage(
-          stateWithOpenDoor.messages,
-          'You open the door.',
-          'info',
-          state.turnCount + 1
-        )
-
-        // Continue with movement (hunger, fuel, FOV, turn increment)
-        return this.performMovement(
-          { ...stateWithOpenDoor, messages },
-          newPosition,
-          updatedLevel
+          result.level
         )
       }
     }

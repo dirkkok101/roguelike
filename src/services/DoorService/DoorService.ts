@@ -4,6 +4,12 @@ import { Level, Door, Position, DoorState, Monster, Tile } from '@game/core/core
 // DOOR SERVICE - All door manipulation logic
 // ============================================================================
 
+export interface DoorOpenResult {
+  level: Level
+  message: string
+  doorOpened: boolean
+}
+
 export class DoorService {
   /**
    * Opens a door, updating door state and tile properties
@@ -27,6 +33,25 @@ export class DoorService {
       ...level,
       doors: updatedDoors,
       tiles: updatedTiles,
+    }
+  }
+
+  /**
+   * Opens a door and returns result with message
+   * @returns Result object with updated level and appropriate message
+   */
+  openDoorWithResult(level: Level, door: Door): DoorOpenResult {
+    const updatedLevel = this.openDoor(level, door)
+
+    // Determine message based on door type
+    const message = door.state === DoorState.SECRET
+      ? 'You open the secret door.'
+      : 'You open the door.'
+
+    return {
+      level: updatedLevel,
+      message,
+      doorOpened: true,
     }
   }
 

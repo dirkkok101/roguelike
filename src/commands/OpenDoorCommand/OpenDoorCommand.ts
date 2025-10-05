@@ -40,14 +40,14 @@ export class OpenDoorCommand implements ICommand {
       return { ...state, messages }
     }
 
-    // Open door using DoorService
-    const updatedLevel = this.doorService.openDoor(level, door!)
+    // Open door using DoorService (gets message and updated level)
+    const result = this.doorService.openDoorWithResult(level, door!)
     const updatedLevels = new Map(state.levels)
-    updatedLevels.set(state.currentLevel, updatedLevel)
+    updatedLevels.set(state.currentLevel, result.level)
 
     const messages = this.messageService.addMessage(
       state.messages,
-      'You open the door.',
+      result.message,
       'info',
       state.turnCount
     )
