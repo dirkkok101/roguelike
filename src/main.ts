@@ -48,8 +48,9 @@ async function initializeGame() {
     console.warn('Failed to load items.json, using hardcoded items:', error)
   }
 
-  // Create services
-  const random = new SeededRandom('test-seed')
+  // Generate unique seed for new games (will be overridden when loading saves)
+  const newGameSeed = `seed-${Date.now()}`
+  const random = new SeededRandom(newGameSeed)
   const lightingService = new LightingService(random)
   const fovService = new FOVService()
   const renderingService = new RenderingService(fovService)
@@ -129,9 +130,15 @@ async function initializeGame() {
 
   // Create initial game state
   function createInitialState(): GameState {
-  // Generate procedural dungeon using DungeonService
+  // Generate unique seed for this game
+  const gameSeed = `seed-${Date.now()}`
 
-  const level = dungeonService.generateLevel(1, dungeonConfig)
+  // Create new random service with game-specific seed
+  const gameRandom = new SeededRandom(gameSeed)
+  const gameDungeonService = new DungeonService(gameRandom, itemData)
+
+  // Generate procedural dungeon using DungeonService
+  const level = gameDungeonService.generateLevel(1, dungeonConfig)
 
   // Start player in center of first room
   const startRoom = level.rooms[0]
@@ -191,7 +198,7 @@ async function initializeGame() {
       },
     ],
     turnCount: 0,
-    seed: 'test-seed',
+    seed: gameSeed,
     gameId: 'game-' + Date.now(),
     isGameOver: false,
     hasWon: false,

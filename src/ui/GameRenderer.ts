@@ -197,6 +197,27 @@ export class GameRenderer {
           }
         }
 
+        // Stairs (visible or explored, render before player)
+        const config = { showItemsInMemory: false, showGoldInMemory: false }
+        if (
+          level.stairsUp &&
+          level.stairsUp.x === x &&
+          level.stairsUp.y === y &&
+          this.renderingService.shouldRenderEntity(pos, 'stairs', visState, config)
+        ) {
+          char = '<'
+          color = visState === 'visible' ? '#FFFF00' : '#707070' // Yellow if visible, gray if explored
+        }
+        if (
+          level.stairsDown &&
+          level.stairsDown.x === x &&
+          level.stairsDown.y === y &&
+          this.renderingService.shouldRenderEntity(pos, 'stairs', visState, config)
+        ) {
+          char = '>'
+          color = visState === 'visible' ? '#FFFF00' : '#707070' // Yellow if visible, gray if explored
+        }
+
         // Player (always on top)
         if (pos.x === state.player.position.x && pos.y === state.player.position.y) {
           char = '@'
