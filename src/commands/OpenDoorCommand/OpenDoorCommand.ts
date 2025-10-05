@@ -1,6 +1,7 @@
 import { GameState, Position, DoorState } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
+import { DoorService } from '@services/DoorService'
 
 // ============================================================================
 // OPEN DOOR COMMAND - Open closed or locked doors
@@ -9,7 +10,8 @@ import { MessageService } from '@services/MessageService'
 export class OpenDoorCommand implements ICommand {
   constructor(
     private direction: Position,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private doorService: DoorService
   ) {}
 
   execute(state: GameState): GameState {
@@ -22,79 +24,22 @@ export class OpenDoorCommand implements ICommand {
     }
 
     // Find door at target position
-    const door = level.doors.find(
-      (d) => d.position.x === targetPos.x && d.position.y === targetPos.y
-    )
+    const door = this.doorService.getDoorAt(level, targetPos)
 
-    if (!door) {
+    // Validate door can be opened
+    const validation = this.doorService.canOpenDoor(door)
+    if (!validation.canOpen) {
       const messages = this.messageService.addMessage(
         state.messages,
-        'There is no door there.',
-        'info',
+        validation.reason!,
+        validation.reason?.includes('locked') ? 'warning' : 'info',
         state.turnCount
       )
       return { ...state, messages }
     }
 
-    // Handle different door states
-    switch (door.state) {
-      case DoorState.OPEN:
-      case DoorState.BROKEN:
-      case DoorState.ARCHWAY:
-        const openMessages = this.messageService.addMessage(
-          state.messages,
-          'That door is already open.',
-          'info',
-          state.turnCount
-        )
-        return { ...state, messages: openMessages }
-
-      case DoorState.LOCKED:
-        // Check for key in inventory (Phase 5)
-        const lockedMessages = this.messageService.addMessage(
-          state.messages,
-          'The door is locked. You need a key.',
-          'warning',
-          state.turnCount
-        )
-        return { ...state, messages: lockedMessages }
-
-      case DoorState.SECRET:
-        if (!door.discovered) {
-          const secretMessages = this.messageService.addMessage(
-            state.messages,
-            'There is no door there.',
-            'info',
-            state.turnCount
-          )
-          return { ...state, messages: secretMessages }
-        }
-        // If discovered, treat as closed door
-        return this.openDoor(state, door, level)
-
-      case DoorState.CLOSED:
-        return this.openDoor(state, door, level)
-
-      default:
-        return state
-    }
-  }
-
-  private openDoor(state: GameState, door: any, level: any): GameState {
-    // Update door state
-    const updatedDoor = { ...door, state: DoorState.OPEN }
-    const updatedDoors = level.doors.map((d: any) =>
-      d.position.x === door.position.x && d.position.y === door.position.y ? updatedDoor : d
-    )
-
-    // Update tile transparency for FOV
-    const updatedTiles = level.tiles.map((row: any) => [...row])
-    const tile = updatedTiles[door.position.y][door.position.x]
-    tile.char = "'"
-    tile.walkable = true
-    tile.transparent = true
-
-    const updatedLevel = { ...level, doors: updatedDoors, tiles: updatedTiles }
+    // Open door using DoorService
+    const updatedLevel = this.doorService.openDoor(level, door!)
     const updatedLevels = new Map(state.levels)
     updatedLevels.set(state.currentLevel, updatedLevel)
 

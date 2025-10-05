@@ -1,6 +1,7 @@
 import { GameState, Position, DoorState } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
+import { DoorService } from '@services/DoorService'
 
 // ============================================================================
 // CLOSE DOOR COMMAND - Close open doors
@@ -9,7 +10,8 @@ import { MessageService } from '@services/MessageService'
 export class CloseDoorCommand implements ICommand {
   constructor(
     private direction: Position,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private doorService: DoorService
   ) {}
 
   execute(state: GameState): GameState {
@@ -22,87 +24,22 @@ export class CloseDoorCommand implements ICommand {
     }
 
     // Find door at target position
-    const door = level.doors.find(
-      (d) => d.position.x === targetPos.x && d.position.y === targetPos.y
-    )
+    const door = this.doorService.getDoorAt(level, targetPos)
 
-    if (!door) {
+    // Validate door can be closed
+    const validation = this.doorService.canCloseDoor(door, level, targetPos)
+    if (!validation.canClose) {
       const messages = this.messageService.addMessage(
         state.messages,
-        'There is no door there.',
-        'info',
+        validation.reason!,
+        validation.reason?.includes('monster') ? 'warning' : 'info',
         state.turnCount
       )
       return { ...state, messages }
     }
 
-    // Handle different door states
-    switch (door.state) {
-      case DoorState.CLOSED:
-      case DoorState.LOCKED:
-        const closedMessages = this.messageService.addMessage(
-          state.messages,
-          'That door is already closed.',
-          'info',
-          state.turnCount
-        )
-        return { ...state, messages: closedMessages }
-
-      case DoorState.BROKEN:
-        const brokenMessages = this.messageService.addMessage(
-          state.messages,
-          'The door is broken and cannot be closed.',
-          'info',
-          state.turnCount
-        )
-        return { ...state, messages: brokenMessages }
-
-      case DoorState.ARCHWAY:
-        const archwayMessages = this.messageService.addMessage(
-          state.messages,
-          'There is no door to close, only an archway.',
-          'info',
-          state.turnCount
-        )
-        return { ...state, messages: archwayMessages }
-
-      case DoorState.OPEN:
-        // Check if monster is blocking
-        const monsterBlocking = level.monsters.some(
-          (m) => m.position.x === targetPos.x && m.position.y === targetPos.y
-        )
-        if (monsterBlocking) {
-          const blockedMessages = this.messageService.addMessage(
-            state.messages,
-            'There is a monster in the way!',
-            'warning',
-            state.turnCount
-          )
-          return { ...state, messages: blockedMessages }
-        }
-
-        return this.closeDoor(state, door, level)
-
-      default:
-        return state
-    }
-  }
-
-  private closeDoor(state: GameState, door: any, level: any): GameState {
-    // Update door state
-    const updatedDoor = { ...door, state: DoorState.CLOSED }
-    const updatedDoors = level.doors.map((d: any) =>
-      d.position.x === door.position.x && d.position.y === door.position.y ? updatedDoor : d
-    )
-
-    // Update tile transparency for FOV
-    const updatedTiles = level.tiles.map((row: any) => [...row])
-    const tile = updatedTiles[door.position.y][door.position.x]
-    tile.char = '+'
-    tile.walkable = true
-    tile.transparent = false
-
-    const updatedLevel = { ...level, doors: updatedDoors, tiles: updatedTiles }
+    // Close door using DoorService
+    const updatedLevel = this.doorService.closeDoor(level, door!)
     const updatedLevels = new Map(state.levels)
     updatedLevels.set(state.currentLevel, updatedLevel)
 

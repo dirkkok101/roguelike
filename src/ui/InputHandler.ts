@@ -36,6 +36,7 @@ import { LevelingService } from '@services/LevelingService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
+import { DoorService } from '@services/DoorService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -67,6 +68,7 @@ export class InputHandler {
     private notificationService: NotificationService,
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
+    private doorService: DoorService,
     private messageHistoryModal?: any, // MessageHistoryModal
     private helpModal?: any // HelpModal
   ) {}
@@ -92,8 +94,8 @@ export class InputHandler {
         event.preventDefault()
         const command =
           this.mode === 'open_door'
-            ? new OpenDoorCommand(direction, this.messageService)
-            : new CloseDoorCommand(direction, this.messageService)
+            ? new OpenDoorCommand(direction, this.messageService, this.doorService)
+            : new CloseDoorCommand(direction, this.messageService, this.doorService)
         this.mode = 'normal'
         return command
       }
