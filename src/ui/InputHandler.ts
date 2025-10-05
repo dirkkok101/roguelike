@@ -10,6 +10,7 @@ import { SaveCommand } from '@commands/SaveCommand'
 import { QuitCommand } from '@commands/QuitCommand'
 import { EquipCommand } from '@commands/EquipCommand'
 import { UnequipCommand } from '@commands/UnequipCommand'
+import { TakeOffCommand } from '@commands/TakeOffCommand'
 import { QuaffPotionCommand } from '@commands/QuaffPotionCommand'
 import { ReadScrollCommand } from '@commands/ReadScrollCommand'
 import { ZapWandCommand } from '@commands/ZapWandCommand'
@@ -411,13 +412,13 @@ export class InputHandler {
         return null
 
       case 'w':
-        // Wield weapon
+        // Wield equipment (weapon or light source)
         event.preventDefault()
-        this.modalController.showItemSelection('weapon', 'Wield which weapon?', state, (item) => {
+        this.modalController.showItemSelection('equipment', 'Wield which item?', state, (item) => {
           if (item) {
             this.pendingCommand = new EquipCommand(
               item.id,
-              null, // No ring slot for weapons
+              null, // No ring slot for weapons/light sources
               this.inventoryService,
               this.messageService,
               this.turnService,
@@ -469,6 +470,27 @@ export class InputHandler {
         // Remove from left if present, else right
         const ringSlot = state.player.equipment.leftRing ? 'left' : 'right'
         return new UnequipCommand(ringSlot, this.inventoryService, this.messageService, this.turnService)
+
+      case 't':
+        // Take off equipment (Angband-style)
+        event.preventDefault()
+        // TODO: Show modal to select which equipment to remove
+        // For now, prioritize light source removal (most common use case)
+        if (state.player.equipment.lightSource) {
+          return new TakeOffCommand('lightSource', this.inventoryService, this.messageService, this.turnService)
+        } else if (state.player.equipment.weapon) {
+          return new TakeOffCommand('weapon', this.inventoryService, this.messageService, this.turnService)
+        } else if (state.player.equipment.armor) {
+          return new TakeOffCommand('armor', this.inventoryService, this.messageService, this.turnService)
+        } else {
+          const messages = this.messageService.addMessage(
+            state.messages,
+            'You have nothing equipped to take off.',
+            'info',
+            state.turnCount
+          )
+          return null
+        }
 
       // =====================================================================
       // DEBUG COMMANDS (dev only)

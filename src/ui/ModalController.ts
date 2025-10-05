@@ -15,6 +15,7 @@ type ItemFilter =
   | 'armor'
   | 'ring'
   | 'oil_flask'
+  | 'equipment' // weapons + light sources (torches, lanterns)
   | 'unidentified'
 type SelectionCallback = (item: Item | null) => void
 
@@ -145,6 +146,13 @@ export class ModalController {
           return item.type === ItemType.RING
         case 'oil_flask':
           return item.type === ItemType.OIL_FLASK
+        case 'equipment':
+          // Weapons and light sources (torches, lanterns)
+          return (
+            item.type === ItemType.WEAPON ||
+            item.type === ItemType.TORCH ||
+            item.type === ItemType.LANTERN
+          )
         case 'unidentified':
           // Filter items that are not yet identified
           return (

@@ -238,8 +238,9 @@ async function initializeGame() {
         gameState = command.execute(gameState)
         gameState = monsterTurnService.processMonsterTurns(gameState)
         autoSaveMiddleware.afterTurn(gameState)
-        renderer.render(gameState)
       }
+      // Always re-render (handles modal closes, inventory updates, etc.)
+      renderer.render(gameState)
     })
 
     console.log('Game initialized. Use arrow keys to move.')
