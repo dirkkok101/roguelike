@@ -1,5 +1,6 @@
 import { LightingService } from './LightingService'
 import { MockRandom } from '@services/RandomService'
+import { createTestTorch, createTestLantern, createTestArtifact } from '../../test-utils'
 
 describe('LightingService - Refill', () => {
   let service: LightingService
@@ -12,8 +13,7 @@ describe('LightingService - Refill', () => {
 
   describe('refillLantern()', () => {
     test('adds oil to lantern', () => {
-      let lantern = service.createLantern()
-      lantern = { ...lantern, fuel: 100 }
+      const lantern = createTestLantern({ fuel: 100 })
 
       const refilled = service.refillLantern(lantern, 500)
 
@@ -21,8 +21,7 @@ describe('LightingService - Refill', () => {
     })
 
     test('respects max fuel limit', () => {
-      let lantern = service.createLantern()
-      lantern = { ...lantern, fuel: 800 }
+      const lantern = createTestLantern({ fuel: 800 })
 
       const refilled = service.refillLantern(lantern, 500)
 
@@ -30,8 +29,7 @@ describe('LightingService - Refill', () => {
     })
 
     test('uses default oil amount of 500 when not specified', () => {
-      let lantern = service.createLantern()
-      lantern = { ...lantern, fuel: 0 }
+      const lantern = createTestLantern({ fuel: 0 })
 
       const refilled = service.refillLantern(lantern)
 
@@ -39,7 +37,7 @@ describe('LightingService - Refill', () => {
     })
 
     test('throws error for non-lantern types', () => {
-      const torch = service.createTorch()
+      const torch = createTestTorch()
 
       expect(() => service.refillLantern(torch, 500)).toThrow(
         'Can only refill lanterns'
@@ -47,7 +45,7 @@ describe('LightingService - Refill', () => {
     })
 
     test('throws error when trying to refill artifact', () => {
-      const artifact = service.createArtifact('Phial', 3)
+      const artifact = createTestArtifact('Phial', 3)
 
       expect(() => service.refillLantern(artifact, 500)).toThrow(
         'Can only refill lanterns'
@@ -55,8 +53,7 @@ describe('LightingService - Refill', () => {
     })
 
     test('returns new object (immutability)', () => {
-      let lantern = service.createLantern()
-      lantern = { ...lantern, fuel: 100 }
+      const lantern = createTestLantern({ fuel: 100 })
 
       const refilled = service.refillLantern(lantern, 500)
 
@@ -66,8 +63,7 @@ describe('LightingService - Refill', () => {
     })
 
     test('can refill empty lantern', () => {
-      let lantern = service.createLantern()
-      lantern = { ...lantern, fuel: 0 }
+      const lantern = createTestLantern({ fuel: 0 })
 
       const refilled = service.refillLantern(lantern, 500)
 
@@ -75,8 +71,7 @@ describe('LightingService - Refill', () => {
     })
 
     test('can refill with partial oil flask', () => {
-      let lantern = service.createLantern()
-      lantern = { ...lantern, fuel: 100 }
+      const lantern = createTestLantern({ fuel: 100 })
 
       const refilled = service.refillLantern(lantern, 250)
 
@@ -84,8 +79,7 @@ describe('LightingService - Refill', () => {
     })
 
     test('respects maxFuel even with large refill amount', () => {
-      let lantern = service.createLantern()
-      lantern = { ...lantern, fuel: 500 }
+      const lantern = createTestLantern({ fuel: 500 })
 
       const refilled = service.refillLantern(lantern, 1000)
 

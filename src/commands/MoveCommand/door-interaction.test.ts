@@ -11,6 +11,7 @@ import { HungerService } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType, DoorState, Door } from '@game/core/core'
+import { createTestTorch } from '../../test-utils'
 
 describe('MoveCommand - Door Interaction', () => {
   let movementService: MovementService
@@ -87,7 +88,7 @@ describe('MoveCommand - Door Interaction', () => {
           armor: null,
           leftRing: null,
           rightRing: null,
-          lightSource: lightingService.createTorch(),
+          lightSource: createTestTorch(),
         },
         inventory: [],
       },

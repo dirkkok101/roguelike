@@ -1,6 +1,7 @@
 import { LightingService, FuelTickResult } from './LightingService'
 import { MockRandom } from '@services/RandomService'
-import { Player, LightSource } from '@game/core/core'
+import { Player } from '@game/core/core'
+import { createTestTorch, createTestArtifact } from '../../test-utils'
 
 describe('LightingService - Fuel Tick Result', () => {
   let service: LightingService
@@ -45,12 +46,7 @@ describe('LightingService - Fuel Tick Result', () => {
 
   describe('Permanent light (artifact)', () => {
     test('returns player unchanged with no messages', () => {
-      const artifact: LightSource = {
-        type: 'artifact',
-        radius: 3,
-        isPermanent: true,
-        name: 'Glowing Amulet',
-      }
+      const artifact = createTestArtifact('Glowing Amulet', 3)
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: artifact } }
 
       const result = service.tickFuel(player)
@@ -62,14 +58,7 @@ describe('LightingService - Fuel Tick Result', () => {
 
   describe('Fuel depletion', () => {
     test('reduces fuel by 1 each tick', () => {
-      const torch: LightSource = {
-        type: 'torch',
-        radius: 1,
-        isPermanent: false,
-        fuel: 500,
-        maxFuel: 500,
-        name: 'Torch',
-      }
+      const torch = createTestTorch({ fuel: 500 })
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       const result = service.tickFuel(player)
@@ -79,14 +68,7 @@ describe('LightingService - Fuel Tick Result', () => {
     })
 
     test('does not go below 0', () => {
-      const torch: LightSource = {
-        type: 'torch',
-        radius: 1,
-        isPermanent: false,
-        fuel: 0,
-        maxFuel: 500,
-        name: 'Torch',
-      }
+      const torch = createTestTorch({ fuel: 0 })
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       const result = service.tickFuel(player)
@@ -96,7 +78,7 @@ describe('LightingService - Fuel Tick Result', () => {
     })
 
     test('returns new player object (immutability)', () => {
-      const torch = service.createTorch()
+      const torch = createTestTorch()
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       const result = service.tickFuel(player)
@@ -109,14 +91,7 @@ describe('LightingService - Fuel Tick Result', () => {
 
   describe('Fuel warnings', () => {
     test('warns at 50 fuel remaining', () => {
-      const torch: LightSource = {
-        type: 'torch',
-        radius: 1,
-        isPermanent: false,
-        fuel: 51,
-        maxFuel: 500,
-        name: 'Torch',
-      }
+      const torch = createTestTorch({ fuel: 51 })
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       const result = service.tickFuel(player)
@@ -129,14 +104,7 @@ describe('LightingService - Fuel Tick Result', () => {
     })
 
     test('warns at 10 fuel remaining', () => {
-      const lantern: LightSource = {
-        type: 'lantern',
-        radius: 2,
-        isPermanent: false,
-        fuel: 11,
-        maxFuel: 1000,
-        name: 'Lantern',
-      }
+      const lantern = createTestTorch({ fuel: 11, maxFuel: 1000, name: 'Lantern' })
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: lantern } }
 
       const result = service.tickFuel(player)
@@ -149,14 +117,7 @@ describe('LightingService - Fuel Tick Result', () => {
     })
 
     test('warns when light goes out (0 fuel)', () => {
-      const torch: LightSource = {
-        type: 'torch',
-        radius: 1,
-        isPermanent: false,
-        fuel: 1,
-        maxFuel: 500,
-        name: 'Torch',
-      }
+      const torch = createTestTorch({ fuel: 1 })
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       const result = service.tickFuel(player)
@@ -169,14 +130,7 @@ describe('LightingService - Fuel Tick Result', () => {
     })
 
     test('does not warn between milestones', () => {
-      const torch: LightSource = {
-        type: 'torch',
-        radius: 1,
-        isPermanent: false,
-        fuel: 100,
-        maxFuel: 500,
-        name: 'Torch',
-      }
+      const torch = createTestTorch({ fuel: 100 })
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       const result = service.tickFuel(player)
@@ -188,7 +142,7 @@ describe('LightingService - Fuel Tick Result', () => {
 
   describe('Complete result integration', () => {
     test('returns all required fields', () => {
-      const torch = service.createTorch()
+      const torch = createTestTorch()
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       const result = service.tickFuel(player)
@@ -200,14 +154,7 @@ describe('LightingService - Fuel Tick Result', () => {
     })
 
     test('messages array is always present even when empty', () => {
-      const torch: LightSource = {
-        type: 'torch',
-        radius: 1,
-        isPermanent: false,
-        fuel: 100,
-        maxFuel: 500,
-        name: 'Torch',
-      }
+      const torch = createTestTorch({ fuel: 100 })
       const player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       const result = service.tickFuel(player)
@@ -217,14 +164,7 @@ describe('LightingService - Fuel Tick Result', () => {
     })
 
     test('handles multiple ticks correctly', () => {
-      const torch: LightSource = {
-        type: 'torch',
-        radius: 1,
-        isPermanent: false,
-        fuel: 52,
-        maxFuel: 500,
-        name: 'Torch',
-      }
+      const torch = createTestTorch({ fuel: 52 })
       let player = { ...basePlayer, equipment: { ...basePlayer.equipment, lightSource: torch } }
 
       // Tick 1: 52 -> 51 (no warning)

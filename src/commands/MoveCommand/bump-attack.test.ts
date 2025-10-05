@@ -18,6 +18,7 @@ import {
   MonsterBehavior,
   MonsterState,
 } from '@game/core/core'
+import { createTestTorch } from '../../test-utils'
 
 describe('MoveCommand - Bump-to-Attack Combat', () => {
   let movementService: MovementService
@@ -94,7 +95,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
           armor: null,
           leftRing: null,
           rightRing: null,
-          lightSource: lightingService.createTorch(),
+          lightSource: createTestTorch(),
         },
         inventory: [],
       },

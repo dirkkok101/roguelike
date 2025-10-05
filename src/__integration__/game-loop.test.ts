@@ -16,6 +16,7 @@ import { NotificationService } from '@services/NotificationService'
 import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
 import { SeededRandom } from '@services/RandomService'
+import { createTestTorch } from '../test-utils'
 
 /**
  * Integration test: Game Loop
@@ -132,7 +133,6 @@ describe('Integration: Game Loop', () => {
   }
 
   function createTestPlayer(position: { x: number; y: number }): Player {
-    const torch = services.lighting.createTorch()
     return {
       position,
       hp: 20,
@@ -149,7 +149,7 @@ describe('Integration: Game Loop', () => {
         armor: null,
         leftRing: null,
         rightRing: null,
-        lightSource: torch,
+        lightSource: createTestTorch(),
       },
       inventory: [],
     }

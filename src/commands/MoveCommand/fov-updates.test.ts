@@ -11,6 +11,7 @@ import { HungerService } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType } from '@game/core/core'
+import { createTestTorch, createTestLantern, createTestArtifact } from '../../test-utils'
 
 describe('MoveCommand - FOV Updates', () => {
   let movementService: MovementService
@@ -87,7 +88,7 @@ describe('MoveCommand - FOV Updates', () => {
           armor: null,
           leftRing: null,
           rightRing: null,
-          lightSource: lightingService.createTorch(),
+          lightSource: createTestTorch(),
         },
         inventory: [],
       },
@@ -318,7 +319,7 @@ describe('MoveCommand - FOV Updates', () => {
     test('uses light source radius for FOV', () => {
       const state = createTestState()
       // Replace torch with lantern (radius 2)
-      state.player.equipment.lightSource = lightingService.createLantern()
+      state.player.equipment.lightSource = createTestLantern()
 
       const command = new MoveCommand(
         'right',
@@ -390,7 +391,7 @@ describe('MoveCommand - FOV Updates', () => {
 
     test('does not tick permanent light', () => {
       const state = createTestState()
-      state.player.equipment.lightSource = lightingService.createArtifact()
+      state.player.equipment.lightSource = createTestArtifact('Phial', 3)
 
       const command = new MoveCommand(
         'right',
