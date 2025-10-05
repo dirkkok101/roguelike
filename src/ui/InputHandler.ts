@@ -130,7 +130,8 @@ export class InputHandler {
           this.levelingService,
           this.doorService,
           this.hungerService,
-          this.notificationService
+          this.notificationService,
+          this.turnService
         )
 
       case 'ArrowDown':
@@ -145,7 +146,8 @@ export class InputHandler {
           this.levelingService,
           this.doorService,
           this.hungerService,
-          this.notificationService
+          this.notificationService,
+          this.turnService
         )
 
       case 'ArrowLeft':
@@ -160,7 +162,8 @@ export class InputHandler {
           this.levelingService,
           this.doorService,
           this.hungerService,
-          this.notificationService
+          this.notificationService,
+          this.turnService
         )
 
       case 'ArrowRight':
@@ -175,7 +178,8 @@ export class InputHandler {
           this.levelingService,
           this.doorService,
           this.hungerService,
-          this.notificationService
+          this.notificationService,
+          this.turnService
         )
 
       case 'o':

@@ -26,9 +26,9 @@ export class MoveCommand implements ICommand {
     private combatService: CombatService,
     private levelingService: LevelingService,
     private doorService: DoorService,
-    private turnService: TurnService,
-    private hungerService?: HungerService,
-    private notificationService?: NotificationService
+    private hungerService: HungerService,
+    private notificationService: NotificationService,
+    private turnService: TurnService
   ) {}
 
   execute(state: GameState): GameState {
@@ -171,38 +171,36 @@ export class MoveCommand implements ICommand {
     let messages: string[] = []
 
     // 2. Tick hunger
-    if (this.hungerService) {
-      const hungerResult: HungerTickResult = this.hungerService.tickHunger(player)
-      player = hungerResult.player
-      messages.push(...hungerResult.messages)
+    const hungerResult: HungerTickResult = this.hungerService.tickHunger(player)
+    player = hungerResult.player
+    messages.push(...hungerResult.messages)
 
-      // Check for death from starvation
-      if (hungerResult.death) {
-        let finalMessages = state.messages
-        // Add hunger messages first
-        messages.forEach((msg) => {
-          finalMessages = this.messageService.addMessage(
-            finalMessages,
-            msg,
-            msg.includes('fainting') ? 'critical' : 'warning',
-            state.turnCount + 1
-          )
-        })
-        // Add death message
+    // Check for death from starvation
+    if (hungerResult.death) {
+      let finalMessages = state.messages
+      // Add hunger messages first
+      messages.forEach((msg) => {
         finalMessages = this.messageService.addMessage(
           finalMessages,
-          'You died of starvation!',
-          'critical',
+          msg,
+          msg.includes('fainting') ? 'critical' : 'warning',
           state.turnCount + 1
         )
-        return this.turnService.incrementTurn({
-          ...state,
-          player,
-          messages: finalMessages,
-          isGameOver: true,
-          deathCause: hungerResult.death.cause,
-        })
-      }
+      })
+      // Add death message
+      finalMessages = this.messageService.addMessage(
+        finalMessages,
+        'You died of starvation!',
+        'critical',
+        state.turnCount + 1
+      )
+      return this.turnService.incrementTurn({
+        ...state,
+        player,
+        messages: finalMessages,
+        isGameOver: true,
+        deathCause: hungerResult.death.cause,
+      })
     }
 
     // 3. Tick light fuel
@@ -231,9 +229,10 @@ export class MoveCommand implements ICommand {
       visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
     }
-    const notifications = this.notificationService
-      ? this.notificationService.generateNotifications(stateWithUpdatedLevel, state.player.position)
-      : []
+    const notifications = this.notificationService.generateNotifications(
+      stateWithUpdatedLevel,
+      state.player.position
+    )
 
     // 7. Add hunger/fuel messages to message log
     let finalMessages = state.messages

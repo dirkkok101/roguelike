@@ -26,7 +26,7 @@ describe('MonsterTurnService - Turn Processing', () => {
     combatService = new CombatService(mockRandom)
     abilityService = new SpecialAbilityService(mockRandom)
 
-    service = new MonsterTurnService(aiService, combatService, abilityService, messageService)
+    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService)
   })
 
   function createTestState(monsters: Monster[] = []): GameState {

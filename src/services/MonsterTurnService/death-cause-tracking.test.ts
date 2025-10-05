@@ -22,7 +22,7 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
     combatService = new CombatService(mockRandom)
     const abilityService = new SpecialAbilityService(mockRandom)
 
-    service = new MonsterTurnService(aiService, combatService, abilityService, messageService)
+    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService)
   })
 
   function createTestPlayer(overrides: Partial<Player> = {}): Player {

@@ -8,6 +8,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { HungerService } from '@services/HungerService'
+import { NotificationService } from '@services/NotificationService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType } from '@game/core/core'
 
@@ -21,6 +22,7 @@ describe('MoveCommand - Basic Movement', () => {
   let doorService: DoorService
   let turnService: TurnService
   let hungerService: HungerService
+  let notificationService: NotificationService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -34,6 +36,7 @@ describe('MoveCommand - Basic Movement', () => {
     doorService = new DoorService()
     turnService = new TurnService()
     hungerService = new HungerService(mockRandom)
+    notificationService = new NotificationService()
   })
 
   function createTestState(): GameState {
@@ -112,8 +115,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -132,8 +136,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -152,8 +157,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -172,8 +178,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -194,8 +201,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -215,8 +223,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
       const down = new MoveCommand(
         'down',
@@ -227,8 +236,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       state = right.execute(state)
@@ -254,8 +264,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       command.execute(state)
@@ -275,8 +286,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -300,8 +312,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
       const left = new MoveCommand(
         'left',
@@ -312,8 +325,9 @@ describe('MoveCommand - Basic Movement', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState1 = up.execute(state)
@@ -346,10 +360,10 @@ describe('MoveCommand - Basic Movement', () => {
       let state = createTestState()
 
       const commands = [
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, turnService, hungerService),
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, turnService, hungerService),
-        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, turnService, hungerService),
-        new MoveCommand('left', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, turnService, hungerService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, notificationService, turnService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, notificationService, turnService),
+        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, notificationService, turnService),
+        new MoveCommand('left', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, notificationService, turnService),
       ]
 
       for (const command of commands) {

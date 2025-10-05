@@ -8,6 +8,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { HungerService } from '@services/HungerService'
+import { NotificationService } from '@services/NotificationService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType, DoorState, Door } from '@game/core/core'
 
@@ -21,6 +22,7 @@ describe('MoveCommand - Door Interaction', () => {
   let doorService: DoorService
   let turnService: TurnService
   let hungerService: HungerService
+  let notificationService: NotificationService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -34,6 +36,7 @@ describe('MoveCommand - Door Interaction', () => {
     doorService = new DoorService()
     turnService = new TurnService()
     hungerService = new HungerService(mockRandom)
+    notificationService = new NotificationService()
   })
 
   function createTestState(): GameState {
@@ -132,8 +135,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -172,8 +176,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -215,8 +220,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -258,8 +264,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -298,8 +305,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -337,8 +345,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -379,8 +388,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -420,8 +430,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -460,8 +471,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -501,8 +513,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -540,8 +553,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -584,8 +598,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -624,8 +639,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -667,8 +683,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -707,8 +724,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -752,8 +770,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -812,8 +831,9 @@ describe('MoveCommand - Door Interaction', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)

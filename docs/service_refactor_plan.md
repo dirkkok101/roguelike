@@ -1294,7 +1294,7 @@ execute(state: GameState): GameState {
 - `src/services/RoomGenerationService/room-generation.test.ts` (new)
 - `src/services/DungeonService/DungeonService.ts`
 
-**Task**: ☐ Extract room generation logic from DungeonService
+**Task**: ☑ Extract room generation logic from DungeonService
 
 **Target Implementation**:
 ```typescript
@@ -1362,11 +1362,11 @@ export class RoomGenerationService {
 ```
 
 **Subtasks**:
-- ☐ Create RoomGenerationService
-- ☐ Extract room generation logic from DungeonService
-- ☐ Write comprehensive tests (overlap, bounds, count)
-- ☐ Update DungeonService to use RoomGenerationService
-- ☐ Run tests: `npm test RoomGenerationService && npm test DungeonService`
+- ☑ Create RoomGenerationService
+- ☑ Extract room generation logic from DungeonService
+- ☑ Write comprehensive tests (overlap, bounds, count)
+- ☑ Update DungeonService to use RoomGenerationService
+- ☑ Run tests: `npm test RoomGenerationService && npm test DungeonService`
 
 **Acceptance Criteria**:
 - ✓ RoomGenerationService handles all room logic
@@ -1386,7 +1386,7 @@ export class RoomGenerationService {
 - `src/services/CorridorGenerationService/loop-adding.test.ts` (new)
 - `src/services/DungeonService/DungeonService.ts`
 
-**Task**: ☐ Extract corridor generation (MST + loops)
+**Task**: ☑ Extract corridor generation (MST + loops)
 
 **Implementation**:
 ```typescript
@@ -1465,12 +1465,12 @@ export class CorridorGenerationService {
 ```
 
 **Subtasks**:
-- ☐ Create CorridorGenerationService
-- ☐ Implement MST algorithm (Kruskal's)
-- ☐ Implement loop adding (30% chance)
-- ☐ Write tests for MST and loops
-- ☐ Update DungeonService to use CorridorGenerationService
-- ☐ Run tests
+- ☑ Create CorridorGenerationService
+- ☑ Implement MST algorithm (Prim's)
+- ☑ Implement loop adding (configurable chance)
+- ☑ Write tests for MST and loops
+- ☑ Update DungeonService to use CorridorGenerationService
+- ☑ Run tests
 
 **Acceptance Criteria**:
 - ✓ Corridors connect all rooms (MST)
@@ -1492,11 +1492,11 @@ export class CorridorGenerationService {
 **Rationale for deferral**: DungeonService is large but cohesive. Splitting rooms/corridors (3.1, 3.2) provides the most value. The remaining splits can wait until there's a clear need (e.g., special level types, vault generation).
 
 **Phase 3 Completion Checklist**:
-- ☐ Tasks 3.1 and 3.2 complete (minimum)
-- ☐ DungeonService reduced by ~300 lines
-- ☐ Room and corridor generation extracted
-- ☐ All dungeon generation tests passing
-- ☐ Git commit: "feat: extract room and corridor generation services (Phase 3)"
+- ☑ Tasks 3.1 and 3.2 complete (minimum)
+- ☑ DungeonService reduced by 230 lines (1076 → 846)
+- ☑ Room and corridor generation extracted
+- ☑ All dungeon generation tests passing (1357/1357)
+- ☑ Git commits: Task 3.1 (bbe1691), Task 3.2 (523ed56)
 
 ---
 

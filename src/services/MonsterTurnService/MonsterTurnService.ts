@@ -3,6 +3,7 @@ import { MonsterAIService, MonsterAction } from '@services/MonsterAIService'
 import { CombatService } from '@services/CombatService'
 import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { MessageService } from '@services/MessageService'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // MONSTER TURN SERVICE - Process all monster turns
@@ -10,6 +11,7 @@ import { MessageService } from '@services/MessageService'
 
 export class MonsterTurnService {
   constructor(
+    private random: IRandomService,
     private aiService: MonsterAIService,
     private combatService: CombatService,
     private abilityService: SpecialAbilityService,
@@ -270,7 +272,7 @@ export class MonsterTurnService {
 
     // Leprechaun steals gold
     if (monster.name === 'Leprechaun' && player.gold > 0) {
-      const stolenGold = Math.min(player.gold, this.combatService['random'].nextInt(10, 50))
+      const stolenGold = Math.min(player.gold, this.random.nextInt(10, 50))
       player = { ...player, gold: player.gold - stolenGold }
       messages = this.messageService.addMessage(
         messages,
@@ -281,7 +283,7 @@ export class MonsterTurnService {
     }
     // Nymph steals random item
     else if (monster.name === 'Nymph' && player.inventory.length > 0) {
-      const randomIndex = this.combatService['random'].nextInt(0, player.inventory.length - 1)
+      const randomIndex = this.random.nextInt(0, player.inventory.length - 1)
       const stolenItem = player.inventory[randomIndex]
       player = {
         ...player,

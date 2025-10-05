@@ -22,7 +22,7 @@ describe('MonsterTurnService - Combat Execution', () => {
     const combatService = new CombatService(mockRandom)
     const abilityService = new SpecialAbilityService(mockRandom)
 
-    service = new MonsterTurnService(aiService, combatService, abilityService, messageService)
+    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService)
   })
 
   function createTestState(monsters: Monster[] = [], playerPos = { x: 10, y: 10 }): GameState {

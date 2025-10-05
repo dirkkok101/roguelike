@@ -8,6 +8,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { HungerService } from '@services/HungerService'
+import { NotificationService } from '@services/NotificationService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
 
@@ -21,6 +22,7 @@ describe('MoveCommand - Collision Detection', () => {
   let doorService: DoorService
   let turnService: TurnService
   let hungerService: HungerService
+  let notificationService: NotificationService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -34,6 +36,7 @@ describe('MoveCommand - Collision Detection', () => {
     doorService = new DoorService()
     turnService = new TurnService()
     hungerService = new HungerService(mockRandom)
+    notificationService = new NotificationService()
   })
 
   function createTestState(): GameState {
@@ -152,8 +155,9 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -183,8 +187,9 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -216,8 +221,9 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = command.execute(state)
@@ -242,8 +248,9 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = up.execute(state)
@@ -285,8 +292,9 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = left.execute(state)
@@ -322,8 +330,9 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
-        turnService,
-        hungerService
+        hungerService,
+        notificationService,
+        turnService
       )
 
       const newState = left.execute(state)
