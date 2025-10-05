@@ -14,7 +14,7 @@
 
 | Source | Radius | Duration | Notes |
 |--------|--------|----------|-------|
-| **Torch** | 1 tile | 500 turns | Basic consumable, burns out |
+| **Torch** | 2 tiles | 500 turns | Basic consumable, burns out |
 | **Lantern** | 2 tiles | Refillable | Requires oil flasks (each = 500 turns) |
 | **Phial of Galadriel** | 3 tiles | Permanent | Rare artifact, never runs out |
 | **Star of Elendil** | 3 tiles | Permanent | Rare artifact, never runs out |

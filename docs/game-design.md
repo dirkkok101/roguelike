@@ -178,7 +178,7 @@ All monsters from the original Rogue, each represented by a capital letter:
 - **Wear/Take off** commands to equip/unequip
 
 **Light Sources** (`~` torch, `(` lantern)
-- **Torches**: Radius 1, 500 turns of fuel
+- **Torches**: Radius 2, 500 turns of fuel
 - **Lanterns**: Radius 2, refillable with oil flasks
 - **Oil Flasks**: 500 turns of fuel per flask
 - **Artifacts**: Permanent light sources (radius 2-3)

@@ -82,7 +82,7 @@
     {
       "type": "torch",
       "name": "Torch",
-      "radius": 1,
+      "radius": 2,
       "fuel": 500,
       "isPermanent": false,
       "rarity": "common"

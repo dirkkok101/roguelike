@@ -19,6 +19,10 @@ import {
   Scroll,
   Ring,
   Food,
+  Torch,
+  Lantern,
+  OilFlask,
+  LightSource,
   PotionType,
   ScrollType,
   RingType,
@@ -645,6 +649,18 @@ export class DungeonService {
         rarity: f.rarity,
       })) || [{ name: 'Food Ration', nutrition: 900, rarity: 'common' }]
 
+    const lightSourceTemplates =
+      this.itemData?.lightSources ||
+      [
+        { type: 'torch', name: 'Torch', radius: 2, fuel: 500, isPermanent: false, rarity: 'common' },
+        { type: 'lantern', name: 'Lantern', radius: 2, fuel: 500, isPermanent: false, rarity: 'uncommon' },
+        { type: 'artifact', name: 'Phial of Galadriel', radius: 3, isPermanent: true, rarity: 'legendary' },
+      ]
+
+    const consumableTemplates =
+      this.itemData?.consumables ||
+      [{ name: 'Oil Flask', type: 'lantern_fuel', fuelAmount: 500, rarity: 'uncommon' }]
+
     // Spawn items
     for (let i = 0; i < count; i++) {
       if (rooms.length === 0) break
@@ -668,15 +684,36 @@ export class DungeonService {
             ? 'uncommon'
             : 'rare'
 
-        // Pick item category
-        const category = this.random.pickRandom([
-          'weapon',
-          'armor',
-          'potion',
-          'scroll',
-          'ring',
-          'food',
-        ])
+        // Pick item category with depth-based weights
+        // Early game (1-3): More torches, no lanterns
+        // Mid game (4-7): Normal torch/lantern/oil mix
+        // Late game (8-10): Fewer torches, more lanterns/oil, rare artifacts
+        const categories: string[] = []
+
+        // Base categories (12 each)
+        for (let j = 0; j < 12; j++) {
+          categories.push('weapon', 'armor', 'potion', 'scroll', 'ring', 'food')
+        }
+
+        // Torches (depth-based)
+        const torchWeight = depth <= 3 ? 20 : depth <= 7 ? 15 : 10
+        for (let j = 0; j < torchWeight; j++) {
+          categories.push('torch')
+        }
+
+        // Lanterns (depth-based, not in early game)
+        const lanternWeight = depth <= 3 ? 0 : depth <= 7 ? 8 : 12
+        for (let j = 0; j < lanternWeight; j++) {
+          categories.push('lantern')
+        }
+
+        // Oil flasks (depth-based)
+        const oilWeight = depth <= 3 ? 3 : depth <= 7 ? 10 : 12
+        for (let j = 0; j < oilWeight; j++) {
+          categories.push('oil_flask')
+        }
+
+        const category = this.random.pickRandom(categories)
 
         // Create item based on category and rarity
         let item: Item | null = null
@@ -787,6 +824,91 @@ export class DungeonService {
               position: { x, y },
               nutrition: template.nutrition,
             } as Food
+            break
+          }
+
+          case 'torch': {
+            // Check for artifact spawning on deep levels (8-10)
+            const isArtifactLevel = depth >= 8
+            const shouldSpawnArtifact = isArtifactLevel && this.random.chance(0.005) // 0.5% chance
+
+            if (shouldSpawnArtifact) {
+              // Spawn artifact light source
+              const artifacts = lightSourceTemplates.filter((t) => t.rarity === 'legendary')
+              if (artifacts.length > 0) {
+                const artifact = this.random.pickRandom(artifacts)
+                item = {
+                  id: itemId,
+                  name: artifact.name,
+                  type: ItemType.TORCH, // Using TORCH type for all light sources
+                  identified: true, // Artifacts are always identified
+                  position: { x, y },
+                  lightSource: {
+                    type: 'artifact',
+                    radius: artifact.radius,
+                    isPermanent: true,
+                    name: artifact.name,
+                  },
+                } as Torch
+              }
+            } else {
+              // Spawn regular torch
+              const torch = lightSourceTemplates.find((t) => t.type === 'torch')
+              if (torch) {
+                item = {
+                  id: itemId,
+                  name: torch.name,
+                  type: ItemType.TORCH,
+                  identified: true, // Torches are always identified
+                  position: { x, y },
+                  lightSource: {
+                    type: 'torch',
+                    radius: torch.radius,
+                    isPermanent: false,
+                    fuel: torch.fuel,
+                    maxFuel: torch.fuel,
+                    name: torch.name,
+                  },
+                } as Torch
+              }
+            }
+            break
+          }
+
+          case 'lantern': {
+            const lantern = lightSourceTemplates.find((t) => t.type === 'lantern')
+            if (lantern) {
+              item = {
+                id: itemId,
+                name: lantern.name,
+                type: ItemType.LANTERN,
+                identified: true, // Lanterns are always identified
+                position: { x, y },
+                lightSource: {
+                  type: 'lantern',
+                  radius: lantern.radius,
+                  isPermanent: false,
+                  fuel: lantern.fuel,
+                  maxFuel: 1000, // Lanterns can hold more fuel
+                  name: lantern.name,
+                },
+              } as Lantern
+            }
+            break
+          }
+
+          case 'oil_flask': {
+            const oilFlask = consumableTemplates.find((t) => t.type === 'lantern_fuel')
+            if (oilFlask) {
+              item = {
+                id: itemId,
+                name: oilFlask.name,
+                type: ItemType.OIL_FLASK,
+                identified: true, // Oil flasks are always identified
+                position: { x, y },
+                fuelAmount: oilFlask.fuelAmount,
+              } as OilFlask
+            }
             break
           }
         }

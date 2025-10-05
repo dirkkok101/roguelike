@@ -227,7 +227,7 @@ test('damage calculation', () => {
 
 ### Lighting System
 
-- **Torches**: Radius 1, 500 turns fuel
+- **Torches**: Radius 2, 500 turns fuel
 - **Lanterns**: Radius 2, refillable (500 per oil flask)
 - **Artifacts**: Radius 3, permanent (no fuel)
 - Fuel depletes 1/turn, warnings at 50/10/0 turns

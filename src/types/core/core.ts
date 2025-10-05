@@ -221,6 +221,8 @@ export enum ItemType {
   GOLD = 'GOLD',
   AMULET = 'AMULET',
   OIL_FLASK = 'OIL_FLASK',
+  TORCH = 'TORCH',
+  LANTERN = 'LANTERN',
 }
 
 export interface Weapon extends Item {
@@ -322,6 +324,14 @@ export interface Food extends Item {
 
 export interface OilFlask extends Item {
   fuelAmount: number // fuel units provided (typically 500)
+}
+
+export interface Torch extends Item {
+  lightSource: LightSource
+}
+
+export interface Lantern extends Item {
+  lightSource: LightSource
 }
 
 export interface GoldPile {
