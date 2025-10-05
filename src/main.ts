@@ -9,6 +9,8 @@ import { DungeonService } from '@services/DungeonService'
 import { CombatService } from '@services/CombatService'
 import { PathfindingService } from '@services/PathfindingService'
 import { MonsterAIService } from '@services/MonsterAIService'
+import { MonsterTurnService } from '@services/MonsterTurnService'
+import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { InventoryService } from '@services/InventoryService'
 import { IdentificationService } from '@services/IdentificationService'
 import { HungerService } from '@services/HungerService'
@@ -65,6 +67,14 @@ async function initializeGame() {
   const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
   const monsterAIService = new MonsterAIService(pathfindingService, random)
+  const specialAbilityService = new SpecialAbilityService(random)
+  const monsterTurnService = new MonsterTurnService(
+    random,
+    monsterAIService,
+    combatService,
+    specialAbilityService,
+    messageService
+  )
   const inventoryService = new InventoryService()
   const identificationService = new IdentificationService(random)
   const modalController = new ModalController(identificationService)
@@ -209,6 +219,7 @@ async function initializeGame() {
       const command = inputHandler.handleKeyPress(event, gameState)
       if (command) {
         gameState = command.execute(gameState)
+        gameState = monsterTurnService.processMonsterTurns(gameState)
         autoSaveMiddleware.afterTurn(gameState)
         renderer.render(gameState)
       }
