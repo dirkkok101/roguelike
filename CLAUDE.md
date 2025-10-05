@@ -12,18 +12,18 @@
    - Describe what was changed and why
    - Reference task numbers or features when applicable
    - Example: "feat: implement LightingService fuel consumption with warnings"
-
-2. **Follow plan.md religiously**:
-   - Complete each task in order
-   - Update plan.md checkboxes as you complete tasks
-   - Create a git commit after each completed task or logical unit of work
-   - Keep plan.md as source of truth for project status
-
+2. **Always create a detailed plan and store it in a feature_name_plan.md file
+    - The plan should have objectives
+    - The plan should have phases, tasks and sub-tasks
+    - The plan should reference relevant documentation for context
+    - The plan should
+    - Complete each phase, task and sub-task in order
+    - Mark each task as complete
+    - Create a git commit after each task is completed.
 ---
 
 ## Quick Links
 
-- **[Development Plan](./plan.md)** - Current tasks and phases
 - **[Game Design](./game-design.md)** - What we're building
 - **[Architecture](./architecture.md)** - How it's structured
 - **[Core Systems](./systems-core.md)** - Lighting, FOV, rendering
@@ -460,28 +460,6 @@ Three states:
 
 ---
 
-## Current Phase 1 Tasks
-
-**Goal**: Basic movement, rendering, lighting working
-
-**Priority Tasks**:
-1. ✅ Project setup (Vite + TypeScript + Jest)
-2. ⚪ Configure Jest with path aliases
-3. ⚪ Core data structures (GameState, Player, Level, LightSource)
-4. ⚪ RandomService (IRandomService, SeededRandom, MockRandom)
-5. ⚪ LightingService + tests
-6. ⚪ FOVService + tests
-7. ⚪ RenderingService + tests
-8. ⚪ MovementService + tests
-9. ⚪ MoveCommand + tests
-10. ⚪ Basic UI (dungeon renderer, stats, message log)
-
-**Deliverable**: Move around room, see FOV change, fuel depletes, fog of war works.
-
-See [Plan - Phase 1](./plan.md#phase-1-foundation--core-loop-week-1-2) for details.
-
----
-
 ## Common Pitfalls
 
 ### 1. Logic in UI Layer
@@ -887,15 +865,6 @@ See [Advanced Systems - Debug System](./systems-advanced.md#debug-system)
 2. Review [Testing Strategy](./testing-strategy.md) for conventions
 3. Look at existing similar service for patterns
 4. Update this file if you discover important patterns
-
----
-
-## Project Status
-
-**Phase**: 1 of 8 (Foundation)  
-**Progress**: 5/16 tasks (31%)  
-**Next Milestone**: Basic movement + lighting + FOV working  
-**Target**: End of Week 2
 
 ---
 

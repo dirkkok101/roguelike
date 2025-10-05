@@ -20,9 +20,10 @@ type ItemFilter =
 type SelectionCallback = (item: Item | null) => void
 
 export class ModalController {
-  private modalContainer: HTMLElement | null = null
-  private currentCallback: SelectionCallback | null = null
-  private currentState: GameState | null = null
+  private modalStack: HTMLElement[] = []
+  private callbackStack: (SelectionCallback | null)[] = []
+  private stateStack: (GameState | null)[] = []
+  private filterStack: ItemFilter[] = []
 
   constructor(private identificationService: IdentificationService) {}
 
@@ -39,44 +40,58 @@ export class ModalController {
     state: GameState,
     callback: SelectionCallback
   ): void {
-    this.currentState = state
-    this.currentCallback = callback
-    this.currentFilter = filter
-
     // Filter items
     const items = this.filterItems(state.player.inventory, filter, state)
 
     // Create modal DOM
-    this.modalContainer = this.createSelectionModal(title, items, state)
-    document.body.appendChild(this.modalContainer)
+    const modalContainer = this.createSelectionModal(title, items, state)
+
+    // Push to stacks
+    this.modalStack.push(modalContainer)
+    this.callbackStack.push(callback)
+    this.stateStack.push(state)
+    this.filterStack.push(filter)
+
+    document.body.appendChild(modalContainer)
   }
 
   /**
    * Show full inventory modal (read-only)
    */
   showInventory(state: GameState): void {
-    this.currentState = state
-    this.modalContainer = this.createInventoryModal(state)
-    document.body.appendChild(this.modalContainer)
+    const modalContainer = this.createInventoryModal(state)
+
+    // Push to stacks (null callback = read-only modal)
+    this.modalStack.push(modalContainer)
+    this.callbackStack.push(null)
+    this.stateStack.push(state)
+    this.filterStack.push('all')
+
+    document.body.appendChild(modalContainer)
   }
 
   /**
-   * Hide and cleanup modal
+   * Hide and cleanup top modal
    */
   hide(): void {
-    if (this.modalContainer) {
-      this.modalContainer.remove()
-      this.modalContainer = null
+    if (this.modalStack.length === 0) return
+
+    // Pop top modal and remove from DOM
+    const topModal = this.modalStack.pop()
+    this.callbackStack.pop()
+    this.stateStack.pop()
+    this.filterStack.pop()
+
+    if (topModal) {
+      topModal.remove()
     }
-    this.currentCallback = null
-    this.currentState = null
   }
 
   /**
-   * Check if modal is currently open
+   * Check if any modal is currently open
    */
   isOpen(): boolean {
-    return this.modalContainer !== null
+    return this.modalStack.length > 0
   }
 
   /**
@@ -84,27 +99,30 @@ export class ModalController {
    * Returns true if input was handled
    */
   handleInput(event: KeyboardEvent): boolean {
-    if (!this.modalContainer) return false
+    if (this.modalStack.length === 0) return false
+
+    const topCallback = this.callbackStack[this.callbackStack.length - 1]
+    const topState = this.stateStack[this.stateStack.length - 1]
 
     // ESC to cancel
     if (event.key === 'Escape') {
       event.preventDefault()
-      if (this.currentCallback) {
-        this.currentCallback(null)
+      if (topCallback) {
+        topCallback(null)
       }
       this.hide()
       return true
     }
 
     // Letter selection (a-z) - only if we have a callback (selection mode)
-    if (this.currentCallback) {
+    if (topCallback) {
       const index = this.getItemIndexFromLetter(event.key)
-      if (index !== null && this.currentState) {
+      if (index !== null && topState) {
         const filteredItems = this.getFilteredItemsForCurrentModal()
         if (index < filteredItems.length) {
           event.preventDefault()
           const item = filteredItems[index]
-          this.currentCallback(item)
+          topCallback(item)
           this.hide()
           return true
         }
@@ -118,11 +136,14 @@ export class ModalController {
   // PRIVATE METHODS
   // ============================================================================
 
-  private currentFilter: ItemFilter = 'all'
-
   private getFilteredItemsForCurrentModal(): Item[] {
-    if (!this.currentState) return []
-    return this.filterItems(this.currentState.player.inventory, this.currentFilter, this.currentState)
+    if (this.stateStack.length === 0) return []
+
+    const topState = this.stateStack[this.stateStack.length - 1]
+    const topFilter = this.filterStack[this.filterStack.length - 1]
+
+    if (!topState) return []
+    return this.filterItems(topState.player.inventory, topFilter, topState)
   }
 
   private filterItems(inventory: Item[], filter: ItemFilter, state: GameState): Item[] {
