@@ -24,6 +24,7 @@ import {
   RingType,
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
+import { RoomGenerationService, RoomGenerationConfig } from '@services/RoomGenerationService'
 import { ItemData } from '../../data/ItemDataLoader'
 
 // ============================================================================
@@ -59,10 +60,14 @@ export interface DungeonConfig {
 }
 
 export class DungeonService {
+  private roomGenerationService: RoomGenerationService
+
   constructor(
     private random: IRandomService,
     private itemData?: ItemData
-  ) {}
+  ) {
+    this.roomGenerationService = new RoomGenerationService(random)
+  }
 
   /**
    * Generate a complete dungeon level
@@ -71,8 +76,17 @@ export class DungeonService {
     // Initialize empty level
     const tiles = this.createEmptyTiles(config.width, config.height)
 
-    // Place rooms
-    const rooms = this.placeRooms(config)
+    // Place rooms using RoomGenerationService
+    const roomConfig: RoomGenerationConfig = {
+      dungeonWidth: config.width,
+      dungeonHeight: config.height,
+      minRoomCount: config.minRooms,
+      maxRoomCount: config.maxRooms,
+      minRoomSize: config.minRoomSize,
+      maxRoomSize: config.maxRoomSize,
+      minSpacing: config.minSpacing,
+    }
+    const rooms = this.roomGenerationService.generateRooms(roomConfig)
 
     // Build connectivity graph
     const graph = this.buildRoomGraph(rooms)
@@ -141,65 +155,6 @@ export class DungeonService {
     return this.spawnAmulet(level)
   }
 
-  // ============================================================================
-  // ROOM PLACEMENT
-  // ============================================================================
-
-  /**
-   * Generate N random rooms without overlap
-   */
-  placeRooms(config: DungeonConfig): Room[] {
-    const rooms: Room[] = []
-    const numRooms = this.random.nextInt(config.minRooms, config.maxRooms)
-    const maxAttempts = 100
-
-    for (let i = 0; i < numRooms; i++) {
-      let placed = false
-      let attempts = 0
-
-      while (!placed && attempts < maxAttempts) {
-        const width = this.random.nextInt(config.minRoomSize, config.maxRoomSize)
-        const height = this.random.nextInt(config.minRoomSize, config.maxRoomSize)
-        const x = this.random.nextInt(1, config.width - width - 1)
-        const y = this.random.nextInt(1, config.height - height - 1)
-
-        const newRoom: Room = { id: i, x, y, width, height }
-
-        if (this.canPlaceRoom(newRoom, rooms, config.minSpacing)) {
-          rooms.push(newRoom)
-          placed = true
-        }
-
-        attempts++
-      }
-    }
-
-    return rooms
-  }
-
-  /**
-   * Check if room can be placed without overlap
-   */
-  private canPlaceRoom(room: Room, existingRooms: Room[], minSpacing: number): boolean {
-    for (const existing of existingRooms) {
-      if (this.roomsOverlap(room, existing, minSpacing)) {
-        return false
-      }
-    }
-    return true
-  }
-
-  /**
-   * Check if two rooms overlap with spacing buffer
-   */
-  private roomsOverlap(room1: Room, room2: Room, spacing: number): boolean {
-    return (
-      room1.x - spacing < room2.x + room2.width + spacing &&
-      room1.x + room1.width + spacing > room2.x - spacing &&
-      room1.y - spacing < room2.y + room2.height + spacing &&
-      room1.y + room1.height + spacing > room2.y - spacing
-    )
-  }
 
   // ============================================================================
   // CONNECTIVITY GRAPH

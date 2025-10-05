@@ -68,31 +68,12 @@ describe('DungeonService', () => {
     })
   })
 
-  describe('placeRooms', () => {
-    test('should place non-overlapping rooms', () => {
-      const rooms = dungeonService.placeRooms(defaultConfig)
-
-      for (let i = 0; i < rooms.length; i++) {
-        for (let j = i + 1; j < rooms.length; j++) {
-          const room1 = rooms[i]
-          const room2 = rooms[j]
-
-          // Check no overlap with spacing buffer
-          const noOverlap =
-            room1.x + room1.width + defaultConfig.minSpacing <= room2.x ||
-            room2.x + room2.width + defaultConfig.minSpacing <= room1.x ||
-            room1.y + room1.height + defaultConfig.minSpacing <= room2.y ||
-            room2.y + room2.height + defaultConfig.minSpacing <= room1.y
-
-          expect(noOverlap).toBe(true)
-        }
-      }
-    })
-  })
+  // Note: Room placement tests now in RoomGenerationService
 
   describe('buildRoomGraph', () => {
     test('should create edges between all room pairs', () => {
-      const rooms = dungeonService.placeRooms(defaultConfig)
+      const level = dungeonService.generateLevel(1, defaultConfig)
+      const rooms = level.rooms
       const graph = dungeonService.buildRoomGraph(rooms)
 
       expect(graph.length).toBe(rooms.length)
@@ -104,7 +85,8 @@ describe('DungeonService', () => {
     })
 
     test('should calculate positive distances', () => {
-      const rooms = dungeonService.placeRooms(defaultConfig)
+      const level = dungeonService.generateLevel(1, defaultConfig)
+      const rooms = level.rooms
       const graph = dungeonService.buildRoomGraph(rooms)
 
       for (const node of graph) {
@@ -117,7 +99,8 @@ describe('DungeonService', () => {
 
   describe('generateMST', () => {
     test('should connect all rooms with N-1 edges', () => {
-      const rooms = dungeonService.placeRooms(defaultConfig)
+      const level = dungeonService.generateLevel(1, defaultConfig)
+      const rooms = level.rooms
       const graph = dungeonService.buildRoomGraph(rooms)
       const mstEdges = dungeonService.generateMST(graph)
 
@@ -126,7 +109,8 @@ describe('DungeonService', () => {
     })
 
     test('should create a connected tree', () => {
-      const rooms = dungeonService.placeRooms(defaultConfig)
+      const level = dungeonService.generateLevel(1, defaultConfig)
+      const rooms = level.rooms
       const graph = dungeonService.buildRoomGraph(rooms)
       const mstEdges = dungeonService.generateMST(graph)
 
