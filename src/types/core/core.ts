@@ -218,6 +218,7 @@ export enum ItemType {
   FOOD = 'FOOD',
   GOLD = 'GOLD',
   AMULET = 'AMULET',
+  OIL_FLASK = 'OIL_FLASK',
 }
 
 export interface Weapon extends Item {

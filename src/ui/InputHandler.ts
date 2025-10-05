@@ -10,7 +10,10 @@ import { SaveCommand } from '@commands/SaveCommand'
 import { QuitCommand } from '@commands/QuitCommand'
 import { EquipCommand } from '@commands/EquipCommand'
 import { UnequipCommand } from '@commands/UnequipCommand'
-import { UseItemCommand } from '@commands/UseItemCommand'
+import { QuaffPotionCommand } from '@commands/QuaffPotionCommand'
+import { ReadScrollCommand } from '@commands/ReadScrollCommand'
+import { ZapWandCommand } from '@commands/ZapWandCommand'
+import { RefillLanternCommand } from '@commands/RefillLanternCommand'
 import { EatCommand } from '@commands/EatCommand'
 import { ToggleGodModeCommand } from '@commands/ToggleGodModeCommand'
 import { RevealMapCommand } from '@commands/RevealMapCommand'
@@ -267,16 +270,11 @@ export class InputHandler {
         event.preventDefault()
         this.modalController.showItemSelection('potion', 'Quaff which potion?', state, (item) => {
           if (item) {
-            this.pendingCommand = new UseItemCommand(
+            this.pendingCommand = new QuaffPotionCommand(
               item.id,
-              'quaff',
               this.inventoryService,
-              this.messageService,
               this.potionService,
-              this.scrollService,
-              this.wandService,
-              this.hungerService,
-              this.lightingService,
+              this.messageService,
               this.turnService
             )
           }
@@ -300,16 +298,11 @@ export class InputHandler {
               state,
               (targetItem) => {
                 if (targetItem) {
-                  this.pendingCommand = new UseItemCommand(
+                  this.pendingCommand = new ReadScrollCommand(
                     scroll.id,
-                    'read',
                     this.inventoryService,
-                    this.messageService,
-                    this.potionService,
                     this.scrollService,
-                    this.wandService,
-                    this.hungerService,
-                    this.lightingService,
+                    this.messageService,
                     this.turnService,
                     targetItem.id
                   )
@@ -324,16 +317,11 @@ export class InputHandler {
               state,
               (targetItem) => {
                 if (targetItem) {
-                  this.pendingCommand = new UseItemCommand(
+                  this.pendingCommand = new ReadScrollCommand(
                     scroll.id,
-                    'read',
                     this.inventoryService,
-                    this.messageService,
-                    this.potionService,
                     this.scrollService,
-                    this.wandService,
-                    this.hungerService,
-                    this.lightingService,
+                    this.messageService,
                     this.turnService,
                     targetItem.id
                   )
@@ -348,16 +336,11 @@ export class InputHandler {
               state,
               (targetItem) => {
                 if (targetItem) {
-                  this.pendingCommand = new UseItemCommand(
+                  this.pendingCommand = new ReadScrollCommand(
                     scroll.id,
-                    'read',
                     this.inventoryService,
-                    this.messageService,
-                    this.potionService,
                     this.scrollService,
-                    this.wandService,
-                    this.hungerService,
-                    this.lightingService,
+                    this.messageService,
                     this.turnService,
                     targetItem.id
                   )
@@ -366,16 +349,11 @@ export class InputHandler {
             )
           } else {
             // Other scrolls (no selection needed)
-            this.pendingCommand = new UseItemCommand(
+            this.pendingCommand = new ReadScrollCommand(
               scroll.id,
-              'read',
               this.inventoryService,
-              this.messageService,
-              this.potionService,
               this.scrollService,
-              this.wandService,
-              this.hungerService,
-              this.lightingService,
+              this.messageService,
               this.turnService
             )
           }
@@ -387,16 +365,11 @@ export class InputHandler {
         event.preventDefault()
         this.modalController.showItemSelection('wand', 'Zap which wand?', state, (item) => {
           if (item) {
-            this.pendingCommand = new UseItemCommand(
+            this.pendingCommand = new ZapWandCommand(
               item.id,
-              'zap',
               this.inventoryService,
-              this.messageService,
-              this.potionService,
-              this.scrollService,
               this.wandService,
-              this.hungerService,
-              this.lightingService,
+              this.messageService,
               this.turnService
             )
           }
@@ -412,6 +385,22 @@ export class InputHandler {
           this.messageService,
           this.random
         )
+
+      case 'F':
+        // Refill lantern with oil flask
+        event.preventDefault()
+        this.modalController.showItemSelection('oil_flask', 'Use which oil flask?', state, (item) => {
+          if (item) {
+            this.pendingCommand = new RefillLanternCommand(
+              item.id,
+              this.inventoryService,
+              this.lightingService,
+              this.messageService,
+              this.turnService
+            )
+          }
+        })
+        return null
 
       case 'w':
         // Wield weapon
