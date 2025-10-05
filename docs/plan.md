@@ -1,7 +1,7 @@
 # Development Plan: ASCII Roguelike
 
-**Version**: 2.1
-**Last Updated**: 2025-10-04 (Phase 6 Progress Update)
+**Version**: 2.2
+**Last Updated**: 2025-10-05 (Monster Turn Integration Complete)
 **Related Docs**: [Game Design](./game-design.md) | [Architecture](./architecture.md) | [Core Systems](./systems-core.md) | [Advanced Systems](./systems-advanced.md) | [Testing](./testing-strategy.md)
 
 ---
@@ -12,7 +12,17 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Estimated Timeline**: 11 weeks total (assumes single developer, ~20-30 hours/week)
 
-**Current Status**: Phases 1-7 complete (100%), Phase 8 (Testing & Balance) not started
+**Current Status**: Phases 1-7 **COMPLETE** (100%), Phase 8 (Testing & Balance) ready to start
+
+### Latest Update (2025-10-05)
+
+✅ **Monster Turn Integration Complete:**
+- Integrated MonsterTurnService into game loop (main.ts)
+- Fixed MonsterAIService missing FOVService dependency
+- Monsters now active: wake up, pursue player, attack
+- Phase 2 (Combat & Monsters) now 100% complete
+- Phase 4 (AI Behaviors) now 100% complete
+- **All game features implemented** - ready for Phase 8 (polish/balance)
 
 ### Recent Architectural Improvements (2025-10-04)
 
@@ -273,7 +283,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Implement combat system with monsters and basic AI
 
-**Status**: 🟢 Mostly Complete (11/12 complete - 92%)
+**Status**: 🟢 Complete (12/12 complete - 100%)
 
 ### Tasks
 
@@ -380,6 +390,15 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 - [x] Display combat messages in log
 - [x] Handle player death → game over screen
 - [x] Handle monster death → remove from level
+
+#### Monster Turn Integration (2025-10-05)
+- [x] Create MonsterTurnService instance in main.ts
+- [x] Create SpecialAbilityService instance in main.ts
+- [x] Wire MonsterTurnService into game loop after player command
+- [x] Fix MonsterAIService missing FOVService dependency
+- [x] Verify monsters wake up, move, and attack in gameplay
+
+**Commits**: 60957f5 (feat: integrate MonsterTurnService), b4c225f (fix: add missing FOVService dependency)
 
 ---
 
@@ -499,7 +518,7 @@ This plan outlines the 8-phase development roadmap for the ASCII Roguelike. Each
 
 **Goal**: Implement all monster AI behaviors
 
-**Status**: 🟢 Mostly Complete (9/10 complete - 90%)
+**Status**: 🟢 Complete (10/10 complete - 100%)
 
 ### Tasks
 
