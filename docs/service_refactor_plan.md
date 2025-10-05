@@ -483,7 +483,7 @@ tickFuel(player: Player): FuelTickResult {
 - `src/services/FOVService/fov-exploration-combined.test.ts` (new)
 - `src/commands/MoveCommand/MoveCommand.ts`
 
-**Task**: ☐ Add updateFOVAndExploration() method
+**Task**: ☑ Add updateFOVAndExploration() method
 
 **Current Implementation** (MoveCommand lines 241-248):
 ```typescript
@@ -513,12 +513,12 @@ class FOVService {
 ```
 
 **Subtasks**:
-- ☐ Define `FOVUpdateResult` interface
-- ☐ Add `updateFOVAndExploration()` method to FOVService
-- ☐ Add test: `fov-exploration-combined.test.ts`
-- ☐ Update MoveCommand to use combined method (2 lines → 1 line)
-- ☐ Keep `computeFOV()` and `updateExploredTiles()` public (used elsewhere)
-- ☐ Run tests: `npm test FOVService && npm test MoveCommand`
+- ☑ Define `FOVUpdateResult` interface
+- ☑ Add `updateFOVAndExploration()` method to FOVService
+- ☑ Add test: `fov-exploration-combined.test.ts`
+- ☑ Update MoveCommand to use combined method (2 lines → 1 line)
+- ☑ Keep `computeFOV()` and `updateExploredTiles()` public (used elsewhere)
+- ☑ Run tests: `npm test FOVService && npm test MoveCommand`
 
 **Acceptance Criteria**:
 - ✓ Single method returns both FOV and updated level

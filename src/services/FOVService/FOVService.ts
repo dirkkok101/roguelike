@@ -1,6 +1,15 @@
 import { Position, Level } from '@game/core/core'
 
 // ============================================================================
+// RESULT TYPES
+// ============================================================================
+
+export interface FOVUpdateResult {
+  visibleCells: Set<string>
+  level: Level
+}
+
+// ============================================================================
 // FOV SERVICE - Recursive shadowcasting algorithm
 // ============================================================================
 
@@ -32,6 +41,20 @@ export class FOVService {
     }
 
     return visible
+  }
+
+  /**
+   * Combined FOV computation + exploration update
+   * Convenience method that combines computeFOV() and updateExploredTiles()
+   */
+  updateFOVAndExploration(
+    position: Position,
+    lightRadius: number,
+    level: Level
+  ): FOVUpdateResult {
+    const visibleCells = this.computeFOV(position, lightRadius, level)
+    const updatedLevel = this.updateExploredTiles(level, visibleCells)
+    return { visibleCells, level: updatedLevel }
   }
 
   /**

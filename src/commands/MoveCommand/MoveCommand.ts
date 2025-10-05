@@ -2,7 +2,7 @@ import { GameState, DoorState, Position, Level, Monster } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MovementService } from '@services/MovementService'
 import { LightingService, FuelTickResult } from '@services/LightingService'
-import { FOVService } from '@services/FOVService'
+import { FOVService, FOVUpdateResult } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
 import { HungerService, HungerTickResult } from '@services/HungerService'
@@ -209,24 +209,25 @@ export class MoveCommand implements ICommand {
     const updatedPlayer = fuelResult.player
     messages.push(...fuelResult.messages)
 
-    // 4. Recompute FOV
+    // 4. Update FOV and exploration
     const lightRadius = this.lightingService.getLightRadius(
       updatedPlayer.equipment.lightSource
     )
-    const visibleCells = this.fovService.computeFOV(position, lightRadius, level)
+    const fovResult: FOVUpdateResult = this.fovService.updateFOVAndExploration(
+      position,
+      lightRadius,
+      level
+    )
 
-    // 5. Update explored tiles
-    const updatedLevel = this.fovService.updateExploredTiles(level, visibleCells)
-
-    // 6. Update levels map
+    // 5. Update levels map
     const updatedLevels = new Map(state.levels)
-    updatedLevels.set(state.currentLevel, updatedLevel)
+    updatedLevels.set(state.currentLevel, fovResult.level)
 
-    // 7. Generate auto-notifications
+    // 6. Generate auto-notifications
     const stateWithUpdatedLevel = {
       ...state,
       player: updatedPlayer,
-      visibleCells,
+      visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
     }
     const notifications = this.notificationService
@@ -249,11 +250,11 @@ export class MoveCommand implements ICommand {
       finalMessages = this.messageService.addMessage(finalMessages, msg, 'info', state.turnCount + 1)
     })
 
-    // 10. Return with turn increment
+    // 7. Return with turn increment
     return {
       ...state,
       player: updatedPlayer,
-      visibleCells,
+      visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
       messages: finalMessages,
       turnCount: state.turnCount + 1,

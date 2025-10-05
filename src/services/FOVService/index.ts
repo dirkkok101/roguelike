@@ -1,1 +1,1 @@
-export { FOVService } from './FOVService'
+export { FOVService, FOVUpdateResult } from './FOVService'
