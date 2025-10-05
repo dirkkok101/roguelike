@@ -568,16 +568,14 @@ class DungeonService {
 
 **Responsibilities**: Wand usage and charge management
 
-**Methods**:
-```typescript
-class WandService {
-  constructor(private identificationService: IdentificationService) {}
+**Key Capabilities**:
+- Apply wand effects with monster targeting
+- Charge tracking (3-7 charges per wand)
+- Auto-identify on use
+- Wand types: damage, sleep, teleport, haste, slow
 
-  applyWand(player: Player, wand: Wand, state: GameState, targetMonsterId?: string): WandEffectResult
-}
-```
+**Status**: Basic implementation (full effects pending Phase 5 targeting system)
 
-**Note**: Full wand effects pending targeting system (Phase 5)
 **Dependencies**: IdentificationService
 
 ---
@@ -586,15 +584,11 @@ class WandService {
 
 **Responsibilities**: Room placement with collision detection
 
-**Methods**:
-```typescript
-class RoomGenerationService {
-  constructor(private random: IRandomService) {}
-
-  generateRooms(level: Level, config: DungeonConfig): Room[]
-  doesRoomOverlap(room: Room, existingRooms: Room[]): boolean
-}
-```
+**Key Capabilities**:
+- Generate random rooms within dungeon bounds
+- Collision detection (prevent overlaps)
+- Configurable room count and size
+- Minimum spacing enforcement
 
 **Dependencies**: RandomService
 
@@ -604,20 +598,17 @@ class RoomGenerationService {
 
 **Responsibilities**: Corridor path generation with winding
 
-**Methods**:
-```typescript
-class CorridorGenerationService {
-  constructor(private random: IRandomService) {}
+**Key Capabilities**:
+- Connect rooms with corridors
+- Winding path generation (organic feel)
+- Minimum Spanning Tree algorithm
+- Loop creation (30% chance for alternate routes)
 
-  connectRooms(rooms: Room[], level: Level): Corridor[]
-  generateWindingPath(start: Position, end: Position, windiness: number): Position[]
-}
-```
+**Algorithm**: MST + probabilistic loops
 
-**Algorithm**: Minimum Spanning Tree + loop chances
 **Dependencies**: RandomService
 
-See [Advanced Systems - Dungeon Generation](./systems-advanced.md#dungeon-generation) for details.
+**See**: [Advanced Systems - Dungeon Generation](./systems-advanced.md#dungeon-generation)
 
 ---
 
@@ -625,18 +616,18 @@ See [Advanced Systems - Dungeon Generation](./systems-advanced.md#dungeon-genera
 
 **Responsibilities**: Win condition checking and score calculation
 
-**Methods**:
-```typescript
-class VictoryService {
-  checkVictory(state: GameState): boolean
-  calculateScore(state: GameState): number
-  getVictoryStats(state: GameState): VictoryStats
-}
-```
+**Key Capabilities**:
+- Check victory condition (Amulet + Level 1)
+- Calculate final score
+- Compile victory statistics
 
-**Win Condition**: Reach Level 1 with Amulet of Yendor
-**Score Formula**: (Gold × 10) + (Level × 100) + (XP × 5) - (Turns ÷ 10)
+**Win Condition**: Reach Level 1 (surface) with Amulet of Yendor
+
+**Score Formula**: `(Gold × 10) + (Level × 100) + (XP × 5) - (Turns ÷ 10)`
+
 **Dependencies**: None
+
+**See**: [VictoryService Documentation](./services/VictoryService.md)
 
 ---
 
@@ -644,20 +635,18 @@ class VictoryService {
 
 **Responsibilities**: Debug commands and visualizations
 
-**Methods**:
-```typescript
-class DebugService {
-  toggleGodMode(state: GameState): GameState
-  revealMap(state: GameState): GameState
-  toggleFOVOverlay(state: GameState): GameState
-  togglePathfindingOverlay(state: GameState): GameState
-}
-```
+**Key Capabilities**:
+- God mode (invincibility)
+- Map reveal (explore all tiles)
+- FOV overlay visualization
+- Pathfinding overlay (show monster paths)
+- Debug state management
 
-**Debug Commands**: God mode, map reveal, FOV/pathfinding overlays
-**Dependencies**: None
+**Hotkeys**: `~` console, `g` god mode, `v` reveal map, `f` FOV overlay, `p` pathfinding
 
-See [Advanced Systems - Debug System](./systems-advanced.md#debug-system) for details.
+**Dependencies**: MessageService
+
+**See**: [Advanced Systems - Debug System](./systems-advanced.md#debug-system)
 
 ---
 
@@ -665,15 +654,17 @@ See [Advanced Systems - Debug System](./systems-advanced.md#debug-system) for de
 
 **Responsibilities**: Contextual help and command suggestions
 
-**Methods**:
-```typescript
-class ContextService {
-  getAvailableCommands(state: GameState): Command[]
-  getSuggestions(state: GameState, position: Position): string[]
-}
-```
+**Key Capabilities**:
+- List available commands based on game state
+- Generate position-based action suggestions
+- Context-aware help text
+- Interactive command reference
 
-**Dependencies**: None
+**Example Suggestions**: "Press 'o' to open door", "Press ',' to pick up items", "Press 's' to search"
+
+**Dependencies**: IdentificationService
+
+**See**: [ContextService Documentation](./services/ContextService.md)
 
 ---
 
@@ -681,18 +672,18 @@ class ContextService {
 
 **Responsibilities**: Browser localStorage persistence wrapper
 
-**Methods**:
-```typescript
-class LocalStorageService {
-  saveGame(state: GameState): void
-  loadGame(gameId: string): GameState | null
-  listSavedGames(): SavedGameInfo[]
-  deleteGame(gameId: string): void
-}
-```
+**Key Capabilities**:
+- Save/load game state (JSON serialization)
+- Custom serialization (Map, Set conversion)
+- Delete saves (permadeath enforcement)
+- List saved games
+- Continue pointer (most recent save)
 
-**Storage Format**: JSON serialization with compression
+**Storage Keys**: `roguelike_save_{gameId}`, `roguelike_continue`
+
 **Dependencies**: None
+
+**See**: [LocalStorageService Documentation](./services/LocalStorageService.md)
 
 ---
 
@@ -700,14 +691,16 @@ class LocalStorageService {
 
 **Responsibilities**: Special monster abilities (rust armor, steal gold, drain strength)
 
-**Methods**:
-```typescript
-class SpecialAbilityService {
-  applySpecialAbility(monster: Monster, player: Player, state: GameState): SpecialAbilityResult
-}
-```
+**Key Capabilities**:
+- Apply monster-specific special attacks
+- Result object pattern (stat changes, messages)
+- Probability-based activation
 
-**Abilities**: RUSTS_ARMOR (Aquator), STEALS_GOLD (Leprechaun), DRAINS_STRENGTH (Rattlesnake)
+**Abilities**:
+- **RUSTS_ARMOR**: Reduces AC (Aquator)
+- **STEALS_GOLD**: Takes gold and flees (Leprechaun)
+- **DRAINS_STRENGTH**: Reduces strength (Rattlesnake)
+
 **Dependencies**: RandomService
 
 ---
@@ -716,47 +709,34 @@ class SpecialAbilityService {
 
 **Command Pattern** for user actions:
 
-```typescript
-interface ICommand {
-  execute(state: GameState): GameState;
-}
+**Interface**: `ICommand` with single `execute(state: GameState): GameState` method
+
+**Command Responsibilities**:
+- Orchestrate service calls (NO game logic)
+- Coordinate multi-step operations
+- Return new immutable state
+- Easily testable via mocked services
+
+**Example Flow** (MoveCommand):
+```
+1. Calculate new position (MovementService)
+2. Check collision/monster (MovementService)
+3. Handle combat if needed (CombatService)
+4. Move player (MovementService)
+5. Tick hunger (HungerService)
+6. Tick fuel (LightingService)
+7. Recompute FOV (FOVService)
+8. Increment turn (TurnService)
+9. Return new state
 ```
 
-**Example Commands**:
+**Architectural Rules**:
+- ✅ Service calls only (orchestration)
+- ✅ Simple routing (`if monster then attack else move`)
+- ❌ NO loops, calculations, or business logic
+- ❌ NO duplicate logic across commands
 
-### MoveCommand
-```typescript
-class MoveCommand implements ICommand {
-  constructor(
-    private direction: Direction,
-    private movementService: MovementService,
-    private combatService: CombatService,
-    private hungerService: HungerService,
-    private lightingService: LightingService,
-    private fovService: FOVService,
-    private messageService: MessageService
-  ) {}
-
-  execute(state: GameState): GameState {
-    // 1. Calculate new position
-    // 2. Check if blocked by wall (via MovementService)
-    // 3. Check if monster at position (via MovementService)
-    //    - If monster, initiate combat (via CombatService)
-    //    - Add combat messages (via MessageService)
-    // 4. If clear, move player (via MovementService)
-    // 5. Tick hunger (via HungerService)
-    // 6. Tick light fuel (via LightingService)
-    // 7. Recompute FOV (via FOVService)
-    // 8. Return new state
-  }
-}
-```
-
-**Key Points**:
-- Commands orchestrate multiple services
-- Commands contain NO game logic (only coordination)
-- All logic lives in services
-- Commands are easily testable (mock services)
+**See**: [CLAUDE.md - Command Pattern](../CLAUDE.md#architecture-patterns) for full details
 
 ---
 
