@@ -4,6 +4,9 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { HungerService } from '@services/HungerService'
+import { CombatService } from '@services/CombatService'
+import { LevelingService } from '@services/LevelingService'
+import { DoorService } from '@services/DoorService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
 
@@ -13,6 +16,9 @@ describe('MoveCommand - Starvation Death', () => {
   let fovService: FOVService
   let messageService: MessageService
   let hungerService: HungerService
+  let combatService: CombatService
+  let levelingService: LevelingService
+  let doorService: DoorService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -22,6 +28,9 @@ describe('MoveCommand - Starvation Death', () => {
     fovService = new FOVService()
     messageService = new MessageService()
     hungerService = new HungerService(mockRandom)
+    combatService = new CombatService(mockRandom)
+    levelingService = new LevelingService()
+    doorService = new DoorService()
   })
 
   function createTestPlayer(overrides: Partial<Player> = {}): Player {
@@ -110,7 +119,9 @@ describe('MoveCommand - Starvation Death', () => {
       lightingService,
       fovService,
       messageService,
-      undefined, // No combat
+      combatService,
+      levelingService,
+      doorService,
       hungerService
     )
 
@@ -130,7 +141,9 @@ describe('MoveCommand - Starvation Death', () => {
       lightingService,
       fovService,
       messageService,
-      undefined,
+      combatService,
+      levelingService,
+      doorService,
       hungerService
     )
 
@@ -152,7 +165,9 @@ describe('MoveCommand - Starvation Death', () => {
       lightingService,
       fovService,
       messageService,
-      undefined,
+      combatService,
+      levelingService,
+      doorService,
       hungerService
     )
 
@@ -174,7 +189,9 @@ describe('MoveCommand - Starvation Death', () => {
       lightingService,
       fovService,
       messageService,
-      undefined,
+      combatService,
+      levelingService,
+      doorService,
       hungerService
     )
 
@@ -196,7 +213,9 @@ describe('MoveCommand - Starvation Death', () => {
       lightingService,
       fovService,
       messageService,
-      undefined,
+      combatService,
+      levelingService,
+      doorService,
       hungerService
     )
 

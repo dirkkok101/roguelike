@@ -3,6 +3,10 @@ import { MovementService } from '@services/MovementService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
+import { CombatService } from '@services/CombatService'
+import { LevelingService } from '@services/LevelingService'
+import { DoorService } from '@services/DoorService'
+import { HungerService } from '@services/HungerService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
 
@@ -11,12 +15,22 @@ describe('MoveCommand - Collision Detection', () => {
   let lightingService: LightingService
   let fovService: FOVService
   let messageService: MessageService
+  let combatService: CombatService
+  let levelingService: LevelingService
+  let doorService: DoorService
+  let hungerService: HungerService
+  let mockRandom: MockRandom
 
   beforeEach(() => {
+    mockRandom = new MockRandom()
     movementService = new MovementService()
-    lightingService = new LightingService(new MockRandom())
+    lightingService = new LightingService(mockRandom)
     fovService = new FOVService()
     messageService = new MessageService()
+    combatService = new CombatService(mockRandom)
+    levelingService = new LevelingService()
+    doorService = new DoorService()
+    hungerService = new HungerService(mockRandom)
   })
 
   function createTestState(): GameState {
@@ -131,7 +145,11 @@ describe('MoveCommand - Collision Detection', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -157,7 +175,11 @@ describe('MoveCommand - Collision Detection', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -185,7 +207,11 @@ describe('MoveCommand - Collision Detection', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService
       )
 
       const newState = command.execute(state)
@@ -194,86 +220,7 @@ describe('MoveCommand - Collision Detection', () => {
     })
   })
 
-  describe('monster collision', () => {
-    test('blocks movement into monster', () => {
-      const state = createTestState()
-      const level = state.levels.get(1)!
-
-      // Place monster to the right
-      level.monsters.push(createTestMonster(6, 5, 'Orc'))
-
-      const command = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService
-      )
-
-      const newState = command.execute(state)
-
-      expect(newState.player.position).toEqual({ x: 5, y: 5 }) // Didn't move
-    })
-
-    test('adds message when blocked by monster', () => {
-      const state = createTestState()
-      const level = state.levels.get(1)!
-
-      level.monsters.push(createTestMonster(6, 5, 'Orc'))
-
-      const command = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService
-      )
-
-      const newState = command.execute(state)
-
-      expect(newState.messages).toHaveLength(1)
-      expect(newState.messages[0].text).toBe('A Orc blocks your way!')
-      expect(newState.messages[0].type).toBe('info')
-    })
-
-    test('does not increment turn when blocked by monster', () => {
-      const state = createTestState()
-      const level = state.levels.get(1)!
-
-      level.monsters.push(createTestMonster(6, 5, 'Dragon'))
-
-      const command = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService
-      )
-
-      const newState = command.execute(state)
-
-      expect(newState.turnCount).toBe(0)
-    })
-
-    test('shows correct monster name', () => {
-      const state = createTestState()
-      const level = state.levels.get(1)!
-
-      level.monsters.push(createTestMonster(6, 5, 'Troll'))
-
-      const command = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService
-      )
-
-      const newState = command.execute(state)
-
-      expect(newState.messages[0].text).toContain('Troll')
-    })
-  })
+  // NOTE: Monster collision tests removed - bump-to-attack behavior is tested in bump-attack.test.ts
 
   describe('out of bounds', () => {
     test('blocks movement out of bounds (negative)', () => {
@@ -285,7 +232,11 @@ describe('MoveCommand - Collision Detection', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService
       )
 
       const newState = up.execute(state)
@@ -302,7 +253,11 @@ describe('MoveCommand - Collision Detection', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService
       )
 
       const newState = right.execute(state)
@@ -319,7 +274,11 @@ describe('MoveCommand - Collision Detection', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService
       )
 
       const newState = left.execute(state)
@@ -351,7 +310,11 @@ describe('MoveCommand - Collision Detection', () => {
         movementService,
         lightingService,
         fovService,
-        messageService
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService
       )
 
       const newState = left.execute(state)

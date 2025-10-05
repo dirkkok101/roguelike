@@ -1,2 +1,2 @@
-export { HungerService } from './HungerService'
+export { HungerService, HungerTickResult } from './HungerService'
 export { HungerState } from './HungerService'

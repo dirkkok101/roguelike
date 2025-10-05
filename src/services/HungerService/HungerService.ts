@@ -13,6 +13,18 @@ export enum HungerState {
 }
 
 // ============================================================================
+// RESULT TYPES
+// ============================================================================
+
+export interface HungerTickResult {
+  player: Player
+  messages: string[]
+  death?: {
+    cause: string
+  }
+}
+
+// ============================================================================
 // HUNGER SERVICE - Hunger mechanics and food consumption
 // ============================================================================
 
@@ -21,26 +33,51 @@ export class HungerService {
 
   /**
    * Tick hunger depletion (call each turn)
+   * Returns complete result with player, messages, and death status
+   *
    * Base rate: -1/turn
    * Ring modifier: +0.5 per equipped ring (except SLOW_DIGESTION which is -0.5)
    */
-  tickHunger(player: Player): Player {
-    // Get equipped rings
+  tickHunger(player: Player): HungerTickResult {
+    // 1. Calculate old state
+    const oldState = this.getHungerState(player.hunger)
+
+    // 2. Get equipped rings and calculate rate
     const rings: Ring[] = [
       player.equipment.leftRing,
       player.equipment.rightRing,
     ].filter(Boolean) as Ring[]
-
-    // Calculate depletion rate
     const rate = this.calculateHungerRate(rings)
 
-    // Apply depletion (don't go below 0)
+    // 3. Apply depletion (don't go below 0)
     const newHunger = Math.max(0, player.hunger - rate)
-
-    return {
+    let updatedPlayer = {
       ...player,
       hunger: newHunger,
     }
+
+    // 4. Calculate new state
+    const newState = this.getHungerState(newHunger)
+
+    // 5. Build messages array
+    const messages: string[] = []
+    const warning = this.generateHungerWarning(oldState, newState)
+    if (warning) {
+      messages.push(warning)
+    }
+
+    // 6. Apply starvation damage if starving
+    let death = undefined
+    if (newState === HungerState.STARVING) {
+      updatedPlayer = this.applyStarvationDamage(updatedPlayer)
+      messages.push('You are fainting from hunger!')
+
+      if (updatedPlayer.hp <= 0) {
+        death = { cause: 'Died of starvation' }
+      }
+    }
+
+    return { player: updatedPlayer, messages, death }
   }
 
   /**

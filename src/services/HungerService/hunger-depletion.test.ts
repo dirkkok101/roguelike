@@ -65,11 +65,11 @@ describe('HungerService - Hunger Depletion', () => {
       })
 
       // Act: Tick hunger
-      const updated = service.tickHunger(player)
+      const result = service.tickHunger(player)
 
       // Assert: Verify depletion
-      expect(updated.hunger).toBe(1299)
-      expect(updated).not.toBe(player) // Immutability
+      expect(result.player.hunger).toBe(1299)
+      expect(result.player).not.toBe(player) // Immutability
       expect(player.hunger).toBe(1300) // Original unchanged
     })
 
@@ -80,10 +80,10 @@ describe('HungerService - Hunger Depletion', () => {
       })
 
       // Act: Tick hunger
-      const updated = service.tickHunger(player)
+      const result = service.tickHunger(player)
 
       // Assert: Hunger clamped at 0
-      expect(updated.hunger).toBe(0)
+      expect(result.player.hunger).toBe(0)
     })
 
     test('returns new Player object (immutability)', () => {
@@ -92,12 +92,12 @@ describe('HungerService - Hunger Depletion', () => {
       const originalHunger = player.hunger
 
       // Act
-      const updated = service.tickHunger(player)
+      const result = service.tickHunger(player)
 
       // Assert immutability
-      expect(updated).not.toBe(player)
+      expect(result.player).not.toBe(player)
       expect(player.hunger).toBe(originalHunger) // Original unchanged
-      expect(updated.hunger).toBe(originalHunger - 1)
+      expect(result.player.hunger).toBe(originalHunger - 1)
     })
 
     test('applies 1.5x rate with one Protection ring', () => {
@@ -115,10 +115,10 @@ describe('HungerService - Hunger Depletion', () => {
       })
 
       // Act: Tick hunger
-      const updated = service.tickHunger(player)
+      const result = service.tickHunger(player)
 
       // Assert: Verify 1.5x depletion
-      expect(updated.hunger).toBe(1298.5) // 1300 - 1.5
+      expect(result.player.hunger).toBe(1298.5) // 1300 - 1.5
     })
 
     test('applies 2.0x rate with two Protection rings', () => {
@@ -137,10 +137,10 @@ describe('HungerService - Hunger Depletion', () => {
       })
 
       // Act: Tick hunger
-      const updated = service.tickHunger(player)
+      const result = service.tickHunger(player)
 
       // Assert: Verify 2.0x depletion
-      expect(updated.hunger).toBe(1298) // 1300 - 2.0
+      expect(result.player.hunger).toBe(1298) // 1300 - 2.0
     })
 
     test('applies 0.5x rate with Slow Digestion ring', () => {
@@ -158,10 +158,10 @@ describe('HungerService - Hunger Depletion', () => {
       })
 
       // Act: Tick hunger
-      const updated = service.tickHunger(player)
+      const result = service.tickHunger(player)
 
       // Assert: Verify 0.5x depletion
-      expect(updated.hunger).toBe(1299.5) // 1300 - 0.5
+      expect(result.player.hunger).toBe(1299.5) // 1300 - 0.5
     })
 
     test('applies 1.0x rate with Protection + Slow Digestion (cancel out)', () => {
@@ -180,10 +180,10 @@ describe('HungerService - Hunger Depletion', () => {
       })
 
       // Act: Tick hunger
-      const updated = service.tickHunger(player)
+      const result = service.tickHunger(player)
 
       // Assert: Verify 1.0x depletion (they cancel out)
-      expect(updated.hunger).toBe(1299) // 1300 - 1.0
+      expect(result.player.hunger).toBe(1299) // 1300 - 1.0
     })
   })
 

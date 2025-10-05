@@ -137,8 +137,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
       const monster = createTestMonster({ hp: 1 })
       level.monsters = [monster]
 
-      // Roll: 15 (hit), 3 (damage)
-      mockRandom.setValues([15, 3])
+      // Roll: 15 (hit), 3 (damage), 5 (HP gain on level up)
+      mockRandom.setValues([15, 3, 5])
 
       const command = new MoveCommand(
         'right',
@@ -164,7 +164,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
       const monster = createTestMonster({ hp: 1 })
       level.monsters = [monster]
 
-      mockRandom.setValues([15, 3])
+      // Roll: 15 (hit), 3 (damage), 5 (HP gain on level up)
+      mockRandom.setValues([15, 3, 5])
 
       const command = new MoveCommand(
         'right',
@@ -189,7 +190,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
       const monster = createTestMonster({ hp: 1, xpValue: 25 })
       level.monsters = [monster]
 
-      mockRandom.setValues([15, 3])
+      // Roll: 15 (hit), 3 (damage), 5 (HP gain on level up)
+      mockRandom.setValues([15, 3, 5])
 
       const command = new MoveCommand(
         'right',
@@ -204,7 +206,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
 
       const newState = command.execute(state)
 
-      expect(newState.player.xp).toBe(25)
+      // Player leveled up (10 XP needed for level 2), so XP = 25 - 10 = 15
+      expect(newState.player.xp).toBe(15)
     })
 
     test('wounds monster without killing', () => {
@@ -314,7 +317,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
       const monster = createTestMonster({ hp: 1, xpValue: 30 })
       level.monsters = [monster]
 
-      mockRandom.setValues([15, 3])
+      // Roll: 15 (hit), 3 (damage), 5 (HP gain on level up)
+      mockRandom.setValues([15, 3, 5])
 
       const command = new MoveCommand(
         'right',
@@ -335,7 +339,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
       // - Messages added (CombatService logic)
       // - Turn incremented (CombatService logic)
       expect(newState.levels.get(1)!.monsters).toHaveLength(0)
-      expect(newState.player.xp).toBe(30)
+      // Player leveled up (10 XP needed for level 2), so XP = 30 - 10 = 20
+      expect(newState.player.xp).toBe(20)
       expect(newState.messages.length).toBeGreaterThan(0)
       expect(newState.turnCount).toBe(1)
     })

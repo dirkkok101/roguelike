@@ -5,7 +5,7 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
-import { HungerService, HungerState } from '@services/HungerService'
+import { HungerService, HungerTickResult } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
@@ -166,44 +166,40 @@ export class MoveCommand implements ICommand {
   private performMovement(state: GameState, position: Position, level: Level): GameState {
     // 1. Move player
     let player = this.movementService.movePlayer(state.player, position)
+    let messages: string[] = []
 
     // 2. Tick hunger
-    let hungerMessages: string[] = []
     if (this.hungerService) {
-      const oldHungerState = this.hungerService.getHungerState(player.hunger)
-      player = this.hungerService.tickHunger(player)
-      const newHungerState = this.hungerService.getHungerState(player.hunger)
+      const hungerResult: HungerTickResult = this.hungerService.tickHunger(player)
+      player = hungerResult.player
+      messages.push(...hungerResult.messages)
 
-      // Generate hunger warning if state changed
-      const hungerWarning = this.hungerService.generateHungerWarning(
-        oldHungerState,
-        newHungerState
-      )
-      if (hungerWarning) {
-        hungerMessages.push(hungerWarning)
-      }
-
-      // Apply starvation damage if starving
-      if (newHungerState === HungerState.STARVING) {
-        player = this.hungerService.applyStarvationDamage(player)
-        hungerMessages.push('You are fainting from hunger!')
-
-        // Check if player died from starvation
-        if (player.hp <= 0) {
-          const messages = this.messageService.addMessage(
-            state.messages,
-            'You died of starvation!',
-            'critical',
+      // Check for death from starvation
+      if (hungerResult.death) {
+        let finalMessages = state.messages
+        // Add hunger messages first
+        messages.forEach((msg) => {
+          finalMessages = this.messageService.addMessage(
+            finalMessages,
+            msg,
+            msg.includes('fainting') ? 'critical' : 'warning',
             state.turnCount + 1
           )
-          return {
-            ...state,
-            player,
-            messages,
-            isGameOver: true,
-            deathCause: 'Died of starvation',
-            turnCount: state.turnCount + 1,
-          }
+        })
+        // Add death message
+        finalMessages = this.messageService.addMessage(
+          finalMessages,
+          'You died of starvation!',
+          'critical',
+          state.turnCount + 1
+        )
+        return {
+          ...state,
+          player,
+          messages: finalMessages,
+          isGameOver: true,
+          deathCause: hungerResult.death.cause,
+          turnCount: state.turnCount + 1,
         }
       }
     }
@@ -262,11 +258,11 @@ export class MoveCommand implements ICommand {
       ? this.notificationService.generateNotifications(stateWithUpdatedLevel, state.player.position)
       : []
 
-    // 8. Add hunger messages
-    let messages = state.messages
-    hungerMessages.forEach((msg) => {
-      messages = this.messageService.addMessage(
-        messages,
+    // 8. Add hunger messages to message log
+    let finalMessages = state.messages
+    messages.forEach((msg) => {
+      finalMessages = this.messageService.addMessage(
+        finalMessages,
         msg,
         msg.includes('fainting') ? 'critical' : 'warning',
         state.turnCount + 1
@@ -275,7 +271,7 @@ export class MoveCommand implements ICommand {
 
     // 9. Add auto-notifications to message log
     notifications.forEach((msg) => {
-      messages = this.messageService.addMessage(messages, msg, 'info', state.turnCount + 1)
+      finalMessages = this.messageService.addMessage(finalMessages, msg, 'info', state.turnCount + 1)
     })
 
     // 10. Return with turn increment
@@ -284,7 +280,7 @@ export class MoveCommand implements ICommand {
       player: updatedPlayer,
       visibleCells,
       levels: updatedLevels,
-      messages,
+      messages: finalMessages,
       turnCount: state.turnCount + 1,
     }
   }
