@@ -1,10 +1,12 @@
 import { DungeonService, DungeonConfig } from './DungeonService'
+import { CorridorGenerationService } from '@services/CorridorGenerationService'
 import { SeededRandom } from '@services/RandomService'
 
 describe('DungeonService', () => {
   const seed = 'test-dungeon-seed'
   const random = new SeededRandom(seed)
   const dungeonService = new DungeonService(random)
+  const corridorService = new CorridorGenerationService(random)
 
   const defaultConfig: DungeonConfig = {
     width: 80,
@@ -69,12 +71,13 @@ describe('DungeonService', () => {
   })
 
   // Note: Room placement tests now in RoomGenerationService
+  // Note: MST and corridor tests now in CorridorGenerationService
 
   describe('buildRoomGraph', () => {
     test('should create edges between all room pairs', () => {
       const level = dungeonService.generateLevel(1, defaultConfig)
       const rooms = level.rooms
-      const graph = dungeonService.buildRoomGraph(rooms)
+      const graph = corridorService.buildRoomGraph(rooms)
 
       expect(graph.length).toBe(rooms.length)
 
@@ -87,7 +90,7 @@ describe('DungeonService', () => {
     test('should calculate positive distances', () => {
       const level = dungeonService.generateLevel(1, defaultConfig)
       const rooms = level.rooms
-      const graph = dungeonService.buildRoomGraph(rooms)
+      const graph = corridorService.buildRoomGraph(rooms)
 
       for (const node of graph) {
         for (const edge of node.edges) {
@@ -101,8 +104,8 @@ describe('DungeonService', () => {
     test('should connect all rooms with N-1 edges', () => {
       const level = dungeonService.generateLevel(1, defaultConfig)
       const rooms = level.rooms
-      const graph = dungeonService.buildRoomGraph(rooms)
-      const mstEdges = dungeonService.generateMST(graph)
+      const graph = corridorService.buildRoomGraph(rooms)
+      const mstEdges = corridorService.generateMST(graph)
 
       // MST should have exactly N-1 edges for N nodes
       expect(mstEdges.length).toBe(rooms.length - 1)
@@ -111,8 +114,8 @@ describe('DungeonService', () => {
     test('should create a connected tree', () => {
       const level = dungeonService.generateLevel(1, defaultConfig)
       const rooms = level.rooms
-      const graph = dungeonService.buildRoomGraph(rooms)
-      const mstEdges = dungeonService.generateMST(graph)
+      const graph = corridorService.buildRoomGraph(rooms)
+      const mstEdges = corridorService.generateMST(graph)
 
       // Verify all rooms are reachable via MST
       const visited = new Set<number>()
@@ -142,7 +145,7 @@ describe('DungeonService', () => {
       const room1 = { id: 0, x: 5, y: 5, width: 4, height: 4 }
       const room2 = { id: 1, x: 15, y: 15, width: 4, height: 4 }
 
-      const corridor = dungeonService.createCorridor(room1, room2)
+      const corridor = corridorService.createCorridor(room1, room2)
 
       expect(corridor.path.length).toBeGreaterThan(0)
       expect(corridor.start).toBeDefined()
