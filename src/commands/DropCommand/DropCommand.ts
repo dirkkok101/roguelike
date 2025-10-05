@@ -3,6 +3,7 @@ import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { IdentificationService } from '@services/IdentificationService'
 
 // ============================================================================
 // DROP COMMAND - Drop items from inventory to the dungeon floor
@@ -13,7 +14,8 @@ export class DropCommand implements ICommand {
     private itemId: string,
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private identificationService: IdentificationService
   ) {}
 
   execute(state: GameState): GameState {
@@ -72,9 +74,10 @@ export class DropCommand implements ICommand {
     const updatedLevels = new Map(state.levels)
     updatedLevels.set(state.currentLevel, updatedLevel)
 
+    const displayName = this.identificationService.getDisplayName(item, state)
     const messages = this.messageService.addMessage(
       state.messages,
-      `You drop ${item.name}.`,
+      `You drop ${displayName}.`,
       'info',
       state.turnCount
     )

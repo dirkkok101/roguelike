@@ -266,7 +266,8 @@ export class InputHandler {
               item.id,
               this.inventoryService,
               this.messageService,
-              this.turnService
+              this.turnService,
+              this.identificationService
             )
           }
         })
@@ -419,7 +420,8 @@ export class InputHandler {
               null, // No ring slot for weapons
               this.inventoryService,
               this.messageService,
-              this.turnService
+              this.turnService,
+              this.identificationService
             )
           }
         })
@@ -435,7 +437,8 @@ export class InputHandler {
               null, // No ring slot for armor
               this.inventoryService,
               this.messageService,
-              this.turnService
+              this.turnService,
+              this.identificationService
             )
           }
         })
@@ -453,7 +456,8 @@ export class InputHandler {
               slot,
               this.inventoryService,
               this.messageService,
-              this.turnService
+              this.turnService,
+              this.identificationService
             )
           }
         })

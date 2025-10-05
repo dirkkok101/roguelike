@@ -61,7 +61,9 @@ async function initializeGame() {
   const levelingService = new LevelingService(random)
   const debugService = new DebugService(messageService)
   const contextService = new ContextService()
-  const notificationService = new NotificationService()
+  const inventoryService = new InventoryService()
+  const identificationService = new IdentificationService(random)
+  const notificationService = new NotificationService(identificationService)
   const victoryService = new VictoryService()
   const localStorageService = new LocalStorageService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
@@ -76,8 +78,6 @@ async function initializeGame() {
     specialAbilityService,
     messageService
   )
-  const inventoryService = new InventoryService()
-  const identificationService = new IdentificationService(random)
   const modalController = new ModalController(identificationService)
   const doorService = new DoorService()
   const potionService = new PotionService(random, identificationService)

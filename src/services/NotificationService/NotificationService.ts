@@ -1,4 +1,5 @@
 import { GameState, Position, Level, Item, Monster } from '@game/core/core'
+import { IdentificationService } from '@services/IdentificationService'
 
 // ============================================================================
 // NOTIFICATION SERVICE - Generates contextual auto-messages
@@ -38,6 +39,8 @@ export class NotificationService {
     recentNotifications: new Set(),
   }
 
+  constructor(private identificationService: IdentificationService) {}
+
   /**
    * Generate notifications for new player position
    */
@@ -62,7 +65,8 @@ export class NotificationService {
       const item = itemsHere[0]
       const key = `item-${item.id}`
       if (!this.context.recentNotifications.has(key)) {
-        const notification = `You see ${this.getArticle(item.name)} ${item.name} here.`
+        const displayName = this.identificationService.getDisplayName(item, state)
+        const notification = `You see ${this.getArticle(displayName)} ${displayName} here.`
         notifications.push(notification)
         console.log(`[NOTIFICATION] ${notification}`)
         this.context.recentNotifications.add(key)

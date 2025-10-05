@@ -3,6 +3,7 @@ import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { IdentificationService } from '@services/IdentificationService'
 
 // ============================================================================
 // EQUIP COMMAND - Equip weapons, armor, and rings
@@ -14,7 +15,8 @@ export class EquipCommand implements ICommand {
     private ringSlot: 'left' | 'right' | null,
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private identificationService: IdentificationService
   ) {}
 
   execute(state: GameState): GameState {
@@ -48,16 +50,17 @@ export class EquipCommand implements ICommand {
     // Equip based on item type
     let updatedPlayer = state.player
     let equipMessage = ''
+    const displayName = this.identificationService.getDisplayName(item, state)
 
     switch (item.type) {
       case ItemType.WEAPON:
         updatedPlayer = this.inventoryService.equipWeapon(state.player, item as Weapon)
-        equipMessage = `You wield ${item.name}.`
+        equipMessage = `You wield ${displayName}.`
         break
 
       case ItemType.ARMOR:
         updatedPlayer = this.inventoryService.equipArmor(state.player, item as Armor)
-        equipMessage = `You put on ${item.name}.`
+        equipMessage = `You put on ${displayName}.`
         break
 
       case ItemType.RING:
@@ -75,7 +78,7 @@ export class EquipCommand implements ICommand {
           item as Ring,
           this.ringSlot
         )
-        equipMessage = `You put on ${item.name} on your ${this.ringSlot} hand.`
+        equipMessage = `You put on ${displayName} on your ${this.ringSlot} hand.`
         break
 
       default:
