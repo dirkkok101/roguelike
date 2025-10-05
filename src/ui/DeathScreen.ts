@@ -73,12 +73,10 @@ export class DeathScreen {
     `
 
     modal.innerHTML = `
-      <div class="death-title" style="font-size: 24px; color: #FF4444; margin-bottom: 20px;">
-        ╔═══════════════════════════════╗
-        ║        GAME OVER              ║
-        ║      You have died...         ║
-        ╚═══════════════════════════════╝
-      </div>
+      <pre class="death-title" style="font-size: 24px; color: #FF4444; margin-bottom: 20px; font-family: 'Courier New', monospace;">╔═══════════════════════════════╗
+║        GAME OVER              ║
+║      You have died...         ║
+╚═══════════════════════════════╝</pre>
 
       <div class="death-cause" style="color: #FF8800; font-size: 16px; margin: 20px 0;">
         ${stats.cause}
