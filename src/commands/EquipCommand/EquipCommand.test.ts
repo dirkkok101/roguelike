@@ -512,4 +512,129 @@ describe('EquipCommand', () => {
       expect(finalResult.turnCount).toBe(1)
     })
   })
+
+  describe('curse discovery', () => {
+    test('displays warning when equipping cursed weapon', () => {
+      const player = createTestPlayer()
+      const cursedWeapon: Weapon = {
+        ...createTestWeapon('sword-1', 'Cursed Short Sword'),
+        cursed: true,
+        bonus: -1,
+      }
+      player.inventory = [cursedWeapon]
+
+      const state = createTestState(player)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Should have two messages: success + warning
+      expect(result.messages).toHaveLength(2)
+      expect(result.messages[0].text).toBe('You wield Cursed Short Sword.')
+      expect(result.messages[0].type).toBe('success')
+      expect(result.messages[1].text).toBe('The Cursed Short Sword is cursed! You cannot remove it.')
+      expect(result.messages[1].type).toBe('warning')
+      expect(result.player.equipment.weapon?.id).toBe('sword-1')
+    })
+
+    test('displays warning when equipping cursed armor', () => {
+      const player = createTestPlayer()
+      const cursedArmor: Armor = {
+        ...createTestArmor('armor-1', 'Cursed Chain Mail', 5),
+        cursed: true,
+        bonus: -2,
+      }
+      player.inventory = [cursedArmor]
+
+      const state = createTestState(player)
+      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Should have two messages: success + warning
+      expect(result.messages).toHaveLength(2)
+      expect(result.messages[0].text).toBe('You put on Cursed Chain Mail.')
+      expect(result.messages[0].type).toBe('success')
+      expect(result.messages[1].text).toBe('The Cursed Chain Mail is cursed! You cannot remove it.')
+      expect(result.messages[1].type).toBe('warning')
+      expect(result.player.equipment.armor?.id).toBe('armor-1')
+    })
+
+    test('displays warning when equipping cursed ring', () => {
+      const player = createTestPlayer()
+      const cursedRing: Ring = {
+        ...createTestRing('ring-1', 'Cursed Ring of Protection'),
+        cursed: true,
+        bonus: -1,
+      }
+      player.inventory = [cursedRing]
+
+      const state = createTestState(player)
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Should have two messages: success + warning
+      expect(result.messages).toHaveLength(2)
+      expect(result.messages[0].text).toBe('You put on Cursed Ring of Protection on your left hand.')
+      expect(result.messages[0].type).toBe('success')
+      expect(result.messages[1].text).toBe('The Cursed Ring of Protection is cursed! You cannot remove it.')
+      expect(result.messages[1].type).toBe('warning')
+      expect(result.player.equipment.leftRing?.id).toBe('ring-1')
+    })
+
+    test('does not show warning when equipping non-cursed weapon', () => {
+      const player = createTestPlayer()
+      const weapon: Weapon = {
+        ...createTestWeapon('sword-1', 'Short Sword'),
+        cursed: false,
+        bonus: 0,
+      }
+      player.inventory = [weapon]
+
+      const state = createTestState(player)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Should only have success message
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].text).toBe('You wield Short Sword.')
+      expect(result.messages[0].type).toBe('success')
+    })
+
+    test('does not show warning when equipping non-cursed armor', () => {
+      const player = createTestPlayer()
+      const armor: Armor = {
+        ...createTestArmor('armor-1', 'Chain Mail', 5),
+        cursed: false,
+        bonus: 0,
+      }
+      player.inventory = [armor]
+
+      const state = createTestState(player)
+      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Should only have success message
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].text).toBe('You put on Chain Mail.')
+      expect(result.messages[0].type).toBe('success')
+    })
+
+    test('does not show warning when equipping non-cursed ring', () => {
+      const player = createTestPlayer()
+      const ring: Ring = {
+        ...createTestRing('ring-1', 'Ring of Protection'),
+        cursed: false,
+        bonus: 1,
+      }
+      player.inventory = [ring]
+
+      const state = createTestState(player)
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Should only have success message
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].text).toBe('You put on Ring of Protection on your left hand.')
+      expect(result.messages[0].type).toBe('success')
+    })
+  })
 })

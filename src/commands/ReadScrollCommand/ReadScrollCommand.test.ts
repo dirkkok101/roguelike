@@ -7,6 +7,10 @@ import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
+import { FOVService } from '@services/FOVService'
+import { DungeonService } from '@services/DungeonService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { CurseService } from '@services/CurseService'
 import { GameState, Player, ItemType, Scroll, ScrollType, Armor, Potion, PotionType } from '@game/core/core'
 
 describe('ReadScrollCommand', () => {
@@ -21,10 +25,22 @@ describe('ReadScrollCommand', () => {
     inventoryService = new InventoryService()
     const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
-    scrollService = new ScrollService(identificationService, inventoryService)
+    const levelService = new LevelService()
+    const fovService = new FOVService(new StatusEffectService())
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    const dungeonService = new DungeonService(mockRandom, monsterSpawnService)
+    const curseService = new CurseService()
+    scrollService = new ScrollService(
+      identificationService,
+      inventoryService,
+      levelService,
+      fovService,
+      mockRandom,
+      dungeonService,
+      curseService
+    )
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
-    const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
   })
 

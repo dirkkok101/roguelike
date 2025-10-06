@@ -27,6 +27,7 @@ import { DoorService } from '@services/DoorService'
 import { PotionService } from '@services/PotionService'
 import { ScrollService } from '@services/ScrollService'
 import { WandService } from '@services/WandService'
+import { CurseService } from '@services/CurseService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { DeathService } from '@services/DeathService'
@@ -107,11 +108,20 @@ async function initializeGame() {
     messageService,
     turnService
   )
-  const modalController = new ModalController(identificationService)
   const doorService = new DoorService()
   const potionService = new PotionService(random, identificationService, levelingService, statusEffectService)
-  const scrollService = new ScrollService(identificationService, inventoryService)
-  const wandService = new WandService(identificationService)
+  const curseService = new CurseService()
+  const scrollService = new ScrollService(
+    identificationService,
+    inventoryService,
+    levelService,
+    fovService,
+    random,
+    dungeonService,
+    curseService
+  )
+  const wandService = new WandService(identificationService, random, combatService, levelService)
+  const modalController = new ModalController(identificationService, curseService)
 
   // Dungeon configuration
   const dungeonConfig = {
@@ -379,6 +389,7 @@ async function initializeGame() {
       turnService,
       levelService,
       statusEffectService,
+      curseService,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
       returnToMenu

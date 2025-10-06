@@ -327,4 +327,188 @@ describe('ScrollService - Enchant Scrolls', () => {
       expect(result.player.equipment.armor?.bonus).toBe(1)
     })
   })
+
+  describe('Curse Removal', () => {
+    test('enchanting cursed weapon removes curse and adds +1 bonus', () => {
+      const cursedSword: Weapon = {
+        id: 'weapon-1',
+        type: ItemType.WEAPON,
+        name: 'Cursed Short Sword -2',
+        damage: '1d8',
+        bonus: -2,
+        cursed: true,
+        isIdentified: true,
+      }
+
+      testPlayer.inventory = [cursedSword]
+
+      const enchantScroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Enchant Weapon',
+        scrollType: ScrollType.ENCHANT_WEAPON,
+        effect: 'Enchants weapon',
+        labelName: 'scroll labeled ELBERETH',
+        isIdentified: false,
+      }
+
+      const result = scrollService.applyScroll(
+        testPlayer,
+        enchantScroll,
+        testState,
+        'weapon-1'
+      )
+
+      const enchantedWeapon = result.player.inventory.find(i => i.type === ItemType.WEAPON) as Weapon
+      expect(enchantedWeapon.bonus).toBe(-1) // -2 + 1 = -1
+      expect(enchantedWeapon.cursed).toBe(false) // Curse removed
+      expect(result.message).toContain('The curse is lifted!')
+    })
+
+    test('enchanting cursed armor removes curse and adds +1 bonus', () => {
+      const cursedArmor: Armor = {
+        id: 'armor-1',
+        type: ItemType.ARMOR,
+        name: 'Cursed Chain Mail -1',
+        ac: 5,
+        bonus: -1,
+        cursed: true,
+        isIdentified: true,
+      }
+
+      testPlayer.inventory = [cursedArmor]
+
+      const enchantScroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Enchant Armor',
+        scrollType: ScrollType.ENCHANT_ARMOR,
+        effect: 'Enchants armor',
+        labelName: 'scroll labeled NR 9',
+        isIdentified: false,
+      }
+
+      const result = scrollService.applyScroll(
+        testPlayer,
+        enchantScroll,
+        testState,
+        'armor-1'
+      )
+
+      const enchantedArmor = result.player.inventory.find(i => i.type === ItemType.ARMOR) as Armor
+      expect(enchantedArmor.bonus).toBe(0) // -1 + 1 = 0
+      expect(enchantedArmor.cursed).toBe(false) // Curse removed
+      expect(result.message).toContain('The curse is lifted!')
+    })
+
+    test('enchanting non-cursed weapon shows normal message', () => {
+      const normalSword: Weapon = {
+        id: 'weapon-1',
+        type: ItemType.WEAPON,
+        name: 'Short Sword',
+        damage: '1d8',
+        bonus: 0,
+        cursed: false,
+        isIdentified: true,
+      }
+
+      testPlayer.inventory = [normalSword]
+
+      const enchantScroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Enchant Weapon',
+        scrollType: ScrollType.ENCHANT_WEAPON,
+        effect: 'Enchants weapon',
+        labelName: 'scroll labeled ELBERETH',
+        isIdentified: false,
+      }
+
+      const result = scrollService.applyScroll(
+        testPlayer,
+        enchantScroll,
+        testState,
+        'weapon-1'
+      )
+
+      expect(result.message).not.toContain('curse')
+      expect(result.message).toContain('(+1)') // Shows bonus instead
+    })
+
+    test('enchanting equipped cursed weapon removes curse', () => {
+      const cursedSword: Weapon = {
+        id: 'weapon-1',
+        type: ItemType.WEAPON,
+        name: 'Cursed Long Sword -1',
+        damage: '1d12',
+        bonus: -1,
+        cursed: true,
+        isIdentified: true,
+      }
+
+      testPlayer.inventory = [cursedSword]
+      testPlayer.equipment.weapon = cursedSword
+
+      const enchantScroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Enchant Weapon',
+        scrollType: ScrollType.ENCHANT_WEAPON,
+        effect: 'Enchants weapon',
+        labelName: 'scroll labeled ELBERETH',
+        isIdentified: false,
+      }
+
+      const result = scrollService.applyScroll(
+        testPlayer,
+        enchantScroll,
+        testState,
+        'weapon-1'
+      )
+
+      // Check both inventory and equipment updated
+      const enchantedWeapon = result.player.inventory.find(i => i.type === ItemType.WEAPON) as Weapon
+      expect(enchantedWeapon.cursed).toBe(false)
+      expect(result.player.equipment.weapon?.cursed).toBe(false)
+      expect(result.message).toContain('The curse is lifted!')
+    })
+
+    test('enchanting equipped cursed armor removes curse', () => {
+      const cursedArmor: Armor = {
+        id: 'armor-1',
+        type: ItemType.ARMOR,
+        name: 'Cursed Plate Mail -2',
+        ac: 3,
+        bonus: -2,
+        cursed: true,
+        isIdentified: true,
+      }
+
+      testPlayer.inventory = [cursedArmor]
+      testPlayer.equipment.armor = cursedArmor
+
+      const enchantScroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Enchant Armor',
+        scrollType: ScrollType.ENCHANT_ARMOR,
+        effect: 'Enchants armor',
+        labelName: 'scroll labeled NR 9',
+        isIdentified: false,
+      }
+
+      const result = scrollService.applyScroll(
+        testPlayer,
+        enchantScroll,
+        testState,
+        'armor-1'
+      )
+
+      // Check both inventory and equipment updated
+      const enchantedArmor = result.player.inventory.find(i => i.type === ItemType.ARMOR) as Armor
+      expect(enchantedArmor.cursed).toBe(false)
+      expect(result.player.equipment.armor?.cursed).toBe(false)
+      expect(result.message).toContain('The curse is lifted!')
+    })
+  })
 })

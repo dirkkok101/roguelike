@@ -4,10 +4,22 @@ import { WandService } from '@services/WandService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
+import { CombatService } from '@services/CombatService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Player, ItemType, Wand, WandType } from '@game/core/core'
+import {
+  GameState,
+  Player,
+  ItemType,
+  Wand,
+  WandType,
+  Monster,
+  MonsterBehavior,
+  MonsterState,
+  Level,
+  TileType,
+} from '@game/core/core'
 
 describe('ZapWandCommand', () => {
   let inventoryService: InventoryService
@@ -16,15 +28,18 @@ describe('ZapWandCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
+  let combatService: CombatService
+  let levelService: LevelService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
-    wandService = new WandService(identificationService)
+    combatService = new CombatService(mockRandom)
+    levelService = new LevelService()
+    wandService = new WandService(identificationService, mockRandom, combatService, levelService)
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
-    const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
   })
 
@@ -72,9 +87,64 @@ describe('ZapWandCommand', () => {
   }
 
   function createTestState(player: Player): GameState {
+    const testMonster: Monster = {
+      id: 'monster-1',
+      letter: 'B',
+      name: 'Bat',
+      position: { x: 6, y: 5 },
+      hp: 10,
+      maxHp: 10,
+      ac: 7,
+      damage: '1d2',
+      xpValue: 5,
+      aiProfile: {
+        behavior: MonsterBehavior.SIMPLE,
+        intelligence: 2,
+        aggroRange: 5,
+        fleeThreshold: 0,
+        special: [],
+      },
+      isAsleep: false,
+      isAwake: true,
+      state: MonsterState.WANDERING,
+      visibleCells: new Set(),
+      currentPath: null,
+      hasStolen: false,
+      level: 1,
+      energy: 0,
+      speed: 10,
+      isInvisible: false,
+      statusEffects: [],
+    }
+
+    const testLevel: Level = {
+      depth: 1,
+      width: 80,
+      height: 22,
+      tiles: Array(22).fill(null).map(() =>
+        Array(80).fill(null).map(() => ({
+          type: TileType.FLOOR,
+          walkable: true,
+          transparent: true,
+          explored: false,
+        }))
+      ),
+      monsters: [testMonster],
+      items: [],
+      rooms: [],
+      corridors: [],
+      doors: [],
+      traps: [],
+      upStairs: { x: 40, y: 11 },
+      downStairs: { x: 41, y: 11 },
+    }
+
+    const levels = new Map<number, Level>()
+    levels.set(1, testLevel)
+
     return {
       player,
-      levels: new Map(),
+      levels,
       currentLevel: 1,
       messages: [],
       turnCount: 0,
@@ -102,7 +172,8 @@ describe('ZapWandCommand', () => {
       inventoryService,
       wandService,
       messageService,
-      turnService
+      turnService,
+      'monster-1' // Target monster
     )
     const result = command.execute(state)
 
@@ -188,7 +259,8 @@ describe('ZapWandCommand', () => {
       inventoryService,
       wandService,
       messageService,
-      turnService
+      turnService,
+      'monster-1'
     )
     const result = command.execute(state)
 

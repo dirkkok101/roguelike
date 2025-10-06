@@ -35,6 +35,7 @@ import { IRandomService } from '@services/RandomService'
 import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { CombatService } from '@services/CombatService'
 import { InventoryService } from '@services/InventoryService'
+import { CurseService } from '@services/CurseService'
 import { IdentificationService } from '@services/IdentificationService'
 import { HungerService } from '@services/HungerService'
 import { RegenerationService } from '@services/RegenerationService'
@@ -89,6 +90,7 @@ export class InputHandler {
     private turnService: TurnService,
     private levelService: LevelService,
     private statusEffectService: StatusEffectService,
+    private curseService: CurseService,
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal
     private onReturnToMenu: () => void
@@ -456,7 +458,8 @@ export class InputHandler {
               this.inventoryService,
               this.messageService,
               this.turnService,
-              this.identificationService
+              this.identificationService,
+              this.curseService
             )
           }
         })
@@ -473,7 +476,8 @@ export class InputHandler {
               this.inventoryService,
               this.messageService,
               this.turnService,
-              this.identificationService
+              this.identificationService,
+              this.curseService
             )
           }
         })
@@ -492,7 +496,8 @@ export class InputHandler {
               this.inventoryService,
               this.messageService,
               this.turnService,
-              this.identificationService
+              this.identificationService,
+              this.curseService
             )
           }
         })

@@ -1,5 +1,6 @@
 import { GameState, Item, ItemType } from '@game/core/core'
 import { IdentificationService } from '@services/IdentificationService'
+import { CurseService } from '@services/CurseService'
 
 // ============================================================================
 // MODAL CONTROLLER - Item selection and inventory display
@@ -25,7 +26,10 @@ export class ModalController {
   private stateStack: (GameState | null)[] = []
   private filterStack: ItemFilter[] = []
 
-  constructor(private identificationService: IdentificationService) {}
+  constructor(
+    private identificationService: IdentificationService,
+    private curseService: CurseService
+  ) {}
 
   /**
    * Show item selection modal
@@ -271,32 +275,44 @@ export class ModalController {
     // Weapon
     const weapon = state.player.equipment.weapon
     const weaponLine = document.createElement('div')
-    weaponLine.textContent = weapon
-      ? `  Weapon: ${weapon.name} (${weapon.damage}${weapon.bonus !== 0 ? ` ${weapon.bonus > 0 ? '+' : ''}${weapon.bonus}` : ''})`
-      : '  Weapon: (none)'
+    if (weapon) {
+      const cursedLabel = this.curseService.isCursed(weapon) && weapon.identified ? ' (cursed)' : ''
+      weaponLine.textContent = `  Weapon: ${weapon.name} (${weapon.damage}${weapon.bonus !== 0 ? ` ${weapon.bonus > 0 ? '+' : ''}${weapon.bonus}` : ''})${cursedLabel}`
+    } else {
+      weaponLine.textContent = '  Weapon: (none)'
+    }
     eqList.appendChild(weaponLine)
 
     // Armor
     const armor = state.player.equipment.armor
     const armorLine = document.createElement('div')
-    armorLine.textContent = armor
-      ? `  Armor: ${armor.name} [AC ${armor.ac}${armor.bonus !== 0 ? ` ${armor.bonus > 0 ? '+' : ''}${armor.bonus}` : ''}]`
-      : '  Armor: (none)'
+    if (armor) {
+      const cursedLabel = this.curseService.isCursed(armor) && armor.identified ? ' (cursed)' : ''
+      armorLine.textContent = `  Armor: ${armor.name} [AC ${armor.ac}${armor.bonus !== 0 ? ` ${armor.bonus > 0 ? '+' : ''}${armor.bonus}` : ''}]${cursedLabel}`
+    } else {
+      armorLine.textContent = '  Armor: (none)'
+    }
     eqList.appendChild(armorLine)
 
     // Rings
     const leftRing = state.player.equipment.leftRing
     const leftLine = document.createElement('div')
-    leftLine.textContent = leftRing
-      ? `  Left Ring: ${this.identificationService.getDisplayName(leftRing, state)}`
-      : '  Left Ring: (empty)'
+    if (leftRing) {
+      const cursedLabel = this.curseService.isCursed(leftRing) && leftRing.identified ? ' (cursed)' : ''
+      leftLine.textContent = `  Left Ring: ${this.identificationService.getDisplayName(leftRing, state)}${cursedLabel}`
+    } else {
+      leftLine.textContent = '  Left Ring: (empty)'
+    }
     eqList.appendChild(leftLine)
 
     const rightRing = state.player.equipment.rightRing
     const rightLine = document.createElement('div')
-    rightLine.textContent = rightRing
-      ? `  Right Ring: ${this.identificationService.getDisplayName(rightRing, state)}`
-      : '  Right Ring: (empty)'
+    if (rightRing) {
+      const cursedLabel = this.curseService.isCursed(rightRing) && rightRing.identified ? ' (cursed)' : ''
+      rightLine.textContent = `  Right Ring: ${this.identificationService.getDisplayName(rightRing, state)}${cursedLabel}`
+    } else {
+      rightLine.textContent = '  Right Ring: (empty)'
+    }
     eqList.appendChild(rightLine)
 
     // Light source
@@ -335,7 +351,8 @@ export class ModalController {
         const itemEl = document.createElement('div')
         const letter = String.fromCharCode(97 + index) // a-z
         const displayName = this.identificationService.getDisplayName(item, state)
-        itemEl.textContent = `${letter}) ${displayName}`
+        const cursedLabel = this.curseService.isCursed(item) && item.identified ? ' (cursed)' : ''
+        itemEl.textContent = `${letter}) ${displayName}${cursedLabel}`
         invList.appendChild(itemEl)
       })
     }

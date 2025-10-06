@@ -20,7 +20,7 @@ import {
   TileType,
 } from '@game/core/core'
 
-describe('WandService - Charge System', () => {
+describe('WandService - Damage Effects', () => {
   let wandService: WandService
   let mockRandom: MockRandom
   let identificationService: IdentificationService
@@ -43,11 +43,12 @@ describe('WandService - Charge System', () => {
       letter: 'B',
       name: 'Bat',
       position: { x: 6, y: 5 },
-      hp: 10,
-      maxHp: 10,
+      hp: 30,
+      maxHp: 30,
       ac: 7,
       damage: '1d2',
       xpValue: 5,
+      level: 1,
       aiProfile: {
         behavior: MonsterBehavior.SIMPLE,
         intelligence: 2,
@@ -61,7 +62,6 @@ describe('WandService - Charge System', () => {
       visibleCells: new Set(),
       currentPath: null,
       hasStolen: false,
-      level: 1,
       energy: 0,
       speed: 10,
       isInvisible: false,
@@ -118,6 +118,8 @@ describe('WandService - Charge System', () => {
       wands: new Map<WandType, string>([
         [WandType.LIGHTNING, 'oak wand'],
         [WandType.FIRE, 'pine wand'],
+        [WandType.COLD, 'birch wand'],
+        [WandType.MAGIC_MISSILE, 'ash wand'],
       ]),
     }
 
@@ -132,16 +134,16 @@ describe('WandService - Charge System', () => {
     } as GameState
   })
 
-  describe('charge depletion', () => {
-    test('decrements charges by 1 when used', () => {
-      mockRandom.setValues([10]) // Damage roll
+  describe('LIGHTNING wand', () => {
+    test('deals 6d6 damage to monster', () => {
+      mockRandom.setValues([15]) // Damage roll
 
       const lightningWand: Wand = {
         id: 'wand-1',
         type: ItemType.WAND,
         name: 'Wand of Lightning',
         wandType: WandType.LIGHTNING,
-        damage: '3d6',
+        damage: '6d6',
         charges: 10,
         currentCharges: 5,
         woodName: 'oak wand',
@@ -155,70 +157,23 @@ describe('WandService - Charge System', () => {
         'monster-1'
       )
 
-      expect(result.wand.currentCharges).toBe(4) // 5 - 1
-      expect(result.wand.charges).toBe(10) // Max unchanged
-    })
-
-    test('works when wand has 1 charge left', () => {
-      mockRandom.setValues([10]) // Damage roll
-
-      const lightningWand: Wand = {
-        id: 'wand-1',
-        type: ItemType.WAND,
-        name: 'Wand of Lightning',
-        wandType: WandType.LIGHTNING,
-        damage: '3d6',
-        charges: 10,
-        currentCharges: 1, // Last charge
-        woodName: 'oak wand',
-        isIdentified: false,
-      }
-
-      const result = wandService.applyWand(
-        testPlayer,
-        lightningWand,
-        testState,
-        'monster-1'
-      )
-
-      expect(result.wand.currentCharges).toBe(0)
       expect(result.message).toContain('lightning')
+      expect(result.message).toContain('15 damage')
+
+      const updatedLevel = result.state.levels.get(1)!
+      const updatedMonster = updatedLevel.monsters.find(m => m.id === 'monster-1')!
+      expect(updatedMonster.hp).toBe(15) // 30 - 15
     })
 
-    test('refuses to use wand with 0 charges', () => {
-      const depletedWand: Wand = {
-        id: 'wand-1',
-        type: ItemType.WAND,
-        name: 'Wand of Lightning',
-        wandType: WandType.LIGHTNING,
-        damage: '3d6',
-        charges: 10,
-        currentCharges: 0, // Empty
-        woodName: 'oak wand',
-        isIdentified: false,
-      }
-
-      const result = wandService.applyWand(
-        testPlayer,
-        depletedWand,
-        testState,
-        'monster-1'
-      )
-
-      expect(result.wand.currentCharges).toBe(0) // Unchanged
-      expect(result.message).toBe('The wand has no charges.')
-      expect(result.identified).toBe(false) // Not identified by failed use
-    })
-
-    test('player remains unchanged when using wand', () => {
-      mockRandom.setValues([10]) // Damage roll
+    test('kills monster when damage exceeds HP', () => {
+      mockRandom.setValues([35]) // Lethal damage
 
       const lightningWand: Wand = {
         id: 'wand-1',
         type: ItemType.WAND,
         name: 'Wand of Lightning',
         wandType: WandType.LIGHTNING,
-        damage: '3d6',
+        damage: '6d6',
         charges: 10,
         currentCharges: 5,
         woodName: 'oak wand',
@@ -232,20 +187,22 @@ describe('WandService - Charge System', () => {
         'monster-1'
       )
 
-      expect(result.player).toBe(testPlayer) // No modifications
-    })
-  })
+      expect(result.message).toContain('killed')
 
-  describe('identification', () => {
-    test('marks wand as identified when used', () => {
-      mockRandom.setValues([10]) // Damage roll
+      const updatedLevel = result.state.levels.get(1)!
+      const updatedMonster = updatedLevel.monsters.find(m => m.id === 'monster-1')
+      expect(updatedMonster).toBeUndefined() // Monster removed from array
+    })
+
+    test('identifies wand on use', () => {
+      mockRandom.setValues([10])
 
       const lightningWand: Wand = {
         id: 'wand-1',
         type: ItemType.WAND,
         name: 'Wand of Lightning',
         wandType: WandType.LIGHTNING,
-        damage: '3d6',
+        damage: '6d6',
         charges: 10,
         currentCharges: 5,
         woodName: 'oak wand',
@@ -261,36 +218,11 @@ describe('WandService - Charge System', () => {
 
       expect(result.identified).toBe(true)
     })
-
-    test('shows descriptive name for unidentified wand', () => {
-      mockRandom.setValues([10]) // Damage roll
-
-      const lightningWand: Wand = {
-        id: 'wand-1',
-        type: ItemType.WAND,
-        name: 'Wand of Lightning',
-        wandType: WandType.LIGHTNING,
-        damage: '3d6',
-        charges: 10,
-        currentCharges: 5,
-        woodName: 'oak wand',
-        isIdentified: false,
-      }
-
-      const result = wandService.applyWand(
-        testPlayer,
-        lightningWand,
-        testState,
-        'monster-1'
-      )
-
-      expect(result.message).toContain('oak wand')
-    })
   })
 
-  describe('wand effects', () => {
-    test('damage wands apply damage to monsters', () => {
-      mockRandom.setValues([15]) // Damage roll
+  describe('FIRE wand', () => {
+    test('deals 6d6 damage to monster', () => {
+      mockRandom.setValues([20]) // Damage roll
 
       const fireWand: Wand = {
         id: 'wand-2',
@@ -312,7 +244,162 @@ describe('WandService - Charge System', () => {
       )
 
       expect(result.message).toContain('fire')
-      expect(result.state).toBeDefined()
+      expect(result.message).toContain('20 damage')
+
+      const updatedLevel = result.state.levels.get(1)!
+      const updatedMonster = updatedLevel.monsters.find(m => m.id === 'monster-1')!
+      expect(updatedMonster.hp).toBe(10) // 30 - 20
+    })
+  })
+
+  describe('COLD wand', () => {
+    test('deals 6d6 damage to monster', () => {
+      mockRandom.setValues([18]) // Damage roll
+
+      const coldWand: Wand = {
+        id: 'wand-3',
+        type: ItemType.WAND,
+        name: 'Wand of Cold',
+        wandType: WandType.COLD,
+        damage: '6d6',
+        charges: 7,
+        currentCharges: 7,
+        woodName: 'birch wand',
+        isIdentified: false,
+      }
+
+      const result = wandService.applyWand(
+        testPlayer,
+        coldWand,
+        testState,
+        'monster-1'
+      )
+
+      expect(result.message).toContain('cold')
+      expect(result.message).toContain('18 damage')
+
+      const updatedLevel = result.state.levels.get(1)!
+      const updatedMonster = updatedLevel.monsters.find(m => m.id === 'monster-1')!
+      expect(updatedMonster.hp).toBe(12) // 30 - 18
+    })
+  })
+
+  describe('MAGIC_MISSILE wand', () => {
+    test('deals 2d6 damage to monster', () => {
+      mockRandom.setValues([8]) // Damage roll
+
+      const magicMissileWand: Wand = {
+        id: 'wand-4',
+        type: ItemType.WAND,
+        name: 'Wand of Magic Missile',
+        wandType: WandType.MAGIC_MISSILE,
+        damage: '2d6',
+        charges: 10,
+        currentCharges: 10,
+        woodName: 'ash wand',
+        isIdentified: false,
+      }
+
+      const result = wandService.applyWand(
+        testPlayer,
+        magicMissileWand,
+        testState,
+        'monster-1'
+      )
+
+      expect(result.message).toContain('Magic missiles')
+      expect(result.message).toContain('8 damage')
+
+      const updatedLevel = result.state.levels.get(1)!
+      const updatedMonster = updatedLevel.monsters.find(m => m.id === 'monster-1')!
+      expect(updatedMonster.hp).toBe(22) // 30 - 8
+    })
+
+    test('kills monster when damage exceeds HP', () => {
+      mockRandom.setValues([35]) // Lethal damage
+
+      const magicMissileWand: Wand = {
+        id: 'wand-4',
+        type: ItemType.WAND,
+        name: 'Wand of Magic Missile',
+        wandType: WandType.MAGIC_MISSILE,
+        damage: '2d6',
+        charges: 10,
+        currentCharges: 10,
+        woodName: 'ash wand',
+        isIdentified: false,
+      }
+
+      const result = wandService.applyWand(
+        testPlayer,
+        magicMissileWand,
+        testState,
+        'monster-1'
+      )
+
+      expect(result.message).toContain('kill')
+
+      const updatedLevel = result.state.levels.get(1)!
+      const updatedMonster = updatedLevel.monsters.find(m => m.id === 'monster-1')
+      expect(updatedMonster).toBeUndefined() // Monster removed from array
+    })
+  })
+
+  describe('Dead monster cleanup', () => {
+    test('removes monster from level when killed', () => {
+      mockRandom.setValues([50]) // Massive overkill
+
+      const lightningWand: Wand = {
+        id: 'wand-1',
+        type: ItemType.WAND,
+        name: 'Wand of Lightning',
+        wandType: WandType.LIGHTNING,
+        damage: '6d6',
+        charges: 10,
+        currentCharges: 5,
+        woodName: 'oak wand',
+        isIdentified: false,
+      }
+
+      const initialMonsterCount = testLevel.monsters.length
+      expect(initialMonsterCount).toBe(1)
+
+      const result = wandService.applyWand(
+        testPlayer,
+        lightningWand,
+        testState,
+        'monster-1'
+      )
+
+      const updatedLevel = result.state.levels.get(1)!
+      expect(updatedLevel.monsters).toHaveLength(0) // Monster removed
+    })
+
+    test('does not remove monster when damaged but alive', () => {
+      mockRandom.setValues([5]) // Small damage
+
+      const lightningWand: Wand = {
+        id: 'wand-1',
+        type: ItemType.WAND,
+        name: 'Wand of Lightning',
+        wandType: WandType.LIGHTNING,
+        damage: '6d6',
+        charges: 10,
+        currentCharges: 5,
+        woodName: 'oak wand',
+        isIdentified: false,
+      }
+
+      const result = wandService.applyWand(
+        testPlayer,
+        lightningWand,
+        testState,
+        'monster-1'
+      )
+
+      const updatedLevel = result.state.levels.get(1)!
+      expect(updatedLevel.monsters).toHaveLength(1) // Monster still there
+      expect(updatedLevel.monsters[0].hp).toBe(25) // 30 - 5
     })
   })
 })
