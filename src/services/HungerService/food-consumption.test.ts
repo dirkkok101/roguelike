@@ -1,14 +1,17 @@
 import { HungerService, HungerState } from './HungerService'
 import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { Player } from '@game/core/core'
 
 describe('HungerService - Food Consumption', () => {
   let hungerService: HungerService
   let mockRandom: MockRandom
+  let ringService: RingService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    hungerService = new HungerService(mockRandom)
+    ringService = new RingService(mockRandom)
+    hungerService = new HungerService(mockRandom, ringService)
   })
 
   function createTestPlayer(hunger: number = 1300): Player {
