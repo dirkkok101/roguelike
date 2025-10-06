@@ -2,17 +2,20 @@ import { UnequipCommand } from './UnequipCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { GameState, Player, Ring, ItemType, Position, RingType } from '@game/core/core'
 
 describe('UnequipCommand', () => {
   let inventoryService: InventoryService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {

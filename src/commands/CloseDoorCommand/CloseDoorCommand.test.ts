@@ -2,6 +2,7 @@ import { CloseDoorCommand } from './CloseDoorCommand'
 import { MessageService } from '@services/MessageService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import {
   GameState,
   DoorState,
@@ -16,11 +17,13 @@ describe('CloseDoorCommand', () => {
   let messageService: MessageService
   let doorService: DoorService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
     messageService = new MessageService()
     doorService = new DoorService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {

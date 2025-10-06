@@ -3,6 +3,7 @@ import { InventoryService } from '@services/InventoryService'
 import { ScrollService } from '@services/ScrollService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, ItemType, Scroll, ScrollType, Armor, Potion, PotionType } from '@game/core/core'
@@ -12,6 +13,7 @@ describe('ReadScrollCommand', () => {
   let scrollService: ScrollService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -20,7 +22,8 @@ describe('ReadScrollCommand', () => {
     mockRandom = new MockRandom()
     scrollService = new ScrollService(identificationService, inventoryService)
     messageService = new MessageService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(): Player {

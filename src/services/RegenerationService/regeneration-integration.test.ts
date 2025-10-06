@@ -12,6 +12,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { NotificationService } from '@services/NotificationService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import {
   GameState,
   Player,
@@ -41,6 +42,7 @@ describe('RegenerationService - Integration Tests', () => {
   let doorService: DoorService
   let notificationService: NotificationService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
@@ -54,7 +56,8 @@ describe('RegenerationService - Integration Tests', () => {
     levelingService = new LevelingService()
     doorService = new DoorService(mockRandom)
     notificationService = new NotificationService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
 
     moveCommand = new MoveCommand(
       'right',

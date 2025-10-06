@@ -2,6 +2,7 @@ import { SearchCommand } from './SearchCommand'
 import { SearchService } from '@services/SearchService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { DoorService } from '@services/DoorService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, DoorState, Door, Player, Trap, TrapType, Position } from '@game/core/core'
@@ -10,6 +11,7 @@ describe('SearchCommand', () => {
   let searchService: SearchService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -17,7 +19,8 @@ describe('SearchCommand', () => {
     const doorService = new DoorService()
     searchService = new SearchService(mockRandom, doorService)
     messageService = new MessageService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(

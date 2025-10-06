@@ -3,6 +3,7 @@ import { InventoryService } from '@services/InventoryService'
 import { HungerService, HungerState } from '@services/HungerService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import {
   GameState,
@@ -18,6 +19,7 @@ describe('EatCommand', () => {
   let hungerService: HungerService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
   let command: EatCommand
 
@@ -26,7 +28,8 @@ describe('EatCommand', () => {
     mockRandom = new MockRandom()
     hungerService = new HungerService(mockRandom)
     messageService = new MessageService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {

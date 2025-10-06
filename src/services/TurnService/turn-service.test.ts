@@ -1,11 +1,13 @@
 import { TurnService } from './TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { GameState } from '@game/core/core'
 
 describe('TurnService', () => {
   let service: TurnService
 
   beforeEach(() => {
-    service = new TurnService()
+    const statusEffectService = new StatusEffectService()
+    service = new TurnService(statusEffectService)
   })
 
   function createTestState(turnCount: number = 0): GameState {

@@ -3,6 +3,7 @@ import { InventoryService } from '@services/InventoryService'
 import { LightingService } from '@services/LightingService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { GameState, Player, ItemType, OilFlask } from '@game/core/core'
 import { createTestLantern } from '../../test-utils'
 
@@ -11,12 +12,14 @@ describe('RefillLanternCommand', () => {
   let lightingService: LightingService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     lightingService = new LightingService()
     messageService = new MessageService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(lanternFuel: number = 100): Player {

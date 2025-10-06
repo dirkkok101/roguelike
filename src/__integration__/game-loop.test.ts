@@ -8,6 +8,7 @@ import { CombatService } from '@services/CombatService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { MonsterTurnService } from '@services/MonsterTurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { MonsterAIService } from '@services/MonsterAIService'
 import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { PathfindingService } from '@services/PathfindingService'
@@ -15,6 +16,7 @@ import { DoorService } from '@services/DoorService'
 import { NotificationService } from '@services/NotificationService'
 import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { SeededRandom } from '@services/RandomService'
 import { createTestTorch } from '../test-utils'
 
@@ -62,7 +64,8 @@ describe('Integration: Game Loop', () => {
     const door = new DoorService()
     const identificationService = new IdentificationService(random)
     const notification = new NotificationService(identificationService)
-    const turn = new TurnService()
+    const statusEffectService = new StatusEffectService()
+    const turn = new TurnService(statusEffectService)
     const pathfinding = new PathfindingService()
     const ai = new MonsterAIService(pathfinding, random, fov)
     const ability = new SpecialAbilityService(random)

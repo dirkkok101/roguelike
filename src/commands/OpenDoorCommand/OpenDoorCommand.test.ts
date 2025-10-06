@@ -2,17 +2,20 @@ import { OpenDoorCommand } from './OpenDoorCommand'
 import { MessageService } from '@services/MessageService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { GameState, DoorState, Door, Player, Position } from '@game/core/core'
 
 describe('OpenDoorCommand', () => {
   let messageService: MessageService
   let doorService: DoorService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
     messageService = new MessageService()
     doorService = new DoorService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {

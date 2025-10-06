@@ -5,6 +5,7 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import {
   GameState,
@@ -26,6 +27,7 @@ describe('RestCommand', () => {
   let fovService: FOVService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -35,7 +37,8 @@ describe('RestCommand', () => {
     lightingService = new LightingService(mockRandom)
     fovService = new FOVService()
     messageService = new MessageService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
 
     command = new RestCommand(
       regenerationService,

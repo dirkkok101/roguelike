@@ -2,6 +2,7 @@ import { DropCommand } from './DropCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { GameState, Player, Item, ItemType, Weapon, Position } from '@game/core/core'
 
@@ -9,12 +10,14 @@ describe('DropCommand', () => {
   let inventoryService: InventoryService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
   let mockIdentificationService: jest.Mocked<IdentificationService>
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
 
     // Create mock IdentificationService
     mockIdentificationService = {
