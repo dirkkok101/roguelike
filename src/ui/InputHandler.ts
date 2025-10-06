@@ -87,8 +87,9 @@ export class InputHandler {
     private wandService: WandService,
     private turnService: TurnService,
     private levelService: LevelService,
-    private messageHistoryModal?: any, // MessageHistoryModal
-    private helpModal?: any // HelpModal
+    private messageHistoryModal: any, // MessageHistoryModal
+    private helpModal: any, // HelpModal
+    private onReturnToMenu: () => void
   ) {}
 
   /**
@@ -220,7 +221,7 @@ export class InputHandler {
 
       case 'Q':
         event.preventDefault()
-        return new QuitCommand(this.localStorageService)
+        return new QuitCommand(this.localStorageService, this.onReturnToMenu)
 
       case '>':
         event.preventDefault()

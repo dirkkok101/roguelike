@@ -100,36 +100,9 @@ async function initializeGame() {
     loopChance: 0.25,
   }
 
-  // Create UI
-  const renderer = new GameRenderer(renderingService, hungerService, levelingService, debugService, contextService, victoryService, localStorageService)
-  const inputHandler = new InputHandler(
-    movementService,
-    lightingService,
-    fovService,
-    messageService,
-    random,
-    dungeonService,
-    dungeonConfig,
-    combatService,
-    inventoryService,
-    identificationService,
-    hungerService,
-    regenerationService,
-    levelingService,
-    modalController,
-    debugService,
-    notificationService,
-    victoryService,
-    localStorageService,
-    doorService,
-    potionService,
-    scrollService,
-    wandService,
-    turnService,
-    levelService,
-    renderer.getMessageHistoryModal(),
-    renderer.getHelpModal()
-  )
+  // Create UI with return to menu callback (will be set in startGame)
+  let renderer: GameRenderer
+  let inputHandler: InputHandler
 
   // Create initial game state
   function createInitialState(): GameState {
@@ -226,6 +199,48 @@ async function initializeGame() {
   function startGame(initialState: GameState) {
     let gameState = initialState
 
+    // Initialize renderer and inputHandler with returnToMenu callback
+    renderer = new GameRenderer(
+      renderingService,
+      hungerService,
+      levelingService,
+      debugService,
+      contextService,
+      victoryService,
+      localStorageService,
+      returnToMenu
+    )
+
+    inputHandler = new InputHandler(
+      movementService,
+      lightingService,
+      fovService,
+      messageService,
+      random,
+      dungeonService,
+      dungeonConfig,
+      combatService,
+      inventoryService,
+      identificationService,
+      hungerService,
+      regenerationService,
+      levelingService,
+      modalController,
+      debugService,
+      notificationService,
+      victoryService,
+      localStorageService,
+      doorService,
+      potionService,
+      scrollService,
+      wandService,
+      turnService,
+      levelService,
+      renderer.getMessageHistoryModal(),
+      renderer.getHelpModal(),
+      returnToMenu
+    )
+
     // Render initial state
     const app = document.getElementById('app')
     if (app) {
@@ -234,8 +249,8 @@ async function initializeGame() {
       renderer.render(gameState)
     }
 
-    // Input handling
-    document.addEventListener('keydown', (event) => {
+    // Input handling - store handler for cleanup
+    currentKeydownHandler = (event: KeyboardEvent) => {
       const command = inputHandler.handleKeyPress(event, gameState)
       if (command) {
         gameState = command.execute(gameState)
@@ -244,35 +259,64 @@ async function initializeGame() {
       }
       // Always re-render (handles modal closes, inventory updates, etc.)
       renderer.render(gameState)
-    })
+    }
+    document.addEventListener('keydown', currentKeydownHandler)
 
     console.log('Game initialized. Use arrow keys to move.')
   }
 
-  // Check for existing save and show menu
+  // Create main menu instance
   const mainMenu = new MainMenu()
-  const hasSave = localStorageService.hasSave()
 
-  mainMenu.show(
-    hasSave,
-    // New Game callback
-    () => {
-      const newState = createInitialState()
-      startGame(newState)
-    },
-    // Continue callback
-    () => {
-      const savedState = localStorageService.loadGame()
-      if (savedState) {
-        console.log('Continuing saved game:', savedState.gameId)
-        startGame(savedState)
-      } else {
-        console.error('Failed to load save, starting new game')
+  // Track active event listeners for cleanup
+  let currentKeydownHandler: ((e: KeyboardEvent) => void) | null = null
+
+  // Return to main menu (used by quit, death, victory)
+  function returnToMenu() {
+    // Clean up game event listeners
+    if (currentKeydownHandler) {
+      document.removeEventListener('keydown', currentKeydownHandler)
+      currentKeydownHandler = null
+    }
+
+    // Clear game container
+    const app = document.getElementById('app')
+    if (app) {
+      app.innerHTML = ''
+    }
+
+    // Show main menu
+    showMainMenu()
+  }
+
+  // Show main menu with save detection
+  function showMainMenu() {
+    const hasSave = localStorageService.hasSave()
+
+    mainMenu.show(
+      hasSave,
+      // New Game callback
+      () => {
         const newState = createInitialState()
         startGame(newState)
+      },
+      // Continue callback
+      () => {
+        const savedState = localStorageService.loadGame()
+        if (savedState) {
+          console.log('Continuing saved game:', savedState.gameId)
+          startGame(savedState)
+        } else {
+          console.error('Failed to load save, starting new game')
+          const newState = createInitialState()
+          startGame(newState)
+        }
       }
-    }
-  )
+    )
+  }
+
+  // Initialize - show main menu
+  showMainMenu()
 }
 
 // Start the game

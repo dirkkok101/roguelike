@@ -89,7 +89,7 @@ export class VictoryScreen {
 
       <div class="victory-footer" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
         <div style="color: #FFD700; margin-bottom: 10px;">
-          Press [N] for New Game
+          Press [N] to Continue
         </div>
       </div>
     `

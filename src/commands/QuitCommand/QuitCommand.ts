@@ -7,7 +7,10 @@ import { LocalStorageService } from '@services/LocalStorageService'
  * Triggered by Q key
  */
 export class QuitCommand implements ICommand {
-  constructor(private localStorageService: LocalStorageService) {}
+  constructor(
+    private localStorageService: LocalStorageService,
+    private onReturnToMenu: () => void
+  ) {}
 
   execute(state: GameState): GameState {
     // Don't save if game is over (permadeath already deleted save)
@@ -22,8 +25,8 @@ export class QuitCommand implements ICommand {
       console.error('Auto-save failed:', error)
     }
 
-    // Trigger page reload to return to main menu
-    window.location.reload()
+    // Return to main menu
+    this.onReturnToMenu()
 
     return state
   }

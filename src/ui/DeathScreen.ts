@@ -96,7 +96,7 @@ export class DeathScreen {
           Permadeath - Your save has been deleted
         </div>
         <div style="color: #00FF00; margin-bottom: 10px;">
-          Press [N] for New Game
+          Press [N] to Continue
         </div>
       </div>
     `

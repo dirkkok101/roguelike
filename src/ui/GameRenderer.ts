@@ -39,6 +39,7 @@ export class GameRenderer {
     private contextService: ContextService,
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
+    private onReturnToMenu: () => void,
     _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
@@ -81,8 +82,8 @@ export class GameRenderer {
       }
 
       this.deathScreen.show(stats, () => {
-        // New game callback - reload page
-        window.location.reload()
+        // Return to main menu
+        this.onReturnToMenu()
       })
       return // Don't render game when death screen shown
     }
@@ -91,8 +92,8 @@ export class GameRenderer {
     if (state.hasWon && !this.victoryScreen.isVisible()) {
       const stats = this.victoryService.getVictoryStats(state)
       this.victoryScreen.show(stats, () => {
-        // New game callback - reload page
-        window.location.reload()
+        // Return to main menu
+        this.onReturnToMenu()
       })
       return // Don't render game when victory screen shown
     }
