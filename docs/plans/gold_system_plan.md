@@ -105,24 +105,24 @@ Implement a complete gold placement and collection system based on classic rogue
 - `docs/services/GoldService.md`
 
 ##### Subtasks:
-- [ ] Create GoldService interface with methods:
+- [x] Create GoldService interface with methods:
   - `calculateGoldAmount(depth: number): number` - Rogue formula
   - `pickupGold(player: Player, amount: number): Player` - Add gold to player
   - `dropGold(position: Position, amount: number): GoldPile` - Create gold pile
   - `calculateLeprechaunSteal(playerGold: number, depth: number, savedThrow: boolean): number`
   - `calculateLeprechaunDrop(depth: number, savedThrow: boolean): number`
-- [ ] Implement Rogue 1980 gold formula: `rnd(50 + 10 * depth) + 2`
-- [ ] Implement leprechaun steal formula (5x or 1x GOLDCALC)
-- [ ] Write comprehensive unit tests (>90% coverage target):
+- [x] Implement Rogue 1980 gold formula: `rnd(50 + 10 * depth) + 2`
+- [x] Implement leprechaun steal formula (5x or 1x GOLDCALC)
+- [x] Write comprehensive unit tests (>90% coverage target):
   - Gold calculation scales correctly by depth
   - Leprechaun stealing amounts (with/without save)
   - Leprechaun drop amounts (with/without save)
   - Edge cases (depth 0, depth 10, player has 0 gold)
-- [ ] Use MockRandom for deterministic testing
-- [ ] Create barrel export (`index.ts`)
-- [ ] Update path aliases in `vite.config.ts` if needed
-- [ ] Create service documentation: `docs/services/GoldService.md`
-- [ ] Git commit: "feat: implement GoldService with Rogue 1980 formulas (Phase 1.1)"
+- [x] Use MockRandom for deterministic testing
+- [x] Create barrel export (`index.ts`)
+- [x] Update path aliases in `vite.config.ts` if needed
+- [x] Create service documentation: `docs/services/GoldService.md`
+- [x] Git commit: "feat: implement GoldService with Rogue 1980 formulas (Phase 1.1)"
 
 ---
 
