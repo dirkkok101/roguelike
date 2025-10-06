@@ -108,7 +108,7 @@ export class DungeonService {
     const startRoomIndex = 0
     const stairsUpPos = depth > 1 ? this.getRandomRoomCenter(rooms[startRoomIndex]) : null
     const stairsDownIndex = rooms.length > 1 ? rooms.length - 1 : 0
-    const stairsDownPos = this.getRandomRoomCenter(rooms[stairsDownIndex])
+    const stairsDownPos = depth < 10 ? this.getRandomRoomCenter(rooms[stairsDownIndex]) : null
 
     // Spawn monsters (exclude starting room)
     const spawnRooms = rooms.slice(1) // Skip first room
@@ -919,7 +919,7 @@ export class DungeonService {
 
   /**
    * Spawn Amulet of Yendor on Level 10
-   * Places in center of last room
+   * Places on walkable floor tile in last room
    */
   spawnAmulet(level: Level): Level {
     // Only spawn on Level 10
@@ -927,10 +927,28 @@ export class DungeonService {
       return level
     }
 
-    // Find center of last room
+    // Find walkable floor tile in last room
     const lastRoom = level.rooms[level.rooms.length - 1]
-    const centerX = lastRoom.x + Math.floor(lastRoom.width / 2)
-    const centerY = lastRoom.y + Math.floor(lastRoom.height / 2)
+    let position: Position | null = null
+
+    // Try to find a walkable floor tile (avoid room edges)
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const x = this.random.nextInt(lastRoom.x + 1, lastRoom.x + lastRoom.width - 2)
+      const y = this.random.nextInt(lastRoom.y + 1, lastRoom.y + lastRoom.height - 2)
+
+      if (level.tiles[y]?.[x]?.walkable && level.tiles[y][x].type === TileType.FLOOR) {
+        position = { x, y }
+        break
+      }
+    }
+
+    // Fallback: use room center if no position found
+    if (!position) {
+      position = {
+        x: lastRoom.x + Math.floor(lastRoom.width / 2),
+        y: lastRoom.y + Math.floor(lastRoom.height / 2),
+      }
+    }
 
     // Create amulet item
     const amulet: Item = {
@@ -938,7 +956,7 @@ export class DungeonService {
       name: 'Amulet of Yendor',
       type: ItemType.AMULET,
       identified: true, // Always identified
-      position: { x: centerX, y: centerY },
+      position,
     }
 
     return {

@@ -1,6 +1,6 @@
 import { DungeonService } from './DungeonService'
 import { SeededRandom } from '@services/RandomService'
-import { ItemType } from '@game/core/core'
+import { ItemType, TileType } from '@game/core/core'
 
 describe('DungeonService - Amulet Spawning', () => {
   let dungeonService: DungeonService
@@ -39,15 +39,16 @@ describe('DungeonService - Amulet Spawning', () => {
     }
   })
 
-  test('amulet spawns in center of last room', () => {
+  test('amulet spawns in last room', () => {
     const level = dungeonService.generateLevel(10, config)
     const amulet = level.items.find((i) => i.type === ItemType.AMULET)
     const lastRoom = level.rooms[level.rooms.length - 1]
 
-    const expectedX = lastRoom.x + Math.floor(lastRoom.width / 2)
-    const expectedY = lastRoom.y + Math.floor(lastRoom.height / 2)
-
-    expect(amulet?.position).toEqual({ x: expectedX, y: expectedY })
+    // Verify amulet is within last room bounds
+    expect(amulet?.position.x).toBeGreaterThanOrEqual(lastRoom.x)
+    expect(amulet?.position.x).toBeLessThan(lastRoom.x + lastRoom.width)
+    expect(amulet?.position.y).toBeGreaterThanOrEqual(lastRoom.y)
+    expect(amulet?.position.y).toBeLessThan(lastRoom.y + lastRoom.height)
   })
 
   test('amulet is always identified', () => {
@@ -75,5 +76,24 @@ describe('DungeonService - Amulet Spawning', () => {
 
     // Should have exactly one amulet
     expect(amulets).toHaveLength(1)
+  })
+
+  test('amulet spawns on walkable floor tile', () => {
+    const level = dungeonService.generateLevel(10, config)
+    const amulet = level.items.find((i) => i.type === ItemType.AMULET)
+
+    expect(amulet).toBeDefined()
+    if (amulet) {
+      const tile = level.tiles[amulet.position.y][amulet.position.x]
+      expect(tile.type).toBe(TileType.FLOOR)
+      expect(tile.walkable).toBe(true)
+    }
+  })
+
+  test('level 10 has no stairs down', () => {
+    const level = dungeonService.generateLevel(10, config)
+
+    // Level 10 is the deepest level, should not have stairs down
+    expect(level.stairsDown).toBeNull()
   })
 })
