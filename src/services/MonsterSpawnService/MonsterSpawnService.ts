@@ -385,6 +385,7 @@ export class MonsterSpawnService {
       lastKnownPlayerPosition: null,
       turnsWithoutSight: 0,
       isInvisible: false, // Default visible (Phantoms override this)
+      statusEffects: [], // No status effects on spawn
     }
   }
 }

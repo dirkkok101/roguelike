@@ -71,34 +71,16 @@ export class ScrollService {
     const identified = !this.identificationService.isIdentified(scroll, state)
     const displayName = this.identificationService.getDisplayName(scroll, state)
 
-    let updatedPlayer = player
-    let message = ''
-
     // Apply scroll effect based on type
     switch (scroll.scrollType) {
       case ScrollType.IDENTIFY:
-        {
-          const result = this.applyIdentify(player, targetItemId, state, displayName)
-          updatedPlayer = result.player
-          message = result.message
-        }
-        break
+        return this.applyIdentify(player, targetItemId, state, displayName, identified)
 
       case ScrollType.ENCHANT_WEAPON:
-        {
-          const result = this.applyEnchantWeapon(player, targetItemId, displayName)
-          updatedPlayer = result.player
-          message = result.message
-        }
-        break
+        return this.applyEnchantWeapon(player, targetItemId, displayName, identified)
 
       case ScrollType.ENCHANT_ARMOR:
-        {
-          const result = this.applyEnchantArmor(player, targetItemId, displayName)
-          updatedPlayer = result.player
-          message = result.message
-        }
-        break
+        return this.applyEnchantArmor(player, targetItemId, displayName, identified)
 
       case ScrollType.TELEPORTATION:
         return this.applyTeleportation(player, state, displayName, identified)
@@ -125,10 +107,13 @@ export class ScrollService {
         return this.applyScareMonster(player, state, displayName, identified)
 
       default:
-        message = `You read ${displayName}. (Effect not yet implemented)`
+        return {
+          player,
+          message: `You read ${displayName}. (Effect not yet implemented)`,
+          identified,
+          consumed: true
+        }
     }
-
-    return { player: updatedPlayer, message, identified, consumed: true }
   }
 
   // ============================================================================
@@ -139,12 +124,14 @@ export class ScrollService {
     player: Player,
     targetItemId: string | undefined,
     state: GameState,
-    scrollName: string
-  ): { player: Player; message: string } {
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
     if (!targetItemId) {
       return {
         player,
         message: `You read ${scrollName}, but nothing happens.`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -156,6 +143,7 @@ export class ScrollService {
       return {
         player,
         message: `You read ${scrollName}, but the item is gone.`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -167,6 +155,7 @@ export class ScrollService {
       return {
         player,
         message: `You read ${scrollName}, but nothing happens.`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -178,6 +167,7 @@ export class ScrollService {
     return {
       player,
       message: `You read ${scrollName}. This is ${targetName}!`,
+      identified,
       consumed: true
     }
   }
@@ -185,12 +175,14 @@ export class ScrollService {
   private applyEnchantWeapon(
     player: Player,
     targetItemId: string | undefined,
-    scrollName: string
-  ): { player: Player; message: string } {
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
     if (!targetItemId) {
       return {
         player,
         message: `You read ${scrollName}, but nothing happens.`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -202,6 +194,7 @@ export class ScrollService {
       return {
         player,
         message: `You read ${scrollName}, but the item is not a weapon.`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -214,6 +207,7 @@ export class ScrollService {
       return {
         player,
         message: `You read ${scrollName}. ${weapon.name} is already at maximum enchantment!`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -237,6 +231,7 @@ export class ScrollService {
     return {
       player: updatedPlayer,
       message: `You read ${scrollName}. ${enchantedWeapon.name} glows brightly! (+${enchantedWeapon.bonus})`,
+      identified,
       consumed: true
     }
   }
@@ -244,12 +239,14 @@ export class ScrollService {
   private applyEnchantArmor(
     player: Player,
     targetItemId: string | undefined,
-    scrollName: string
-  ): { player: Player; message: string } {
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
     if (!targetItemId) {
       return {
         player,
         message: `You read ${scrollName}, but nothing happens.`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -260,6 +257,7 @@ export class ScrollService {
       return {
         player,
         message: `You read ${scrollName}, but the item is not armor.`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -272,6 +270,7 @@ export class ScrollService {
       return {
         player,
         message: `You read ${scrollName}. ${armor.name} is already at maximum enchantment!`,
+        identified,
         fizzled: true,
         consumed: false
       }
@@ -297,6 +296,7 @@ export class ScrollService {
     return {
       player: updatedPlayer,
       message: `You read ${scrollName}. ${enchantedArmor.name} glows with protection! [AC ${effectiveAC}]`,
+      identified,
       consumed: true
     }
   }
