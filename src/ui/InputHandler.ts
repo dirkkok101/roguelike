@@ -39,6 +39,7 @@ import { CurseService } from '@services/CurseService'
 import { IdentificationService } from '@services/IdentificationService'
 import { HungerService } from '@services/HungerService'
 import { RegenerationService } from '@services/RegenerationService'
+import { RestService } from '@services/RestService'
 import { LevelingService } from '@services/LevelingService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
@@ -422,11 +423,15 @@ export class InputHandler {
       case '.':
         // Rest until HP full or interrupted
         event.preventDefault()
-        return new RestCommand(
+        const restService = new RestService(
           this.regenerationService,
           this.hungerService,
           this.lightingService,
           this.fovService,
+          this.turnService
+        )
+        return new RestCommand(
+          restService,
           this.messageService,
           this.turnService
         )

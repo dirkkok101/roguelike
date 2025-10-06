@@ -1,5 +1,6 @@
 import { RegenerationService } from './RegenerationService'
 import { HungerService } from '@services/HungerService'
+import { RestService } from '@services/RestService'
 import { MoveCommand } from '@commands/MoveCommand'
 import { RestCommand } from '@commands/RestCommand'
 import { MockRandom } from '@services/RandomService'
@@ -76,11 +77,16 @@ describe('RegenerationService - Integration Tests', () => {
       turnService
     )
 
-    restCommand = new RestCommand(
+    const restService = new RestService(
       regenerationService,
       hungerService,
       lightingService,
       fovService,
+      turnService
+    )
+
+    restCommand = new RestCommand(
+      restService,
       messageService,
       turnService
     )

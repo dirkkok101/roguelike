@@ -1,4 +1,5 @@
 import { RestCommand } from './RestCommand'
+import { RestService } from '@services/RestService'
 import { RegenerationService } from '@services/RegenerationService'
 import { HungerService } from '@services/HungerService'
 import { LightingService } from '@services/LightingService'
@@ -22,6 +23,7 @@ import {
 
 describe('RestCommand', () => {
   let command: RestCommand
+  let restService: RestService
   let regenerationService: RegenerationService
   let hungerService: HungerService
   let lightingService: LightingService
@@ -42,11 +44,16 @@ describe('RestCommand', () => {
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
 
-    command = new RestCommand(
+    restService = new RestService(
       regenerationService,
       hungerService,
       lightingService,
       fovService,
+      turnService
+    )
+
+    command = new RestCommand(
+      restService,
       messageService,
       turnService
     )
