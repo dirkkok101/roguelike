@@ -30,6 +30,8 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { DeathService } from '@services/DeathService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -72,6 +74,8 @@ async function initializeGame() {
   const victoryService = new VictoryService()
   const deathService = new DeathService()
   const localStorageService = new LocalStorageService()
+  const leaderboardService = new LeaderboardService()
+  const leaderboardStorageService = new LeaderboardStorageService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
@@ -322,6 +326,8 @@ async function initializeGame() {
       victoryService,
       localStorageService,
       deathService,
+      leaderboardService,
+      leaderboardStorageService,
       returnToMenu,
       startNewGame,
       replaySeed

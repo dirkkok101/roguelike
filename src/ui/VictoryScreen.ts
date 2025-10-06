@@ -1,4 +1,7 @@
 import { VictoryStats } from '@services/VictoryService'
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { GameState } from '@game/core/core'
 
 // ============================================================================
 // VICTORY SCREEN - Display victory modal with final stats
@@ -6,12 +9,38 @@ import { VictoryStats } from '@services/VictoryService'
 
 export class VictoryScreen {
   private container: HTMLDivElement | null = null
+  private leaderboardService: LeaderboardService
+  private leaderboardStorageService: LeaderboardStorageService
+
+  constructor(
+    leaderboardService: LeaderboardService,
+    leaderboardStorageService: LeaderboardStorageService
+  ) {
+    this.leaderboardService = leaderboardService
+    this.leaderboardStorageService = leaderboardStorageService
+  }
 
   /**
    * Display victory screen with final stats
+   * Also creates and stores leaderboard entry
    */
-  show(stats: VictoryStats, onNewGame: () => void): void {
-    this.container = this.createVictoryModal(stats, onNewGame)
+  show(stats: VictoryStats, state: GameState, onNewGame: () => void): void {
+    // Create and store leaderboard entry
+    const leaderboardEntry = this.leaderboardService.createEntry(
+      state,
+      true, // isVictory
+      stats.finalScore
+    )
+    this.leaderboardStorageService.addEntry(leaderboardEntry)
+
+    // Calculate rank
+    const allEntries = this.leaderboardStorageService.getAllEntries()
+    const rankInfo = this.leaderboardService.calculateRank(
+      stats.finalScore,
+      allEntries
+    )
+
+    this.container = this.createVictoryModal(stats, rankInfo, onNewGame)
     document.body.appendChild(this.container)
   }
 
@@ -27,6 +56,7 @@ export class VictoryScreen {
 
   private createVictoryModal(
     stats: VictoryStats,
+    rankInfo: { rank: number; percentile: number },
     onNewGame: () => void
   ): HTMLDivElement {
     const overlay = document.createElement('div')
@@ -67,6 +97,9 @@ export class VictoryScreen {
       color: #FFFFFF;
     `
 
+    // Format rank message
+    const rankMessage = this.formatRankMessage(rankInfo)
+
     modal.innerHTML = `
       <div class="victory-title" style="margin-bottom: 20px;">
         <div style="font-size: 32px; color: #FFD700; font-weight: bold; margin-bottom: 5px; letter-spacing: 3px;">VICTORY IS YOURS!</div>
@@ -77,6 +110,7 @@ export class VictoryScreen {
         <div style="color: #00FF00; font-weight: bold; margin-bottom: 10px;">
           Final Score: ${stats.finalScore.toLocaleString()}
         </div>
+        ${rankMessage}
         <div style="margin: 5px 0;">Character Level: ${stats.finalLevel}</div>
         <div style="margin: 5px 0;">Total Gold: ${stats.totalGold}</div>
         <div style="margin: 5px 0;">Experience: ${stats.totalXP}</div>
@@ -108,5 +142,35 @@ export class VictoryScreen {
 
   isVisible(): boolean {
     return this.container !== null
+  }
+
+  /**
+   * Format rank message for display
+   */
+  private formatRankMessage(rankInfo: { rank: number; percentile: number }): string {
+    const rankBadge = this.getRankBadge(rankInfo.rank)
+    const percentileText = `Top ${Math.round(rankInfo.percentile)}%`
+
+    return `
+      <div style="color: #FFD700; font-weight: bold; margin: 10px 0; padding: 8px; background: rgba(255, 215, 0, 0.1); border-left: 3px solid #FFD700;">
+        ${rankBadge} Rank #${rankInfo.rank} - ${percentileText}
+      </div>
+    `
+  }
+
+  /**
+   * Get badge emoji for top 3 ranks
+   */
+  private getRankBadge(rank: number): string {
+    switch (rank) {
+      case 1:
+        return '🥇'
+      case 2:
+        return '🥈'
+      case 3:
+        return '🥉'
+      default:
+        return '🏆'
+    }
   }
 }

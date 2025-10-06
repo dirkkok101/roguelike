@@ -7,6 +7,8 @@ import { ContextService } from '@services/ContextService'
 import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { DeathService } from '@services/DeathService'
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -41,6 +43,8 @@ export class GameRenderer {
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
     private deathService: DeathService,
+    private leaderboardService: LeaderboardService,
+    private leaderboardStorageService: LeaderboardStorageService,
     private onReturnToMenu: () => void,
     private onStartNewGame: () => void,
     private onReplaySeed: (seed: string) => void,
@@ -61,7 +65,7 @@ export class GameRenderer {
     this.commandBar = new ContextualCommandBar(contextService)
     this.messageHistoryModal = new MessageHistoryModal()
     this.helpModal = new HelpModal(contextService)
-    this.victoryScreen = new VictoryScreen()
+    this.victoryScreen = new VictoryScreen(leaderboardService, leaderboardStorageService)
     this.deathScreen = new DeathScreen()
   }
 
@@ -99,7 +103,7 @@ export class GameRenderer {
     // Check for victory before rendering
     if (state.hasWon && !this.victoryScreen.isVisible()) {
       const stats = this.victoryService.getVictoryStats(state)
-      this.victoryScreen.show(stats, () => {
+      this.victoryScreen.show(stats, state, () => {
         // Return to main menu
         this.onReturnToMenu()
       })
