@@ -403,7 +403,7 @@ docs/
 - [x] Target: 428 lines (over 200, but comprehensive troubleshooting justifies length) ✅
 
 - [x] Git commit: "docs: create troubleshooting.md with common issues (Phase 2.4)" ✅
-  - **Commit**: (pending)
+  - **Commit**: 2e02dd0
 
 ---
 
