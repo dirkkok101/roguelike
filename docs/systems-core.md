@@ -607,7 +607,7 @@ return {
 **See**:
 - `src/services/RegenerationService/RegenerationService.ts` for implementation
 - `src/commands/RestCommand/RestCommand.ts` for rest loop
-- `docs/regeneration_plan.md` for full design specification
+- `docs/plans/regeneration_plan.md` for full design specification
 
 ---
 

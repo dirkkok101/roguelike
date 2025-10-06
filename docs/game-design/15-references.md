@@ -270,7 +270,7 @@ https://strategywiki.org/wiki/Rogue/Monsters
 
 **testing-strategy.md**: Test organization, coverage goals, AAA pattern
 
-**game_design_document_refactor_plan.md**: This documentation refactor plan
+**[game_design_document_refactor_plan.md](../plans/game_design_document_refactor_plan.md)**: Historical documentation refactor plan (archived)
 
 ---
 
