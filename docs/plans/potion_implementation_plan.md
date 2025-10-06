@@ -430,16 +430,23 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 - `src/services/PotionService/PotionService.ts` (modify)
 - `src/types/core/core.ts` (modify - add `isInvisible: boolean` to Monster)
 - `src/ui/GameRenderer.ts` (modify)
+- `src/commands/MoveStairsCommand/MoveStairsCommand.ts` (modify)
+- `src/ui/InputHandler.ts` (modify)
+- `src/main.ts` (modify)
 
 ##### Subtasks:
-- [ ] Add `SEE_INVISIBLE` to StatusEffectType enum
-- [ ] Add `applySeeInvisiblePotion(player: Player): Player` method
-- [ ] Apply SEE_INVISIBLE status with duration = "until level change" (999 turns, cleared on stairs)
-- [ ] Add `isInvisible: boolean` property to Monster interface (default false)
-- [ ] Update Phantom monster definition to have `isInvisible: true`
-- [ ] Update GameRenderer to render invisible monsters if player has SEE_INVISIBLE
-- [ ] Clear SEE_INVISIBLE status on level change (in StairsCommand)
-- [ ] Git commit: "feat: implement SEE_INVISIBLE potion for invisible monsters (Phase 3.1)"
+- [x] Add `SEE_INVISIBLE` to StatusEffectType enum (already exists)
+- [x] Add `applySeeInvisiblePotion(player: Player): Player` method
+- [x] Apply SEE_INVISIBLE status with duration = 999 turns (cleared on stairs)
+- [x] Add `isInvisible: boolean` property to Monster interface (default false)
+- [x] Update DungeonService to initialize isInvisible: false
+- [x] Update GameRenderer to render invisible monsters if player has SEE_INVISIBLE
+- [x] Add StatusEffectService to MoveStairsCommand
+- [x] Clear SEE_INVISIBLE status on level change (in MoveStairsCommand)
+- [x] Wire up StatusEffectService in InputHandler and main.ts
+- [x] Update MoveStairsCommand tests (all 14 passing)
+- [ ] Update Phantom monster definition to have `isInvisible: true` (future)
+- [x] Git commits: "feat: implement SEE_INVISIBLE potion" + "feat: wire up StatusEffectService" (Phase 3.1)
 
 ---
 
