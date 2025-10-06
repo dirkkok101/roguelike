@@ -168,8 +168,26 @@ export class TargetingService {
    * Supports vi-keys (h, j, k, l, y, u, b, n) and arrow keys
    */
   getDirectionVector(direction: Direction): { dx: number; dy: number } | null {
-    // TODO: Implement in Phase 1.3
-    throw new Error('Not implemented')
+    switch (direction) {
+      case 'up':
+        return { dx: 0, dy: -1 }
+      case 'down':
+        return { dx: 0, dy: 1 }
+      case 'left':
+        return { dx: -1, dy: 0 }
+      case 'right':
+        return { dx: 1, dy: 0 }
+      case 'up-left':
+        return { dx: -1, dy: -1 }
+      case 'up-right':
+        return { dx: 1, dy: -1 }
+      case 'down-left':
+        return { dx: -1, dy: 1 }
+      case 'down-right':
+        return { dx: 1, dy: 1 }
+      default:
+        return null
+    }
   }
 
   /**
@@ -178,8 +196,39 @@ export class TargetingService {
    * @returns Array of positions along the ray path
    */
   castRay(origin: Position, direction: Direction, maxRange: number, level: Level): Position[] {
-    // TODO: Implement in Phase 1.3
-    throw new Error('Not implemented')
+    const vector = this.getDirectionVector(direction)
+    if (!vector) return []
+
+    const path: Position[] = []
+    let { x, y } = origin
+    const { dx, dy } = vector
+
+    // Calculate the number of steps (use the larger of dx/dy)
+    // For diagonal movement, this ensures we move at 45 degrees
+    const steps = maxRange
+
+    for (let i = 0; i < steps; i++) {
+      // Move in the direction
+      x += dx
+      y += dy
+
+      const pos = { x, y }
+
+      // Check bounds
+      if (!this.movementService.isInBounds(pos, level)) {
+        break
+      }
+
+      // Add position to path
+      path.push(pos)
+
+      // Stop at walls (non-walkable tiles)
+      if (!this.movementService.isWalkable(pos, level)) {
+        break
+      }
+    }
+
+    return path
   }
 
   /**
@@ -187,8 +236,13 @@ export class TargetingService {
    * Used for directional targeting (fire, lightning, cold wands)
    */
   findFirstMonsterInRay(rayPath: Position[], level: Level): Monster | null {
-    // TODO: Implement in Phase 1.3
-    throw new Error('Not implemented')
+    for (const pos of rayPath) {
+      const monster = this.movementService.getMonsterAt(pos, level)
+      if (monster) {
+        return monster
+      }
+    }
+    return null
   }
 
   // ============================================================================
