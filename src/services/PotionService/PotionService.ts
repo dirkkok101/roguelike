@@ -47,6 +47,9 @@ export class PotionService {
           const result = this.applyHealPotion(player, potion)
           updatedPlayer = result.player
           message = `You feel better. (+${result.healAmount} HP)`
+          if (result.maxHpIncrease) {
+            message += ' You feel permanently stronger! (Max HP +1)'
+          }
         }
         break
 
@@ -55,6 +58,9 @@ export class PotionService {
           const result = this.applyExtraHealPotion(player, potion)
           updatedPlayer = result.player
           message = `You feel much better! (+${result.healAmount} HP)`
+          if (result.maxHpIncrease) {
+            message += ' You feel permanently stronger! (Max HP +1)'
+          }
         }
         break
 
@@ -95,28 +101,52 @@ export class PotionService {
   private applyHealPotion(
     player: Player,
     potion: Potion
-  ): { player: Player; healAmount: number } {
+  ): { player: Player; healAmount: number; maxHpIncrease: boolean } {
     const healAmount = this.random.roll(potion.power)
-    const newHp = Math.min(player.hp + healAmount, player.maxHp)
+
+    // Check for overheal (healing at full HP grants +1 max HP)
+    const wasAtFullHp = player.hp >= player.maxHp
+    const overheal = healAmount - (player.maxHp - player.hp)
+    const shouldIncreaseMaxHp = wasAtFullHp && overheal > 0
+
+    let newMaxHp = player.maxHp
+    if (shouldIncreaseMaxHp) {
+      newMaxHp = player.maxHp + 1
+    }
+
+    const newHp = Math.min(player.hp + healAmount, newMaxHp)
     const actualHeal = newHp - player.hp
 
     return {
-      player: { ...player, hp: newHp },
+      player: { ...player, hp: newHp, maxHp: newMaxHp },
       healAmount: actualHeal,
+      maxHpIncrease: shouldIncreaseMaxHp,
     }
   }
 
   private applyExtraHealPotion(
     player: Player,
     potion: Potion
-  ): { player: Player; healAmount: number } {
+  ): { player: Player; healAmount: number; maxHpIncrease: boolean } {
     const healAmount = this.random.roll(potion.power)
-    const newHp = Math.min(player.hp + healAmount, player.maxHp)
+
+    // Check for overheal (healing at full HP grants +1 max HP)
+    const wasAtFullHp = player.hp >= player.maxHp
+    const overheal = healAmount - (player.maxHp - player.hp)
+    const shouldIncreaseMaxHp = wasAtFullHp && overheal > 0
+
+    let newMaxHp = player.maxHp
+    if (shouldIncreaseMaxHp) {
+      newMaxHp = player.maxHp + 1
+    }
+
+    const newHp = Math.min(player.hp + healAmount, newMaxHp)
     const actualHeal = newHp - player.hp
 
     return {
-      player: { ...player, hp: newHp },
+      player: { ...player, hp: newHp, maxHp: newMaxHp },
       healAmount: actualHeal,
+      maxHpIncrease: shouldIncreaseMaxHp,
     }
   }
 

@@ -165,4 +165,168 @@ describe('PotionService - Heal Potions', () => {
       expect(result.message).toBe('You feel much better! (+50 HP)')
     })
   })
+
+  describe('Overheal - Max HP Increase', () => {
+    test('HEAL potion: no max HP increase when not at full HP', () => {
+      mockRandom = new MockRandom([10]) // Roll 10 HP
+      potionService = new PotionService(mockRandom, identificationService)
+
+      const healPotion: Potion = {
+        id: 'potion-1',
+        type: ItemType.POTION,
+        name: 'Potion of Healing',
+        potionType: PotionType.HEAL,
+        effect: 'Heals 1d8 HP',
+        power: '1d8',
+        descriptorName: 'blue potion',
+        isIdentified: false,
+      }
+
+      // Player at 50/100 HP
+      const result = potionService.applyPotion(testPlayer, healPotion, testState)
+
+      expect(result.player.hp).toBe(60) // 50 + 10
+      expect(result.player.maxHp).toBe(100) // No change
+      expect(result.message).toBe('You feel better. (+10 HP)')
+      expect(result.message).not.toContain('permanently stronger')
+    })
+
+    test('HEAL potion: +1 max HP when healing at full HP', () => {
+      mockRandom = new MockRandom([5]) // Roll 5 HP (overheal)
+      potionService = new PotionService(mockRandom, identificationService)
+
+      const playerAtFullHp = {
+        ...testPlayer,
+        hp: 100,
+        maxHp: 100,
+      }
+
+      const healPotion: Potion = {
+        id: 'potion-1',
+        type: ItemType.POTION,
+        name: 'Potion of Healing',
+        potionType: PotionType.HEAL,
+        effect: 'Heals 1d8 HP',
+        power: '1d8',
+        descriptorName: 'blue potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(playerAtFullHp, healPotion, testState)
+
+      expect(result.player.hp).toBe(101) // Healed to new max
+      expect(result.player.maxHp).toBe(101) // Increased by 1
+      expect(result.message).toContain('You feel better. (+1 HP)')
+      expect(result.message).toContain('You feel permanently stronger! (Max HP +1)')
+    })
+
+    test('HEAL potion: heals correctly to new maximum', () => {
+      mockRandom = new MockRandom([8]) // Roll 8 HP (overheal)
+      potionService = new PotionService(mockRandom, identificationService)
+
+      const playerAtFullHp = {
+        ...testPlayer,
+        hp: 100,
+        maxHp: 100,
+      }
+
+      const healPotion: Potion = {
+        id: 'potion-1',
+        type: ItemType.POTION,
+        name: 'Potion of Healing',
+        potionType: PotionType.HEAL,
+        effect: 'Heals 1d8 HP',
+        power: '1d8',
+        descriptorName: 'blue potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(playerAtFullHp, healPotion, testState)
+
+      expect(result.player.hp).toBe(101) // Capped at new max (100 + 1)
+      expect(result.player.maxHp).toBe(101) // Increased by 1
+      expect(result.message).toContain('permanently stronger')
+    })
+
+    test('EXTRA_HEAL potion: +1 max HP when healing at full HP', () => {
+      mockRandom = new MockRandom([12]) // Roll 12 HP (overheal)
+      potionService = new PotionService(mockRandom, identificationService)
+
+      const playerAtFullHp = {
+        ...testPlayer,
+        hp: 100,
+        maxHp: 100,
+      }
+
+      const extraHealPotion: Potion = {
+        id: 'potion-2',
+        type: ItemType.POTION,
+        name: 'Potion of Extra Healing',
+        potionType: PotionType.EXTRA_HEAL,
+        effect: 'Heals 2d8 HP',
+        power: '2d8',
+        descriptorName: 'red potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(playerAtFullHp, extraHealPotion, testState)
+
+      expect(result.player.hp).toBe(101) // Healed to new max
+      expect(result.player.maxHp).toBe(101) // Increased by 1
+      expect(result.message).toContain('You feel much better! (+1 HP)')
+      expect(result.message).toContain('You feel permanently stronger! (Max HP +1)')
+    })
+
+    test('EXTRA_HEAL potion: no max HP increase when not at full HP', () => {
+      mockRandom = new MockRandom([15])
+      potionService = new PotionService(mockRandom, identificationService)
+
+      const extraHealPotion: Potion = {
+        id: 'potion-2',
+        type: ItemType.POTION,
+        name: 'Potion of Extra Healing',
+        potionType: PotionType.EXTRA_HEAL,
+        effect: 'Heals 2d8 HP',
+        power: '2d8',
+        descriptorName: 'red potion',
+        isIdentified: false,
+      }
+
+      // Player at 50/100 HP
+      const result = potionService.applyPotion(testPlayer, extraHealPotion, testState)
+
+      expect(result.player.hp).toBe(65) // 50 + 15
+      expect(result.player.maxHp).toBe(100) // No change
+      expect(result.message).toBe('You feel much better! (+15 HP)')
+      expect(result.message).not.toContain('permanently stronger')
+    })
+
+    test('overheal only triggers when already at full HP', () => {
+      mockRandom = new MockRandom([100]) // Massive overheal
+      potionService = new PotionService(mockRandom, identificationService)
+
+      const playerAlmostFull = {
+        ...testPlayer,
+        hp: 99, // 1 HP below max
+        maxHp: 100,
+      }
+
+      const healPotion: Potion = {
+        id: 'potion-1',
+        type: ItemType.POTION,
+        name: 'Potion of Healing',
+        potionType: PotionType.HEAL,
+        effect: 'Heals 1d8 HP',
+        power: '1d8',
+        descriptorName: 'blue potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(playerAlmostFull, healPotion, testState)
+
+      expect(result.player.hp).toBe(100) // Healed to max
+      expect(result.player.maxHp).toBe(100) // NO increase (wasn't at full HP)
+      expect(result.message).not.toContain('permanently stronger')
+    })
+  })
 })
