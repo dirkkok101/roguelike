@@ -13,6 +13,7 @@ import { InventoryService } from '@services/InventoryService'
 import { LevelService } from '@services/LevelService'
 import { FOVService } from '@services/FOVService'
 import { IRandomService } from '@services/RandomService'
+import { DungeonService } from '@services/DungeonService'
 
 // ============================================================================
 // RESULT TYPE
@@ -47,7 +48,8 @@ export class ScrollService {
     private inventoryService: InventoryService,
     private levelService: LevelService,
     private fovService: FOVService,
-    private randomService: IRandomService
+    private randomService: IRandomService,
+    private dungeonService: DungeonService
   ) {}
 
   /**
@@ -95,6 +97,9 @@ export class ScrollService {
 
       case ScrollType.TELEPORTATION:
         return this.applyTeleportation(player, state, displayName, identified)
+
+      case ScrollType.CREATE_MONSTER:
+        return this.applyCreateMonster(player, state, displayName, identified)
 
       default:
         message = `You read ${displayName}. (Effect not yet implemented)`
@@ -361,5 +366,68 @@ export class ScrollService {
     }
 
     return 0
+  }
+
+  // ============================================================================
+  // CREATE_MONSTER SCROLL
+  // ============================================================================
+
+  private applyCreateMonster(
+    player: Player,
+    state: GameState,
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
+    // 1. Get current level
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 2. Get empty adjacent tiles
+    const adjacentTiles = this.levelService.getEmptyAdjacentTiles(player.position, level)
+
+    if (adjacentTiles.length === 0) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 3. Random select spawn position
+    const spawnPos = this.randomService.pickRandom(adjacentTiles)
+
+    // 4. Spawn monster appropriate for level depth
+    const newMonster = this.dungeonService.spawnSingleMonster(spawnPos, level.depth)
+
+    // 5. Add monster to level
+    const updatedLevel: Level = {
+      ...level,
+      monsters: [...level.monsters, newMonster],
+    }
+
+    // 6. Update level in levels map
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    // 7. Create updated state
+    const updatedState: GameState = {
+      ...state,
+      levels: updatedLevels,
+    }
+
+    return {
+      state: updatedState,
+      message: `You read ${scrollName}. You hear a faint cry of anguish!`,
+      identified,
+      consumed: true,
+    }
   }
 }
