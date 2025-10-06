@@ -9,6 +9,9 @@ import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { HungerService } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
+import { RegenerationService } from '@services/RegenerationService'
+import { StatusEffectService } from '@services/StatusEffectService'
+import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Level, TileType, DoorState, Door } from '@game/core/core'
 import { createTestTorch } from '../../test-utils'
@@ -24,20 +27,27 @@ describe('MoveCommand - Door Interaction', () => {
   let turnService: TurnService
   let hungerService: HungerService
   let notificationService: NotificationService
+  let regenerationService: RegenerationService
+  let statusEffectService: StatusEffectService
+  let identificationService: IdentificationService
   let mockRandom: MockRandom
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    movementService = new MovementService()
-    lightingService = new LightingService(mockRandom)
-    fovService = new FOVService()
-    messageService = new MessageService()
-    combatService = new CombatService(mockRandom)
-    levelingService = new LevelingService()
-    doorService = new DoorService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    identificationService = new IdentificationService()
     hungerService = new HungerService(mockRandom)
-    notificationService = new NotificationService()
+    movementService = new MovementService(mockRandom, statusEffectService)
+    lightingService = new LightingService(mockRandom)
+    fovService = new FOVService(statusEffectService)
+    messageService = new MessageService()
+    combatService = new CombatService(mockRandom, hungerService)
+    levelingService = new LevelingService(mockRandom)
+    doorService = new DoorService()
+    turnService = new TurnService(statusEffectService)
+    // hungerService created earlier
+    notificationService = new NotificationService(identificationService)
+    regenerationService = new RegenerationService()
   })
 
   function createTestState(): GameState {
@@ -91,6 +101,8 @@ describe('MoveCommand - Door Interaction', () => {
           lightSource: createTestTorch(),
         },
         inventory: [],
+        statusEffects: [],
+        energy: 100,
       },
       currentLevel: 1,
       levels: new Map([[1, level]]),
@@ -137,6 +149,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -178,6 +191,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -222,6 +236,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -266,6 +281,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -307,6 +323,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -347,6 +364,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -390,6 +408,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -432,6 +451,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -473,6 +493,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -515,6 +536,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -555,6 +577,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -600,6 +623,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -641,6 +665,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -685,6 +710,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -726,6 +752,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -772,6 +799,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -833,6 +861,7 @@ describe('MoveCommand - Door Interaction', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )

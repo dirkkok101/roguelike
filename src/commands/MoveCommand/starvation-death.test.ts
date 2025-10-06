@@ -5,6 +5,9 @@ import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { HungerService } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
+import { RegenerationService } from '@services/RegenerationService'
+import { StatusEffectService } from '@services/StatusEffectService'
+import { IdentificationService } from '@services/IdentificationService'
 import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
@@ -19,6 +22,9 @@ describe('MoveCommand - Starvation Death', () => {
   let messageService: MessageService
   let hungerService: HungerService
   let notificationService: NotificationService
+  let regenerationService: RegenerationService
+  let statusEffectService: StatusEffectService
+  let identificationService: IdentificationService
   let combatService: CombatService
   let levelingService: LevelingService
   let doorService: DoorService
@@ -26,17 +32,21 @@ describe('MoveCommand - Starvation Death', () => {
   let mockRandom: MockRandom
 
   beforeEach(() => {
-    movementService = new MovementService()
     mockRandom = new MockRandom()
-    lightingService = new LightingService(mockRandom)
-    fovService = new FOVService()
-    messageService = new MessageService()
+    statusEffectService = new StatusEffectService()
+    identificationService = new IdentificationService()
     hungerService = new HungerService(mockRandom)
-    notificationService = new NotificationService()
-    combatService = new CombatService(mockRandom)
-    levelingService = new LevelingService()
+    movementService = new MovementService(mockRandom, statusEffectService)
+    lightingService = new LightingService(mockRandom)
+    fovService = new FOVService(statusEffectService)
+    messageService = new MessageService()
+    // hungerService created earlier
+    notificationService = new NotificationService(identificationService)
+    regenerationService = new RegenerationService()
+    combatService = new CombatService(mockRandom, hungerService)
+    levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
-    turnService = new TurnService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(overrides: Partial<Player> = {}): Player {
@@ -59,6 +69,8 @@ describe('MoveCommand - Starvation Death', () => {
         lightSource: null,
       },
       inventory: [],
+        statusEffects: [],
+        energy: 100,
       ...overrides,
     }
   }
@@ -129,6 +141,7 @@ describe('MoveCommand - Starvation Death', () => {
       levelingService,
       doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -153,6 +166,7 @@ describe('MoveCommand - Starvation Death', () => {
       levelingService,
       doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -179,6 +193,7 @@ describe('MoveCommand - Starvation Death', () => {
       levelingService,
       doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -205,6 +220,7 @@ describe('MoveCommand - Starvation Death', () => {
       levelingService,
       doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -231,6 +247,7 @@ describe('MoveCommand - Starvation Death', () => {
       levelingService,
       doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )

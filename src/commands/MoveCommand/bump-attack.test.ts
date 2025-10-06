@@ -8,6 +8,9 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { HungerService } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
+import { RegenerationService } from '@services/RegenerationService'
+import { StatusEffectService } from '@services/StatusEffectService'
+import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
 import { MockRandom } from '@services/RandomService'
 import {
@@ -30,21 +33,28 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
   let doorService: DoorService
   let hungerService: HungerService
   let notificationService: NotificationService
+  let regenerationService: RegenerationService
+  let statusEffectService: StatusEffectService
+  let identificationService: IdentificationService
   let turnService: TurnService
   let mockRandom: MockRandom
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    movementService = new MovementService()
+    statusEffectService = new StatusEffectService()
+    identificationService = new IdentificationService()
+    hungerService = new HungerService(mockRandom)
+    movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
-    fovService = new FOVService()
+    fovService = new FOVService(statusEffectService)
     messageService = new MessageService()
-    combatService = new CombatService(mockRandom)
+    combatService = new CombatService(mockRandom, hungerService)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
-    hungerService = new HungerService(mockRandom)
-    notificationService = new NotificationService()
-    turnService = new TurnService()
+    // hungerService created earlier
+    notificationService = new NotificationService(identificationService)
+    regenerationService = new RegenerationService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestState(): GameState {
@@ -98,6 +108,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
           lightSource: createTestTorch(),
         },
         inventory: [],
+        statusEffects: [],
+        energy: 100,
       },
       currentLevel: 1,
       levels: new Map([[1, level]]),
@@ -160,6 +172,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -190,6 +203,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -219,6 +233,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -247,6 +262,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -276,6 +292,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -303,6 +320,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -332,6 +350,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
@@ -361,6 +380,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         levelingService,
         doorService,
         hungerService,
+        regenerationService,
         notificationService,
         turnService
       )
