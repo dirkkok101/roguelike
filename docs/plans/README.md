@@ -16,7 +16,7 @@ This folder contains both **active plans** (in progress) and **archived plans** 
 
 | Plan | Status | Started | Description |
 |------|--------|---------|-------------|
-| _No active plans_ | - | - | - |
+| **[Monster Spawn Refactor](./monster_spawn_refactor_plan.md)** | 🚧 In Progress | 2025-10-06 | Extract MonsterSpawnService, fix speed variety, implement weighted spawning (8 phases) |
 
 ---
 
