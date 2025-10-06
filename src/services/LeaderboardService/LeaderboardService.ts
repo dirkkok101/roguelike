@@ -311,26 +311,38 @@ export class LeaderboardService {
   /**
    * Calculate rank for a given score
    * Returns rank (1-based) and percentile (0-100)
+   *
+   * Ranking logic: Find position in descending-sorted leaderboard
+   * - For equal scores, returns the rank of the first (best) occurrence
+   * - For new scores, returns the position where it would be inserted
    */
   calculateRank(score: number, entries: LeaderboardEntry[]): RankInfo {
     if (entries.length === 0) {
       return { rank: 1, percentile: 100 }
     }
 
+    // Sort entries by score descending
     const sortedByScore = [...entries].sort((a, b) => b.score - a.score)
-    const rank = sortedByScore.findIndex((e) => e.score <= score) + 1
 
-    // If score is higher than all entries, rank is 1
-    const actualRank = rank === 0 ? 1 : rank
+    // Find the first entry with score <= given score
+    // This handles both equal scores and position for new scores
+    let rank = sortedByScore.length + 1 // Default: worse than all entries
+
+    for (let i = 0; i < sortedByScore.length; i++) {
+      if (sortedByScore[i].score <= score) {
+        rank = i + 1
+        break
+      }
+    }
 
     // Calculate percentile
     const percentile =
       entries.length > 1
-        ? ((entries.length - actualRank + 1) / entries.length) * 100
+        ? ((entries.length - rank + 1) / entries.length) * 100
         : 100
 
     return {
-      rank: actualRank,
+      rank,
       percentile,
     }
   }

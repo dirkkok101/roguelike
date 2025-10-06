@@ -31,12 +31,12 @@
 - **Files**: `src/services/LeaderboardService/`
 - **Commit**: "feat: implement LeaderboardService core logic"
 
-#### Task 1.3: LeaderboardService Tests ⬜
-- [ ] Create `entry-creation.test.ts`
-- [ ] Create `filtering.test.ts`
-- [ ] Create `aggregate-stats.test.ts`
-- [ ] Create `ranking.test.ts`
-- [ ] Create `personal-bests.test.ts`
+#### Task 1.3: LeaderboardService Tests ✅
+- [x] Create `entry-creation.test.ts`
+- [x] Create `filtering.test.ts`
+- [x] Create `aggregate-stats.test.ts`
+- [x] Create `ranking.test.ts`
+- [x] Create `personal-bests.test.ts`
 - **Files**: `src/services/LeaderboardService/*.test.ts`
 - **Commit**: "test: add LeaderboardService test suite"
 
