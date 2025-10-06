@@ -1,0 +1,1 @@
+export { EntryDetailsModal } from '../EntryDetailsModal'

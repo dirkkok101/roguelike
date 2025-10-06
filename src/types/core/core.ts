@@ -426,3 +426,137 @@ export interface GoldPile {
   position: Position
   amount: number
 }
+
+// ============================================================================
+// LEADERBOARD TYPES
+// ============================================================================
+
+/**
+ * Leaderboard entry for a single game run (victory or death)
+ * Combines data from VictoryStats and ComprehensiveDeathStats
+ */
+export interface LeaderboardEntry {
+  // Meta
+  id: string // Unique entry ID (gameId + timestamp)
+  gameId: string // Game instance ID
+  timestamp: number // Unix timestamp (milliseconds)
+  seed: string // Dungeon seed for verification
+
+  // Outcome
+  isVictory: boolean // True = victory, False = death
+  score: number // Calculated score (VictoryService formula)
+
+  // Death info (null if victory)
+  deathCause: string | null // "Killed by Orc", "Starved to death"
+  epitaph: string | null // Flavor text
+
+  // Character progression
+  finalLevel: number // Player character level
+  totalXP: number // Total experience earned
+  totalGold: number // Total gold collected
+
+  // Exploration
+  deepestLevel: number // Deepest dungeon level reached
+  levelsExplored: number // Number of levels explored
+  totalTurns: number // Total turns taken
+
+  // Combat
+  monstersKilled: number // Total monster kills
+
+  // Items
+  itemsFound: number // Items picked up
+  itemsUsed: number // Consumables used (potions, scrolls, wands)
+
+  // Achievements (top 3 from run)
+  achievements: string[]
+
+  // Equipment (snapshot at death/victory)
+  // Always populated - uses "None" for unequipped slots
+  finalEquipment: {
+    weapon: string // "Long Sword +2" or "None"
+    armor: string // "Chain Mail +1" or "None"
+    lightSource: string // "Phial of Galadriel" or "None"
+    rings: string[] // ["Ring of Regeneration"] or [] for empty
+  }
+
+  // Efficiency metrics (derived)
+  scorePerTurn?: number // score / turns (efficiency rating)
+  killsPerLevel?: number // monstersKilled / deepestLevel
+}
+
+/**
+ * Aggregate statistics across all leaderboard entries
+ * Calculated on-demand from entries
+ */
+export interface AggregateStatistics {
+  // Overview
+  totalGamesPlayed: number
+  totalVictories: number
+  totalDeaths: number
+  winRate: number // victories / gamesPlayed (percentage)
+
+  // High scores
+  highestScore: number
+  highestScoringRun: LeaderboardEntry | null
+
+  // Exploration
+  deepestLevelEverReached: number
+  totalTurnsAcrossAllRuns: number
+  averageTurnsPerRun: number
+
+  // Combat
+  totalMonstersKilled: number
+  mostKillsInSingleRun: number
+
+  // Efficiency
+  fastestVictory: LeaderboardEntry | null // Lowest turn count victory
+  highestScorePerTurn: LeaderboardEntry | null // Most efficient run
+
+  // Progression
+  averageScore: number
+  averageFinalLevel: number
+  totalGoldCollected: number
+
+  // Recent performance (last 10 runs)
+  recentWinRate: number
+  recentAverageScore: number
+
+  // Streaks
+  currentWinStreak: number
+  longestWinStreak: number
+  currentDeathStreak: number
+}
+
+/**
+ * User-configurable filters for leaderboard view
+ */
+export interface LeaderboardFilters {
+  // Filter criteria
+  outcome: 'all' | 'victories' | 'deaths'
+  dateRange: 'all-time' | 'last-7-days' | 'last-30-days' | 'custom'
+  customDateStart?: number // Unix timestamp
+  customDateEnd?: number // Unix timestamp
+  minScore?: number // Score threshold
+  minLevel?: number // Level threshold
+  seed?: string // Filter by specific seed
+
+  // Sorting
+  sortBy: 'score' | 'date' | 'turns' | 'level' | 'gold' | 'kills'
+  sortOrder: 'desc' | 'asc' // Descending (default) or ascending
+
+  // Pagination
+  limit: number // Max entries to display (10, 25, 50, 100)
+  offset: number // Pagination offset
+}
+
+/**
+ * Default filter configuration
+ */
+export const DEFAULT_LEADERBOARD_FILTERS: LeaderboardFilters = {
+  outcome: 'all',
+  dateRange: 'all-time',
+  sortBy: 'score',
+  sortOrder: 'desc',
+  limit: 25,
+  offset: 0,
+}
