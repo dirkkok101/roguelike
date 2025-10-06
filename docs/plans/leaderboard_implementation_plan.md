@@ -159,14 +159,15 @@
 - **Files**: `src/ui/EntryDetailsModal.ts`, `src/ui/EntryDetailsModal.test.ts`, `src/ui/LeaderboardScreen.ts`
 - **Commit**: "feat: implement EntryDetailsModal with full statistics display" ✅
 
-#### Task 4.2: Filter Controls ⬜
-- [ ] Add filter dropdowns
-- [ ] Add sort dropdown
-- [ ] Add limit dropdown
-- [ ] Update LeaderboardScreen
-- [ ] Persist preferences
-- **Files**: `src/ui/LeaderboardScreen.ts`
-- **Commit**: "feat: add filter controls to leaderboard"
+#### Task 4.2: Filter Controls ✅
+- [x] Add date range filter (All Time, Last 7/30/90 Days)
+- [x] Add entries per page selector (25, 50, 100)
+- [x] Update LeaderboardScreen with filter UI
+- [x] Persist preferences to localStorage
+- [x] Load preferences on initialization
+- [x] Add comprehensive tests (6 new tests, all passing)
+- **Files**: `src/ui/LeaderboardScreen.ts`, `src/ui/LeaderboardScreen.test.ts`
+- **Commit**: "feat: add filter controls with date range and pagination settings" ✅
 
 #### Task 4.3: Seed-Based View ⬜
 - [ ] Add "Group by Seed" toggle
@@ -240,12 +241,12 @@
 
 ## Progress Tracking
 
-**Overall Progress**: 14/18 tasks complete (78%)
+**Overall Progress**: 15/18 tasks complete (83%)
 
 **Phase 1 (Core Infrastructure)**: 5/5 tasks ✅ COMPLETE
 **Phase 2 (Integration)**: 4/4 tasks ✅ COMPLETE
 **Phase 3 (UI Simple)**: 4/4 tasks ✅ COMPLETE
-**Phase 4 (UI Advanced)**: 1/3 tasks 🔄 IN PROGRESS
+**Phase 4 (UI Advanced)**: 2/3 tasks 🔄 IN PROGRESS
 **Phase 5 (Statistics)**: 0/3 tasks ⬜
 **Phase 6 (Polish)**: 0/3 tasks ⬜
 

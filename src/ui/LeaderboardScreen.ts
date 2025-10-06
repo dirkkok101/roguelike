@@ -9,6 +9,19 @@ import { EntryDetailsModal } from './EntryDetailsModal'
 
 type TabType = 'all' | 'victories' | 'deaths'
 type SortColumn = 'rank' | 'score' | 'level' | 'turns' | 'date'
+type DateRange = 'all' | '7days' | '30days' | '90days'
+
+interface LeaderboardPreferences {
+  entriesPerPage: number
+  dateRange: DateRange
+}
+
+const DEFAULT_PREFERENCES: LeaderboardPreferences = {
+  entriesPerPage: 25,
+  dateRange: 'all',
+}
+
+const PREFERENCES_KEY = 'leaderboard_preferences'
 
 export class LeaderboardScreen {
   private container: HTMLDivElement | null = null
@@ -20,6 +33,7 @@ export class LeaderboardScreen {
   private sortColumn: SortColumn = 'rank'
   private sortAscending = false
   private entriesPerPage = 25
+  private dateRange: DateRange = 'all'
 
   constructor(
     leaderboardService: LeaderboardService,
@@ -28,6 +42,34 @@ export class LeaderboardScreen {
     this.leaderboardService = leaderboardService
     this.leaderboardStorageService = leaderboardStorageService
     this.entryDetailsModal = new EntryDetailsModal()
+
+    // Load preferences from localStorage
+    this.loadPreferences()
+  }
+
+  private loadPreferences(): void {
+    try {
+      const saved = localStorage.getItem(PREFERENCES_KEY)
+      if (saved) {
+        const preferences: LeaderboardPreferences = JSON.parse(saved)
+        this.entriesPerPage = preferences.entriesPerPage || DEFAULT_PREFERENCES.entriesPerPage
+        this.dateRange = preferences.dateRange || DEFAULT_PREFERENCES.dateRange
+      }
+    } catch (error) {
+      console.error('Failed to load leaderboard preferences:', error)
+    }
+  }
+
+  private savePreferences(): void {
+    try {
+      const preferences: LeaderboardPreferences = {
+        entriesPerPage: this.entriesPerPage,
+        dateRange: this.dateRange,
+      }
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences))
+    } catch (error) {
+      console.error('Failed to save leaderboard preferences:', error)
+    }
   }
 
   /**
@@ -123,7 +165,7 @@ export class LeaderboardScreen {
   }
 
   private renderModalContent(modal: HTMLDivElement, onClose: () => void): void {
-    // Get filtered entries based on current tab
+    // Get filtered entries based on current tab and date range
     const allEntries = this.leaderboardStorageService.getAllEntries()
     const filteredEntries = this.filterEntriesByTab(allEntries)
     const sortedEntries = this.sortEntries(filteredEntries)
@@ -140,11 +182,12 @@ export class LeaderboardScreen {
           🏆 LEADERBOARD 🏆
         </div>
         <div style="font-size: 14px; color: #888; margin-top: 5px;">
-          ${allEntries.length} total runs
+          ${sortedEntries.length} total runs${sortedEntries.length !== allEntries.length ? ` (${allEntries.length} all-time)` : ''}
         </div>
       </div>
 
       ${this.renderTabs()}
+      ${this.renderFilterControls()}
       ${this.renderTable(pageEntries)}
       ${this.renderPagination(this.currentPage, totalPages, sortedEntries.length)}
 
@@ -178,7 +221,7 @@ export class LeaderboardScreen {
     ]
 
     return `
-      <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px; justify-content: center;">
         ${tabs.map(tab => {
           const isActive = this.currentTab === tab.id
           return `
@@ -199,6 +242,51 @@ export class LeaderboardScreen {
             </div>
           `
         }).join('')}
+      </div>
+    `
+  }
+
+  private renderFilterControls(): string {
+    return `
+      <div style="display: flex; gap: 20px; margin-bottom: 20px; justify-content: center; align-items: center; padding: 15px; background: rgba(255, 255, 255, 0.02); border: 1px solid #333; border-radius: 4px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <label style="color: #888; font-size: 13px;">Time Period:</label>
+          <select class="date-range-filter" style="
+            background: #2a2a2a;
+            color: #FFFFFF;
+            border: 1px solid #555;
+            padding: 6px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 3px;
+          ">
+            <option value="all" ${this.dateRange === 'all' ? 'selected' : ''}>All Time</option>
+            <option value="7days" ${this.dateRange === '7days' ? 'selected' : ''}>Last 7 Days</option>
+            <option value="30days" ${this.dateRange === '30days' ? 'selected' : ''}>Last 30 Days</option>
+            <option value="90days" ${this.dateRange === '90days' ? 'selected' : ''}>Last 90 Days</option>
+          </select>
+        </div>
+
+        <div style="width: 1px; height: 30px; background: #444;"></div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <label style="color: #888; font-size: 13px;">Per Page:</label>
+          <select class="entries-per-page-filter" style="
+            background: #2a2a2a;
+            color: #FFFFFF;
+            border: 1px solid #555;
+            padding: 6px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 3px;
+          ">
+            <option value="25" ${this.entriesPerPage === 25 ? 'selected' : ''}>25</option>
+            <option value="50" ${this.entriesPerPage === 50 ? 'selected' : ''}>50</option>
+            <option value="100" ${this.entriesPerPage === 100 ? 'selected' : ''}>100</option>
+          </select>
+        </div>
       </div>
     `
   }
@@ -301,14 +389,36 @@ export class LeaderboardScreen {
   }
 
   private filterEntriesByTab(entries: LeaderboardEntry[]): LeaderboardEntry[] {
+    // First filter by tab
+    let filtered = entries
     switch (this.currentTab) {
       case 'victories':
-        return entries.filter(e => e.isVictory)
+        filtered = entries.filter(e => e.isVictory)
+        break
       case 'deaths':
-        return entries.filter(e => !e.isVictory)
+        filtered = entries.filter(e => !e.isVictory)
+        break
       default:
-        return entries
+        filtered = entries
     }
+
+    // Then filter by date range
+    return this.filterEntriesByDateRange(filtered)
+  }
+
+  private filterEntriesByDateRange(entries: LeaderboardEntry[]): LeaderboardEntry[] {
+    if (this.dateRange === 'all') return entries
+
+    const now = Date.now()
+    const ranges: { [key in DateRange]: number } = {
+      'all': 0,
+      '7days': 7 * 24 * 60 * 60 * 1000,
+      '30days': 30 * 24 * 60 * 60 * 1000,
+      '90days': 90 * 24 * 60 * 60 * 1000,
+    }
+
+    const cutoff = now - ranges[this.dateRange]
+    return entries.filter(e => e.timestamp >= cutoff)
   }
 
   private sortEntries(entries: LeaderboardEntry[]): LeaderboardEntry[] {
@@ -403,6 +513,27 @@ export class LeaderboardScreen {
         })
       }
     })
+
+    // Filter control handlers
+    const dateRangeFilter = modal.querySelector('.date-range-filter') as HTMLSelectElement
+    if (dateRangeFilter) {
+      dateRangeFilter.addEventListener('change', () => {
+        this.dateRange = dateRangeFilter.value as DateRange
+        this.currentPage = 0 // Reset to first page
+        this.savePreferences()
+        this.renderModalContent(modal, onClose)
+      })
+    }
+
+    const entriesPerPageFilter = modal.querySelector('.entries-per-page-filter') as HTMLSelectElement
+    if (entriesPerPageFilter) {
+      entriesPerPageFilter.addEventListener('change', () => {
+        this.entriesPerPage = parseInt(entriesPerPageFilter.value, 10)
+        this.currentPage = 0 // Reset to first page
+        this.savePreferences()
+        this.renderModalContent(modal, onClose)
+      })
+    }
 
     // Entry row click handlers - open details modal
     const entryRows = modal.querySelectorAll('.entry-row')

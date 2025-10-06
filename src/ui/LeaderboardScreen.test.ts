@@ -276,7 +276,8 @@ describe('LeaderboardScreen', () => {
 
       screen.show(jest.fn())
 
-      expect(document.body.textContent).not.toContain('Page')
+      // Check specifically for pagination text "Page X of Y" (not the filter control "Per Page")
+      expect(document.body.textContent).not.toMatch(/Page \d+ of \d+/)
     })
   })
 
@@ -405,6 +406,118 @@ describe('LeaderboardScreen', () => {
 
       const modalAfter = document.querySelector('.leaderboard-modal')
       expect(modalAfter).toBeNull()
+    })
+  })
+
+  describe('filter controls', () => {
+    test('displays date range filter dropdown', () => {
+      screen.show(jest.fn())
+
+      const dateRangeFilter = document.querySelector('.date-range-filter')
+      expect(dateRangeFilter).not.toBeNull()
+      expect(document.body.textContent).toContain('Time Period')
+    })
+
+    test('displays entries per page filter dropdown', () => {
+      screen.show(jest.fn())
+
+      const entriesPerPageFilter = document.querySelector('.entries-per-page-filter')
+      expect(entriesPerPageFilter).not.toBeNull()
+      expect(document.body.textContent).toContain('Per Page')
+    })
+
+    test('filters entries by date range (7 days)', () => {
+      const now = Date.now()
+      const sixDaysAgo = now - (6 * 24 * 60 * 60 * 1000)
+      const eightDaysAgo = now - (8 * 24 * 60 * 60 * 1000)
+
+      // Add recent entry
+      const recentState = createTestState({ gameId: 'recent' })
+      const recentEntry = leaderboardService.createEntry(recentState, true, 5000)
+      recentEntry.timestamp = sixDaysAgo
+      leaderboardStorageService.addEntry(recentEntry)
+
+      // Add old entry
+      const oldState = createTestState({ gameId: 'old' })
+      const oldEntry = leaderboardService.createEntry(oldState, true, 3000)
+      oldEntry.timestamp = eightDaysAgo
+      leaderboardStorageService.addEntry(oldEntry)
+
+      screen.show(jest.fn())
+
+      // Change filter to 7 days
+      const dateRangeFilter = document.querySelector('.date-range-filter') as HTMLSelectElement
+      dateRangeFilter.value = '7days'
+      dateRangeFilter.dispatchEvent(new Event('change'))
+
+      // Should only show 1 entry (recent one)
+      expect(document.body.textContent).toContain('1 total runs')
+    })
+
+    test('changes entries per page when filter changed', () => {
+      // Add 30 entries
+      for (let i = 0; i < 30; i++) {
+        const state = createTestState({ gameId: `game-${i}` })
+        const entry = leaderboardService.createEntry(state, true, 1000 * (i + 1))
+        leaderboardStorageService.addEntry(entry)
+      }
+
+      screen.show(jest.fn())
+
+      // Initially 25 per page (showing Page 1 of 2)
+      expect(document.body.textContent).toContain('Page 1 of 2')
+      expect(document.body.textContent).toContain('1-25 of 30')
+
+      // Change to 50 per page
+      const entriesPerPageFilter = document.querySelector('.entries-per-page-filter') as HTMLSelectElement
+      entriesPerPageFilter.value = '50'
+      entriesPerPageFilter.dispatchEvent(new Event('change'))
+
+      // Should now show all on one page
+      expect(document.body.textContent).not.toMatch(/Page \d+ of \d+/)
+    })
+
+    test('persists preferences to localStorage', () => {
+      screen.show(jest.fn())
+
+      // Change date range
+      const dateRangeFilter = document.querySelector('.date-range-filter') as HTMLSelectElement
+      dateRangeFilter.value = '30days'
+      dateRangeFilter.dispatchEvent(new Event('change'))
+
+      // Change entries per page
+      const entriesPerPageFilter = document.querySelector('.entries-per-page-filter') as HTMLSelectElement
+      entriesPerPageFilter.value = '50'
+      entriesPerPageFilter.dispatchEvent(new Event('change'))
+
+      // Check localStorage
+      const saved = localStorage.getItem('leaderboard_preferences')
+      expect(saved).not.toBeNull()
+
+      const preferences = JSON.parse(saved!)
+      expect(preferences.dateRange).toBe('30days')
+      expect(preferences.entriesPerPage).toBe(50)
+    })
+
+    test('loads preferences from localStorage on initialization', () => {
+      // Set preferences in localStorage
+      localStorage.setItem(
+        'leaderboard_preferences',
+        JSON.stringify({ dateRange: '90days', entriesPerPage: 100 })
+      )
+
+      // Create new screen instance
+      const newScreen = new LeaderboardScreen(leaderboardService, leaderboardStorageService)
+      newScreen.show(jest.fn())
+
+      // Check that preferences were loaded
+      const dateRangeFilter = document.querySelector('.date-range-filter') as HTMLSelectElement
+      const entriesPerPageFilter = document.querySelector('.entries-per-page-filter') as HTMLSelectElement
+
+      expect(dateRangeFilter.value).toBe('90days')
+      expect(entriesPerPageFilter.value).toBe('100')
+
+      newScreen.hide()
     })
   })
 })
