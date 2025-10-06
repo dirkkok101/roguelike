@@ -16,7 +16,7 @@ export class ZapWandCommand implements ICommand {
     private wandService: WandService,
     private messageService: MessageService,
     private turnService: TurnService,
-    private targetItemId?: string
+    private targetMonsterId?: string
   ) {}
 
   execute(state: GameState): GameState {
@@ -44,19 +44,82 @@ export class ZapWandCommand implements ICommand {
       return { ...state, messages }
     }
 
-    // 3. Apply wand effect (decrements charges)
+    const wand = item as Wand
+
+    // 3. Validate target monster ID is provided
+    if (!this.targetMonsterId) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'No target selected.',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // 4. Validate target exists in current level
+    const currentLevel = state.levels.get(state.currentLevel)
+    if (!currentLevel) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'Invalid level state.',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    const targetMonster = currentLevel.monsters.find((m) => m.id === this.targetMonsterId)
+    if (!targetMonster) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'Target no longer exists.',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // 5. Validate target is in FOV (line of sight)
+    const targetKey = `${targetMonster.position.x},${targetMonster.position.y}`
+    if (!state.visibleCells.has(targetKey)) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'Target no longer visible.',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // 6. Validate target is in range (Manhattan distance)
+    const distance =
+      Math.abs(state.player.position.x - targetMonster.position.x) +
+      Math.abs(state.player.position.y - targetMonster.position.y)
+    const wandRange = wand.range || 5 // Default to 5 if not set
+    if (distance > wandRange) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        `Target out of range. (Range: ${wandRange})`,
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // 7. Apply wand effect (decrements charges)
     const result = this.wandService.applyWand(
       state.player,
-      item as Wand,
+      wand,
       state,
-      this.targetItemId
+      this.targetMonsterId
     )
 
-    // 4. Update wand in inventory (charges changed)
+    // 8. Update wand in inventory (charges changed)
     let updatedPlayer = this.inventoryService.removeItem(result.player, item.id)
     updatedPlayer = this.inventoryService.addItem(updatedPlayer, result.wand)
 
-    // 5. Add message and increment turn
+    // 9. Add message and increment turn
     const messages = this.messageService.addMessage(
       state.messages,
       result.message,
@@ -64,7 +127,7 @@ export class ZapWandCommand implements ICommand {
       state.turnCount
     )
 
-    // 6. Use updated state from wand effect if provided, otherwise use original state
+    // 10. Use updated state from wand effect if provided, otherwise use original state
     const baseState = result.state || state
 
     return this.turnService.incrementTurn({
