@@ -215,3 +215,106 @@ body {
 .modal-inventory {
   min-width: 500px;
 }
+/* ============================================================================
+   TARGETING MODAL STYLES
+   ============================================================================ */
+
+.targeting-modal {
+  z-index: 1001; /* Above other modals */
+}
+
+.targeting-modal .modal-content {
+  min-width: 400px;
+  padding: 20px;
+}
+
+/* ============================================================================
+   TARGET INFO DISPLAY
+   ============================================================================ */
+
+.targeting-info {
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 4px;
+  border: 2px solid #666;
+  background: #222;
+}
+
+.targeting-info.valid {
+  border-color: #4CAF50;
+  background: #1a2e1a;
+}
+
+.targeting-info.invalid {
+  border-color: #f44336;
+  background: #2e1a1a;
+}
+
+.target-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.targeting-info.valid .target-name {
+  color: #4CAF50;
+}
+
+.targeting-info.invalid .target-name {
+  color: #f44336;
+}
+
+.target-stats {
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 5px;
+}
+
+.target-error {
+  font-size: 14px;
+  color: #f44336;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.target-count {
+  font-size: 12px;
+  color: #999;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* ============================================================================
+   INSTRUCTIONS
+   ============================================================================ */
+
+.targeting-instructions {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #aaa;
+  text-align: center;
+}
+
+.targeting-instructions div {
+  margin: 4px 0;
+}
+
+/* ============================================================================
+   KEYBOARD HINTS
+   ============================================================================ */
+
+.targeting-instructions [Tab],
+.targeting-instructions [Shift+Tab],
+.targeting-instructions [*],
+.targeting-instructions [Enter],
+.targeting-instructions [ESC] {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 0 2px;
+  background: #444;
+  border-radius: 3px;
+  font-family: monospace;
+  font-weight: bold;
+  color: #fff;
+}
