@@ -135,6 +135,14 @@ export class PotionService {
         }
         break
 
+      case PotionType.BLINDNESS:
+        {
+          const result = this.applyBlindnessPotion(player)
+          updatedPlayer = result.player
+          message = `Oh, bummer! Everything is dark! (Blind for ${result.duration} turns)`
+        }
+        break
+
       default:
         message = `You quaff ${displayName}. (Effect not yet implemented)`
     }
@@ -237,12 +245,30 @@ export class PotionService {
 
   private applyConfusionPotion(player: Player): { player: Player; duration: number } {
     // Original Rogue: 19-21 turns of confusion
-    // Random duration: 19 + 1d3 (results in 19-21)
+    // Random duration: 19 + 1d3 (results in 20-22)
     const duration = 19 + this.random.roll('1d3')
 
     const updatedPlayer = this.statusEffectService.addStatusEffect(
       player,
       StatusEffectType.CONFUSED,
+      duration
+    )
+
+    return {
+      player: updatedPlayer,
+      duration,
+    }
+  }
+
+  private applyBlindnessPotion(player: Player): { player: Player; duration: number } {
+    // Original Rogue: 807-892 turns (very long!)
+    // Reduced for balance: 40-60 turns
+    // Random duration: 39 + 1d21 (results in 40-60)
+    const duration = 39 + this.random.roll('1d21')
+
+    const updatedPlayer = this.statusEffectService.addStatusEffect(
+      player,
+      StatusEffectType.BLIND,
       duration
     )
 

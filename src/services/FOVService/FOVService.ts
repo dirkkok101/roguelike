@@ -1,4 +1,5 @@
-import { Position, Level } from '@game/core/core'
+import { Position, Level, Player, StatusEffectType } from '@game/core/core'
+import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // RESULT TYPES
@@ -14,12 +15,20 @@ export interface FOVUpdateResult {
 // ============================================================================
 
 export class FOVService {
+  constructor(private statusEffectService: StatusEffectService) {}
+
   /**
    * Compute field of view from origin position
    * Returns set of visible position keys (format: "x,y")
+   * If player is blind, returns empty set (no vision)
    */
-  computeFOV(origin: Position, radius: number, level: Level): Set<string> {
+  computeFOV(origin: Position, radius: number, level: Level, player?: Player): Set<string> {
     const visible = new Set<string>()
+
+    // If player is blind, they see nothing
+    if (player && this.statusEffectService.hasStatusEffect(player, StatusEffectType.BLIND)) {
+      return visible
+    }
 
     // Origin is always visible
     visible.add(this.posToKey(origin))

@@ -54,10 +54,10 @@ async function initializeGame() {
   // Generate unique seed for new games (will be overridden when loading saves)
   const newGameSeed = `seed-${Date.now()}`
   const random = new SeededRandom(newGameSeed)
-  const lightingService = new LightingService(random)
-  const fovService = new FOVService()
-  const renderingService = new RenderingService(fovService)
   const statusEffectService = new StatusEffectService()
+  const lightingService = new LightingService(random)
+  const fovService = new FOVService(statusEffectService)
+  const renderingService = new RenderingService(fovService)
   const movementService = new MovementService(random, statusEffectService)
   const messageService = new MessageService()
   const dungeonService = new DungeonService(random, itemData)
