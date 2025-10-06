@@ -86,6 +86,7 @@ describe('LocalStorageService - Save/Load', () => {
         aggression: 0.5,
         intelligence: 0.3,
       },
+      speed: 10,
     }
   }
 

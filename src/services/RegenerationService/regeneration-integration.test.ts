@@ -237,6 +237,7 @@ describe('RegenerationService - Integration Tests', () => {
       currentPath: null,
       hasStolen: false,
       level: 1,
+      speed: 10,
     }
   }
 
