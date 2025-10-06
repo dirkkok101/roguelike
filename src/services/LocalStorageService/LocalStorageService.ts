@@ -219,6 +219,13 @@ export class LocalStorageService {
       identifiedItems: Array.from(state.identifiedItems), // Set → Array
       detectedMonsters: Array.from(state.detectedMonsters || []), // Set → Array
       detectedMagicItems: Array.from(state.detectedMagicItems || []), // Set → Array
+      // Serialize nested Maps in itemNameMap
+      itemNameMap: {
+        potions: Array.from(state.itemNameMap.potions.entries()),
+        scrolls: Array.from(state.itemNameMap.scrolls.entries()),
+        rings: Array.from(state.itemNameMap.rings.entries()),
+        wands: Array.from(state.itemNameMap.wands.entries()),
+      },
       // Note: Monster visibleCells and currentPath also need conversion
       // This is done per-level
     }
@@ -272,6 +279,14 @@ export class LocalStorageService {
     const detectedMonsters = new Set(data.detectedMonsters || [])
     const detectedMagicItems = new Set(data.detectedMagicItems || [])
 
+    // Restore nested Maps in itemNameMap
+    const itemNameMap = {
+      potions: new Map(data.itemNameMap.potions),
+      scrolls: new Map(data.itemNameMap.scrolls),
+      rings: new Map(data.itemNameMap.rings),
+      wands: new Map(data.itemNameMap.wands),
+    }
+
     // MIGRATION: Add defaults for missing player fields (from older save versions)
     const player = {
       ...data.player,
@@ -287,6 +302,7 @@ export class LocalStorageService {
       identifiedItems,
       detectedMonsters,
       detectedMagicItems,
+      itemNameMap,
     }
   }
 }
