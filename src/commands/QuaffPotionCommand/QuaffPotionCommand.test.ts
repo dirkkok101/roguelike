@@ -4,6 +4,7 @@ import { PotionService } from '@services/PotionService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { IdentificationService } from '@services/IdentificationService'
+import { LevelingService } from '@services/LevelingService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, ItemType, Potion, PotionType } from '@game/core/core'
 
@@ -18,7 +19,8 @@ describe('QuaffPotionCommand', () => {
     inventoryService = new InventoryService()
     mockRandom = new MockRandom()
     const identificationService = new IdentificationService()
-    potionService = new PotionService(mockRandom, identificationService)
+    const levelingService = new LevelingService(mockRandom)
+    potionService = new PotionService(mockRandom, identificationService, levelingService)
     messageService = new MessageService()
     turnService = new TurnService()
   })

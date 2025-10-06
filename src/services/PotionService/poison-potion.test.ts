@@ -1,19 +1,22 @@
 import { PotionService } from './PotionService'
 import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
+import { LevelingService } from '@services/LevelingService'
 import { Player, Potion, PotionType, ItemType, GameState, ItemNameMap, ScrollType, RingType, WandType } from '@game/core/core'
 
 describe('PotionService - Poison Potion', () => {
   let potionService: PotionService
   let mockRandom: MockRandom
   let identificationService: IdentificationService
+  let levelingService: LevelingService
   let testPlayer: Player
   let testState: GameState
 
   beforeEach(() => {
     mockRandom = new MockRandom([])
     identificationService = new IdentificationService(mockRandom)
-    potionService = new PotionService(mockRandom, identificationService)
+    levelingService = new LevelingService(mockRandom)
+    potionService = new PotionService(mockRandom, identificationService, levelingService)
 
     testPlayer = {
       position: { x: 5, y: 5 },

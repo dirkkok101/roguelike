@@ -6,6 +6,7 @@ import {
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
+import { LevelingService } from '@services/LevelingService'
 
 // ============================================================================
 // RESULT TYPE
@@ -25,7 +26,8 @@ export interface PotionEffectResult {
 export class PotionService {
   constructor(
     private random: IRandomService,
-    private identificationService: IdentificationService
+    private identificationService: IdentificationService,
+    private levelingService: LevelingService
   ) {}
 
   /**
@@ -84,6 +86,13 @@ export class PotionService {
           updatedPlayer = result.player
           message = `You feel sick! (-${result.damage} HP)`
           death = updatedPlayer.hp <= 0
+        }
+        break
+
+      case PotionType.RAISE_LEVEL:
+        {
+          updatedPlayer = this.applyRaiseLevelPotion(player)
+          message = `You feel more experienced! (Level ${updatedPlayer.level})`
         }
         break
 
@@ -179,5 +188,11 @@ export class PotionService {
       player: { ...player, hp: newHp },
       damage,
     }
+  }
+
+  private applyRaiseLevelPotion(player: Player): Player {
+    // Use LevelingService to level up the player
+    // This grants +1 level, rolls 1d8 for max HP increase, and fully heals
+    return this.levelingService.levelUp(player)
   }
 }

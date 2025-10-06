@@ -84,7 +84,7 @@ async function initializeGame() {
   )
   const modalController = new ModalController(identificationService)
   const doorService = new DoorService()
-  const potionService = new PotionService(random, identificationService)
+  const potionService = new PotionService(random, identificationService, levelingService)
   const scrollService = new ScrollService(identificationService, inventoryService)
   const wandService = new WandService(identificationService)
   const turnService = new TurnService()
