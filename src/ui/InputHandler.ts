@@ -16,6 +16,7 @@ import { ReadScrollCommand } from '@commands/ReadScrollCommand'
 import { ZapWandCommand } from '@commands/ZapWandCommand'
 import { RefillLanternCommand } from '@commands/RefillLanternCommand'
 import { EatCommand } from '@commands/EatCommand'
+import { RestCommand } from '@commands/RestCommand'
 import { ToggleGodModeCommand } from '@commands/ToggleGodModeCommand'
 import { RevealMapCommand } from '@commands/RevealMapCommand'
 import { ToggleDebugConsoleCommand } from '@commands/ToggleDebugConsoleCommand'
@@ -397,6 +398,19 @@ export class InputHandler {
         return new EatCommand(
           this.inventoryService,
           this.hungerService,
+          this.messageService,
+          this.turnService
+        )
+
+      case '5':
+      case '.':
+        // Rest until HP full or interrupted
+        event.preventDefault()
+        return new RestCommand(
+          this.regenerationService,
+          this.hungerService,
+          this.lightingService,
+          this.fovService,
           this.messageService,
           this.turnService
         )
