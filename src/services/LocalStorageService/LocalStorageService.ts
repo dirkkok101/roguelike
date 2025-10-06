@@ -280,11 +280,20 @@ export class LocalStorageService {
     const detectedMagicItems = new Set(data.detectedMagicItems || [])
 
     // Restore nested Maps in itemNameMap
+    // Handle both old format (plain objects) and new format (arrays)
     const itemNameMap = {
-      potions: new Map(data.itemNameMap.potions),
-      scrolls: new Map(data.itemNameMap.scrolls),
-      rings: new Map(data.itemNameMap.rings),
-      wands: new Map(data.itemNameMap.wands),
+      potions: Array.isArray(data.itemNameMap.potions)
+        ? new Map(data.itemNameMap.potions)
+        : new Map(Object.entries(data.itemNameMap.potions || {})),
+      scrolls: Array.isArray(data.itemNameMap.scrolls)
+        ? new Map(data.itemNameMap.scrolls)
+        : new Map(Object.entries(data.itemNameMap.scrolls || {})),
+      rings: Array.isArray(data.itemNameMap.rings)
+        ? new Map(data.itemNameMap.rings)
+        : new Map(Object.entries(data.itemNameMap.rings || {})),
+      wands: Array.isArray(data.itemNameMap.wands)
+        ? new Map(data.itemNameMap.wands)
+        : new Map(Object.entries(data.itemNameMap.wands || {})),
     }
 
     // MIGRATION: Add defaults for missing player fields (from older save versions)
