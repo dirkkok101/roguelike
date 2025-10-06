@@ -133,7 +133,7 @@ export class EquipCommand implements ICommand {
     if (this.curseService.isCursed(item)) {
       messages = this.messageService.addMessage(
         messages,
-        `The ${item.name} is cursed! You cannot remove it.`,
+        `The ${displayName} is cursed! You cannot remove it.`,
         'warning',
         state.turnCount
       )
