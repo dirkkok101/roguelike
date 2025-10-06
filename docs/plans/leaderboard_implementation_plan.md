@@ -40,18 +40,18 @@
 - **Files**: `src/services/LeaderboardService/*.test.ts`
 - **Commit**: "test: add LeaderboardService test suite"
 
-#### Task 1.4: LeaderboardStorageService ⬜
-- [ ] Create `src/services/LeaderboardStorageService/LeaderboardStorageService.ts`
-- [ ] Implement `addEntry(entry)`
-- [ ] Implement `getAllEntries()`
-- [ ] Implement `getEntry(id)`
-- [ ] Implement `deleteEntry(id)`
-- [ ] Implement `clearAll()`
-- [ ] Implement `getCount()`
-- [ ] Implement `exportToJSON()`
-- [ ] Implement `importFromJSON(json)`
-- [ ] Implement auto-cleanup strategy
-- [ ] Create `src/services/LeaderboardStorageService/index.ts` (barrel export)
+#### Task 1.4: LeaderboardStorageService ✅
+- [x] Create `src/services/LeaderboardStorageService/LeaderboardStorageService.ts`
+- [x] Implement `addEntry(entry)`
+- [x] Implement `getAllEntries()`
+- [x] Implement `getEntry(id)`
+- [x] Implement `deleteEntry(id)`
+- [x] Implement `clearAll()`
+- [x] Implement `getCount()`
+- [x] Implement `exportToJSON()`
+- [x] Implement `importFromJSON(json)`
+- [x] Implement auto-cleanup strategy
+- [x] Create `src/services/LeaderboardStorageService/index.ts` (barrel export)
 - **Files**: `src/services/LeaderboardStorageService/`
 - **Commit**: "feat: implement LeaderboardStorageService with quota management"
 
