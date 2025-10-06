@@ -249,7 +249,7 @@ async function initializeGame() {
   function replaySeed(seed: string) {
     // Create new game with specified seed
     const gameRandom = new SeededRandom(seed)
-    const gameDungeonService = new DungeonService(gameRandom, itemData)
+    const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
 
     const level = gameDungeonService.generateLevel(1, dungeonConfig)
     const startRoom = level.rooms[0]
