@@ -1,4 +1,4 @@
-import { GameState, Position, ItemType } from '@game/core/core'
+import { GameState, Position, ItemType, StatusEffectType } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
@@ -166,6 +166,10 @@ export class GameRenderer {
     const level = state.levels.get(state.currentLevel)
     if (!level) return
 
+    // Check for status effects to show visual indicators
+    const isConfused = state.player.statusEffects.some((e) => e.type === StatusEffectType.CONFUSED)
+    const isHasted = state.player.statusEffects.some((e) => e.type === StatusEffectType.HASTED)
+
     let html = '<pre class="dungeon-grid">'
 
     for (let y = 0; y < level.height; y++) {
@@ -249,6 +253,18 @@ export class GameRenderer {
           color = '#00FFFF'
         }
 
+        // Status effect indicators near player
+        // Confused indicator (?) to the right of player
+        if (isConfused && pos.x === state.player.position.x + 1 && pos.y === state.player.position.y) {
+          char = '?'
+          color = '#FF00FF'
+        }
+        // Hasted indicator (⚡) to the left of player
+        if (isHasted && pos.x === state.player.position.x - 1 && pos.y === state.player.position.y) {
+          char = '⚡'
+          color = '#00FFFF'
+        }
+
         html += `<span style="color: ${color}">${char}</span>`
       }
       html += '\n'
@@ -322,6 +338,24 @@ export class GameRenderer {
     const xpDisplay = xpNeeded === Infinity ? `${player.xp} (MAX)` : `${player.xp}/${xpNeeded}`
     const xpPercentage = xpNeeded === Infinity ? 100 : Math.min(100, (player.xp / xpNeeded) * 100)
 
+    // Status effects display
+    let statusEffectsHTML = ''
+    if (player.statusEffects.length > 0) {
+      statusEffectsHTML = `
+        <div style="margin-top: 8px;">
+          <span style="color: #888;">Status:</span><br>
+          ${player.statusEffects
+            .map((effect) => {
+              const display = this.getStatusEffectDisplay(effect.type)
+              return `<div style="color: ${display.color}; font-size: 0.9em;">
+                ${display.icon} ${display.label} (${effect.duration})
+              </div>`
+            })
+            .join('')}
+        </div>
+      `
+    }
+
     this.statsContainer.innerHTML = `
       <style>
         @keyframes blink {
@@ -355,6 +389,7 @@ export class GameRenderer {
           <span style="color: #888;">Inventory:</span>
           <span style="color: ${invColor};"> ${invCount}/26</span>
         </div>
+        ${statusEffectsHTML}
       </div>
     `
   }
@@ -444,6 +479,30 @@ export class GameRenderer {
         return '#C0C0C0' // Silver
       default:
         return '#FFFFFF'
+    }
+  }
+
+  /**
+   * Get status effect display information
+   */
+  private getStatusEffectDisplay(effectType: StatusEffectType): { icon: string; label: string; color: string } {
+    switch (effectType) {
+      case StatusEffectType.CONFUSED:
+        return { icon: '?', label: 'Confused', color: '#FF00FF' }
+      case StatusEffectType.BLIND:
+        return { icon: '☀', label: 'Blind', color: '#888888' }
+      case StatusEffectType.HASTED:
+        return { icon: '⚡', label: 'Fast', color: '#00FFFF' }
+      case StatusEffectType.SLOWED:
+        return { icon: '🐢', label: 'Slow', color: '#FF8800' }
+      case StatusEffectType.PARALYZED:
+        return { icon: '❄', label: 'Paralyzed', color: '#00FFFF' }
+      case StatusEffectType.LEVITATING:
+        return { icon: '☁', label: 'Levitating', color: '#FFDD00' }
+      case StatusEffectType.SEE_INVISIBLE:
+        return { icon: '👁', label: 'See Invis', color: '#00FF00' }
+      default:
+        return { icon: '•', label: 'Unknown', color: '#FFFFFF' }
     }
   }
 
