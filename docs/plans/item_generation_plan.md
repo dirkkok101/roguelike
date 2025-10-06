@@ -386,22 +386,49 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 
 **Objective**: Verify rings are fully functional or implement missing pieces
 
-#### Task 4.1: Audit Ring Implementation ⬜
+#### Task 4.1: Audit Ring Implementation ✅
 
 **Context**: Rings defined in items.json, need to verify all effects work
 
-**Files to review**:
-- `src/services/RingService/` (may not exist)
-- `src/services/EquipmentService/` or related
-- `src/commands/PutOnRingCommand/` and `RemoveRingCommand/`
+**Files reviewed**:
+- No dedicated RingService exists - effects distributed across multiple services
+- `src/commands/EquipCommand/` - Handles ring equipping (left/right hand)
+- `src/services/CombatService/` - Implements PROTECTION, ADD_STRENGTH, DEXTERITY
+- `src/services/HungerService/` - Implements ring hunger modifiers
+- `src/services/RegenerationService/` - Implements REGENERATION ring
+
+##### Audit Results:
+
+**✅ Implemented Ring Types (5/10):**
+1. **PROTECTION** - `CombatService.getACBonus()` - Adds bonus to AC (lower is better)
+2. **REGENERATION** - `RegenerationService.hasRegenerationRing()` - HP regen every 5 turns vs 10
+3. **ADD_STRENGTH** - `CombatService.getStrengthBonus()` - Adds bonus to strength for combat
+4. **DEXTERITY** - `CombatService.getACBonus()` - Adds bonus to AC (same as PROTECTION)
+5. **SLOW_DIGESTION** - `HungerService.calculateHungerRate()` - Reduces hunger rate by 50%
+
+**❌ Not Implemented Ring Types (5/10):**
+6. **SEARCHING** - No auto-search implementation in SearchService
+7. **SEE_INVISIBLE** - No invisible monster rendering/detection (monsters have isInvisible field but it's unused)
+8. **SUSTAIN_STRENGTH** - No strength drain protection (strength loss not implemented)
+9. **TELEPORTATION** - No random teleport effect (always cursed but effect missing)
+10. **STEALTH** - No monster wake avoidance in MonsterAIService
+
+**Notes:**
+- Ring equipping/unequipping works correctly via EquipCommand/UnequipCommand
+- Ring hunger modifiers correctly implemented:
+  - SLOW_DIGESTION: -0.5 hunger rate
+  - REGENERATION: +0.3 hunger rate
+  - All other rings: +0.5 hunger rate
+- Ring of TELEPORTATION always spawns cursed (correct per Rogue tradition)
+- All implemented rings have proper curse support
 
 ##### Subtasks:
-- [ ] Check if RingService exists
-- [ ] Verify all 10 ring types have effect implementations
-- [ ] Check ring hunger modifiers applied correctly
-- [ ] Verify ring bonuses affect combat/AC/etc.
-- [ ] Document findings in this plan
-- [ ] Git commit: "docs: audit ring system implementation status (Phase 4.1)"
+- [x] Check if RingService exists (No - effects distributed)
+- [x] Verify all 10 ring types have effect implementations (5/10 implemented)
+- [x] Check ring hunger modifiers applied correctly (✅ Working)
+- [x] Verify ring bonuses affect combat/AC/etc. (✅ Working)
+- [x] Document findings in this plan
+- [x] Git commit: "docs: audit ring system implementation status (Phase 4.1)"
 
 ---
 
