@@ -113,6 +113,9 @@ export class ScrollService {
       case ScrollType.HOLD_MONSTER:
         return this.applyHoldMonster(player, state, displayName, identified, targetItemId)
 
+      case ScrollType.SLEEP:
+        return this.applySleep(player, state, displayName, identified)
+
       default:
         message = `You read ${displayName}. (Effect not yet implemented)`
     }
@@ -667,6 +670,39 @@ export class ScrollService {
     return {
       state: updatedState,
       message: `You read ${scrollName}. The ${targetMonster.name} freezes in place!`,
+      identified,
+      consumed: true,
+    }
+  }
+
+  // ============================================================================
+  // SLEEP SCROLL (Cursed)
+  // ============================================================================
+
+  private applySleep(
+    player: Player,
+    state: GameState,
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
+    // 1. Generate random sleep duration (4-8 turns)
+    const sleepDuration = this.randomService.nextInt(4, 8)
+
+    // 2. Create SLEEPING status effect
+    const sleepEffect: StatusEffect = {
+      type: StatusEffectType.SLEEPING,
+      duration: sleepDuration,
+    }
+
+    // 3. Update player with SLEEPING status
+    const updatedPlayer: Player = {
+      ...player,
+      statusEffects: [...player.statusEffects, sleepEffect],
+    }
+
+    return {
+      player: updatedPlayer,
+      message: `You read ${scrollName}. You fall into a deep sleep!`,
       identified,
       consumed: true,
     }
