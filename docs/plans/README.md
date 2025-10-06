@@ -16,7 +16,7 @@ This folder contains both **active plans** (in progress) and **archived plans** 
 
 | Plan | Status | Started | Description |
 |------|--------|---------|-------------|
-| **[Potion Implementation](./potion_implementation_plan.md)** | 🚧 In Progress | 2025-10-06 | Complete potion system (11 potions + StatusEffectService) |
+| _No active plans_ | - | - | - |
 
 ---
 
@@ -24,6 +24,7 @@ This folder contains both **active plans** (in progress) and **archived plans** 
 
 | Plan | Status | Completed | Description |
 |------|--------|-----------|-------------|
+| **[Potion Implementation](./potion_implementation_plan.md)** | 📦 Archived | 2025-10-06 | Complete potion system (11 potions + StatusEffectService + energy system) |
 | **[Death Screen Refactor](./death_screen_refactor.md)** | 📦 Archived | 2025-10-06 | Death and victory screen implementation |
 | **[Documentation Refactor](./document_refactor_plan.md)** | 📦 Archived | 2025-10-06 | SOLID principles applied to documentation (6 phases, 12 commits) |
 | **[Game Design Refactor](./game_design_document_refactor_plan.md)** | 📦 Archived | 2025-10-05 | Game design docs restructure (Phases 1-6) |
