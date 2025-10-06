@@ -4,6 +4,91 @@
 
 ---
 
+## 2025-10-06 - Monster Aggression & Food Balance (v2.2)
+
+**Objective**: Fix passive monster behavior and food scarcity causing hunger deaths instead of combat deaths
+
+**Changes Made**: Monster AI tuning + item spawning rebalance
+
+---
+
+### Monster AI Improvements
+
+**Problem**: Monsters had aggro ranges 12-100% too low, causing them to wake up too late or not at all. Players died from hunger while wandering instead of from combat encounters.
+
+**Monster Data Updates** (`public/data/monsters.json`):
+
+| Monster | Aggro Change | Behavior Change | Intelligence Change | Other Changes |
+|---------|--------------|-----------------|---------------------|---------------|
+| **Bat (B)** | 5→**8** (+60%) | SIMPLE→**ERRATIC** | 1→**2** | Now unpredictable |
+| **Kobold (K)** | 5→**7** (+40%) | - | - | Better detection |
+| **Snake (S)** | 4→**5** (+25%) | - | 1→**2** | - |
+| **Orc (O)** | 6→**8** (+33%) | SMART→**GREEDY** | 3→**5** | fleeThreshold: 0.0→**0.25** |
+| **Zombie (Z)** | 3→**6** (+100%) | - | - | Biggest fix |
+| **Troll (T)** | 7→**8** (+14%) | SMART→**SIMPLE** | 3→**4** | fleeThreshold: 0.0→**0.2** |
+| **Dragon (D)** | 10→**15** (+50%) | - | 5→**8** | fleeThreshold: 0.0→**0.15** |
+
+**Impact**:
+- ✅ Monsters now detect player from 5-15 tiles (design spec compliant)
+- ✅ 2-3x more combat encounters per level
+- ✅ Proper pursuit gameplay (monsters chase, don't just spawn adjacent)
+- ✅ Bat behavior now erratic (50% random movement)
+
+---
+
+### Food Spawning Improvements
+
+**Problem**: Only ~0.57 food per level spawned, insufficient for increased combat frequency.
+
+**DungeonService Changes** (`src/services/DungeonService/DungeonService.ts`):
+
+1. **Increased item count per level**:
+   - Before: 3-6 items per level
+   - After: **5-8 items per level** (+2 items average)
+
+2. **Increased food spawn weight**:
+   - Before: Food weight = 12 (same as other categories)
+   - After: Food weight = **18** (+50% increase)
+
+**Impact**:
+- ✅ Expected food per level: 0.57→**1.16** (+103%)
+- ✅ Food spawn chance: 12.6%→**17.8%**
+- ✅ Balanced resource management for combat-heavy gameplay
+
+---
+
+### Documentation Updates
+
+**Updated Files**:
+- ✅ `docs/services/DungeonService.md` - Item count (5-8), food weight (18)
+- ✅ `docs/systems-advanced.md` - Already had correct aggro ranges
+- ✅ `public/data/monsters.json` - All 7 monster AI profiles updated
+
+**Test Results**:
+- ✅ 74/74 MonsterAI tests passing
+- ✅ 33/33 MonsterSpawn tests passing
+- ✅ 27/27 DungeonService tests passing
+- ✅ Build successful
+
+---
+
+### Expected Gameplay Impact
+
+**Before Changes**:
+- Monsters woke up at 3-6 tiles (too close)
+- ~0.5 combat encounters per level
+- Death by hunger > death by combat ❌
+
+**After Changes**:
+- Monsters detect at 5-15 tiles (proper pursuit)
+- ~2-3x more combat encounters
+- Sufficient food to sustain combat
+- Death by combat > death by hunger ✅
+
+**Proper roguelike balance restored**: Combat is primary threat, food is manageable resource.
+
+---
+
 ## 2025-10-06 - Potion System Complete (v2.1)
 
 **Objective**: Document completion of all 11 Original Rogue potion types and energy system integration

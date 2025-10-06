@@ -119,7 +119,7 @@ export class DungeonService {
     const monsters = this.monsterSpawnService.spawnMonsters(spawnRooms, tiles, depth)
 
     // Spawn items (exclude starting room, avoid monster positions)
-    const itemCount = this.random.nextInt(3, 6) // 3-6 items per level
+    const itemCount = this.random.nextInt(5, 8) // 5-8 items per level
     const items = this.spawnItems(spawnRooms, itemCount, tiles, monsters, depth)
 
     // Create initial level
@@ -558,6 +558,11 @@ export class DungeonService {
         // Base categories (12 each)
         for (let j = 0; j < 12; j++) {
           categories.push('weapon', 'armor', 'potion', 'scroll', 'ring', 'food')
+        }
+
+        // Extra food weight (total food weight: 18)
+        for (let j = 0; j < 6; j++) {
+          categories.push('food')
         }
 
         // Torches (depth-based)

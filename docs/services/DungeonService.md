@@ -314,7 +314,7 @@ const templates = [
 spawnItems(rooms: Room[], count: number, tiles: Tile[][], monsters: Monster[], depth: number): Item[]
 ```
 
-**Item Count**: 3-6 per level
+**Item Count**: 5-8 per level (increased for better food availability)
 
 **Item Categories**:
 - Weapons (Dagger, Mace, Long Sword, Battle Axe, Two-Handed Sword)
@@ -322,7 +322,7 @@ spawnItems(rooms: Room[], count: number, tiles: Tile[][], monsters: Monster[], d
 - Potions (Heal, Strength, Poison, Haste, Raise Level)
 - Scrolls (Identify, Enchant, Magic Mapping, Teleportation)
 - Rings (Protection, Regeneration, Add Strength, Slow Digestion)
-- Food (Food Ration - 900 nutrition)
+- Food (Food Ration - 900 nutrition) - **Weight: 18** (increased from 12 for more frequent spawns)
 - Torches (Radius 2, 500 fuel)
 - Lanterns (Radius 2, 500 fuel, refillable)
 - Oil Flasks (500 fuel for lanterns)
@@ -438,7 +438,7 @@ interface Level {
   doors: Door[]                 // Variable (depends on corridors)
   traps: Trap[]                 // 2-4 traps
   monsters: Monster[]           // depth + 1 (max 8)
-  items: Item[]                 // 3-6 items
+  items: Item[]                 // 5-8 items (50% more food weight)
   gold: GoldPile[]              // Empty initially (drops from monsters)
   stairsUp: Position | null     // null on Level 1
   stairsDown: Position          // Always present
