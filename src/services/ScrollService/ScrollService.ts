@@ -101,6 +101,9 @@ export class ScrollService {
       case ScrollType.CREATE_MONSTER:
         return this.applyCreateMonster(player, state, displayName, identified)
 
+      case ScrollType.MAGIC_MAPPING:
+        return this.applyMagicMapping(player, state, displayName, identified)
+
       default:
         message = `You read ${displayName}. (Effect not yet implemented)`
     }
@@ -426,6 +429,65 @@ export class ScrollService {
     return {
       state: updatedState,
       message: `You read ${scrollName}. You hear a faint cry of anguish!`,
+      identified,
+      consumed: true,
+    }
+  }
+
+  // ============================================================================
+  // MAGIC_MAPPING SCROLL
+  // ============================================================================
+
+  private applyMagicMapping(
+    player: Player,
+    state: GameState,
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
+    // 1. Get current level
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 2. Get all tiles on level
+    const allTiles = this.levelService.getAllTiles(level)
+
+    // 3. Create new explored tiles set - mark ALL tiles as explored
+    // (This includes walls, floors, doors, corridors, stairs)
+    const newExplored = Array(level.height)
+      .fill(null)
+      .map(() => Array(level.width).fill(false))
+
+    // Mark all tiles as explored
+    for (const pos of allTiles) {
+      newExplored[pos.y][pos.x] = true
+    }
+
+    // 4. Update level with new explored state
+    const updatedLevel: Level = {
+      ...level,
+      explored: newExplored,
+    }
+
+    // 5. Update level in levels map
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    // 6. Create updated state
+    const updatedState: GameState = {
+      ...state,
+      levels: updatedLevels,
+    }
+
+    return {
+      state: updatedState,
+      message: `You read ${scrollName}. The dungeon layout is revealed!`,
       identified,
       consumed: true,
     }
