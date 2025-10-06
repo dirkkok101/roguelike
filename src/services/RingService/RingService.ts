@@ -34,6 +34,16 @@ export interface SearchingRingResult {
   secretDoorsFound: Position[]
 }
 
+/**
+ * Result from TELEPORTATION ring trigger
+ * Cursed ring that randomly teleports player
+ */
+export interface TeleportationResult {
+  triggered: boolean
+  newPosition?: Position
+  message?: string
+}
+
 // ============================================================================
 // RING SERVICE - Centralized ring effect management
 // ============================================================================
@@ -363,6 +373,52 @@ export class RingService {
     return this.hasRing(player, RingType.STEALTH)
   }
 
+  /**
+   * Trigger TELEPORTATION ring cursed effect
+   *
+   * Mechanics:
+   * - TELEPORTATION ring is always cursed (cannot be removed)
+   * - 15% chance per turn to randomly teleport player
+   * - Teleports to random walkable tile on current level
+   *
+   * @param player - Player with potential TELEPORTATION ring
+   * @param level - Current level
+   * @returns Result with trigger status and new position if teleported
+   *
+   * @example
+   * const result = ringService.triggerTeleportation(player, level)
+   * if (result.triggered) {
+   *   // Move player to result.newPosition
+   *   // Display result.message
+   * }
+   */
+  triggerTeleportation(player: Player, level: Level): TeleportationResult {
+    // Check if TELEPORTATION ring equipped
+    if (!this.hasRing(player, RingType.TELEPORTATION)) {
+      return { triggered: false }
+    }
+
+    // 15% chance to trigger
+    const TELEPORT_CHANCE = 0.15
+    if (!this.random.chance(TELEPORT_CHANCE)) {
+      return { triggered: false }
+    }
+
+    // Find random walkable position
+    const newPosition = this.findRandomWalkablePosition(level)
+
+    if (!newPosition) {
+      // No walkable tiles found (extremely rare)
+      return { triggered: false }
+    }
+
+    return {
+      triggered: true,
+      newPosition,
+      message: 'You feel a wrenching sensation!',
+    }
+  }
+
   // ============================================================================
   // PRIVATE HELPER METHODS
   // ============================================================================
@@ -398,5 +454,39 @@ export class RingService {
       pos.y >= 0 &&
       pos.y < level.height
     )
+  }
+
+  /**
+   * Find random walkable position on level
+   * Used for TELEPORTATION ring
+   * @param level - Current level
+   * @returns Random walkable position, or null if none found
+   */
+  private findRandomWalkablePosition(level: Level): Position | null {
+    const walkablePositions: Position[] = []
+
+    // Scan entire level for walkable tiles
+    for (let y = 0; y < level.height; y++) {
+      for (let x = 0; x < level.width; x++) {
+        const tile = level.tiles[y][x]
+        if (tile && tile.walkable) {
+          // Check if position is not occupied by monster
+          const hasMonster = level.monsters.some(
+            (m) => m.position.x === x && m.position.y === y
+          )
+          if (!hasMonster) {
+            walkablePositions.push({ x, y })
+          }
+        }
+      }
+    }
+
+    // No walkable positions found (extremely rare)
+    if (walkablePositions.length === 0) {
+      return null
+    }
+
+    // Pick random walkable position
+    return this.random.pickRandom(walkablePositions)
   }
 }
