@@ -1,8 +1,10 @@
 # Technical Architecture: ASCII Roguelike
 
-**Version**: 2.0  
-**Last Updated**: 2025-10-03  
+**Version**: 2.0
+**Last Updated**: 2025-10-03
 **Related Docs**: [Game Design](./game-design/README.md) | [Core Systems](./systems-core.md) | [Advanced Systems](./systems-advanced.md) | [Testing](./testing-strategy.md) | [Plan](./plan.md)
+
+**Visual Diagrams**: [Architecture Diagrams Index](./diagrams/README.md) | [Layered Architecture](./diagrams/architecture-layers.md) | [Service Dependencies](./diagrams/service-dependencies.md) | [Data Model](./diagrams/data-model.md)
 
 ---
 
@@ -24,6 +26,8 @@
 ---
 
 ## 2. Architecture Layers
+
+**See Visual Diagram**: [Architecture Layers Diagram](./diagrams/architecture-layers.md) for detailed visual representation
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -83,6 +87,11 @@
 3. **Dependency Injection**: Services injected into Commands for testability
 4. **No Logic Leakage**: UI has no game logic; Commands have no implementation details
 5. **Pure Functions**: Services are stateless where possible
+
+**Related Diagrams**:
+- [Service Dependencies](./diagrams/service-dependencies.md) - Dependency graph of all 33 services
+- [Command Flow](./diagrams/command-flow.md) - Detailed MoveCommand execution sequence
+- [Data Model](./diagrams/data-model.md) - Entity relationships and data structures
 
 ---
 

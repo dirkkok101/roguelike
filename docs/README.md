@@ -13,8 +13,9 @@
 **Goal**: Get up and running in 30 minutes
 
 1. **[Getting Started Guide](./getting-started.md)** - Clone, run, and make your first change
-2. **[Architecture Overview](./architecture.md)** - Understand the layered architecture
-3. **[CLAUDE.md](../CLAUDE.md)** - Main reference for workflows and patterns
+2. **[Architecture Diagrams](./diagrams/README.md)** - Visual architecture overview
+3. **[Architecture Overview](./architecture.md)** - Detailed textual architecture
+4. **[CLAUDE.md](../CLAUDE.md)** - Main reference for workflows and patterns
 
 ### 🎨 Game Designer
 **Goal**: Understand game mechanics and systems
@@ -33,6 +34,16 @@
 ---
 
 ## Documentation Map
+
+### 📊 Visual Diagrams (NEW)
+
+| Document | Purpose | Lines | Audience |
+|----------|---------|-------|----------|
+| **[Diagrams Index](./diagrams/README.md)** | Visual architecture diagrams (Mermaid.js) | - | All |
+| **[Architecture Layers](./diagrams/architecture-layers.md)** | 4-layer architecture (UI → Command → Service → Data) | - | Dev |
+| **[Service Dependencies](./diagrams/service-dependencies.md)** | Dependency graph of all 33 services | - | Dev |
+| **[Data Model](./diagrams/data-model.md)** | Entity relationships (GameState, Player, Monster) | - | Dev |
+| **[Command Flow](./diagrams/command-flow.md)** | MoveCommand execution sequence | - | Dev |
 
 ### 📋 Reference Guides
 
