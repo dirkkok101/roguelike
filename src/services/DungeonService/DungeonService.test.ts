@@ -1,11 +1,20 @@
 import { DungeonService, DungeonConfig } from './DungeonService'
 import { CorridorGenerationService } from '@services/CorridorGenerationService'
 import { SeededRandom } from '@services/RandomService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 
 describe('DungeonService', () => {
   const seed = 'test-dungeon-seed'
   const random = new SeededRandom(seed)
-  const dungeonService = new DungeonService(random)
+
+  // Mock MonsterSpawnService
+  const mockMonsterSpawnService = {
+    loadMonsterData: jest.fn().mockResolvedValue(undefined),
+    spawnMonsters: jest.fn().mockReturnValue([]),
+    getSpawnCount: jest.fn().mockReturnValue(5),
+  } as unknown as MonsterSpawnService
+
+  const dungeonService = new DungeonService(random, mockMonsterSpawnService)
   const corridorService = new CorridorGenerationService(random)
 
   const defaultConfig: DungeonConfig = {
