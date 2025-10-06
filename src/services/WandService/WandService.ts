@@ -315,8 +315,17 @@ export class WandService {
 
   /**
    * POLYMORPH - Change monster to random type (same depth)
-   * Note: This is a simplified implementation - full implementation would
-   * require MonsterSpawnService to get monsters of same depth
+   *
+   * **LIMITATION**: This is a simplified implementation that only:
+   * - Resets HP to maxHp
+   * - Changes monster name to "Polymorphed [name]"
+   *
+   * **TODO**: Full implementation should:
+   * - Inject MonsterSpawnService dependency
+   * - Get random monster template of same depth from MonsterSpawnService
+   * - Replace monster stats (hp, maxHp, attack, defense, speed, behavior)
+   * - Preserve monster ID and position
+   * - Update all stats to match new monster type
    */
   private applyPolymorph(
     target: Monster,
@@ -324,8 +333,8 @@ export class WandService {
     state: GameState,
     displayName: string
   ): { state: GameState; message: string } {
-    // For now, just change the monster's name and reset HP
-    // Full implementation would use MonsterSpawnService
+    // SIMPLIFIED IMPLEMENTATION: Only resets HP and changes name
+    // See method documentation for planned full implementation
     const updatedMonster: Monster = {
       ...target,
       hp: target.maxHp,
