@@ -8,10 +8,15 @@ export class DeathScreen {
   private container: HTMLDivElement | null = null
 
   /**
-   * Display death screen with final stats
+   * Display death screen with final stats and action callbacks
    */
-  show(stats: ComprehensiveDeathStats, onNewGame: () => void): void {
-    this.container = this.createDeathModal(stats, onNewGame)
+  show(
+    stats: ComprehensiveDeathStats,
+    onNewGame: () => void,
+    onReplaySeed: () => void,
+    onQuitToMenu: () => void
+  ): void {
+    this.container = this.createDeathModal(stats, onNewGame, onReplaySeed, onQuitToMenu)
     document.body.appendChild(this.container)
   }
 
@@ -25,7 +30,12 @@ export class DeathScreen {
     }
   }
 
-  private createDeathModal(stats: ComprehensiveDeathStats, onNewGame: () => void): HTMLDivElement {
+  private createDeathModal(
+    stats: ComprehensiveDeathStats,
+    onNewGame: () => void,
+    onReplaySeed: () => void,
+    onQuitToMenu: () => void
+  ): HTMLDivElement {
     const overlay = document.createElement('div')
     overlay.className = 'modal-overlay'
     overlay.style.cssText = `
@@ -129,18 +139,35 @@ export class DeathScreen {
         <div style="color: #888; margin-bottom: 15px; font-style: italic; font-size: 14px;">
           Permadeath - Your save has been deleted
         </div>
-        <div style="color: #00FF00; font-size: 16px;">
-          Press [N] to Continue
+        <div style="display: flex; justify-content: space-around; gap: 20px; margin-top: 10px;">
+          <div style="color: #00FF00; font-size: 15px;">
+            <span style="color: #88FF88;">[N]</span> New Game
+          </div>
+          <div style="color: #FFFF00; font-size: 15px;">
+            <span style="color: #FFFF88;">[R]</span> Replay Seed
+          </div>
+          <div style="color: #FF8888; font-size: 15px;">
+            <span style="color: #FF6666;">[Q]</span> Quit to Menu
+          </div>
         </div>
       </div>
     `
 
     // Handle keyboard input
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'n') {
+      const key = e.key.toLowerCase()
+      if (key === 'n') {
         document.removeEventListener('keydown', handleKeyPress)
         this.hide()
         onNewGame()
+      } else if (key === 'r') {
+        document.removeEventListener('keydown', handleKeyPress)
+        this.hide()
+        onReplaySeed()
+      } else if (key === 'q') {
+        document.removeEventListener('keydown', handleKeyPress)
+        this.hide()
+        onQuitToMenu()
       }
     }
     document.addEventListener('keydown', handleKeyPress)

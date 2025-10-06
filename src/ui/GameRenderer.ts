@@ -42,6 +42,8 @@ export class GameRenderer {
     private localStorageService: LocalStorageService,
     private deathService: DeathService,
     private onReturnToMenu: () => void,
+    private onStartNewGame: () => void,
+    private onReplaySeed: (seed: string) => void,
     _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
@@ -76,10 +78,21 @@ export class GameRenderer {
       // Calculate comprehensive death statistics via DeathService
       const stats = this.deathService.calculateDeathStats(state)
 
-      this.deathScreen.show(stats, () => {
-        // Return to main menu
-        this.onReturnToMenu()
-      })
+      this.deathScreen.show(
+        stats,
+        () => {
+          // New Game (random seed)
+          this.onStartNewGame()
+        },
+        () => {
+          // Replay Seed (same dungeon)
+          this.onReplaySeed(state.seed)
+        },
+        () => {
+          // Quit to Menu
+          this.onReturnToMenu()
+        }
+      )
       return // Don't render game when death screen shown
     }
 
