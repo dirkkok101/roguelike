@@ -78,6 +78,7 @@
 |----------|---------|-------|----------|
 | **[Getting Started](./getting-started.md)** | New developer onboarding (30-min quick start) | TBD | Dev |
 | **[Contributing](./contributing.md)** | Development workflow and standards | TBD | Dev |
+| **[Documentation Writing Guide](./documentation-guide.md)** | Templates and standards for all doc types | 932 | Dev |
 | **[Troubleshooting](./troubleshooting.md)** | Common issues and solutions | TBD | Dev |
 | **[Service Creation Guide](./services/creation-guide.md)** | Step-by-step service creation | 546 | Dev |
 | **[Command Creation Guide](./commands/creation-guide.md)** | Step-by-step command creation | 541 | Dev |
@@ -144,16 +145,18 @@
 
 1. **Small fixes** (typos, broken links): Submit PR directly
 2. **New sections**: Open issue first to discuss approach
-3. **New documents**: Follow [Document Template](./plans/TEMPLATE.md)
+3. **New documents**: Follow [Documentation Writing Guide](./documentation-guide.md)
 
-**Documentation Standards**:
+**Quick Standards**:
 - Keep documents under 500 lines (split if larger)
 - Use scenario-based organization (not method-based)
 - Include code examples with every concept
 - Add cross-references to related docs
 - Update "Last Updated" date when editing
 
-**See**: [Contributing Guide](./contributing.md) for detailed workflow
+**See**:
+- **[Documentation Writing Guide](./documentation-guide.md)** - Comprehensive guide for all doc types
+- **[Contributing Guide](./contributing.md)** - Development workflow
 
 ---
 

@@ -219,8 +219,11 @@ Closes #123 (link to issue)
 - Include code examples for every concept
 - Add cross-references to related docs
 - Update "Last Updated" date
+- Follow [Documentation Writing Guide](./documentation-guide.md)
 
-**See**: [Documentation Hub](./README.md#how-to-contribute-to-docs)
+**See**:
+- **[Documentation Writing Guide](./documentation-guide.md)** - Templates and standards for all doc types
+- **[Documentation Hub](./README.md#how-to-contribute-to-docs)** - Quick reference
 
 ---
 
