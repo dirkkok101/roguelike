@@ -1,4 +1,11 @@
-import { Monster, MonsterTemplate, Room, Tile, Position } from '@game/core/core'
+import {
+  Monster,
+  MonsterTemplate,
+  Room,
+  Tile,
+  Position,
+  MonsterState,
+} from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 
 /**
@@ -72,8 +79,52 @@ export class MonsterSpawnService {
    * @returns Array of spawned Monster instances
    */
   spawnMonsters(rooms: Room[], tiles: Tile[][], depth: number): Monster[] {
-    // TODO: Implement in Phase 3.4
-    throw new Error('Not implemented')
+    // Ensure data is loaded
+    if (!this.dataLoaded) {
+      throw new Error('Monster data not loaded. Call loadMonsterData() first.')
+    }
+
+    const monsters: Monster[] = []
+    const occupied = new Set<string>() // Track occupied positions
+
+    // Determine how many monsters to spawn
+    const spawnCount = this.getSpawnCount(depth)
+
+    // Filter monsters appropriate for this depth
+    const availableTemplates = this.filterMonstersByDepth(depth)
+
+    if (availableTemplates.length === 0) {
+      // No monsters available (shouldn't happen with proper data)
+      return monsters
+    }
+
+    // Spawn monsters
+    for (let i = 0; i < spawnCount; i++) {
+      // Select monster template with weighted randomness
+      const template = this.selectWeightedMonster(availableTemplates)
+
+      // Select random valid position
+      const position = this.selectSpawnPosition(rooms, tiles, occupied)
+
+      if (!position) {
+        // Could not find valid position, skip this monster
+        continue
+      }
+
+      // Mark position as occupied
+      occupied.add(`${position.x},${position.y}`)
+
+      // Create monster from template
+      const monster = this.createMonster(
+        template,
+        position,
+        `monster-${depth}-${i}-${this.random.nextInt(1000, 9999)}`
+      )
+
+      monsters.push(monster)
+    }
+
+    return monsters
   }
 
   /**
@@ -88,8 +139,7 @@ export class MonsterSpawnService {
    * @returns Number of monsters to spawn
    */
   getSpawnCount(depth: number): number {
-    // TODO: Implement in Phase 3.1
-    throw new Error('Not implemented')
+    return Math.min(depth * 2 + 3, 20)
   }
 
   // ============================================================================
@@ -191,20 +241,70 @@ export class MonsterSpawnService {
 
   /**
    * Filter monster templates by dungeon depth
+   *
+   * Allows monsters up to 2 levels above current depth (e.g., depth 1 allows levels 1-3).
+   * Ensures at least some monsters are available even on deep levels.
+   * Boss monsters (level >= 10) have additional restrictions (see isBossMonster).
+   *
    * @private
    */
   private filterMonstersByDepth(depth: number): MonsterTemplate[] {
-    // TODO: Implement in Phase 4.1
-    throw new Error('Not implemented')
+    const filtered = this.monsterTemplates.filter((template) => {
+      // Basic level check: monster.level <= depth + 2
+      if (template.level > depth + 2) {
+        return false
+      }
+
+      // Boss monsters have additional restrictions
+      if (this.isBossMonster(template)) {
+        // Boss monsters only spawn on deep levels (depth >= level - 1)
+        // E.g., Dragon (level 10) only spawns on depth 9-10
+        return depth >= template.level - 1
+      }
+
+      return true
+    })
+
+    // Fallback: if no monsters match, return all (shouldn't happen with proper data)
+    return filtered.length > 0 ? filtered : this.monsterTemplates
   }
 
   /**
    * Select monster template with weighted randomness
+   *
+   * Rarity weights:
+   * - common: 50% (weight 5)
+   * - uncommon: 30% (weight 3)
+   * - rare: 20% (weight 2)
+   *
    * @private
    */
   private selectWeightedMonster(templates: MonsterTemplate[]): MonsterTemplate {
-    // TODO: Implement in Phase 4.2
-    throw new Error('Not implemented')
+    // Map rarity to weight
+    const rarityWeights: Record<string, number> = {
+      common: 5, // 50% (5/10)
+      uncommon: 3, // 30% (3/10)
+      rare: 2, // 20% (2/10)
+    }
+
+    // Calculate total weight
+    const weights = templates.map((t) => rarityWeights[t.rarity] || 1)
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0)
+
+    // Pick random weighted value
+    const randomValue = this.random.nextInt(1, totalWeight)
+
+    // Find template at weighted index
+    let cumulativeWeight = 0
+    for (let i = 0; i < templates.length; i++) {
+      cumulativeWeight += weights[i]
+      if (randomValue <= cumulativeWeight) {
+        return templates[i]
+      }
+    }
+
+    // Fallback (should never reach here)
+    return this.random.pickRandom(templates)
   }
 
   /**
@@ -212,8 +312,7 @@ export class MonsterSpawnService {
    * @private
    */
   private isBossMonster(template: MonsterTemplate): boolean {
-    // TODO: Implement in Phase 4.3
-    throw new Error('Not implemented')
+    return template.level >= 10
   }
 
   /**
@@ -225,8 +324,26 @@ export class MonsterSpawnService {
     tiles: Tile[][],
     occupied: Set<string>
   ): Position | null {
-    // TODO: Implement in Phase 3.2
-    throw new Error('Not implemented')
+    const maxAttempts = 10
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // Pick random room
+      const room = this.random.pickRandom(rooms)
+
+      // Pick random position inside room (not on walls)
+      const x = this.random.nextInt(room.x + 1, room.x + room.width - 2)
+      const y = this.random.nextInt(room.y + 1, room.y + room.height - 2)
+
+      const key = `${x},${y}`
+
+      // Check if position is valid
+      if (!occupied.has(key) && tiles[y]?.[x]?.walkable) {
+        return { x, y }
+      }
+    }
+
+    // Could not find valid position after max attempts
+    return null
   }
 
   /**
@@ -238,7 +355,36 @@ export class MonsterSpawnService {
     position: Position,
     id: string
   ): Monster {
-    // TODO: Implement in Phase 3.3
-    throw new Error('Not implemented')
+    // Roll HP from dice notation
+    const hp = this.random.roll(template.hp)
+
+    // Determine initial state based on "mean" flag
+    const isAwake = template.mean
+    const state = template.mean ? MonsterState.HUNTING : MonsterState.SLEEPING
+
+    return {
+      id,
+      letter: template.letter,
+      name: template.name,
+      position,
+      hp,
+      maxHp: hp,
+      ac: template.ac,
+      damage: template.damage,
+      xpValue: template.xpValue,
+      level: template.level,
+      speed: template.speed, // Variable speed from template
+      energy: this.random.nextInt(0, 99), // Random initial energy for staggered starts
+      aiProfile: template.aiProfile,
+      isAsleep: !isAwake, // Inverse of isAwake
+      isAwake,
+      state,
+      visibleCells: new Set(),
+      currentPath: null,
+      hasStolen: false,
+      lastKnownPlayerPosition: null,
+      turnsWithoutSight: 0,
+      isInvisible: false, // Default visible (Phantoms override this)
+    }
   }
 }
