@@ -366,13 +366,36 @@ async function initializeGame() {
     }
 
     // Input handling - store handler for cleanup
+    // Energy-based game loop (3 phases):
+    // 1. Grant energy until player can act
+    // 2. Player acts and consumes energy
+    // 3. Process monsters if player exhausted energy, then increment turn
     currentKeydownHandler = (event: KeyboardEvent) => {
+      // PHASE 1: Grant energy until player can act
+      while (!turnService.canPlayerAct(gameState.player)) {
+        gameState = turnService.grantPlayerEnergy(gameState)
+      }
+
+      // PHASE 2: Player acts
       const command = inputHandler.handleKeyPress(event, gameState)
       if (command) {
         gameState = command.execute(gameState)
-        gameState = monsterTurnService.processMonsterTurns(gameState)
+
+        // Consume player energy after action
+        gameState = {
+          ...gameState,
+          player: turnService.consumePlayerEnergy(gameState.player),
+        }
+
+        // PHASE 3: Process monsters only if player exhausted energy
+        if (!turnService.canPlayerAct(gameState.player)) {
+          gameState = monsterTurnService.processMonsterTurns(gameState)
+          gameState = turnService.incrementTurn(gameState)
+        }
+
         autoSaveMiddleware.afterTurn(gameState)
       }
+
       // Always re-render (handles modal closes, inventory updates, etc.)
       renderer.render(gameState)
     }

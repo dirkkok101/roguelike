@@ -5,6 +5,8 @@ import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { MessageService } from '@services/MessageService'
 import { PathfindingService } from '@services/PathfindingService'
 import { FOVService } from '@services/FOVService'
+import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Monster, MonsterBehavior, Player } from '@game/core/core'
 
@@ -14,19 +16,22 @@ describe('MonsterTurnService - Turn Processing', () => {
   let combatService: CombatService
   let abilityService: SpecialAbilityService
   let messageService: MessageService
+  let turnService: TurnService
   let mockRandom: MockRandom
 
   beforeEach(() => {
     mockRandom = new MockRandom()
     const pathfinding = new PathfindingService()
-    const fovService = new FOVService()
+    const statusEffectService = new StatusEffectService()
+    const fovService = new FOVService(statusEffectService)
     messageService = new MessageService()
+    turnService = new TurnService(statusEffectService)
 
     aiService = new MonsterAIService(pathfinding, mockRandom, fovService)
     combatService = new CombatService(mockRandom)
     abilityService = new SpecialAbilityService(mockRandom)
 
-    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService)
+    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService, turnService)
   })
 
   function createTestState(monsters: Monster[] = []): GameState {
@@ -49,6 +54,8 @@ describe('MonsterTurnService - Turn Processing', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
 
     const tiles = Array(20)
@@ -116,6 +123,8 @@ describe('MonsterTurnService - Turn Processing', () => {
       currentPath: null,
       hasStolen: false,
       level: 1,
+      energy: 90,
+      speed: 10,
       ...overrides,
     }
   }
