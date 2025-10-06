@@ -1,4 +1,5 @@
-import { Player, Ring, RingType } from '@game/core/core'
+import { Player, Ring, RingType, Position, Level, Door, Trap, DoorState } from '@game/core/core'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // RESULT TYPES
@@ -24,6 +25,15 @@ export interface RingEffectResult {
   hasTeleportation: boolean     // TELEPORTATION ring equipped (cursed)
 }
 
+/**
+ * Result from SEARCHING ring auto-detection
+ * Contains arrays of positions where traps and secret doors were found
+ */
+export interface SearchingRingResult {
+  trapsFound: Position[]
+  secretDoorsFound: Position[]
+}
+
 // ============================================================================
 // RING SERVICE - Centralized ring effect management
 // ============================================================================
@@ -37,9 +47,10 @@ export interface RingEffectResult {
  * - Calculate hunger modifiers
  * - Check for passive ring abilities
  * - Provide comprehensive ring effect summaries
+ * - Apply active ring effects (SEARCHING ring auto-detection)
  *
  * Design Principles:
- * - Zero dependencies (pure query service)
+ * - Minimal dependencies (only RandomService for detection chance)
  * - Immutable (never modifies player state)
  * - Testable (all methods are pure functions)
  *
@@ -50,6 +61,7 @@ export interface RingEffectResult {
  * @see docs/services/RingService.md for complete documentation
  */
 export class RingService {
+  constructor(private random: IRandomService) {}
   /**
    * Check if player has specific ring type equipped
    * @param player - Player to check
@@ -247,5 +259,144 @@ export class RingService {
     })
 
     return Math.max(0, rate) // Never negative
+  }
+
+  // ============================================================================
+  // RING EFFECTS - Active abilities (SEARCHING, SEE_INVISIBLE, etc.)
+  // ============================================================================
+
+  /**
+   * Apply SEARCHING ring auto-detection for traps and secret doors
+   *
+   * Mechanics:
+   * - Detection chance: 10% per ring per turn (20% with two rings)
+   * - Search radius: 1 tile around player (8 adjacent tiles)
+   * - Only checks undiscovered traps and secret doors
+   *
+   * @param player - Player with potential SEARCHING ring(s)
+   * @param level - Current level to search
+   * @returns Result with arrays of found traps and secret doors
+   *
+   * @example
+   * const result = ringService.applySearchingRing(player, level)
+   * if (result.trapsFound.length > 0) {
+   *   // Mark traps as discovered
+   * }
+   */
+  applySearchingRing(player: Player, level: Level): SearchingRingResult {
+    const result: SearchingRingResult = {
+      trapsFound: [],
+      secretDoorsFound: [],
+    }
+
+    // Early exit if no SEARCHING ring equipped
+    if (!this.hasRing(player, RingType.SEARCHING)) {
+      return result
+    }
+
+    // Calculate detection chance (10% per ring)
+    const rings = this.getEquippedRings(player)
+    const searchingRingCount = rings.filter(
+      (r) => r.ringType === RingType.SEARCHING
+    ).length
+
+    const detectionChance = searchingRingCount * 0.1 // 0.1 or 0.2
+
+    // Get adjacent positions (8 tiles around player)
+    const adjacentPositions = this.getAdjacentPositions(player.position)
+
+    // Check each adjacent position for traps and secret doors
+    adjacentPositions.forEach((pos) => {
+      // Check if position is in bounds
+      if (!this.isInBounds(pos, level)) {
+        return
+      }
+
+      // Check for undiscovered traps
+      const trap = level.traps.find(
+        (t) => t.position.x === pos.x && t.position.y === pos.y && !t.discovered
+      )
+      if (trap && this.random.chance(detectionChance)) {
+        result.trapsFound.push(pos)
+      }
+
+      // Check for secret doors
+      const secretDoor = level.doors.find(
+        (d) =>
+          d.position.x === pos.x &&
+          d.position.y === pos.y &&
+          d.state === DoorState.SECRET &&
+          !d.discovered
+      )
+      if (secretDoor && this.random.chance(detectionChance)) {
+        result.secretDoorsFound.push(pos)
+      }
+    })
+
+    return result
+  }
+
+  /**
+   * Check if player can see invisible monsters (SEE_INVISIBLE ring)
+   * @param player - Player to check
+   * @returns True if player has SEE_INVISIBLE ring equipped
+   */
+  canSeeInvisible(player: Player): boolean {
+    return this.hasRing(player, RingType.SEE_INVISIBLE)
+  }
+
+  /**
+   * Check if player has strength drain protection (SUSTAIN_STRENGTH ring)
+   * @param player - Player to check
+   * @returns True if player has SUSTAIN_STRENGTH ring equipped
+   */
+  preventStrengthDrain(player: Player): boolean {
+    return this.hasRing(player, RingType.SUSTAIN_STRENGTH)
+  }
+
+  /**
+   * Check if player has stealth (silent movement)
+   * @param player - Player to check
+   * @returns True if player has STEALTH ring equipped
+   */
+  hasStealth(player: Player): boolean {
+    return this.hasRing(player, RingType.STEALTH)
+  }
+
+  // ============================================================================
+  // PRIVATE HELPER METHODS
+  // ============================================================================
+
+  /**
+   * Get all 8 adjacent positions around a given position
+   * @param pos - Center position
+   * @returns Array of 8 adjacent positions
+   */
+  private getAdjacentPositions(pos: Position): Position[] {
+    return [
+      { x: pos.x - 1, y: pos.y - 1 }, // NW
+      { x: pos.x, y: pos.y - 1 },     // N
+      { x: pos.x + 1, y: pos.y - 1 }, // NE
+      { x: pos.x - 1, y: pos.y },     // W
+      { x: pos.x + 1, y: pos.y },     // E
+      { x: pos.x - 1, y: pos.y + 1 }, // SW
+      { x: pos.x, y: pos.y + 1 },     // S
+      { x: pos.x + 1, y: pos.y + 1 }, // SE
+    ]
+  }
+
+  /**
+   * Check if position is within level bounds
+   * @param pos - Position to check
+   * @param level - Current level
+   * @returns True if position is in bounds
+   */
+  private isInBounds(pos: Position, level: Level): boolean {
+    return (
+      pos.x >= 0 &&
+      pos.x < level.width &&
+      pos.y >= 0 &&
+      pos.y < level.height
+    )
   }
 }

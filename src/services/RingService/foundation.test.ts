@@ -1,12 +1,15 @@
 import { RingService } from './RingService'
 import { Player, Ring, RingType, ItemType } from '@game/core/core'
+import { MockRandom } from '@services/RandomService'
 
 describe('RingService - Foundation Methods', () => {
   let service: RingService
   let basePlayer: Player
+  let mockRandom: MockRandom
 
   beforeEach(() => {
-    service = new RingService()
+    mockRandom = new MockRandom([])
+    service = new RingService(mockRandom)
 
     // Base player with no rings equipped
     basePlayer = {

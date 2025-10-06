@@ -1,1 +1,1 @@
-export { RingService, RingEffectResult } from './RingService'
+export { RingService, RingEffectResult, SearchingRingResult } from './RingService'

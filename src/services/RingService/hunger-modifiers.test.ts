@@ -1,12 +1,15 @@
 import { RingService } from './RingService'
 import { Player, Ring, RingType, ItemType } from '@game/core/core'
+import { MockRandom } from '@services/RandomService'
 
 describe('RingService - Hunger Modifier Calculation', () => {
   let service: RingService
   let basePlayer: Player
+  let mockRandom: MockRandom
 
   beforeEach(() => {
-    service = new RingService()
+    mockRandom = new MockRandom([])
+    service = new RingService(mockRandom)
 
     basePlayer = {
       position: { x: 5, y: 5 },
