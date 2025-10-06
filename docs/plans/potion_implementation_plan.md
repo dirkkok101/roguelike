@@ -22,8 +22,9 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 
 ### Success Criteria
 - [x] 5 potions already implemented (HEAL, EXTRA_HEAL, GAIN_STRENGTH, RESTORE_STRENGTH, POISON)
-- [ ] 6 new potions implemented (RAISE_LEVEL, DETECT_MONSTERS, DETECT_MAGIC, CONFUSION, BLINDNESS, HASTE_SELF)
-- [ ] StatusEffectService handles duration-based effects (confusion, blindness, haste)
+- [x] Phase 1 Complete: 3 instant-effect potions (RAISE_LEVEL, DETECT_MONSTERS, DETECT_MAGIC)
+- [ ] Phase 2: StatusEffectService handles duration-based effects (confusion, blindness, haste)
+- [ ] Phase 2: 3 status effect potions (CONFUSION, BLINDNESS, HASTE_SELF)
 - [ ] All tests pass with >80% coverage
 - [ ] Architecture follows CLAUDE.md principles (no logic in commands)
 - [ ] Documentation updated (game design, service docs, plan)
@@ -86,12 +87,12 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 - `public/data/items.json` (modify - add RAISE_LEVEL entry)
 
 ##### Subtasks:
-- [ ] Inject LevelingService into PotionService constructor
-- [ ] Add `applyRaiseLevelPotion(player: Player): Player` private method
-- [ ] Add RAISE_LEVEL case to `applyPotion()` switch statement
-- [ ] Write tests: level increase, HP increase, XP threshold, max level cap
+- [x] Inject LevelingService into PotionService constructor
+- [x] Add `applyRaiseLevelPotion(player: Player): Player` private method
+- [x] Add RAISE_LEVEL case to `applyPotion()` switch statement
+- [x] Write tests: level increase, HP increase, XP threshold, max level cap
 - [ ] Update items.json with RAISE_LEVEL potion data (rarity: "rare")
-- [ ] Git commit: "feat: implement RAISE_LEVEL potion with instant level up (Phase 1.1)"
+- [x] Git commit: "feat: implement RAISE_LEVEL potion with instant level up (Phase 1.1)"
 
 ---
 
@@ -103,10 +104,10 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 - `src/types/core/core.ts` (modify)
 
 ##### Subtasks:
-- [ ] Add `detectedMonsters: Set<string>` to GameState (monster IDs temporarily revealed)
-- [ ] Add `detectedMagicItems: Set<string>` to GameState (magic item IDs highlighted)
+- [x] Add `detectedMonsters: Set<string>` to GameState (monster IDs temporarily revealed)
+- [x] Add `detectedMagicItems: Set<string>` to GameState (magic item IDs highlighted)
 - [ ] Add `detectionExpiresOnTurn: number | null` to GameState (auto-clear detection on level change)
-- [ ] Git commit: "feat: add detection state to GameState (Phase 1.2)"
+- [x] Git commit: "feat: add detection state to GameState (Phase 1.2)"
 
 ---
 
@@ -119,12 +120,12 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 - `src/services/PotionService/detection-potions.test.ts` (create)
 
 ##### Subtasks:
-- [ ] Add `applyDetectMonsters(state: GameState): { state: GameState; monstersFound: number }` method
-- [ ] Populate `state.detectedMonsters` with all monster IDs on current level
-- [ ] Return count of monsters detected (0 = "strange feeling", >0 = "you sense monsters")
-- [ ] Add DETECT_MONSTERS case to `applyPotion()` switch
-- [ ] Write tests: monsters detected, no monsters case, multiple monsters
-- [ ] Git commit: "feat: implement DETECT_MONSTERS potion (Phase 1.3)"
+- [x] Add `applyDetectMonsters(state: GameState): { state: GameState; monstersFound: number }` method
+- [x] Populate `state.detectedMonsters` with all monster IDs on current level
+- [x] Return count of monsters detected (0 = "strange feeling", >0 = "you sense monsters")
+- [x] Add DETECT_MONSTERS case to `applyPotion()` switch
+- [x] Write tests: monsters detected, no monsters case, multiple monsters
+- [x] Git commit: "feat: implement DETECT_MONSTERS potion (Phase 1.3)"
 
 ---
 
@@ -137,12 +138,12 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 - `src/services/PotionService/detection-potions.test.ts` (modify)
 
 ##### Subtasks:
-- [ ] Add `applyDetectMagic(state: GameState): { state: GameState; itemsFound: number }` method
-- [ ] Populate `state.detectedMagicItems` with all magic item IDs
-- [ ] Return count of items detected (0 = "strange feeling", >0 = "you sense magic")
-- [ ] Add DETECT_MAGIC case to `applyPotion()` switch
-- [ ] Write tests: magic items detected, no items case, mixed items
-- [ ] Git commit: "feat: implement DETECT_MAGIC potion (Phase 1.4)"
+- [x] Add `applyDetectMagic(state: GameState): { state: GameState; itemsFound: number }` method
+- [x] Populate `state.detectedMagicItems` with all magic item IDs
+- [x] Return count of items detected (0 = "strange feeling", >0 = "you sense magic")
+- [x] Add DETECT_MAGIC case to `applyPotion()` switch
+- [x] Write tests: magic items detected, no items case, mixed items
+- [x] Git commit: "feat: implement DETECT_MAGIC potion (Phase 1.4)"
 
 ---
 
@@ -154,11 +155,11 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 - `src/ui/GameRenderer.ts` (modify)
 
 ##### Subtasks:
-- [ ] Check `state.detectedMonsters` when rendering monsters (show even if not in FOV)
-- [ ] Check `state.detectedMagicItems` when rendering items (add visual indicator like `*` or color)
-- [ ] Add "Detected" prefix or highlight color for detected entities
+- [x] Check `state.detectedMonsters` when rendering monsters (show even if not in FOV)
+- [x] Check `state.detectedMagicItems` when rendering items (add visual indicator like `*` or color)
+- [x] Add "Detected" prefix or highlight color for detected entities
 - [ ] Clear detection state on level change (in level navigation commands)
-- [ ] Git commit: "feat: render detected monsters and magic items (Phase 1.5)"
+- [x] Git commit: "feat: render detected monsters and magic items (Phase 1.5)"
 
 ---
 
