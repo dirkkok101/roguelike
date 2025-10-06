@@ -146,6 +146,42 @@ export class TurnService {
   }
 
   /**
+   * Grant energy to ALL actors (player + monsters) simultaneously
+   * This ensures fair energy distribution - all actors accumulate energy at same rate
+   * Returns new GameState with updated player and monsters (immutable)
+   *
+   * @param state - Current game state
+   * @returns New GameState with all actors' energy increased
+   */
+  grantEnergyToAllActors(state: GameState): GameState {
+    // Grant energy to player
+    const playerSpeed = this.getPlayerSpeed(state.player)
+    const updatedPlayer = this.grantEnergy(state.player, playerSpeed)
+
+    // Grant energy to all monsters on current level
+    const currentLevel = state.levels.get(state.currentLevel)
+    if (!currentLevel) {
+      return { ...state, player: updatedPlayer }
+    }
+
+    // Update all monsters with energy grants
+    const updatedMonsters = currentLevel.monsters.map((monster) =>
+      this.grantEnergy(monster, monster.speed)
+    )
+
+    // Create updated level with new monster energies
+    const updatedLevel = { ...currentLevel, monsters: updatedMonsters }
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    return {
+      ...state,
+      player: updatedPlayer,
+      levels: updatedLevels,
+    }
+  }
+
+  /**
    * Consume energy from player after action
    * Wrapper for consumeEnergy() for Player type
    *

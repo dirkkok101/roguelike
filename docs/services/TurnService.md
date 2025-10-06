@@ -56,24 +56,42 @@ const turn = this.turnService.getCurrentTurn(state)
 
 ### Energy System (Angband-style)
 
-#### `grantPlayerEnergy(state: GameState): GameState`
-Grants energy to player based on speed/haste status.
+#### `grantEnergyToAllActors(state: GameState): GameState`
+**PRIMARY METHOD** - Grants energy to ALL actors (player + monsters) simultaneously.
 
-**Energy Grant**:
-- Base: 100 energy per turn
-- HASTED: 200 energy per turn (double speed)
+**Why This Matters**: Ensures fair energy distribution. All actors accumulate energy at the same rate based on their speed values.
+
+**Energy Grants**:
+- **Player**: 10 energy/tick (normal) or 20 energy/tick (hasted)
+- **Monsters**: `monster.speed` energy/tick (varies by monster type)
 
 **Usage**:
 ```typescript
-// Main game loop - grant energy until player can act
-while (!turnService.canPlayerAct(state.player)) {
-  state = turnService.grantPlayerEnergy(state)
-}
+// Main game loop - grant energy to ALL actors until player can act
+do {
+  state = turnService.grantEnergyToAllActors(state)
+} while (!turnService.canPlayerAct(state.player))
 ```
+
+**Example**:
+- Player speed 10, Monster speed 10: Both accumulate at same rate
+- Player speed 10, Monster speed 15 (Bat): Monster acts 1.5x more often
+- Player speed 10, Monster speed 5 (Zombie): Player acts 2x more often
 
 ---
 
-#### `consumePlayerEnergy(player: Player, amount: number = 100): Player`
+#### `grantPlayerEnergy(state: GameState): GameState`
+**LEGACY METHOD** - Grants energy to player only (use `grantEnergyToAllActors` instead).
+
+Kept for backward compatibility with individual tests.
+
+**Energy Grant**:
+- Base: 10 energy per tick (normal speed)
+- HASTED: 20 energy per tick (double speed)
+
+---
+
+#### `consumePlayerEnergy(player: Player): Player`
 Consumes energy after player action.
 
 **Default Cost**: 100 energy (standard action)
@@ -180,12 +198,13 @@ return this.turnService.incrementTurn({
 ## Game Loop Integration
 
 ```typescript
-// Main game loop (simplified)
+// Main game loop (main.ts - CURRENT IMPLEMENTATION)
 function handlePlayerAction(command: Command, state: GameState): GameState {
-  // Phase 1: Grant energy until player can act
-  while (!turnService.canPlayerAct(state.player)) {
-    state = turnService.grantPlayerEnergy(state)
-  }
+  // Phase 1: Grant energy to ALL actors until player can act
+  // Use do-while to ensure at least one tick (prevents monsters falling behind)
+  do {
+    state = turnService.grantEnergyToAllActors(state)
+  } while (!turnService.canPlayerAct(state.player))
 
   // Phase 2: Execute command
   state = command.execute(state)
@@ -197,6 +216,7 @@ function handlePlayerAction(command: Command, state: GameState): GameState {
   }
 
   // Phase 4: Process monsters (if player exhausted energy)
+  // Monsters already have energy from Phase 1
   if (!turnService.canPlayerAct(state.player)) {
     state = monsterTurnService.processMonsterTurns(state)
   }

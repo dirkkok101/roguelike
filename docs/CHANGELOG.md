@@ -4,6 +4,202 @@
 
 ---
 
+## 2025-10-06 - Energy System Bug Fix (v2.3)
+
+**Objective**: Fix critical energy system bug causing monsters to move 10x slower than intended
+
+**Changes Made**: Energy distribution fix in game loop
+
+---
+
+### The Bug
+
+**Problem**: Phase 1 of the game loop only granted energy to the player, not to monsters. This caused a massive imbalance:
+
+| Actor | Energy Grants | Total Energy | Result |
+|-------|---------------|--------------|--------|
+| **Player (speed 10)** | 10 grants × 10 speed | **100 energy** | ✅ Acts |
+| **Monster (speed 10)** | 1 grant × 10 speed | **10 energy** | ❌ Cannot act |
+
+**Impact**: Player acted 10 times before same-speed monsters acted once. Monsters appeared frozen.
+
+**Old Buggy Code**:
+```typescript
+// Phase 1: Grant energy ONLY to player
+while (!turnService.canPlayerAct(gameState.player)) {
+  gameState = turnService.grantPlayerEnergy(gameState)  // Player only!
+}
+```
+
+Monsters only got ONE energy grant (10) inside `MonsterTurnService.processMonsterTurns()`.
+
+---
+
+### The Fix
+
+**Solution**: Created `grantEnergyToAllActors()` method that grants energy to player AND all monsters simultaneously in Phase 1.
+
+**Code Changes** (`src/services/TurnService/TurnService.ts`):
+
+```typescript
+/**
+ * Grant energy to ALL actors (player + monsters) simultaneously
+ * Ensures fair energy distribution
+ */
+grantEnergyToAllActors(state: GameState): GameState {
+  // Grant to player
+  const playerSpeed = this.getPlayerSpeed(state.player)
+  const updatedPlayer = this.grantEnergy(state.player, playerSpeed)
+
+  // Grant to all monsters on current level
+  const currentLevel = state.levels.get(state.currentLevel)
+  const updatedMonsters = currentLevel.monsters.map(monster =>
+    this.grantEnergy(monster, monster.speed)
+  )
+
+  return { ...state, player: updatedPlayer, levels: updatedLevels }
+}
+```
+
+**Game Loop Update** (`src/main.ts`):
+
+```typescript
+// Phase 1: Grant energy to ALL actors until player can act
+do {
+  gameState = turnService.grantEnergyToAllActors(gameState)  // Everyone!
+} while (!turnService.canPlayerAct(gameState.player))
+```
+
+**MonsterTurnService Update** (`src/services/MonsterTurnService/MonsterTurnService.ts`):
+- **Removed** duplicate energy grant (line 41)
+- Monsters now enter `processMonsterTurns()` with energy already accumulated from Phase 1
+
+---
+
+### Expected Gameplay Impact
+
+**Before Fix**:
+- Player speed 10 + Monster speed 10 = Player acts 10x more often ❌
+- Could "run circles around monsters" - they barely moved
+- Monsters seemed frozen or extremely slow
+
+**After Fix**:
+- Player speed 10 + Monster speed 10 = Both act at same frequency ✅
+- Player speed 10 + Monster speed 15 (Bat) = Bat acts 1.5x more often ✅
+- Player speed 10 + Monster speed 5 (Zombie) = Player acts 2x more often ✅
+- **Balanced, predictable combat encounters**
+
+---
+
+### Files Modified
+
+**Core Implementation** (3 files):
+1. `src/services/TurnService/TurnService.ts` - Added `grantEnergyToAllActors()` method
+2. `src/main.ts` - Updated game loop to use new method (do-while for minimum 1 tick)
+3. `src/services/MonsterTurnService/MonsterTurnService.ts` - Removed duplicate energy grant
+
+**Tests Updated** (3 files):
+4. `src/__integration__/energy-game-loop.test.ts` - Updated `simulatePlayerTurn()` + expectations (8 tests)
+5. `src/services/MonsterTurnService/energy-turn-processing.test.ts` - Added energy grants (7 tests)
+6. `src/services/MonsterTurnService/turn-processing.test.ts` - Added energy grants (5 tests)
+
+**Documentation Updated** (3 files):
+7. `docs/services/TurnService.md` - Added `grantEnergyToAllActors()` API docs, updated game loop
+8. `docs/services/MonsterTurnService.md` - Clarified energy now granted in Phase 1
+9. `docs/CHANGELOG.md` - This entry
+
+**Test Results**:
+- ✅ All 83 energy system tests passing
+- ✅ Build successful
+- ✅ No regressions
+
+---
+
+## 2025-10-06 - Monster Aggression & Food Balance (v2.2)
+
+**Objective**: Fix passive monster behavior and food scarcity causing hunger deaths instead of combat deaths
+
+**Changes Made**: Monster AI tuning + item spawning rebalance
+
+---
+
+### Monster AI Improvements
+
+**Problem**: Monsters had aggro ranges 12-100% too low, causing them to wake up too late or not at all. Players died from hunger while wandering instead of from combat encounters.
+
+**Monster Data Updates** (`public/data/monsters.json`):
+
+| Monster | Aggro Change | Behavior Change | Intelligence Change | Other Changes |
+|---------|--------------|-----------------|---------------------|---------------|
+| **Bat (B)** | 5→**8** (+60%) | SIMPLE→**ERRATIC** | 1→**2** | Now unpredictable |
+| **Kobold (K)** | 5→**7** (+40%) | - | - | Better detection |
+| **Snake (S)** | 4→**5** (+25%) | - | 1→**2** | - |
+| **Orc (O)** | 6→**8** (+33%) | SMART→**GREEDY** | 3→**5** | fleeThreshold: 0.0→**0.25** |
+| **Zombie (Z)** | 3→**6** (+100%) | - | - | Biggest fix |
+| **Troll (T)** | 7→**8** (+14%) | SMART→**SIMPLE** | 3→**4** | fleeThreshold: 0.0→**0.2** |
+| **Dragon (D)** | 10→**15** (+50%) | - | 5→**8** | fleeThreshold: 0.0→**0.15** |
+
+**Impact**:
+- ✅ Monsters now detect player from 5-15 tiles (design spec compliant)
+- ✅ 2-3x more combat encounters per level
+- ✅ Proper pursuit gameplay (monsters chase, don't just spawn adjacent)
+- ✅ Bat behavior now erratic (50% random movement)
+
+---
+
+### Food Spawning Improvements
+
+**Problem**: Only ~0.57 food per level spawned, insufficient for increased combat frequency.
+
+**DungeonService Changes** (`src/services/DungeonService/DungeonService.ts`):
+
+1. **Increased item count per level**:
+   - Before: 3-6 items per level
+   - After: **5-8 items per level** (+2 items average)
+
+2. **Increased food spawn weight**:
+   - Before: Food weight = 12 (same as other categories)
+   - After: Food weight = **18** (+50% increase)
+
+**Impact**:
+- ✅ Expected food per level: 0.57→**1.16** (+103%)
+- ✅ Food spawn chance: 12.6%→**17.8%**
+- ✅ Balanced resource management for combat-heavy gameplay
+
+---
+
+### Documentation Updates
+
+**Updated Files**:
+- ✅ `docs/services/DungeonService.md` - Item count (5-8), food weight (18)
+- ✅ `docs/systems-advanced.md` - Already had correct aggro ranges
+- ✅ `public/data/monsters.json` - All 7 monster AI profiles updated
+
+**Test Results**:
+- ✅ 74/74 MonsterAI tests passing
+- ✅ 33/33 MonsterSpawn tests passing
+- ✅ 27/27 DungeonService tests passing
+- ✅ Build successful
+
+---
+
+### Expected Gameplay Impact
+
+**Before Changes**:
+- Monsters woke up at 3-6 tiles (too close)
+- ~0.5 combat encounters per level
+- Death by hunger > death by combat ❌
+
+**After Changes**:
+- Monsters detect at 5-15 tiles (proper pursuit)
+- ~2-3x more combat encounters
+- Sufficient food to sustain combat
+- Death by combat > death by hunger ✅
+
+**Proper roguelike balance restored**: Combat is primary threat, food is manageable resource.
+
+---
+
 ## 2025-10-06 - Potion System Complete (v2.1)
 
 **Objective**: Document completion of all 11 Original Rogue potion types and energy system integration

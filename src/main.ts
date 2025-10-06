@@ -392,14 +392,15 @@ async function initializeGame() {
 
     // Input handling - store handler for cleanup
     // Energy-based game loop (3 phases):
-    // 1. Grant energy until player can act
+    // 1. Grant energy to ALL actors until player can act (minimum 1 tick)
     // 2. Player acts and consumes energy
     // 3. Process monsters if player exhausted energy, then increment turn
     currentKeydownHandler = (event: KeyboardEvent) => {
-      // PHASE 1: Grant energy until player can act
-      while (!turnService.canPlayerAct(gameState.player)) {
-        gameState = turnService.grantPlayerEnergy(gameState)
-      }
+      // PHASE 1: Grant energy to ALL actors (player + monsters) until player can act
+      // Always grant at least one tick to ensure monsters don't fall behind
+      do {
+        gameState = turnService.grantEnergyToAllActors(gameState)
+      } while (!turnService.canPlayerAct(gameState.player))
 
       // PHASE 2: Player acts
       const command = inputHandler.handleKeyPress(event, gameState)

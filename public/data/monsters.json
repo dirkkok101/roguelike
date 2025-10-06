@@ -11,9 +11,9 @@
     "rarity": "common",
     "mean": false,
     "aiProfile": {
-      "behavior": "SIMPLE",
-      "intelligence": 1,
-      "aggroRange": 5,
+      "behavior": "ERRATIC",
+      "intelligence": 2,
+      "aggroRange": 8,
       "fleeThreshold": 0.0,
       "special": ["flying"]
     }
@@ -32,7 +32,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
-      "aggroRange": 5,
+      "aggroRange": 7,
       "fleeThreshold": 0.0,
       "special": []
     }
@@ -50,8 +50,8 @@
     "mean": true,
     "aiProfile": {
       "behavior": "SIMPLE",
-      "intelligence": 1,
-      "aggroRange": 4,
+      "intelligence": 2,
+      "aggroRange": 5,
       "fleeThreshold": 0.0,
       "special": []
     }
@@ -68,10 +68,10 @@
     "rarity": "uncommon",
     "mean": true,
     "aiProfile": {
-      "behavior": "SMART",
-      "intelligence": 3,
-      "aggroRange": 6,
-      "fleeThreshold": 0.0,
+      "behavior": "GREEDY",
+      "intelligence": 5,
+      "aggroRange": 8,
+      "fleeThreshold": 0.25,
       "special": []
     }
   },
@@ -89,7 +89,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
-      "aggroRange": 3,
+      "aggroRange": 6,
       "fleeThreshold": 0.0,
       "special": []
     }
@@ -106,10 +106,10 @@
     "rarity": "uncommon",
     "mean": true,
     "aiProfile": {
-      "behavior": "SMART",
-      "intelligence": 3,
-      "aggroRange": 7,
-      "fleeThreshold": 0.0,
+      "behavior": "SIMPLE",
+      "intelligence": 4,
+      "aggroRange": 8,
+      "fleeThreshold": 0.2,
       "special": ["regeneration"]
     }
   },
@@ -126,9 +126,9 @@
     "mean": true,
     "aiProfile": {
       "behavior": "SMART",
-      "intelligence": 5,
-      "aggroRange": 10,
-      "fleeThreshold": 0.0,
+      "intelligence": 8,
+      "aggroRange": 15,
+      "fleeThreshold": 0.15,
       "special": ["mean", "breath_weapon"]
     }
   }

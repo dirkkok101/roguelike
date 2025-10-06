@@ -169,10 +169,11 @@ function simulatePlayerTurn(
 ): GameState {
   let gameState = state
 
-  // PHASE 1: Grant energy until player can act
-  while (!turnService.canPlayerAct(gameState.player)) {
-    gameState = turnService.grantPlayerEnergy(gameState)
-  }
+  // PHASE 1: Grant energy to ALL actors (player + monsters) until player can act
+  // Always grant at least one tick to ensure monsters don't fall behind
+  do {
+    gameState = turnService.grantEnergyToAllActors(gameState)
+  } while (!turnService.canPlayerAct(gameState.player))
 
   // PHASE 2: Player acts (simulated - just consume energy)
   gameState = {
@@ -264,17 +265,19 @@ describe('Energy Game Loop - Integration Tests', () => {
     const level = createTestLevel([slowMonster])
     let state = createTestState(player, level)
 
-    // Turn 1: Monster gains 5 energy (95 + 5 = 100), acts once
+    // Turn 1: Player has 100, do-while grants once (player 110, monster 100)
+    // Player acts (110 → 10), monster acts (100 → 0)
     state = simulatePlayerTurn(state, turnService, monsterTurnService)
     let updatedLevel = state.levels.get(1)!
     let monster = updatedLevel.monsters.find((m) => m.id === 'm1')!
     expect(monster.energy).toBe(0) // 100 - 100 = 0
 
-    // Turn 2: Monster gains 5 energy (0 + 5 = 5), cannot act
+    // Turn 2: Player 10, Monster 0. Phase 1 loops 9 times to get player to 100
+    // Monster gains 5 × 9 = 45 energy. Monster has 45, cannot act (45 < 100)
     state = simulatePlayerTurn(state, turnService, monsterTurnService)
     updatedLevel = state.levels.get(1)!
     monster = updatedLevel.monsters.find((m) => m.id === 'm1')!
-    expect(monster.energy).toBe(5) // 5 < 100, no action
+    expect(monster.energy).toBe(45) // Accumulated during Phase 1
   })
 
   test('Scenario 4: Fast monster (speed 20) acts twice per monster phase', () => {
@@ -356,14 +359,17 @@ describe('Energy Game Loop - Integration Tests', () => {
     const initialTurnCount = state.turnCount
 
     // Simulate full turn
+    // Phase 1 loops 10 times: player 0→100, monster 90→190
+    // Player acts (100→0), monster acts once (190→90)
     state = simulatePlayerTurn(state, turnService, monsterTurnService)
 
     // Turn should have incremented (only when player exhausts energy)
     expect(state.turnCount).toBe(initialTurnCount + 1)
 
-    // Monster should have processed
+    // Monster accumulated 10×10=100 energy during Phase 1 (90+100=190)
+    // Monster acted once (190-100=90), still has 90 energy left
     const updatedLevel = state.levels.get(1)!
     const updatedMonster = updatedLevel.monsters.find((m) => m.id === 'm1')!
-    expect(updatedMonster.energy).toBe(0) // 90 + 10 = 100, acted, consumed 100
+    expect(updatedMonster.energy).toBe(90) // Acted once, 90 energy remains
   })
 })

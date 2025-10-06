@@ -22,7 +22,8 @@ export class MonsterTurnService {
 
   /**
    * Process turns for all monsters on current level with energy system
-   * Grants energy to each monster based on speed, processes multiple actions if energy allows
+   * NOTE: Monsters already have energy granted in Phase 1 of main game loop
+   * This method processes monster actions based on accumulated energy
    */
   processMonsterTurns(state: GameState): GameState {
     const level = state.levels.get(state.currentLevel)
@@ -37,11 +38,8 @@ export class MonsterTurnService {
         continue
       }
 
-      // Grant energy to monster based on speed
-      let updatedMonster = this.turnService.grantEnergy(monster, monster.speed)
-
-      // Save energy grant to level immediately
-      currentState = this.updateMonsterInLevel(updatedMonster, currentState)
+      // Monsters already have energy from Phase 1 (grantEnergyToAllActors)
+      let updatedMonster = monster
 
       // Process monster while it has enough energy to act
       while (this.turnService.canAct(updatedMonster)) {
