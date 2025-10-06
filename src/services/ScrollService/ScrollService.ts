@@ -14,10 +14,23 @@ import { InventoryService } from '@services/InventoryService'
 // RESULT TYPE
 // ============================================================================
 
+/**
+ * Result of applying a scroll effect
+ *
+ * @field player - Updated player (optional - only when scroll modifies player directly)
+ * @field state - Updated game state (optional - only when scroll modifies level/world)
+ * @field message - Effect description message to display
+ * @field identified - Was scroll unidentified before use? (for auto-identification)
+ * @field fizzled - Did scroll fail to work? (if true, no turn consumed, scroll not removed)
+ * @field consumed - Should scroll be removed from inventory? (false for SCARE_MONSTER)
+ */
 export interface ScrollEffectResult {
-  player: Player
+  player?: Player
+  state?: GameState
   message: string
   identified: boolean
+  fizzled?: boolean
+  consumed: boolean
 }
 
 // ============================================================================
@@ -77,7 +90,7 @@ export class ScrollService {
         message = `You read ${displayName}. (Effect not yet implemented)`
     }
 
-    return { player: updatedPlayer, message, identified }
+    return { player: updatedPlayer, message, identified, consumed: true }
   }
 
   // ============================================================================
@@ -93,7 +106,9 @@ export class ScrollService {
     if (!targetItemId) {
       return {
         player,
-        message: `You read ${scrollName}, but nothing happens.`
+        message: `You read ${scrollName}, but nothing happens.`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -102,7 +117,9 @@ export class ScrollService {
     if (!targetItem) {
       return {
         player,
-        message: `You read ${scrollName}, but the item is gone.`
+        message: `You read ${scrollName}, but the item is gone.`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -111,7 +128,9 @@ export class ScrollService {
     if (!typeKey) {
       return {
         player,
-        message: `You read ${scrollName}, but nothing happens.`
+        message: `You read ${scrollName}, but nothing happens.`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -120,7 +139,8 @@ export class ScrollService {
 
     return {
       player,
-      message: `You read ${scrollName}. This is ${targetName}!`
+      message: `You read ${scrollName}. This is ${targetName}!`,
+      consumed: true
     }
   }
 
@@ -132,7 +152,9 @@ export class ScrollService {
     if (!targetItemId) {
       return {
         player,
-        message: `You read ${scrollName}, but nothing happens.`
+        message: `You read ${scrollName}, but nothing happens.`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -141,7 +163,9 @@ export class ScrollService {
     if (!targetItem || targetItem.type !== ItemType.WEAPON) {
       return {
         player,
-        message: `You read ${scrollName}, but the item is not a weapon.`
+        message: `You read ${scrollName}, but the item is not a weapon.`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -151,7 +175,9 @@ export class ScrollService {
     if (weapon.bonus >= 3) {
       return {
         player,
-        message: `You read ${scrollName}. ${weapon.name} is already at maximum enchantment!`
+        message: `You read ${scrollName}. ${weapon.name} is already at maximum enchantment!`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -172,7 +198,8 @@ export class ScrollService {
 
     return {
       player: updatedPlayer,
-      message: `You read ${scrollName}. ${enchantedWeapon.name} glows brightly! (+${enchantedWeapon.bonus})`
+      message: `You read ${scrollName}. ${enchantedWeapon.name} glows brightly! (+${enchantedWeapon.bonus})`,
+      consumed: true
     }
   }
 
@@ -184,7 +211,9 @@ export class ScrollService {
     if (!targetItemId) {
       return {
         player,
-        message: `You read ${scrollName}, but nothing happens.`
+        message: `You read ${scrollName}, but nothing happens.`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -192,7 +221,9 @@ export class ScrollService {
     if (!targetItem || targetItem.type !== ItemType.ARMOR) {
       return {
         player,
-        message: `You read ${scrollName}, but the item is not armor.`
+        message: `You read ${scrollName}, but the item is not armor.`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -202,7 +233,9 @@ export class ScrollService {
     if (armor.bonus >= 3) {
       return {
         player,
-        message: `You read ${scrollName}. ${armor.name} is already at maximum enchantment!`
+        message: `You read ${scrollName}. ${armor.name} is already at maximum enchantment!`,
+        fizzled: true,
+        consumed: false
       }
     }
 
@@ -225,7 +258,8 @@ export class ScrollService {
 
     return {
       player: updatedPlayer,
-      message: `You read ${scrollName}. ${enchantedArmor.name} glows with protection! [AC ${effectiveAC}]`
+      message: `You read ${scrollName}. ${enchantedArmor.name} glows with protection! [AC ${effectiveAC}]`,
+      consumed: true
     }
   }
 }
