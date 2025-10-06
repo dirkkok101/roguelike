@@ -1,4 +1,7 @@
 import { ComprehensiveDeathStats } from '@services/DeathService'
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { GameState } from '@game/core/core'
 
 // ============================================================================
 // DEATH SCREEN - Display death modal with final stats
@@ -6,17 +9,45 @@ import { ComprehensiveDeathStats } from '@services/DeathService'
 
 export class DeathScreen {
   private container: HTMLDivElement | null = null
+  private leaderboardService: LeaderboardService
+  private leaderboardStorageService: LeaderboardStorageService
+
+  constructor(
+    leaderboardService: LeaderboardService,
+    leaderboardStorageService: LeaderboardStorageService
+  ) {
+    this.leaderboardService = leaderboardService
+    this.leaderboardStorageService = leaderboardStorageService
+  }
 
   /**
    * Display death screen with final stats and action callbacks
+   * Also creates and stores leaderboard entry
    */
   show(
     stats: ComprehensiveDeathStats,
+    state: GameState,
     onNewGame: () => void,
     onReplaySeed: () => void,
     onQuitToMenu: () => void
   ): void {
-    this.container = this.createDeathModal(stats, onNewGame, onReplaySeed, onQuitToMenu)
+    // Calculate score from death stats
+    const score = (stats.totalGold * 10) + (stats.finalLevel * 100) + (stats.totalXP * 5) - Math.floor(stats.totalTurns / 10)
+
+    // Create and store leaderboard entry
+    const leaderboardEntry = this.leaderboardService.createEntry(
+      state,
+      false, // isVictory
+      score,
+      stats
+    )
+    this.leaderboardStorageService.addEntry(leaderboardEntry)
+
+    // Calculate rank
+    const allEntries = this.leaderboardStorageService.getAllEntries()
+    const rankInfo = this.leaderboardService.calculateRank(score, allEntries)
+
+    this.container = this.createDeathModal(stats, rankInfo, onNewGame, onReplaySeed, onQuitToMenu)
     document.body.appendChild(this.container)
   }
 
@@ -32,6 +63,7 @@ export class DeathScreen {
 
   private createDeathModal(
     stats: ComprehensiveDeathStats,
+    rankInfo: { rank: number; percentile: number },
     onNewGame: () => void,
     onReplaySeed: () => void,
     onQuitToMenu: () => void
@@ -94,6 +126,9 @@ export class DeathScreen {
         </div>`
       : ''
 
+    // Format rank message
+    const rankMessage = this.formatRankMessage(rankInfo)
+
     modal.innerHTML = `
       <div class="death-title" style="margin-bottom: 20px;">
         <div style="font-size: 28px; color: #FF4444; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">GAME OVER</div>
@@ -104,6 +139,8 @@ export class DeathScreen {
         ${stats.cause}
         ${finalBlowText ? `<div style="color: #FF6666; font-size: 14px; margin-top: 5px;">${finalBlowText}</div>` : ''}
       </div>
+
+      ${rankMessage}
 
       <pre class="death-stats-header" style="color: #CCCCCC; margin: 20px 0 10px 0; font-family: 'Courier New', monospace; font-size: 14px;">┌──────────────────── Final Statistics ─────────────────────┐</pre>
 
@@ -214,5 +251,35 @@ export class DeathScreen {
 
   isVisible(): boolean {
     return this.container !== null
+  }
+
+  /**
+   * Format rank message for display
+   */
+  private formatRankMessage(rankInfo: { rank: number; percentile: number }): string {
+    const rankBadge = this.getRankBadge(rankInfo.rank)
+    const percentileText = `Top ${Math.round(rankInfo.percentile)}%`
+
+    return `
+      <div style="color: #888; font-weight: bold; margin: 10px 0; padding: 8px; background: rgba(136, 136, 136, 0.1); border-left: 3px solid #888;">
+        ${rankBadge} Rank #${rankInfo.rank} - ${percentileText}
+      </div>
+    `
+  }
+
+  /**
+   * Get badge emoji for top 3 ranks
+   */
+  private getRankBadge(rank: number): string {
+    switch (rank) {
+      case 1:
+        return '🥇'
+      case 2:
+        return '🥈'
+      case 3:
+        return '🥉'
+      default:
+        return '💀'
+    }
   }
 }

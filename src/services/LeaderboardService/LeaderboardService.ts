@@ -73,8 +73,8 @@ export class LeaderboardService {
       score,
 
       // Death info (null if victory)
-      deathCause: isVictory ? null : state.deathCause || 'Unknown cause',
-      epitaph: isVictory ? null : deathStats?.epitaph || null,
+      deathCause: isVictory ? null : (deathStats?.cause || state.deathCause || 'Unknown cause'),
+      epitaph: isVictory ? null : (deathStats?.epitaph || null),
 
       // Character progression
       finalLevel: state.player.level,

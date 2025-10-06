@@ -65,16 +65,16 @@
 
 ---
 
-### Phase 2: Victory/Death Integration ⬜
+### Phase 2: Victory/Death Integration 🔄
 
-#### Task 2.1: Victory Screen Integration ⬜
-- [ ] Update `src/ui/VictoryScreen.ts` constructor to accept services
-- [ ] Create leaderboard entry on victory
-- [ ] Persist entry to storage
-- [ ] Add rank message display
-- [ ] Add "View Leaderboard" button
-- **Files**: `src/ui/VictoryScreen.ts`
-- **Commit**: "feat: integrate leaderboard with VictoryScreen"
+#### Task 2.1: Victory Screen Integration ✅
+- [x] Update `src/ui/VictoryScreen.ts` constructor to accept services
+- [x] Create leaderboard entry on victory
+- [x] Persist entry to storage
+- [x] Add rank message display
+- [ ] Add "View Leaderboard" button (deferred to Phase 3 - requires LeaderboardScreen)
+- **Files**: `src/ui/VictoryScreen.ts`, `src/ui/VictoryScreen.test.ts`, `src/ui/GameRenderer.ts`, `src/main.ts`
+- **Commit**: "feat: integrate leaderboard with VictoryScreen" ✅
 
 #### Task 2.2: Death Screen Integration ⬜
 - [ ] Update `src/ui/DeathScreen.ts` constructor to accept services
@@ -235,10 +235,10 @@
 
 ## Progress Tracking
 
-**Overall Progress**: 5/18 tasks complete (28%)
+**Overall Progress**: 6/18 tasks complete (33%)
 
 **Phase 1 (Core Infrastructure)**: 5/5 tasks ✅ COMPLETE
-**Phase 2 (Integration)**: 0/4 tasks ⬜
+**Phase 2 (Integration)**: 1/4 tasks ✅ | 3 tasks remaining
 **Phase 3 (UI Simple)**: 0/4 tasks ⬜
 **Phase 4 (UI Advanced)**: 0/3 tasks ⬜
 **Phase 5 (Statistics)**: 0/3 tasks ⬜

@@ -66,7 +66,7 @@ export class GameRenderer {
     this.messageHistoryModal = new MessageHistoryModal()
     this.helpModal = new HelpModal(contextService)
     this.victoryScreen = new VictoryScreen(leaderboardService, leaderboardStorageService)
-    this.deathScreen = new DeathScreen()
+    this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService)
   }
 
   /**
@@ -84,6 +84,7 @@ export class GameRenderer {
 
       this.deathScreen.show(
         stats,
+        state,
         () => {
           // New Game (random seed)
           this.onStartNewGame()
