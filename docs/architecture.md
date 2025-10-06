@@ -2,7 +2,7 @@
 
 **Version**: 2.0  
 **Last Updated**: 2025-10-03  
-**Related Docs**: [Game Design](./game-design.md) | [Core Systems](./systems-core.md) | [Advanced Systems](./systems-advanced.md) | [Testing](./testing-strategy.md) | [Plan](./plan.md)
+**Related Docs**: [Game Design](./game-design/README.md) | [Core Systems](./systems-core.md) | [Advanced Systems](./systems-advanced.md) | [Testing](./testing-strategy.md) | [Plan](./plan.md)
 
 ---
 
@@ -224,7 +224,7 @@ class DungeonService {
 
 **Dependencies**: RandomService (for food randomization)
 
-**See**: [Game Design - Hunger System](./game-design.md#hunger-system)
+**See**: [Game Design - Hunger](./game-design/08-hunger.md)
 
 ---
 
@@ -958,7 +958,7 @@ All game content stored in `/data/*.json`:
 ]
 ```
 
-See [Game Design](./game-design.md#monsters) for complete monster list.
+See [Game Design - Monsters](./game-design/04-monsters.md) for complete monster list.
 
 ---
 
@@ -1060,7 +1060,7 @@ See [Game Design](./game-design.md#monsters) for complete monster list.
 }
 ```
 
-See [Game Design](./game-design.md#items-equipment) for complete item specifications.
+See [Game Design - Items](./game-design/05-items.md) for complete item specifications.
 
 ---
 
@@ -1216,7 +1216,7 @@ See [Testing Strategy](./testing-strategy.md) for complete testing guidelines.
 
 ## References
 
-- **Game Design**: [game-design.md](./game-design.md)
+- **Game Design**: [game-design/](./game-design/README.md)
 - **Core Systems**: [systems-core.md](./systems-core.md)
 - **Advanced Systems**: [systems-advanced.md](./systems-advanced.md)
 - **Testing Strategy**: [testing-strategy.md](./testing-strategy.md)

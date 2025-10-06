@@ -2,7 +2,7 @@
 
 **Version**: 2.0  
 **Last Updated**: 2025-10-03  
-**Related Docs**: [Game Design](./game-design.md) | [Architecture](./architecture.md) | [Core Systems](./systems-core.md) | [Testing](./testing-strategy.md) | [Plan](./plan.md)
+**Related Docs**: [Game Design](./game-design/README.md) | [Architecture](./architecture.md) | [Core Systems](./systems-core.md) | [Testing](./testing-strategy.md) | [Plan](./plan.md)
 
 ---
 
@@ -809,9 +809,9 @@ See [Testing Strategy](./testing-strategy.md) - `DebugService/` folder
 
 **Related Systems**:
 - Core Systems (FOV, Lighting, Rendering): [Core Systems](./systems-core.md)
-- Combat System: [Game Design](./game-design.md#combat-system)
+- Combat System: [Game Design - Combat](./game-design/09-combat.md)
 - Data Structures: [Architecture](./architecture.md)
-- Monsters: [Game Design](./game-design.md#monsters)
+- Monsters: [Game Design - Monsters](./game-design/04-monsters.md)
 
 **Testing**:
 - All advanced systems have comprehensive test coverage: [Testing Strategy](./testing-strategy.md)

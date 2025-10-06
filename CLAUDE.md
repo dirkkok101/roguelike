@@ -24,11 +24,11 @@
 
 ## Quick Links
 
-- **[Game Design](./game-design.md)** - What we're building
-- **[Architecture](./architecture.md)** - How it's structured
-- **[Core Systems](./systems-core.md)** - Lighting, FOV, rendering
-- **[Advanced Systems](./systems-advanced.md)** - AI, pathfinding, generation
-- **[Testing Strategy](./testing-strategy.md)** - Test organization
+- **[Game Design](./docs/game-design/README.md)** - What we're building
+- **[Architecture](./docs/architecture.md)** - How it's structured
+- **[Core Systems](./docs/systems-core.md)** - Lighting, FOV, rendering
+- **[Advanced Systems](./docs/systems-advanced.md)** - AI, pathfinding, generation
+- **[Testing Strategy](./docs/testing-strategy.md)** - Test organization
 
 ---
 
@@ -821,13 +821,13 @@ npm run type-check   # TypeScript validation
 
 **Follow this workflow** (see [Workflow Rules](#workflow-rules-critical) above):
 
-1. **Check the plan**: [plan.md](./plan.md) - identify next task in current phase
-2. **Read relevant specs**: 
-   - [Game Design](./game-design.md) - gameplay mechanics and rules
-   - [Architecture](./architecture.md) - technical patterns and services
-   - [Core Systems](./systems-core.md) - lighting, FOV, rendering
-   - [Advanced Systems](./systems-advanced.md) - AI, pathfinding, generation
-   - [Testing Strategy](./testing-strategy.md) - test organization and conventions
+1. **Check the plan**: [plan.md](./docs/plan.md) - identify next task in current phase
+2. **Read relevant specs**:
+   - [Game Design](./docs/game-design/README.md) - gameplay mechanics and rules
+   - [Architecture](./docs/architecture.md) - technical patterns and services
+   - [Core Systems](./docs/systems-core.md) - lighting, FOV, rendering
+   - [Advanced Systems](./docs/systems-advanced.md) - AI, pathfinding, generation
+   - [Testing Strategy](./docs/testing-strategy.md) - test organization and conventions
 3. **Create folder structure**: `ServiceName/` with `.ts` + `.test.ts` + `index.ts`
 4. **Write tests first** (TDD when possible)
 5. **Implement with dependency injection**

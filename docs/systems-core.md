@@ -2,7 +2,7 @@
 
 **Version**: 2.0  
 **Last Updated**: 2025-10-03  
-**Related Docs**: [Game Design](./game-design.md) | [Architecture](./architecture.md) | [Advanced Systems](./systems-advanced.md) | [Testing](./testing-strategy.md) | [Plan](./plan.md)
+**Related Docs**: [Game Design](./game-design/README.md) | [Architecture](./architecture.md) | [Advanced Systems](./systems-advanced.md) | [Testing](./testing-strategy.md) | [Plan](./plan.md)
 
 ---
 
@@ -445,7 +445,7 @@ MoveCommand Flow:
 **Related Systems**:
 - Monster AI uses FOV for awareness checks: [Advanced Systems](./systems-advanced.md#monster-ai)
 - Dungeon generation creates blocking tiles: [Advanced Systems](./systems-advanced.md#dungeon-generation)
-- Combat system uses visibility for surprise attacks: [Game Design](./game-design.md#combat-system)
+- Combat system uses visibility for surprise attacks: [Game Design - Combat](./game-design/09-combat.md)
 - Data structures define tile properties: [Architecture](./architecture.md#tile)
 
 **Testing**:

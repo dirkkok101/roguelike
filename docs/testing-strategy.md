@@ -2,7 +2,7 @@
 
 **Version**: 1.0  
 **Last Updated**: 2025-10-03  
-**Related Docs**: [Game Design](./game-design.md) | [Architecture](./architecture.md) | [Core Systems](./systems-core.md) | [Advanced Systems](./systems-advanced.md) | [Plan](./plan.md)
+**Related Docs**: [Game Design](./game-design/README.md) | [Architecture](./architecture.md) | [Core Systems](./systems-core.md) | [Advanced Systems](./systems-advanced.md) | [Plan](./plan.md)
 
 ---
 
