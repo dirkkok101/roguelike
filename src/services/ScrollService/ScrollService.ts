@@ -104,6 +104,9 @@ export class ScrollService {
       case ScrollType.MAGIC_MAPPING:
         return this.applyMagicMapping(player, state, displayName, identified)
 
+      case ScrollType.LIGHT:
+        return this.applyLight(player, state, displayName, identified)
+
       default:
         message = `You read ${displayName}. (Effect not yet implemented)`
     }
@@ -488,6 +491,78 @@ export class ScrollService {
     return {
       state: updatedState,
       message: `You read ${scrollName}. The dungeon layout is revealed!`,
+      identified,
+      consumed: true,
+    }
+  }
+
+  // ============================================================================
+  // LIGHT SCROLL
+  // ============================================================================
+
+  private applyLight(
+    player: Player,
+    state: GameState,
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
+    // 1. Get current level
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 2. Check if player is in a room
+    const inRoom = this.levelService.isInRoom(player.position, level)
+    if (!inRoom) {
+      return {
+        message: `You read ${scrollName}, but you're in a corridor.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 3. Get all tiles in the room
+    const roomTiles = this.levelService.getRoomTiles(player.position, level)
+
+    // 4. Create new explored state with room tiles marked as explored
+    const newExplored = level.explored.map(row => [...row])
+    for (const pos of roomTiles) {
+      newExplored[pos.y][pos.x] = true
+    }
+
+    // 5. Create visible cells set with all room tiles
+    const newVisibleCells = new Set<string>()
+    for (const pos of roomTiles) {
+      newVisibleCells.add(`${pos.x},${pos.y}`)
+    }
+
+    // 6. Update level with new explored state
+    const updatedLevel: Level = {
+      ...level,
+      explored: newExplored,
+    }
+
+    // 7. Update level in levels map
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    // 8. Create updated state
+    const updatedState: GameState = {
+      ...state,
+      levels: updatedLevels,
+      visibleCells: newVisibleCells,
+    }
+
+    return {
+      state: updatedState,
+      message: `You read ${scrollName}. The room floods with light!`,
       identified,
       consumed: true,
     }
