@@ -353,15 +353,22 @@ describe('PotionService - Poison', () => {
 
 ---
 
-## Future Enhancements (Not Yet Implemented)
+## Future Enhancements (Planned - See potion_implementation_plan.md)
 
-**Additional Potion Types**:
-- **HASTE_SELF** - Double movement speed (3-10 turns)
-- **RAISE_LEVEL** - Instant level up
-- **RESTORE_HP** - Full HP restoration
-- **SEE_INVISIBLE** - Detect invisible monsters
-- **LEVITATION** - Float over traps/water
-- **BLINDNESS** - Cannot see (curse)
-- **CONFUSION** - Random movement (curse)
+**Phase 1: Instant Effect Potions**:
+- **RAISE_LEVEL** - Instant level up (uses LevelingService)
+- **DETECT_MONSTERS** - Reveal all monsters on level
+- **DETECT_MAGIC** - Highlight magic items on level
 
-**Status Effect System**: Required for HASTE, LEVITATION, BLINDNESS effects (Phase 3).
+**Phase 2: Status Effect Potions** (requires StatusEffectService):
+- **CONFUSION** - Random movement (19-21 turns)
+- **BLINDNESS** - Cannot see (40-60 turns)
+- **HASTE_SELF** - Double actions per turn (4-8 turns)
+
+**Phase 3: Advanced Potions**:
+- **SEE_INVISIBLE** - Reveal invisible monsters (until level change)
+- **LEVITATION** - Float over traps (29-32 turns)
+- **HALLUCINATION** - Monsters appear different (850 turns) - Complex
+- **PARALYSIS** - Cannot move (variable duration)
+
+**See**: [Potion Implementation Plan](../plans/potion_implementation_plan.md) for complete design and timeline.

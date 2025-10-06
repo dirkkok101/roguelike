@@ -1,15 +1,22 @@
-# Historical Plans
+# Implementation Plans
 
-**Status**: 📦 Archived
-**Purpose**: Reference for completed features and refactors
+**Purpose**: Active and historical feature plans and refactors
 
 ---
 
 ## Overview
 
-These documents are **archived for reference only**. They represent completed features and refactors, providing historical context and implementation details.
+This folder contains both **active plans** (in progress) and **archived plans** (completed). Plans provide detailed implementation roadmaps with objectives, phases, tasks, and success criteria.
 
-**For new features**: Follow the planning workflow in [contributing.md](../contributing.md). Store active plans here and mark as 🚧 In Progress.
+**For new features**: Follow the planning workflow in [contributing.md](../contributing.md) and use [TEMPLATE.md](./TEMPLATE.md).
+
+---
+
+## Active Plans
+
+| Plan | Status | Started | Description |
+|------|--------|---------|-------------|
+| **[Potion Implementation](./potion_implementation_plan.md)** | 🚧 In Progress | 2025-10-06 | Complete potion system (11 potions + StatusEffectService) |
 
 ---
 

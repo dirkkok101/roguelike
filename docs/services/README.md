@@ -45,11 +45,12 @@ See [Architecture Guide](../architecture.md) for details.
 | [PathfindingService](./PathfindingService.md) | A* algorithm | `findPath` | None |
 | [RenderingService](./RenderingService.md) | Visual rendering | `getVisibilityState`, `getTileColor` | None |
 | **Item Systems** ||||
-| [PotionService](./PotionService.md) | Potion effects | `applyPotion` | RandomService |
+| [PotionService](./PotionService.md) | Potion effects | `applyPotion` | RandomService, StatusEffectService |
+| [StatusEffectService](./StatusEffectService.md) | Status effects, durations | `addStatusEffect`, `tickStatusEffects` | RandomService |
 | [ScrollService](./ScrollService.md) | Scroll effects | `applyScroll` | None |
 | [WandService](./WandService.md) | Wand effects, charges | `applyWand`, `decrementCharge` | RandomService |
 | [IdentificationService](./IdentificationService.md) | Item identification | `identifyItem`, `getDisplayName` | None |
-| [TrapService](./TrapService.md) | Trap detection, triggering | `detectTrap`, `triggerTrap` | RandomService |
+| [TrapService](./TrapService.md) | Trap detection, triggering | `detectTrap`, `triggerTrap` | RandomService, StatusEffectService |
 | **UI & Support** ||||
 | [MessageService](./MessageService.md) | Message log management | `addMessage`, `groupMessages` | None |
 | [NotificationService](./NotificationService.md) | Auto-notifications | `generateNotifications` | None |
@@ -96,9 +97,10 @@ Algorithms and visualization:
 - [PathfindingService](./PathfindingService.md) - A* pathfinding
 - [RenderingService](./RenderingService.md) - Visual rendering
 
-### Item Systems (5 services)
-Consumables and identification:
+### Item Systems (6 services)
+Consumables, status effects, and identification:
 - [PotionService](./PotionService.md) - Potion effects
+- [StatusEffectService](./StatusEffectService.md) - Status effects and durations
 - [ScrollService](./ScrollService.md) - Scroll effects
 - [WandService](./WandService.md) - Wand effects
 - [IdentificationService](./IdentificationService.md) - Item identification

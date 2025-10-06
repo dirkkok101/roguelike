@@ -49,19 +49,126 @@
 **Nature**: Single-use consumables
 
 **Identification**: **Unidentified** at start (see [Identification](./07-identification.md))
-
-**Key Types**:
-- **Healing**: Heals 1d8 HP
-- **Extra Healing**: Heals 2d8 HP
-- **Restore Strength**: Restores strength to maximum
-- **Gain Strength**: Permanently increases max strength
-- **Poison**: Reduces strength
-- **Confusion**: Randomizes movement
-- **Blindness**: Removes vision temporarily
+- Appear with random descriptors: "blue potion", "fizzy potion", "dark potion"
+- Auto-identified when consumed (learn what blue potion does)
+- Same descriptor = same effect throughout game session
 
 **Commands**: `q` to quaff (drink)
 
+---
+
+#### Healing Potions
+
+**Potion of Healing** (Common):
+- **Effect**: Restores 1d8 HP
+- **Overheal**: If at full HP, grants +1 max HP permanently
+- **Message**: "You feel better. (+X HP)"
+- **Strategy**: Save for emergencies or use at full HP for stat boost
+
+**Potion of Extra Healing** (Uncommon):
+- **Effect**: Restores 2d8+2 HP (3-18 HP)
+- **Overheal**: If at full HP, grants +1 max HP permanently
+- **Message**: "You feel much better! (+X HP)"
+- **Strategy**: Best healing option, use in dire situations
+
 **See**: [Character](./02-character.md) for overheal mechanics (+1 max HP).
+
+---
+
+#### Strength Potions
+
+**Potion of Gain Strength** (Uncommon):
+- **Effect**: Permanently increases strength and max strength by 1
+- **Message**: "You feel stronger! (Strength: X)"
+- **Strategy**: Always beneficial, use immediately when identified
+
+**Potion of Restore Strength** (Common):
+- **Effect**: Restores current strength to maximum
+- **Use Case**: Counter Rattlesnake drain attacks, curse effects
+- **Message**: "Your strength is restored. (Strength: X)"
+- **Note**: No effect if strength already at max
+
+---
+
+#### Detection Potions
+
+**Potion of Detect Monsters** (Uncommon):
+- **Effect**: Reveals all monsters on current level
+- **Duration**: Until level change (stairs)
+- **Message**: "You sense X monsters" (or "strange feeling" if none)
+- **Strategy**: Scout dangerous levels before exploring
+
+**Potion of Detect Magic** (Uncommon):
+- **Effect**: Highlights all magic items (potions, scrolls, rings, wands) on level
+- **Duration**: Until level change
+- **Message**: "You sense magic" (or "strange feeling" if none)
+- **Strategy**: Find valuable loot efficiently
+
+---
+
+#### Buff Potions
+
+**Potion of Haste Self** (Uncommon):
+- **Effect**: Grants 2 actions per turn (double speed)
+- **Duration**: 4-8 turns
+- **Message**: "You feel yourself moving much faster"
+- **Strategy**: Combat advantage, escape dangerous situations
+- **Note**: Both actions occur before monsters act
+
+**Potion of Levitation** (Uncommon):
+- **Effect**: Float over traps (immune to all trap damage)
+- **Duration**: 29-32 turns
+- **Message**: "You start to float in the air"
+- **Strategy**: Navigate trapped corridors safely
+
+**Potion of See Invisible** (Uncommon):
+- **Effect**: Reveals invisible monsters (Phantoms)
+- **Duration**: Until level change
+- **Message**: "This potion tastes like slime mold juice"
+- **Strategy**: Essential for Phantom-heavy levels
+
+---
+
+#### Debuff Potions (Curses)
+
+**Potion of Poison** (Common):
+- **Effect**: Deals 1d6 HP damage (can kill!)
+- **Message**: "You feel sick! (-X HP)"
+- **Danger**: Check HP before drinking unidentified potions
+- **Death**: If HP reaches 0, game over
+
+**Potion of Confusion** (Uncommon):
+- **Effect**: Random movement direction for 19-21 turns
+- **Message**: "Wait, what's going on here. Huh? What? Who?"
+- **Danger**: Cannot control movement, may walk into monsters/traps
+- **Duration**: ~2 minutes of gameplay
+
+**Potion of Blindness** (Uncommon):
+- **Effect**: Cannot see anything (FOV = 0) for 40-60 turns
+- **Message**: "Oh, bummer! Everything is dark! Help!"
+- **Danger**: Screen goes black, must navigate by memory
+- **Duration**: ~4-6 minutes of gameplay (reduced from original 807-892 turns)
+
+---
+
+#### Special Potions
+
+**Potion of Raise Level** (Rare):
+- **Effect**: Instantly gain 1 experience level
+- **Benefits**: Increased max HP, improved combat effectiveness
+- **Message**: Level up notification
+- **Strategy**: Extremely valuable, can turn tide in tough situations
+
+---
+
+**Total Potion Types**: 11 core potions (5 implemented, 6 planned)
+
+**Implementation Status**:
+- ✅ Healing, Extra Healing, Gain Strength, Restore Strength, Poison
+- 🚧 Raise Level, Detect Monsters, Detect Magic, Confusion, Blindness, Haste Self (planned)
+- 📋 Levitation, See Invisible (Phase 3)
+
+**See**: [Potion Implementation Plan](../plans/potion_implementation_plan.md) for development timeline.
 
 ### Scrolls (`?`)
 **Nature**: Single-use magic items
