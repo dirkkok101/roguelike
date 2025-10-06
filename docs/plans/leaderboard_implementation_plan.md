@@ -18,16 +18,16 @@
 - **Files**: `src/types/core/core.ts`
 - **Commit**: "feat: add leaderboard type definitions"
 
-#### Task 1.2: LeaderboardService ⬜
-- [ ] Create `src/services/LeaderboardService/LeaderboardService.ts`
-- [ ] Implement `createEntry(state, isVictory, score, deathStats?)`
-- [ ] Implement `filterEntries(entries, filters)`
-- [ ] Implement `calculateAggregateStats(entries)`
-- [ ] Implement `getTopScores(entries, limit)`
-- [ ] Implement `getEntriesBySeed(entries, seed)`
-- [ ] Implement `calculateRank(score, entries)`
-- [ ] Implement `getPersonalBests(entries)`
-- [ ] Create `src/services/LeaderboardService/index.ts` (barrel export)
+#### Task 1.2: LeaderboardService ✅
+- [x] Create `src/services/LeaderboardService/LeaderboardService.ts`
+- [x] Implement `createEntry(state, isVictory, score, deathStats?)`
+- [x] Implement `filterEntries(entries, filters)`
+- [x] Implement `calculateAggregateStats(entries)`
+- [x] Implement `getTopScores(entries, limit)`
+- [x] Implement `getEntriesBySeed(entries, seed)`
+- [x] Implement `calculateRank(score, entries)`
+- [x] Implement `getPersonalBests(entries)`
+- [x] Create `src/services/LeaderboardService/index.ts` (barrel export)
 - **Files**: `src/services/LeaderboardService/`
 - **Commit**: "feat: implement LeaderboardService core logic"
 
