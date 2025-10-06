@@ -67,8 +67,9 @@ export class DeathScreen {
     modal.style.cssText = `
       background: #1a1a1a;
       border: 3px solid #8B0000;
-      padding: 30px;
-      min-width: 500px;
+      padding: 40px;
+      min-width: 700px;
+      max-width: 800px;
       text-align: center;
       font-family: 'Courier New', monospace;
       color: #FFFFFF;
@@ -81,15 +82,15 @@ export class DeathScreen {
 
     // Build achievements display
     const achievementsHTML = stats.achievements.length > 0
-      ? `<div style="color: #FFD700; margin: 15px 0; padding: 10px; background: rgba(255, 215, 0, 0.1); border-left: 3px solid #FFD700;">
-          <div style="font-weight: bold; margin-bottom: 5px;">🏆 Achievements:</div>
-          ${stats.achievements.map(a => `<div style="margin: 3px 0; font-size: 14px;">• ${a}</div>`).join('')}
+      ? `<div style="color: #FFD700; margin: 20px 0; padding: 15px 20px; background: rgba(255, 215, 0, 0.1); border-left: 4px solid #FFD700; border-radius: 4px;">
+          <div style="font-weight: bold; margin-bottom: 10px; font-size: 15px;">🏆 Achievements:</div>
+          ${stats.achievements.map(a => `<div style="margin: 6px 0; font-size: 14px; line-height: 1.5;">• ${a}</div>`).join('')}
         </div>`
       : ''
 
     // Build epitaph display
     const epitaphHTML = stats.epitaph
-      ? `<div style="color: #888; font-style: italic; margin: 15px 0; padding: 10px; border-left: 3px solid #444;">
+      ? `<div style="color: #999; font-style: italic; margin: 20px 0; padding: 15px 20px; border-left: 4px solid #555; background: rgba(255, 255, 255, 0.03); border-radius: 4px; font-size: 14px; line-height: 1.6;">
           "${stats.epitaph}"
         </div>`
       : ''
@@ -105,50 +106,50 @@ export class DeathScreen {
         ${finalBlowText ? `<div style="color: #FF6666; font-size: 14px; margin-top: 5px;">${finalBlowText}</div>` : ''}
       </div>
 
-      <pre class="death-stats-header" style="color: #CCCCCC; margin: 20px 0 10px 0; font-family: 'Courier New', monospace; font-size: 14px;">┌──────────────────── Final Statistics ─────────────────────┐</pre>
+      <pre class="death-stats-header" style="color: #CCCCCC; margin: 20px 0 5px 0; font-family: 'Courier New', monospace; font-size: 14px;">─────────────────────── Final Statistics ───────────────────────</pre>
 
-      <div class="death-stats-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 10px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 4px;">
+      <div class="death-stats-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 15px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 4px;">
         <div style="text-align: left;">
-          <div style="color: #00FFFF; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #00FFFF; padding-bottom: 3px;">Progression</div>
-          <div style="margin: 5px 0; font-size: 14px;">Level: ${stats.finalLevel}</div>
-          <div style="margin: 5px 0; font-size: 14px;">XP: ${stats.totalXP.toLocaleString()}</div>
+          <div style="color: #00FFFF; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #00FFFF; padding-bottom: 4px; font-size: 15px;">Progression</div>
+          <div style="margin: 7px 0; font-size: 14px; line-height: 1.5;">Level: ${stats.finalLevel}</div>
+          <div style="margin: 7px 0; font-size: 14px; line-height: 1.5;">XP: ${stats.totalXP.toLocaleString()}</div>
         </div>
         <div style="text-align: left;">
-          <div style="color: #00FF00; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #00FF00; padding-bottom: 3px;">Exploration</div>
-          <div style="margin: 5px 0; font-size: 14px;">Deepest: ${stats.deepestLevel}</div>
-          <div style="margin: 5px 0; font-size: 14px;">Levels: ${stats.levelsExplored}</div>
-          <div style="margin: 5px 0; font-size: 14px;">Turns: ${stats.totalTurns.toLocaleString()}</div>
+          <div style="color: #00FF00; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #00FF00; padding-bottom: 4px; font-size: 15px;">Exploration</div>
+          <div style="margin: 7px 0; font-size: 14px; line-height: 1.5;">Deepest: ${stats.deepestLevel}</div>
+          <div style="margin: 7px 0; font-size: 14px; line-height: 1.5;">Levels: ${stats.levelsExplored}</div>
+          <div style="margin: 7px 0; font-size: 14px; line-height: 1.5;">Turns: ${stats.totalTurns.toLocaleString()}</div>
         </div>
         <div style="text-align: left;">
-          <div style="color: #FF8800; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #FF8800; padding-bottom: 3px;">Combat & Loot</div>
-          <div style="margin: 5px 0; font-size: 14px;">Kills: ${stats.monstersKilled}</div>
-          <div style="margin: 5px 0; font-size: 14px;">Gold: ${stats.totalGold.toLocaleString()}</div>
-          <div style="margin: 5px 0; font-size: 14px;">Items: ${stats.itemsFound}</div>
+          <div style="color: #FF8800; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #FF8800; padding-bottom: 4px; font-size: 15px;">Combat & Loot</div>
+          <div style="margin: 7px 0; font-size: 14px; line-height: 1.5;">Kills: ${stats.monstersKilled}</div>
+          <div style="margin: 7px 0; font-size: 14px; line-height: 1.5;">Gold: ${stats.totalGold.toLocaleString()}</div>
+          <div style="margin: 7px 0; font-size: 14px; line-height: 1.5;">Items: ${stats.itemsFound}</div>
         </div>
       </div>
 
-      <pre class="death-stats-footer" style="color: #CCCCCC; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 14px;">└───────────────────────────────────────────────────────────┘</pre>
+      <pre class="death-stats-footer" style="color: #CCCCCC; margin: 5px 0 20px 0; font-family: 'Courier New', monospace; font-size: 14px;">────────────────────────────────────────────────────────────────</pre>
 
       ${achievementsHTML}
       ${epitaphHTML}
 
-      <div class="death-footer" style="margin-top: 25px; border-top: 1px solid #444; padding-top: 20px;">
-        <div style="color: #888; margin-bottom: 8px; font-size: 13px;">
-          Seed: <span id="death-seed" style="color: #AAA; user-select: all; cursor: pointer; padding: 2px 6px; background: rgba(255, 255, 255, 0.05); border-radius: 3px;">${stats.seed}</span>
+      <div class="death-footer" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 25px;">
+        <div style="color: #888; margin-bottom: 12px; font-size: 13px; line-height: 1.5;">
+          Seed: <span id="death-seed" style="color: #AAA; user-select: all; cursor: pointer; padding: 3px 8px; background: rgba(255, 255, 255, 0.05); border-radius: 3px;">${stats.seed}</span>
           <span id="copy-indicator" style="color: #00FF00; font-size: 11px; margin-left: 8px; opacity: 0; transition: opacity 0.3s;">✓ Copied!</span>
         </div>
-        <div style="color: #888; margin-bottom: 15px; font-style: italic; font-size: 14px;">
+        <div style="color: #888; margin-bottom: 20px; font-style: italic; font-size: 13px;">
           Permadeath - Your save has been deleted
         </div>
-        <div style="display: flex; justify-content: space-around; gap: 20px; margin-top: 10px;">
-          <div style="color: #00FF00; font-size: 15px;">
-            <span style="color: #88FF88;">[N]</span> New Game
+        <div style="display: flex; justify-content: space-around; gap: 25px; margin-top: 15px;">
+          <div style="color: #00FF00; font-size: 15px; line-height: 1.5;">
+            <span style="color: #88FF88; font-weight: bold;">[N]</span> New Game
           </div>
-          <div style="color: #FFFF00; font-size: 15px;">
-            <span style="color: #FFFF88;">[R]</span> Replay Seed
+          <div style="color: #FFFF00; font-size: 15px; line-height: 1.5;">
+            <span style="color: #FFFF88; font-weight: bold;">[R]</span> Replay Seed
           </div>
-          <div style="color: #FF8888; font-size: 15px;">
-            <span style="color: #FF6666;">[Q]</span> Quit to Menu
+          <div style="color: #FF8888; font-size: 15px; line-height: 1.5;">
+            <span style="color: #FF6666; font-weight: bold;">[Q]</span> Quit to Menu
           </div>
         </div>
       </div>
