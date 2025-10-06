@@ -116,6 +116,8 @@ export enum StatusEffectType {
   PARALYZED = 'PARALYZED',     // Cannot move
   LEVITATING = 'LEVITATING',   // Can cross traps
   SEE_INVISIBLE = 'SEE_INVISIBLE', // Can see invisible monsters
+  HELD = 'HELD',               // Frozen in place (HOLD_MONSTER scroll)
+  SLEEPING = 'SLEEPING',       // Asleep, cannot act (SLEEP scroll)
 }
 
 export interface StatusEffect {
