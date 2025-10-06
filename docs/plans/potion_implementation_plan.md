@@ -459,14 +459,16 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 - `src/services/TrapService/TrapService.ts` (modify)
 
 ##### Subtasks:
-- [ ] Add `LEVITATING` to StatusEffectType enum
-- [ ] Add `applyLevitationPotion(player: Player): Player` method
-- [ ] Apply LEVITATING status for 29-32 turns (random)
-- [ ] Inject StatusEffectService into TrapService
-- [ ] Update TrapService.triggerTrap() to check for LEVITATING status
-- [ ] If levitating, return `{ damage: 0, message: "You float over the trap." }`
-- [ ] Write tests: trap avoidance while levitating, normal trap trigger when not levitating
-- [ ] Git commit: "feat: implement LEVITATION potion with trap immunity (Phase 3.2)"
+- [x] Add `LEVITATING` to StatusEffectType enum (already existed)
+- [x] Add LEVITATION and SEE_INVISIBLE to PotionType enum
+- [x] Add `applyLevitationPotion(player: Player): Player` method
+- [x] Apply LEVITATING status for 29-32 turns (random)
+- [x] Inject StatusEffectService into TrapService
+- [x] Update TrapService.triggerTrap() to check for LEVITATING status
+- [x] If levitating, return `{ damage: 0, message: "You float over the trap." }`
+- [x] Write tests: trap avoidance while levitating, normal trap trigger when not levitating (3 tests added)
+- [x] Update TrapService test files with StatusEffectService dependency
+- [x] Git commit: "feat: implement LEVITATION potion with trap immunity (Phase 3.2)" (commit e303579)
 
 ---
 
