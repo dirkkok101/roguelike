@@ -6,9 +6,13 @@ import {
   ItemType,
   Weapon,
   Armor,
+  Level,
 } from '@game/core/core'
 import { IdentificationService } from '@services/IdentificationService'
 import { InventoryService } from '@services/InventoryService'
+import { LevelService } from '@services/LevelService'
+import { FOVService } from '@services/FOVService'
+import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
 // RESULT TYPE
@@ -40,7 +44,10 @@ export interface ScrollEffectResult {
 export class ScrollService {
   constructor(
     private identificationService: IdentificationService,
-    private inventoryService: InventoryService
+    private inventoryService: InventoryService,
+    private levelService: LevelService,
+    private fovService: FOVService,
+    private randomService: IRandomService
   ) {}
 
   /**
@@ -85,6 +92,9 @@ export class ScrollService {
           message = result.message
         }
         break
+
+      case ScrollType.TELEPORTATION:
+        return this.applyTeleportation(player, state, displayName, identified)
 
       default:
         message = `You read ${displayName}. (Effect not yet implemented)`
@@ -261,5 +271,95 @@ export class ScrollService {
       message: `You read ${scrollName}. ${enchantedArmor.name} glows with protection! [AC ${effectiveAC}]`,
       consumed: true
     }
+  }
+
+  // ============================================================================
+  // TELEPORTATION SCROLL
+  // ============================================================================
+
+  private applyTeleportation(
+    player: Player,
+    state: GameState,
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
+    // 1. Get current level
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 2. Get all walkable tiles (no monsters)
+    const walkableTiles = this.levelService.getAllWalkableTiles(level)
+
+    if (walkableTiles.length === 0) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 3. Random select teleport destination
+    const targetPos = this.randomService.pickRandom(walkableTiles)
+
+    // 4. Update player position
+    const updatedPlayer = {
+      ...player,
+      position: targetPos,
+    }
+
+    // 5. Recompute FOV at new location
+    const lightRadius = this.getLightRadius(updatedPlayer)
+    const fovResult = this.fovService.updateFOVAndExploration(
+      targetPos,
+      lightRadius,
+      level
+    )
+
+    // 6. Update level in levels map
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, fovResult.level)
+
+    // 7. Create updated state
+    const updatedState: GameState = {
+      ...state,
+      levels: updatedLevels,
+      visibleCells: fovResult.visibleCells,
+    }
+
+    return {
+      player: updatedPlayer,
+      state: updatedState,
+      message: `You read ${scrollName}. You feel a wrenching sensation!`,
+      identified,
+      consumed: true,
+    }
+  }
+
+  /**
+   * Get light radius from player's equipped light source
+   */
+  private getLightRadius(player: Player): number {
+    const lightSource = player.equipment.lightSource
+    if (!lightSource) return 0
+
+    // Check if light source has fuel (torches/lanterns)
+    if ('fuel' in lightSource && lightSource.fuel !== undefined) {
+      return lightSource.fuel > 0 ? lightSource.radius : 0
+    }
+
+    // Artifacts are permanent
+    if ('isPermanent' in lightSource && lightSource.isPermanent) {
+      return lightSource.radius
+    }
+
+    return 0
   }
 }
