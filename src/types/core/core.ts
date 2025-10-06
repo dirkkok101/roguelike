@@ -191,6 +191,26 @@ export interface MonsterAIProfile {
   special: string[]
 }
 
+/**
+ * MonsterTemplate - Data structure loaded from monsters.json
+ *
+ * Represents the template/definition for a monster type, not a runtime instance.
+ * Used by MonsterSpawnService to create Monster instances with appropriate stats.
+ */
+export interface MonsterTemplate {
+  letter: string // Monster display character ('B', 'K', 'D', etc.)
+  name: string // Display name ("Bat", "Kobold", "Dragon")
+  hp: string // HP dice notation ("1d8", "10d8", etc.)
+  ac: number // Armor class (lower = harder to hit)
+  damage: string // Damage dice notation ("1d2", "1d8+3d10", etc.)
+  xpValue: number // XP awarded on kill
+  level: number // Dungeon depth where this monster starts appearing (1-10)
+  speed: number // Energy gain rate (5=slow, 10=normal, 15=fast, 18+=very fast)
+  rarity: 'common' | 'uncommon' | 'rare' // Spawn frequency (common=50%, uncommon=30%, rare=20%)
+  mean: boolean // If true, starts awake and aggressive (no sleep chance)
+  aiProfile: MonsterAIProfile // AI behavior configuration
+}
+
 export interface DebugState {
   godMode: boolean              // Player invincible, infinite resources
   mapRevealed: boolean          // All tiles visible
