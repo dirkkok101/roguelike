@@ -476,12 +476,42 @@
 **Finding**: Random spawns, Enchant scrolls
 
 ### Cursed Items
-**Negative Enchantments** (-1, -2, -3):
-- Weapons: Penalty to-hit and damage
-- Armor: Worsens AC
-- **Cannot remove** without Scroll of Remove Curse
 
-**Identification**: Often appear as unidentified or neutral until worn
+**Curse Mechanics** (Rogue 1980 tradition):
+- Weapons, armor, and rings can spawn cursed with negative enchantments
+- **Cannot be unequipped** until curse is removed
+- Curse discovered upon equipping (surprise mechanic)
+- Visual indicator: "(cursed)" appears in inventory after identification
+
+**Spawn Rates** (Risk/Reward Balance):
+- **Common items**: 5% curse chance
+- **Uncommon items**: 8% curse chance
+- **Rare items**: 12% curse chance (higher risk for better rewards)
+
+**Negative Enchantments** (-1, -2, -3):
+- **Weapons**: Penalty to-hit and damage (e.g., "Long Sword -2")
+- **Armor**: Worsens AC (e.g., "Plate Mail -1" becomes AC 4 instead of 3)
+- **Rings**: Negative bonus to effects (e.g., "Ring of Protection -2")
+
+**Special Cases**:
+- **Ring of Teleportation**: ALWAYS cursed (Rogue tradition)
+
+**Curse Discovery**:
+- Curses are hidden until item is equipped
+- Upon equipping: "The [item] is cursed! You cannot remove it."
+- Warning message appears immediately after equip
+- Prevents accidental curse removal before discovery
+
+**Removing Curses**:
+1. **Scroll of Remove Curse**: Removes all curses from equipped items
+2. **Scroll of Enchant Weapon**: Removes curse AND adds +1 bonus
+3. **Scroll of Enchant Armor**: Removes curse AND adds +1 bonus
+- Message when curse lifted: "The curse is lifted!"
+
+**Strategy**:
+- Use Scroll of Identify before equipping unknown items
+- Keep Remove Curse scrolls for emergencies
+- Enchant scrolls serve dual purpose (upgrade + curse removal)
 
 ---
 

@@ -79,7 +79,7 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 
 **Objective**: Implement cursed item spawning with negative enchantments in DungeonService
 
-#### Task 1.1: Add Curse Generation Helper Methods ⬜
+#### Task 1.1: Add Curse Generation Helper Methods ✅
 
 **Context**: DungeonService needs utility methods to determine curse status and generate negative enchantments
 
@@ -87,19 +87,19 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/services/DungeonService/DungeonService.ts`
 
 ##### Subtasks:
-- [ ] Add `rollCursedStatus(rarity: string): boolean` method
+- [x] Add `rollCursedStatus(rarity: string): boolean` method
   - Common: 5% curse chance
   - Uncommon: 8% curse chance
   - Rare: 12% curse chance (risk/reward)
-- [ ] Add `rollEnchantment(rarity: string, isCursed: boolean): number` method
+- [x] Add `rollEnchantment(rarity: string, isCursed: boolean): number` method
   - If cursed: returns -1 to -3 (negative bonus)
   - If not cursed: returns 0 (common) or +1 to +2 (rare)
-- [ ] Add JSDoc comments explaining curse probability design
-- [ ] Git commit: "feat: add curse generation helpers to DungeonService (Phase 1.1)"
+- [x] Add JSDoc comments explaining curse probability design
+- [x] Git commit: "feat: add curse generation helpers to DungeonService (Phase 1.1)"
 
 ---
 
-#### Task 1.2: Update Weapon Spawning with Curses ⬜
+#### Task 1.2: Update Weapon Spawning with Curses ✅
 
 **Context**: Weapons currently only spawn with 0 or positive bonuses, need to support cursed variants
 
@@ -107,17 +107,17 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/services/DungeonService/DungeonService.ts` (line 712-728)
 
 ##### Subtasks:
-- [ ] Call `rollCursedStatus()` in weapon spawning
-- [ ] Use `rollEnchantment()` instead of hardcoded bonus logic
-- [ ] Add `cursed` field to Weapon interface usage
-- [ ] Update name formatting to show negative bonuses (e.g., "Long Sword -2")
-- [ ] Keep `identified: false` (curse discovered on equip)
-- [ ] Test: Spawn 1000 weapons, verify ~5-12% are cursed
-- [ ] Git commit: "feat: add cursed weapon spawning with negative enchantments (Phase 1.2)"
+- [x] Call `rollCursedStatus()` in weapon spawning
+- [x] Use `rollEnchantment()` instead of hardcoded bonus logic
+- [x] Add `cursed` field to Weapon interface usage
+- [x] Update name formatting to show negative bonuses (e.g., "Long Sword -2")
+- [x] Keep `identified: false` (curse discovered on equip)
+- [x] Test: Spawn 1000 weapons, verify ~5-12% are cursed
+- [x] Git commit: "feat: add cursed weapon spawning with negative enchantments (Phase 1.2)"
 
 ---
 
-#### Task 1.3: Update Armor Spawning with Curses ⬜
+#### Task 1.3: Update Armor Spawning with Curses ✅
 
 **Context**: Same as weapons - armor needs curse support
 
@@ -125,15 +125,15 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/services/DungeonService/DungeonService.ts` (line 730-746)
 
 ##### Subtasks:
-- [ ] Apply same curse logic as weapons
-- [ ] Cursed armor has negative AC bonus (worse protection)
-- [ ] Format: "Plate Mail -1" (makes AC 4 instead of 2)
-- [ ] Test: Spawn 1000 armor, verify curse rate
-- [ ] Git commit: "feat: add cursed armor spawning with negative enchantments (Phase 1.3)"
+- [x] Apply same curse logic as weapons
+- [x] Cursed armor has negative AC bonus (worse protection)
+- [x] Format: "Plate Mail -1" (makes AC 4 instead of 2)
+- [x] Test: Spawn 1000 armor, verify curse rate
+- [x] Git commit: "feat: add cursed armor spawning with negative enchantments (Phase 1.3)"
 
 ---
 
-#### Task 1.4: Update Ring Spawning with Curses ⬜
+#### Task 1.4: Update Ring Spawning with Curses ✅
 
 **Context**: Rings have special case - Ring of Teleportation always cursed (Rogue tradition)
 
@@ -141,17 +141,17 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/services/DungeonService/DungeonService.ts` (line 785-804)
 
 ##### Subtasks:
-- [ ] Check if ring type is TELEPORTATION → force cursed=true
-- [ ] For other rings, use `rollCursedStatus()`
-- [ ] Cursed rings get negative bonus instead of positive
-- [ ] Format: "Ring of Protection -2"
-- [ ] Test: Ring of Teleportation spawns cursed 100% of time
-- [ ] Test: Other rings ~5-12% cursed
-- [ ] Git commit: "feat: add cursed ring spawning, Ring of Teleportation always cursed (Phase 1.4)"
+- [x] Check if ring type is TELEPORTATION → force cursed=true
+- [x] For other rings, use `rollCursedStatus()`
+- [x] Cursed rings get negative bonus instead of positive
+- [x] Format: "Ring of Protection -2"
+- [x] Test: Ring of Teleportation spawns cursed 100% of time
+- [x] Test: Other rings ~5-12% cursed
+- [x] Git commit: "feat: add cursed ring spawning, Ring of Teleportation always cursed (Phase 1.4)"
 
 ---
 
-#### Task 1.5: Curse Discovery on Equip ⬜
+#### Task 1.5: Curse Discovery on Equip ✅
 
 **Context**: Player discovers curse when equipping item (surprise mechanic), not when finding it
 
@@ -159,17 +159,17 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/commands/EquipCommand/EquipCommand.ts`
 
 ##### Subtasks:
-- [ ] Import CurseService
-- [ ] After equipping item, check `curseService.isCursed(item)`
-- [ ] If cursed, add warning message: "The {item} is cursed! You cannot remove it."
-- [ ] Message type: 'warning'
-- [ ] Test: Equipping cursed weapon shows warning
-- [ ] Test: Equipping non-cursed weapon shows no warning
-- [ ] Git commit: "feat: add curse discovery notification on equip (Phase 1.5)"
+- [x] Import CurseService
+- [x] After equipping item, check `curseService.isCursed(item)`
+- [x] If cursed, add warning message: "The {item} is cursed! You cannot remove it."
+- [x] Message type: 'warning'
+- [x] Test: Equipping cursed weapon shows warning
+- [x] Test: Equipping non-cursed weapon shows no warning
+- [x] Git commit: "feat: add curse discovery notification on equip (Phase 1.5)"
 
 ---
 
-#### Task 1.6: Enchant Scrolls Remove Curses ⬜
+#### Task 1.6: Enchant Scrolls Remove Curses ✅
 
 **Context**: Original Rogue behavior - Enchant Weapon/Armor scrolls remove curses while improving item
 
@@ -177,31 +177,32 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/services/ScrollService/ScrollService.ts`
 
 ##### Subtasks:
-- [ ] In `applyEnchantWeapon()`: Set `cursed: false` when enchanting
-- [ ] In `applyEnchantArmor()`: Set `cursed: false` when enchanting
-- [ ] Update messages: "The {item} glows brightly! The curse is lifted."
-- [ ] Test: Enchanting cursed weapon removes curse and adds +1
-- [ ] Test: Enchanting already max enchantment still removes curse
-- [ ] Git commit: "feat: enchant scrolls remove curses (Rogue behavior) (Phase 1.6)"
+- [x] In `applyEnchantWeapon()`: Set `cursed: false` when enchanting
+- [x] In `applyEnchantArmor()`: Set `cursed: false` when enchanting
+- [x] Update messages: "The {item} glows brightly! The curse is lifted."
+- [x] Test: Enchanting cursed weapon removes curse and adds +1
+- [x] Test: Enchanting already max enchantment still removes curse
+- [x] Git commit: "feat: enchant scrolls remove curses (Rogue behavior) (Phase 1.6)"
 
 ---
 
-#### Task 1.7: Visual Indicators for Cursed Items ⬜
+#### Task 1.7: Visual Indicators for Cursed Items ✅
 
 **Context**: Once identified, cursed items should have visual warning in inventory
 
 **Files to modify**:
-- `src/ui/GameRenderer.ts` (inventory rendering method)
-- `src/services/ContextService/ContextService.ts` (if needed for color coding)
+- `src/ui/ModalController.ts` (inventory rendering method)
+- `src/ui/InputHandler.ts` (wire up CurseService)
+- `src/main.ts` (instantiate CurseService)
 
 ##### Subtasks:
-- [ ] Import CurseService in GameRenderer
-- [ ] In inventory rendering, check if item is cursed AND identified
-- [ ] If cursed: Append " (cursed)" to item name
-- [ ] Optional: Add red color via ANSI codes or CSS class
-- [ ] Test: Cursed identified item shows "(cursed)" label
-- [ ] Test: Cursed unidentified item shows normal name
-- [ ] Git commit: "feat: add visual indicators for identified cursed items (Phase 1.7)"
+- [x] Import CurseService in ModalController
+- [x] In inventory rendering, check if item is cursed AND identified
+- [x] If cursed: Append " (cursed)" to item name
+- [x] Optional: Add red color via ANSI codes or CSS class
+- [x] Test: Cursed identified item shows "(cursed)" label
+- [x] Test: Cursed unidentified item shows normal name
+- [x] Git commit: "feat: add visual indicators for identified cursed items (Phase 1.7)"
 
 ---
 
