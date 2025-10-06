@@ -133,7 +133,342 @@ Max Cap: +3 enchantment limit
 
 ---
 
-### 2.2 Needs Implementation - Simple (Low Complexity)
+### 2.2 ScrollEffectResult Type Definition
+
+**Purpose**: Define a consistent return type for all scroll effects, following the proven pattern from PotionEffectResult.
+
+```typescript
+export interface ScrollEffectResult {
+  player?: Player          // Updated player (for status effects like SLEEP, HOLD_MONSTER)
+  state?: GameState        // Updated state (for level modifications like MAGIC_MAPPING, TELEPORTATION)
+  message: string          // Effect description message
+  identified: boolean      // Was scroll unidentified before use?
+  fizzled?: boolean        // Did scroll fail to work? (e.g., LIGHT in corridor, no target)
+  consumed: boolean        // Should scroll be removed? (false for SCARE_MONSTER)
+}
+```
+
+**When to Use Each Field**:
+
+| Field | Usage | Examples |
+|-------|-------|----------|
+| `player` | Scroll modifies player directly | SLEEP (adds status effect), direct stat changes |
+| `state` | Scroll modifies game state | MAGIC_MAPPING (updates level), TELEPORTATION (moves player), CREATE_MONSTER (adds monster) |
+| `player` + `state` | Scroll affects both | TELEPORTATION (updates player position + FOV state) |
+| `fizzled` | Scroll had no effect | LIGHT in corridor, HOLD_MONSTER with no adjacent enemy |
+| `consumed: false` | Scroll not removed | SCARE_MONSTER (dropped on ground, not consumed) |
+
+**Pattern**:
+```typescript
+// Service method returns result
+applyScroll(scroll: Scroll, state: GameState, target?: Target): ScrollEffectResult {
+  // Apply effect logic...
+
+  return {
+    state: updatedState,
+    message: "The dungeon layout is revealed!",
+    identified: true,
+    consumed: true
+  }
+}
+
+// Command handles result
+const result = this.scrollService.applyScroll(scroll, state, target)
+if (result.fizzled) {
+  // Handle fizzle, no turn consumed
+}
+// Update state, remove scroll if consumed, etc.
+```
+
+---
+
+### 2.3 ReadScrollCommand Architecture
+
+**Purpose**: Define the command structure and responsibilities for scroll reading, following QuaffPotionCommand pattern.
+
+**Command Structure**:
+```typescript
+export class ReadScrollCommand implements ICommand {
+  constructor(
+    private scrollId: string,
+
+    // Services (injected)
+    private scrollService: ScrollService,
+    private identificationService: IdentificationService,
+    private inventoryService: InventoryService,
+    private messageService: MessageService,
+    private turnService: TurnService,
+
+    // Targeting (provided by UI layer)
+    private target?: ItemTarget | DirectionTarget
+  ) {}
+
+  execute(state: GameState): GameState {
+    // 1. Find scroll in inventory
+    // 2. Validate it's a scroll
+    // 3. Apply scroll effect via service
+    // 4. Handle identification
+    // 5. Remove scroll (or drop if SCARE_MONSTER)
+    // 6. Update state
+    // 7. Increment turn
+  }
+}
+```
+
+**Target Types**:
+```typescript
+type ItemTarget = {
+  type: 'item'
+  itemId: string
+}
+
+type DirectionTarget = {
+  type: 'direction'
+  dx: number
+  dy: number
+}
+```
+
+**Responsibility Boundaries**:
+
+| Layer | Responsibilities | Examples |
+|-------|-----------------|----------|
+| **UI** | Detect targeting need, prompt user, create command | Show item modal, direction prompt |
+| **Command** | Orchestrate services, handle results, update state | Find scroll, call service, remove item |
+| **Service** | Apply effect logic, validate targets, return result | Check if in room, apply mapping, calculate teleport position |
+
+**Command Flow**:
+```
+1. Find scroll in inventory
+   ├─ Not found → "You don't have that." (no turn)
+   ├─ Not a scroll → "You can't read that." (no turn)
+   └─ Valid scroll → Continue
+
+2. Check if already identified
+   ├─ Identified → Get real name
+   └─ Unidentified → Get descriptor ("scroll labeled XYZZY")
+
+3. Apply scroll via service
+   result = scrollService.applyScroll(scroll, state, target)
+
+4. Handle fizzle
+   if (result.fizzled):
+     ├─ Show message
+     └─ Return state (no turn, scroll not consumed)
+
+5. Update identification
+   if (result.identified):
+     └─ state = identificationService.identifyByUse(scroll, state)
+
+6. Update state
+   ├─ Apply result.player if present
+   ├─ Apply result.state if present
+   └─ Show result.message
+
+7. Handle scroll consumption
+   if (result.consumed):
+     ├─ Remove scroll from inventory
+   else:
+     └─ Drop scroll at player position (SCARE_MONSTER)
+
+8. Increment turn
+```
+
+**Auto-Identification Pattern** (reused from potions):
+```typescript
+const identified = !this.identificationService.isIdentified(scroll, state)
+const displayName = this.identificationService.getDisplayName(scroll, state)
+
+// Apply effect...
+const result = this.scrollService.applyScroll(scroll, state, target)
+
+// Update identification if was unidentified
+let updatedState = state
+if (result.identified) {
+  updatedState = this.identificationService.identifyByUse(scroll, state)
+}
+```
+
+---
+
+### 2.4 Targeting Flow Documentation
+
+**Purpose**: Document how targeting works across UI/Command/Service layers for different scroll types.
+
+#### No-Target Scrolls (Instant Effect)
+
+**Examples**: MAGIC_MAPPING, TELEPORTATION, CREATE_MONSTER
+
+**Flow**:
+1. Player presses `r` (read scroll)
+2. Inventory modal shows scrolls
+3. Player selects scroll
+4. **No targeting needed** → UI immediately creates command
+5. `ReadScrollCommand(scrollId, target: undefined)`
+6. ScrollService applies effect
+7. Result returned
+
+**UI Responsibility**: None (instant execution)
+
+---
+
+#### Item-Targeted Scrolls
+
+**Examples**: IDENTIFY, ENCHANT_WEAPON, ENCHANT_ARMOR
+
+**Flow**:
+1. Player presses `r` (read scroll)
+2. Inventory modal shows scrolls
+3. Player selects scroll (e.g., ENCHANT_WEAPON)
+4. **UI detects scroll needs item target** (reads scroll type from data)
+5. UI shows **second modal**: "Select weapon to enchant"
+6. Player selects weapon
+7. UI creates `ReadScrollCommand(scrollId, target: { type: 'item', itemId: weaponId })`
+8. Command passes target to ScrollService
+9. Service validates weapon, applies enchantment
+
+**UI Responsibility**:
+- Detect targeting requirement from scroll type
+- Filter items by requirement (weapons only for ENCHANT_WEAPON)
+- Show appropriate modal
+- Create command with target
+
+**Service Responsibility**:
+- Validate target is correct type (weapon, armor, etc.)
+- Apply enchantment logic
+- Return result with updated player/state
+
+**Example**:
+```typescript
+// In ReadScrollCommand
+execute(state: GameState): GameState {
+  const scroll = findScrollInInventory(state.player, this.scrollId)
+
+  // Target validation
+  if (scroll.type === ScrollType.ENCHANT_WEAPON) {
+    if (!this.target || this.target.type !== 'item') {
+      return { ...state, messages: addMessage(messages, "No target selected.") }
+    }
+
+    const targetItem = findItemInInventory(state.player, this.target.itemId)
+    if (!isWeapon(targetItem)) {
+      return { ...state, messages: addMessage(messages, "That's not a weapon.") }
+    }
+  }
+
+  const result = this.scrollService.applyScroll(scroll, state, this.target)
+  // Handle result...
+}
+```
+
+---
+
+#### Direction-Targeted Scrolls
+
+**Examples**: HOLD_MONSTER
+
+**Flow**:
+1. Player presses `r` (read scroll)
+2. Inventory modal shows scrolls
+3. Player selects HOLD_MONSTER scroll
+4. **UI detects scroll needs direction**
+5. UI prompts: **"Which direction?"**
+6. Player presses arrow key (e.g., ↑ for north)
+7. UI creates `ReadScrollCommand(scrollId, target: { type: 'direction', dx: 0, dy: -1 })`
+8. Command passes target to ScrollService
+9. Service checks for monster at `(player.x + dx, player.y + dy)`
+10. If monster found → Apply HELD status
+11. If no monster → Scroll fizzles
+
+**UI Responsibility**:
+- Show direction prompt
+- Convert arrow key to `dx/dy` offset
+- Create command with direction target
+
+**Service Responsibility**:
+- Calculate target position from player position + direction
+- Check if monster exists at target
+- Apply HELD status if valid
+- Return fizzle result if no monster
+
+**Example**:
+```typescript
+// In ScrollService
+applyHoldMonster(state: GameState, target: DirectionTarget): ScrollEffectResult {
+  const targetPos = {
+    x: state.player.position.x + target.dx,
+    y: state.player.position.y + target.dy
+  }
+
+  const monster = findMonsterAtPosition(state.currentLevel, targetPos)
+
+  if (!monster) {
+    return {
+      message: "There's nothing there to hold!",
+      identified: true,
+      fizzled: true,
+      consumed: false  // Scroll not consumed on fizzle
+    }
+  }
+
+  const heldMonster = this.statusEffectService.addStatusEffect(
+    monster,
+    StatusEffectType.HELD,
+    this.random.nextInt(3, 6)  // 3-6 turns
+  )
+
+  const updatedLevel = replaceMonster(state.currentLevel, heldMonster)
+
+  return {
+    state: { ...state, currentLevel: updatedLevel },
+    message: `The ${monster.name} freezes in place!`,
+    identified: true,
+    consumed: true
+  }
+}
+```
+
+---
+
+#### Special: SCARE_MONSTER (Drop, Don't Consume)
+
+**Flow**:
+1. Player selects SCARE_MONSTER scroll
+2. **No targeting needed**
+3. ScrollService returns `consumed: false`
+4. Command **drops scroll at player position** instead of removing it
+5. Scroll item added to `level.items` at player position
+6. Tile marked with `scareScrollPosition` flag
+7. Monsters avoid tile, flee if adjacent
+
+**Unique Behavior**:
+- Only scroll that isn't consumed on use
+- Service returns `consumed: false`
+- Command drops scroll on ground
+- Scroll deteriorates after 100 turns
+
+**Example**:
+```typescript
+// In ReadScrollCommand
+const result = this.scrollService.applyScroll(scroll, state)
+
+if (result.consumed) {
+  // Normal: Remove from inventory
+  updatedPlayer = this.inventoryService.removeItem(player, scroll.id)
+} else {
+  // SCARE_MONSTER: Drop at player position
+  updatedPlayer = this.inventoryService.removeItem(player, scroll.id)
+  updatedLevel = this.inventoryService.addItemToGround(
+    level,
+    scroll,
+    player.position
+  )
+}
+```
+
+---
+
+### 2.5 Needs Implementation - Simple (Low Complexity)
 
 #### TELEPORTATION
 ```typescript
@@ -309,27 +644,169 @@ Curse System Needed:
 
 ### 3.1 Service Layer Integration
 
-**ScrollService Dependencies** (Current + Planned):
+**ScrollService Dependencies** (Organized by Implementation Phase):
 
 ```typescript
 export class ScrollService {
   constructor(
-    // EXISTING
+    // PHASE 1 - CORE (Required immediately)
     private identificationService: IdentificationService,
     private inventoryService: InventoryService,
+    private randomService: IRandomService,
 
-    // NEW - REQUIRED FOR SCROLL IMPLEMENTATION
+    // PHASE 2 - LEVEL MANIPULATION (Simple scrolls)
     private levelService: LevelService,        // Teleportation, room detection
     private fovService: FOVService,            // Magic mapping, light, teleportation FOV update
-    private dungeonService: DungeonService,    // Create monster
-    private randomService: IRandomService,     // Teleportation target, monster spawning, sleep duration
 
-    // NEW - OPTIONAL (for advanced scrolls)
-    private monsterAIService?: MonsterAIService,  // Scare monster (FLEEING state)
-    private statusEffectService?: StatusEffectService // Sleep, hold monster (if we build this)
+    // PHASE 2 - MONSTER INTERACTION (Simple scrolls)
+    private dungeonService: DungeonService,    // Create monster
+
+    // PHASE 4 - STATUS EFFECTS (Complex scrolls - optional until implemented)
+    private statusEffectService?: StatusEffectService, // Sleep, hold monster
+
+    // PHASE 5 - CURSE SYSTEM (Final scrolls - optional until implemented)
+    private curseService?: CurseService        // Remove curse
   ) {}
 }
 ```
+
+**State Modification Pattern**
+
+Scrolls that modify GameState (MAGIC_MAPPING, TELEPORTATION, CREATE_MONSTER) follow this immutability pattern:
+
+```typescript
+// Pattern 1: Level modification (MAGIC_MAPPING)
+private applyMagicMapping(state: GameState): ScrollEffectResult {
+  // 1. Get all tiles on current level
+  const allTiles = this.levelService.getAllTiles(state.currentLevel)
+
+  // 2. Create new explored tiles set
+  const newExploredTiles = new Set([
+    ...state.currentLevel.exploredTiles,
+    ...allTiles.map(pos => `${pos.x},${pos.y}`)
+  ])
+
+  // 3. Create updated level (immutable)
+  const updatedLevel = {
+    ...state.currentLevel,
+    exploredTiles: newExploredTiles
+  }
+
+  // 4. Create updated levels array (immutable)
+  const updatedLevels = state.levels.map(level =>
+    level.id === state.currentLevel.id ? updatedLevel : level
+  )
+
+  // 5. Create updated state (immutable)
+  const updatedState = {
+    ...state,
+    levels: updatedLevels
+  }
+
+  // 6. Return result (service doesn't apply state, just returns it)
+  return {
+    state: updatedState,
+    message: "The dungeon layout is revealed!",
+    identified: true,
+    consumed: true
+  }
+}
+
+// Pattern 2: Player position modification (TELEPORTATION)
+private applyTeleportation(state: GameState): ScrollEffectResult {
+  // 1. Find all walkable tiles
+  const walkableTiles = this.levelService.getAllWalkableTiles(state.currentLevel)
+
+  // 2. Random select target
+  const targetPos = this.randomService.choice(walkableTiles)
+
+  // 3. Update player position (immutable)
+  const updatedPlayer = {
+    ...state.player,
+    position: targetPos
+  }
+
+  // 4. Recompute FOV at new location
+  const fovResult = this.fovService.updateFOVAndExploration(
+    targetPos,
+    this.getLightRadius(updatedPlayer),
+    state.currentLevel
+  )
+
+  // 5. Create updated state with new FOV
+  const updatedState = {
+    ...state,
+    player: updatedPlayer,
+    currentLevel: fovResult.level,
+    visibleCells: fovResult.visibleCells
+  }
+
+  // 6. Return both player and state
+  return {
+    player: updatedPlayer,    // Player changed
+    state: updatedState,      // State changed (FOV)
+    message: "You feel a wrenching sensation!",
+    identified: true,
+    consumed: true
+  }
+}
+
+// Pattern 3: Level entity addition (CREATE_MONSTER)
+private applyCreateMonster(state: GameState): ScrollEffectResult {
+  // 1. Find adjacent empty tiles
+  const adjacentTiles = this.levelService.getEmptyAdjacentTiles(
+    state.player.position,
+    state.currentLevel
+  )
+
+  if (adjacentTiles.length === 0) {
+    // Scroll fizzles - no space
+    return {
+      message: "Nothing happens.",
+      identified: true,
+      fizzled: true,
+      consumed: false
+    }
+  }
+
+  // 2. Random select spawn position
+  const spawnPos = this.randomService.choice(adjacentTiles)
+
+  // 3. Spawn monster (DungeonService handles creation)
+  const newMonster = this.dungeonService.spawnMonster(
+    state.currentLevel.depth,
+    spawnPos
+  )
+
+  // 4. Add monster to level (immutable)
+  const updatedLevel = {
+    ...state.currentLevel,
+    monsters: [...state.currentLevel.monsters, newMonster]
+  }
+
+  // 5. Update state
+  const updatedState = {
+    ...state,
+    levels: state.levels.map(level =>
+      level.id === updatedLevel.id ? updatedLevel : level
+    )
+  }
+
+  return {
+    state: updatedState,
+    message: "You hear a faint cry of anguish!",
+    identified: true,
+    consumed: true
+  }
+}
+```
+
+**Key Principles**:
+1. **Service calculates new state** - doesn't apply it
+2. **Return result with state** - command applies it
+3. **Always use spread operators** - never mutate
+4. **Nested updates require care** - update each level (level → levels → state)
+5. **Return appropriate fields** - `player`, `state`, or both depending on what changed
 
 ### 3.2 New Services Needed
 
@@ -462,33 +939,53 @@ processMonsterTurn(monster: Monster, player: Player, level: Level): MonsterActio
 
 ### Phase 1: Foundation (Prerequisite Systems)
 
-**Goal**: Build missing infrastructure needed for scroll effects
+**Goal**: Build missing infrastructure needed for scroll effects + define core architecture
 
 **Tasks**:
 
-1. **StatusEffectService** (NEW SERVICE)
+0. **Core Type Definitions** (NEW - Architecture Foundation)
+   - [ ] Define `ScrollEffectResult` interface in `core.ts`
+   - [ ] Define `ItemTarget` type: `{ type: 'item', itemId: string }`
+   - [ ] Define `DirectionTarget` type: `{ type: 'direction', dx: number, dy: number }`
+   - [ ] Export target union type: `type ScrollTarget = ItemTarget | DirectionTarget`
+   - [ ] Git commit: "feat: define ScrollEffectResult and targeting types (Phase 1.0)"
+
+1. **ReadScrollCommand** (NEW - Command Architecture)
+   - [ ] Create `ReadScrollCommand.ts` in `src/commands/ReadScrollCommand/`
+   - [ ] Implement constructor with targeting support
+   - [ ] Implement command flow (find scroll, validate, apply, identify, consume/drop)
+   - [ ] Add fizzle handling (no turn consumed if scroll fizzles)
+   - [ ] Add SCARE_MONSTER special case (drop scroll, don't consume)
+   - [ ] Write comprehensive tests (read-scroll-command.test.ts)
+   - [ ] Git commit: "feat: implement ReadScrollCommand with targeting support (Phase 1.1)"
+
+2. **StatusEffectService** (NEW SERVICE - from original plan)
    - [ ] Create `StatusEffectService.ts`
    - [ ] Define `StatusEffect` enum and `StatusEffectState` interface
    - [ ] Implement `applyEffect`, `tickEffects`, `hasEffect`, `removeEffect`
    - [ ] Add `statusEffects: StatusEffectState[]` to Player and Monster interfaces
    - [ ] Write comprehensive tests (status-effects.test.ts)
+   - [ ] Git commit: "feat: create StatusEffectService with duration tracking (Phase 1.2)"
 
-2. **LevelService Extensions**
+3. **LevelService Extensions** (from original plan)
    - [ ] Implement `getAllWalkableTiles(level: Level): Position[]`
    - [ ] Implement `getEmptyAdjacentTiles(position: Position, level: Level): Position[]`
    - [ ] Implement `getRoomTiles(position: Position, level: Level): Position[]`
    - [ ] Implement `isInRoom(position: Position, level: Level): boolean`
+   - [ ] Implement `getAllTiles(level: Level): Position[]` (for MAGIC_MAPPING)
    - [ ] Write tests for new methods
+   - [ ] Git commit: "feat: extend LevelService with scroll utility methods (Phase 1.3)"
 
-3. **MonsterAIService Extensions**
+4. **MonsterAIService Extensions** (from original plan)
    - [ ] Add HELD status check (skip turn if held)
    - [ ] Add FLEEING status check (flee from player)
    - [ ] Implement `fleeFromPlayer(monster, player)` pathfinding
    - [ ] Write tests for new behaviors
+   - [ ] Git commit: "feat: add HELD and FLEEING monster AI behaviors (Phase 1.4)"
 
-**Deliverable**: Infrastructure ready for scroll implementation
+**Deliverable**: Complete architecture (types, command, services) ready for scroll implementation
 
-**Estimated Effort**: 3-4 tasks, ~200 lines of code, ~150 lines of tests
+**Estimated Effort**: 5 tasks, ~350 lines of code, ~250 lines of tests
 
 ---
 
@@ -887,6 +1384,191 @@ export class ScrollService {
 
 ---
 
+### 6.8 Service/Command Boundary Checklist
+
+**Decision**: Enforce strict separation of concerns between ScrollService and ReadScrollCommand
+
+**Rationale**: Following CLAUDE.md architecture principles and lessons from potion implementation
+
+#### Service Responsibilities (ScrollService)
+
+**✅ ScrollService SHOULD:**
+- Apply scroll effect logic (calculate damage, determine targets, etc.)
+- Validate prerequisites (e.g., "is player in room?" for LIGHT scroll)
+- Calculate new state (create updated player/state objects)
+- Return `ScrollEffectResult` with all necessary data
+- Handle random number generation (teleport position, duration)
+- Check monster/item existence and validity
+- Apply status effects via StatusEffectService
+- Perform map modifications (exploredTiles, monster lists, etc.)
+
+**❌ ScrollService SHOULD NOT:**
+- Show UI prompts or modals
+- Manage inventory directly (add/remove items)
+- Increment turn counter
+- Display messages (return message string instead)
+- Call TurnService or other command-level services
+- Handle user input or keyboard events
+- Decide whether to show targeting prompts
+
+**Example - Correct Service Logic**:
+```typescript
+// ✅ Good: Service calculates, returns result
+private applyMagicMapping(state: GameState): ScrollEffectResult {
+  const allTiles = this.levelService.getAllTiles(state.currentLevel)
+  const newExploredTiles = new Set([...state.currentLevel.exploredTiles, ...allTiles.map(posKey)])
+
+  const updatedLevel = { ...state.currentLevel, exploredTiles: newExploredTiles }
+  const updatedState = { ...state, levels: state.levels.map(l => l.id === updatedLevel.id ? updatedLevel : l) }
+
+  return {
+    state: updatedState,
+    message: "The dungeon layout is revealed!",
+    identified: true,
+    consumed: true
+  }
+}
+
+// ❌ Bad: Service managing inventory and turns
+private applyMagicMapping(state: GameState): GameState {
+  // Logic...
+  const newState = { ...state, ...updates }
+
+  // ❌ Service shouldn't remove items
+  player.inventory = player.inventory.filter(i => i.id !== scroll.id)
+
+  // ❌ Service shouldn't increment turns
+  newState.turn += 1
+
+  return newState
+}
+```
+
+---
+
+#### Command Responsibilities (ReadScrollCommand)
+
+**✅ ReadScrollCommand SHOULD:**
+- Find scroll in inventory (via InventoryService)
+- Validate scroll type and target presence
+- Call ScrollService to apply effect
+- Handle identification (via IdentificationService)
+- Remove scroll from inventory (or drop for SCARE_MONSTER)
+- Update game state with service results
+- Increment turn (via TurnService)
+- Add messages to message log (via MessageService)
+- Handle death/game-over conditions
+
+**❌ ReadScrollCommand SHOULD NOT:**
+- Calculate scroll effects (that's service logic)
+- Perform map modifications directly
+- Apply status effects directly
+- Contain loops, calculations, or business logic
+- Modify monsters/items directly
+- Have complex conditional logic (beyond simple routing)
+
+**Example - Correct Command Orchestration**:
+```typescript
+// ✅ Good: Command orchestrates services
+execute(state: GameState): GameState {
+  // 1. Find scroll
+  const scroll = this.inventoryService.findItem(state.player, this.scrollId)
+  if (!scroll) {
+    return { ...state, messages: this.messageService.addMessage(state.messages, "You don't have that.") }
+  }
+
+  // 2. Check identification
+  const identified = !this.identificationService.isIdentified(scroll, state)
+
+  // 3. Apply scroll (service handles logic)
+  const result = this.scrollService.applyScroll(scroll, state, this.target)
+
+  // 4. Handle fizzle
+  if (result.fizzled) {
+    return { ...state, messages: this.messageService.addMessage(state.messages, result.message) }
+  }
+
+  // 5. Update identification
+  let updatedState = state
+  if (identified) {
+    updatedState = this.identificationService.identifyByUse(scroll, state)
+  }
+
+  // 6. Apply service results
+  if (result.player) updatedState = { ...updatedState, player: result.player }
+  if (result.state) updatedState = { ...updatedState, ...result.state }
+
+  // 7. Handle consumption
+  if (result.consumed) {
+    updatedState = {
+      ...updatedState,
+      player: this.inventoryService.removeItem(updatedState.player, scroll.id)
+    }
+  } else {
+    // SCARE_MONSTER: drop scroll
+    updatedState = this.inventoryService.dropItemAtPosition(updatedState, scroll, state.player.position)
+  }
+
+  // 8. Add message and increment turn
+  updatedState = { ...updatedState, messages: this.messageService.addMessage(updatedState.messages, result.message) }
+  updatedState = this.turnService.incrementTurn(updatedState)
+
+  return updatedState
+}
+
+// ❌ Bad: Command contains logic
+execute(state: GameState): GameState {
+  const scroll = findScroll(state.player, this.scrollId)
+
+  // ❌ Command shouldn't calculate effects
+  if (scroll.type === ScrollType.MAGIC_MAPPING) {
+    const tiles = []
+    for (let x = 0; x < level.width; x++) {  // ❌ Loop in command
+      for (let y = 0; y < level.height; y++) {
+        if (level.tiles[x][y].type === TileType.FLOOR) {  // ❌ Conditional logic
+          tiles.push({ x, y })
+        }
+      }
+    }
+    // ❌ Direct state manipulation
+    level.exploredTiles = new Set(tiles.map(t => `${t.x},${t.y}`))
+  }
+
+  return state
+}
+```
+
+---
+
+#### Red Flags Checklist
+
+**🚨 Signs Command Has Too Much Logic:**
+- [ ] Contains loops (`for`, `forEach`, `map`, `filter`, `reduce`)
+- [ ] Contains calculations (`Math.*`, arithmetic operators)
+- [ ] Contains array/object manipulation beyond spreading
+- [ ] Has nested conditionals (more than 2 levels deep)
+- [ ] Directly modifies level/monster/item data
+- [ ] Performs pathfinding or FOV calculations
+- [ ] Contains monster AI logic
+- [ ] Has more than 3 `if` statements
+
+**🚨 Signs Service Is Overstepping:**
+- [ ] Imports command classes
+- [ ] Imports UI/rendering classes
+- [ ] Calls `TurnService.incrementTurn()`
+- [ ] Calls `InventoryService.removeItem()` or `addItem()`
+- [ ] Shows modals or prompts
+- [ ] Handles keyboard input
+- [ ] Manages message log directly
+- [ ] Returns `GameState` instead of specific result type
+
+**✅ Quick Validation Test:**
+- Can you explain what the command does in 3 sentences without implementation details? → **Good orchestration**
+- Does the service method have 1 clear purpose and return a result? → **Good separation**
+- Can you test the service without mocking the command? → **Proper dependency direction**
+
+---
+
 ## 7. Implementation Checklist
 
 ### Phase 1: Foundation ✅ = Complete | ⬜ = Pending
@@ -940,6 +1622,331 @@ export class ScrollService {
 - [ ] UI enhancements
 - [ ] Edge case handling
 - [ ] Documentation updates
+
+---
+
+### 7.5 Integration Examples
+
+**Purpose**: Provide complete code examples showing how ScrollService and ReadScrollCommand work together.
+
+#### Example 1: MAGIC_MAPPING (State Modification)
+
+**ScrollService Implementation**:
+```typescript
+// In ScrollService
+applyScroll(scroll: Scroll, state: GameState, target?: ScrollTarget): ScrollEffectResult {
+  switch (scroll.type) {
+    case ScrollType.MAGIC_MAPPING:
+      return this.applyMagicMapping(state)
+    // ... other scrolls
+  }
+}
+
+private applyMagicMapping(state: GameState): ScrollEffectResult {
+  // 1. Get all tiles
+  const allTiles = this.levelService.getAllTiles(state.currentLevel)
+
+  // 2. Mark all as explored
+  const newExploredTiles = new Set([
+    ...state.currentLevel.exploredTiles,
+    ...allTiles.map(pos => `${pos.x},${pos.y}`)
+  ])
+
+  // 3. Create updated level
+  const updatedLevel = {
+    ...state.currentLevel,
+    exploredTiles: newExploredTiles
+  }
+
+  // 4. Update state
+  const updatedState = {
+    ...state,
+    levels: state.levels.map(level =>
+      level.id === updatedLevel.id ? updatedLevel : level
+    )
+  }
+
+  return {
+    state: updatedState,
+    message: "The dungeon layout is revealed!",
+    identified: true,
+    consumed: true
+  }
+}
+```
+
+**ReadScrollCommand Integration**:
+```typescript
+execute(state: GameState): GameState {
+  const scroll = this.inventoryService.findItem(state.player, this.scrollId)
+
+  // Apply scroll
+  const result = this.scrollService.applyScroll(scroll, state)
+
+  // Update state with service result
+  let updatedState = result.state || state
+
+  // Remove scroll
+  updatedState = {
+    ...updatedState,
+    player: this.inventoryService.removeItem(updatedState.player, scroll.id)
+  }
+
+  // Add message and increment turn
+  updatedState = {
+    ...updatedState,
+    messages: this.messageService.addMessage(updatedState.messages, result.message)
+  }
+  updatedState = this.turnService.incrementTurn(updatedState)
+
+  return updatedState
+}
+```
+
+---
+
+#### Example 2: ENCHANT_WEAPON (Item Targeting)
+
+**UI Flow** (for context):
+```typescript
+// In InputHandler (UI layer)
+if (selectedScroll.type === ScrollType.ENCHANT_WEAPON) {
+  // Show weapon selection modal
+  showItemModal(state.player.inventory.filter(item => isWeapon(item)))
+
+  // On weapon selected:
+  const command = new ReadScrollCommand(
+    scrollId,
+    services,
+    { type: 'item', itemId: selectedWeaponId }  // Target
+  )
+
+  gameState = command.execute(gameState)
+}
+```
+
+**ScrollService Implementation**:
+```typescript
+private applyEnchantWeapon(
+  state: GameState,
+  target: ItemTarget
+): ScrollEffectResult {
+  const weapon = this.inventoryService.findItem(state.player, target.itemId)
+
+  // Validate target
+  if (!weapon || weapon.itemType !== 'weapon') {
+    return {
+      message: "That's not a weapon!",
+      identified: true,
+      fizzled: true,
+      consumed: false
+    }
+  }
+
+  // Check enchantment cap
+  if (weapon.bonus >= 3) {
+    return {
+      message: `Your ${weapon.name} is already at maximum enchantment!`,
+      identified: true,
+      fizzled: true,
+      consumed: false
+    }
+  }
+
+  // Apply enchantment
+  const enchantedWeapon = { ...weapon, bonus: weapon.bonus + 1 }
+  const updatedPlayer = this.inventoryService.replaceItem(
+    state.player,
+    weapon.id,
+    enchantedWeapon
+  )
+
+  return {
+    player: updatedPlayer,
+    message: `Your ${weapon.name} glows brightly! (+${enchantedWeapon.bonus})`,
+    identified: true,
+    consumed: true
+  }
+}
+```
+
+**ReadScrollCommand Integration**:
+```typescript
+execute(state: GameState): GameState {
+  const scroll = this.inventoryService.findItem(state.player, this.scrollId)
+
+  // Validate target provided
+  if (!this.target || this.target.type !== 'item') {
+    return {
+      ...state,
+      messages: this.messageService.addMessage(state.messages, "No target selected.")
+    }
+  }
+
+  // Apply scroll with target
+  const result = this.scrollService.applyScroll(scroll, state, this.target)
+
+  // Handle fizzle (don't consume turn)
+  if (result.fizzled) {
+    return {
+      ...state,
+      messages: this.messageService.addMessage(state.messages, result.message)
+    }
+  }
+
+  // Apply player update
+  let updatedState = { ...state, player: result.player || state.player }
+
+  // Remove scroll, add message, increment turn
+  updatedState = {
+    ...updatedState,
+    player: this.inventoryService.removeItem(updatedState.player, scroll.id),
+    messages: this.messageService.addMessage(updatedState.messages, result.message)
+  }
+  updatedState = this.turnService.incrementTurn(updatedState)
+
+  return updatedState
+}
+```
+
+---
+
+#### Example 3: HOLD_MONSTER (Direction Targeting)
+
+**UI Flow**:
+```typescript
+// In InputHandler (UI layer)
+if (selectedScroll.type === ScrollType.HOLD_MONSTER) {
+  // Show direction prompt: "Which direction?"
+  setDirectionPromptMode()
+
+  // On arrow key pressed (e.g., ArrowUp):
+  const command = new ReadScrollCommand(
+    scrollId,
+    services,
+    { type: 'direction', dx: 0, dy: -1 }  // North
+  )
+
+  gameState = command.execute(gameState)
+}
+```
+
+**ScrollService Implementation**:
+```typescript
+private applyHoldMonster(
+  state: GameState,
+  target: DirectionTarget
+): ScrollEffectResult {
+  // Calculate target position
+  const targetPos = {
+    x: state.player.position.x + target.dx,
+    y: state.player.position.y + target.dy
+  }
+
+  // Find monster at position
+  const monster = state.currentLevel.monsters.find(m =>
+    m.position.x === targetPos.x && m.position.y === targetPos.y
+  )
+
+  if (!monster) {
+    return {
+      message: "There's nothing there to hold!",
+      identified: true,
+      fizzled: true,
+      consumed: false
+    }
+  }
+
+  // Apply HELD status
+  const duration = this.randomService.nextInt(3, 6)
+  const heldMonster = this.statusEffectService.addStatusEffect(
+    monster,
+    StatusEffectType.HELD,
+    duration
+  )
+
+  // Update level
+  const updatedMonsters = state.currentLevel.monsters.map(m =>
+    m.id === monster.id ? heldMonster : m
+  )
+
+  const updatedLevel = {
+    ...state.currentLevel,
+    monsters: updatedMonsters
+  }
+
+  const updatedState = {
+    ...state,
+    levels: state.levels.map(level =>
+      level.id === updatedLevel.id ? updatedLevel : level
+    )
+  }
+
+  return {
+    state: updatedState,
+    message: `The ${monster.name} freezes in place!`,
+    identified: true,
+    consumed: true
+  }
+}
+```
+
+---
+
+#### Example 4: SCARE_MONSTER (Special - Not Consumed)
+
+**ScrollService Implementation**:
+```typescript
+private applyScareMonster(state: GameState): ScrollEffectResult {
+  // No actual effect applied (scroll is just dropped)
+  return {
+    message: "You hear maniacal laughter and drop the scroll!",
+    identified: true,
+    consumed: false  // ← Key: scroll NOT consumed
+  }
+}
+```
+
+**ReadScrollCommand Integration**:
+```typescript
+execute(state: GameState): GameState {
+  const scroll = this.inventoryService.findItem(state.player, this.scrollId)
+  const result = this.scrollService.applyScroll(scroll, state)
+
+  let updatedState = state
+
+  // Handle scroll consumption (special case)
+  if (result.consumed) {
+    // Normal: remove from inventory
+    updatedState = {
+      ...updatedState,
+      player: this.inventoryService.removeItem(updatedState.player, scroll.id)
+    }
+  } else {
+    // SCARE_MONSTER: drop scroll at player position
+    updatedState = {
+      ...updatedState,
+      player: this.inventoryService.removeItem(updatedState.player, scroll.id),
+      currentLevel: {
+        ...updatedState.currentLevel,
+        items: [
+          ...updatedState.currentLevel.items,
+          { ...scroll, position: state.player.position, droppedOnTurn: state.turn }
+        ]
+      }
+    }
+  }
+
+  // Add message and increment turn
+  updatedState = {
+    ...updatedState,
+    messages: this.messageService.addMessage(updatedState.messages, result.message)
+  }
+  updatedState = this.turnService.incrementTurn(updatedState)
+
+  return updatedState
+}
+```
 
 ---
 
@@ -1004,6 +2011,18 @@ export class ScrollService {
 
 ---
 
-**Last Updated**: 2025-10-06
+**Last Updated**: 2025-10-06 (Enhanced with potion implementation learnings)
 **Author**: Claude Code
 **Status**: Ready for Implementation
+
+## Changelog
+
+**2025-10-06 - Enhanced with Potion Implementation Learnings**:
+- Added ScrollEffectResult type definition (Section 2.2)
+- Added ReadScrollCommand architecture documentation (Section 2.3)
+- Added comprehensive targeting flow documentation (Section 2.4)
+- Enhanced Section 3.1 with state modification patterns and refactored constructor
+- Updated Phase 1 tasks with new prerequisites (type definitions, command architecture)
+- Added service/command boundary checklist (Section 6.8)
+- Added integration examples showing complete scroll implementations (Section 7.5)
+- All updates based on successful patterns from completed potion implementation
