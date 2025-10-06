@@ -155,6 +155,7 @@ async function initializeGame() {
       lightSource: torch,
     },
     inventory: [],
+    statusEffects: [],
   }
 
   // Compute initial FOV
@@ -254,6 +255,7 @@ async function initializeGame() {
         lightSource: torch,
       },
       inventory: [],
+      statusEffects: [],
     }
 
     const visibleCells = fovService.computeFOV(

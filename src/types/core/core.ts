@@ -104,6 +104,26 @@ export interface Equipment {
   lightSource: Torch | Lantern | Artifact | null
 }
 
+// ============================================================================
+// STATUS EFFECTS
+// ============================================================================
+
+export enum StatusEffectType {
+  CONFUSED = 'CONFUSED',       // Random movement direction
+  BLIND = 'BLIND',             // Cannot see
+  HASTED = 'HASTED',           // Double actions per turn
+  SLOWED = 'SLOWED',           // Half movement speed
+  PARALYZED = 'PARALYZED',     // Cannot move
+  LEVITATING = 'LEVITATING',   // Can cross traps
+  SEE_INVISIBLE = 'SEE_INVISIBLE', // Can see invisible monsters
+}
+
+export interface StatusEffect {
+  type: StatusEffectType
+  duration: number
+  intensity?: number // Optional: for effects that stack or have varying power
+}
+
 export interface Player {
   position: Position
   hp: number
@@ -117,6 +137,7 @@ export interface Player {
   hunger: number
   equipment: Equipment
   inventory: Item[]
+  statusEffects: StatusEffect[]
 }
 
 export interface Monster {
