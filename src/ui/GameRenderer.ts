@@ -6,13 +6,14 @@ import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
 import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
+import { DeathService } from '@services/DeathService'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
 import { MessageHistoryModal } from './MessageHistoryModal'
 import { HelpModal } from './HelpModal'
 import { VictoryScreen } from './VictoryScreen'
-import { DeathScreen, DeathStats } from './DeathScreen'
+import { DeathScreen } from './DeathScreen'
 
 // ============================================================================
 // GAME RENDERER - DOM rendering for game state
@@ -39,6 +40,7 @@ export class GameRenderer {
     private contextService: ContextService,
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
+    private deathService: DeathService,
     private onReturnToMenu: () => void,
     _config = {
       dungeonWidth: 80,
@@ -71,15 +73,8 @@ export class GameRenderer {
       this.localStorageService.deleteSave(state.gameId)
       console.log('Save deleted (permadeath)')
 
-      const stats: DeathStats = {
-        cause: state.deathCause || 'Unknown cause',
-        finalLevel: state.player.level,
-        totalGold: state.player.gold,
-        totalXP: state.player.xp,
-        totalTurns: state.turnCount,
-        deepestLevel: Math.max(...Array.from(state.levels.keys())),
-        seed: state.seed,
-      }
+      // Calculate comprehensive death statistics via DeathService
+      const stats = this.deathService.calculateDeathStats(state)
 
       this.deathScreen.show(stats, () => {
         // Return to main menu

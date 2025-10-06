@@ -1,16 +1,8 @@
+import { ComprehensiveDeathStats } from '@services/DeathService'
+
 // ============================================================================
 // DEATH SCREEN - Display death modal with final stats
 // ============================================================================
-
-export interface DeathStats {
-  cause: string
-  finalLevel: number
-  totalGold: number
-  totalXP: number
-  totalTurns: number
-  deepestLevel: number
-  seed: string
-}
 
 export class DeathScreen {
   private container: HTMLDivElement | null = null
@@ -18,7 +10,7 @@ export class DeathScreen {
   /**
    * Display death screen with final stats
    */
-  show(stats: DeathStats, onNewGame: () => void): void {
+  show(stats: ComprehensiveDeathStats, onNewGame: () => void): void {
     this.container = this.createDeathModal(stats, onNewGame)
     document.body.appendChild(this.container)
   }
@@ -33,7 +25,7 @@ export class DeathScreen {
     }
   }
 
-  private createDeathModal(stats: DeathStats, onNewGame: () => void): HTMLDivElement {
+  private createDeathModal(stats: ComprehensiveDeathStats, onNewGame: () => void): HTMLDivElement {
     const overlay = document.createElement('div')
     overlay.className = 'modal-overlay'
     overlay.style.cssText = `

@@ -28,6 +28,7 @@ import { ScrollService } from '@services/ScrollService'
 import { WandService } from '@services/WandService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
+import { DeathService } from '@services/DeathService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -67,6 +68,7 @@ async function initializeGame() {
   const contextService = new ContextService(identificationService)
   const notificationService = new NotificationService(identificationService)
   const victoryService = new VictoryService()
+  const deathService = new DeathService()
   const localStorageService = new LocalStorageService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const combatService = new CombatService(random, hungerService, debugService)
@@ -213,6 +215,7 @@ async function initializeGame() {
       contextService,
       victoryService,
       localStorageService,
+      deathService,
       returnToMenu
     )
 
