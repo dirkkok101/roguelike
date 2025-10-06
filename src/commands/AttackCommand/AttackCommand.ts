@@ -88,6 +88,7 @@ export class AttackCommand implements ICommand {
           player: updatedPlayer,
           levels: updatedLevels,
           messages,
+          monstersKilled: state.monstersKilled + 1, // Track kill for death screen
         })
       } else {
         // Apply damage to monster

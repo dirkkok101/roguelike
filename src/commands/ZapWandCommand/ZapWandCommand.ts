@@ -68,6 +68,7 @@ export class ZapWandCommand implements ICommand {
       ...state,
       player: updatedPlayer,
       messages,
+      itemsUsed: state.itemsUsed + 1, // Track wand use for death screen
     })
   }
 }

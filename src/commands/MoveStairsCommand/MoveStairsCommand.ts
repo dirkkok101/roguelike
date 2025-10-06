@@ -105,6 +105,7 @@ export class MoveStairsCommand implements ICommand {
     // Check if level exists, if not generate it
     let level = state.levels.get(newDepth)
     const levels = new Map(state.levels)
+    const isNewLevel = !level // Track if this is a newly explored level
 
     if (!level) {
       // Generate new level
@@ -146,6 +147,7 @@ export class MoveStairsCommand implements ICommand {
       levels,
       visibleCells,
       messages,
+      levelsExplored: isNewLevel ? state.levelsExplored + 1 : state.levelsExplored, // Track unique levels visited
     })
 
     // Check victory condition after moving to new level

@@ -69,6 +69,7 @@ export class QuaffPotionCommand implements ICommand {
       player: updatedPlayer,
       messages,
       isGameOver: result.death || state.isGameOver,
+      itemsUsed: state.itemsUsed + 1, // Track potion use for death screen
     })
   }
 }
