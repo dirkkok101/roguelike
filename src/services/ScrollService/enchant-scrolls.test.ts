@@ -121,7 +121,8 @@ describe('ScrollService - Enchant Scrolls', () => {
       const enchantedWeapon = result.player.inventory.find(i => i.type === ItemType.WEAPON) as Weapon
       expect(enchantedWeapon).toBeDefined()
       expect(enchantedWeapon.bonus).toBe(1)
-      expect(result.message).toBe('You read scroll labeled ELBERETH. Mace glows brightly! (+1)')
+      expect(enchantedWeapon.name).toBe('Mace +1') // Name updated with new bonus
+      expect(result.message).toBe('You read scroll labeled ELBERETH. Mace +1 glows brightly! (+1)')
     })
 
     test('refuses to enchant beyond +3', () => {
@@ -257,7 +258,8 @@ describe('ScrollService - Enchant Scrolls', () => {
       const enchantedArmor = result.player.inventory.find(i => i.type === ItemType.ARMOR) as Armor
       expect(enchantedArmor).toBeDefined()
       expect(enchantedArmor.bonus).toBe(1)
-      expect(result.message).toBe('You read scroll labeled NR 9. Leather Armor glows with protection! [AC 7]')
+      expect(enchantedArmor.name).toBe('Leather Armor +1') // Name updated with new bonus
+      expect(result.message).toBe('You read scroll labeled NR 9. Leather Armor +1 glows with protection! [AC 7]')
     })
 
     test('refuses to enchant beyond +3', () => {

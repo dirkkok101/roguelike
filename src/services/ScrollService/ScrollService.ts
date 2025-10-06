@@ -215,7 +215,14 @@ export class ScrollService {
     }
 
     // Enchant weapon (increase bonus by 1 and remove curse)
-    const enchantedWeapon: Weapon = { ...weapon, bonus: weapon.bonus + 1, cursed: false }
+    const newBonus = weapon.bonus + 1
+
+    // Update name to reflect new bonus
+    // Strip off old bonus (e.g., "Long Sword +1" → "Long Sword")
+    const baseName = weapon.name.replace(/\s*[+-]\d+$/, '')
+    const newName = `${baseName} +${newBonus}`
+
+    const enchantedWeapon: Weapon = { ...weapon, bonus: newBonus, cursed: false, name: newName }
 
     // Update inventory (remove old, add enchanted)
     let updatedPlayer = this.inventoryService.removeItem(player, weapon.id)
@@ -287,7 +294,13 @@ export class ScrollService {
     }
 
     // Enchant armor (increase bonus by 1 and remove curse, which LOWERS effective AC - better protection)
-    const enchantedArmor: Armor = { ...armor, bonus: armor.bonus + 1, cursed: false }
+    const newBonus = armor.bonus + 1
+
+    // Update name to reflect new bonus
+    const baseName = armor.name.replace(/\s*[+-]\d+$/, '')
+    const newName = `${baseName} +${newBonus}`
+
+    const enchantedArmor: Armor = { ...armor, bonus: newBonus, cursed: false, name: newName }
 
     // Update inventory
     let updatedPlayer = this.inventoryService.removeItem(player, armor.id)
