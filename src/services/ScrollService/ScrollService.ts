@@ -201,6 +201,7 @@ export class ScrollService {
     }
 
     const weapon = targetItem as Weapon
+    const wasCursed = this.curseService.isCursed(weapon)
 
     // Check max enchantment (+3)
     if (weapon.bonus >= 3) {
@@ -213,8 +214,8 @@ export class ScrollService {
       }
     }
 
-    // Enchant weapon (increase bonus by 1)
-    const enchantedWeapon: Weapon = { ...weapon, bonus: weapon.bonus + 1 }
+    // Enchant weapon (increase bonus by 1 and remove curse)
+    const enchantedWeapon: Weapon = { ...weapon, bonus: weapon.bonus + 1, cursed: false }
 
     // Update inventory (remove old, add enchanted)
     let updatedPlayer = this.inventoryService.removeItem(player, weapon.id)
@@ -228,9 +229,17 @@ export class ScrollService {
       }
     }
 
+    // Craft message based on whether curse was lifted
+    let message = `You read ${scrollName}. ${enchantedWeapon.name} glows brightly!`
+    if (wasCursed) {
+      message += ' The curse is lifted!'
+    } else {
+      message += ` (+${enchantedWeapon.bonus})`
+    }
+
     return {
       player: updatedPlayer,
-      message: `You read ${scrollName}. ${enchantedWeapon.name} glows brightly! (+${enchantedWeapon.bonus})`,
+      message,
       identified,
       consumed: true
     }
@@ -264,6 +273,7 @@ export class ScrollService {
     }
 
     const armor = targetItem as Armor
+    const wasCursed = this.curseService.isCursed(armor)
 
     // Check max enchantment (+3)
     if (armor.bonus >= 3) {
@@ -276,8 +286,8 @@ export class ScrollService {
       }
     }
 
-    // Enchant armor (increase bonus by 1, which LOWERS effective AC - better protection)
-    const enchantedArmor: Armor = { ...armor, bonus: armor.bonus + 1 }
+    // Enchant armor (increase bonus by 1 and remove curse, which LOWERS effective AC - better protection)
+    const enchantedArmor: Armor = { ...armor, bonus: armor.bonus + 1, cursed: false }
 
     // Update inventory
     let updatedPlayer = this.inventoryService.removeItem(player, armor.id)
@@ -293,9 +303,17 @@ export class ScrollService {
 
     const effectiveAC = enchantedArmor.ac - enchantedArmor.bonus
 
+    // Craft message based on whether curse was lifted
+    let message = `You read ${scrollName}. ${enchantedArmor.name} glows with protection!`
+    if (wasCursed) {
+      message += ' The curse is lifted!'
+    } else {
+      message += ` [AC ${effectiveAC}]`
+    }
+
     return {
       player: updatedPlayer,
-      message: `You read ${scrollName}. ${enchantedArmor.name} glows with protection! [AC ${effectiveAC}]`,
+      message,
       identified,
       consumed: true
     }

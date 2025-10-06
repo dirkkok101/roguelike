@@ -528,6 +528,49 @@ export class DungeonService {
   // ============================================================================
 
   /**
+   * Roll for cursed status based on item rarity
+   * Higher rarity = higher curse chance (risk/reward balance)
+   *
+   * @param rarity - Item rarity tier
+   * @returns true if item should be cursed
+   */
+  private rollCursedStatus(rarity: string): boolean {
+    const curseChances = {
+      common: 0.05,    // 5% curse chance
+      uncommon: 0.08,  // 8% curse chance
+      rare: 0.12,      // 12% curse chance (high risk/reward)
+    }
+
+    const chance = curseChances[rarity as keyof typeof curseChances] || 0.05
+    return this.random.chance(chance)
+  }
+
+  /**
+   * Generate enchantment bonus for an item
+   * Cursed items get negative bonuses (-1 to -3)
+   * Rare items get positive bonuses (+1 to +2)
+   * Common items are unenchanted (0)
+   *
+   * @param rarity - Item rarity tier
+   * @param isCursed - Whether item is cursed
+   * @returns Enchantment bonus (negative for cursed, positive/zero for normal)
+   */
+  private rollEnchantment(rarity: string, isCursed: boolean): number {
+    if (isCursed) {
+      // Cursed items: -1 to -3 enchantment
+      return -this.random.nextInt(1, 3)
+    }
+
+    if (rarity === 'rare') {
+      // Rare items: +1 to +2 enchantment
+      return this.random.nextInt(1, 2)
+    }
+
+    // Common/uncommon items: no enchantment
+    return 0
+  }
+
+  /**
    * Spawn items in dungeon rooms with rarity-based selection
    */
   spawnItems(
@@ -713,15 +756,26 @@ export class DungeonService {
             const templates = weaponTemplates.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
-              const bonus = rarityRoll === 'rare' ? this.random.nextInt(1, 2) : 0
+              const isCursed = this.rollCursedStatus(rarityRoll)
+              const bonus = this.rollEnchantment(rarityRoll, isCursed)
+
+              // Format name with bonus (e.g., "Long Sword +2" or "Long Sword -1")
+              let name = template.name
+              if (bonus > 0) {
+                name = `${template.name} +${bonus}`
+              } else if (bonus < 0) {
+                name = `${template.name} ${bonus}` // Negative sign is already in bonus
+              }
+
               item = {
                 id: itemId,
-                name: bonus > 0 ? `${template.name} +${bonus}` : template.name,
+                name,
                 type: ItemType.WEAPON,
                 identified: false,
                 position: { x, y },
                 damage: template.damage,
                 bonus,
+                cursed: isCursed,
               } as Weapon
             }
             break
@@ -731,15 +785,26 @@ export class DungeonService {
             const templates = armorTemplates.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
-              const bonus = rarityRoll === 'rare' ? this.random.nextInt(1, 2) : 0
+              const isCursed = this.rollCursedStatus(rarityRoll)
+              const bonus = this.rollEnchantment(rarityRoll, isCursed)
+
+              // Format name with bonus (e.g., "Plate Mail +2" or "Plate Mail -1")
+              let name = template.name
+              if (bonus > 0) {
+                name = `${template.name} +${bonus}`
+              } else if (bonus < 0) {
+                name = `${template.name} ${bonus}` // Negative sign is already in bonus
+              }
+
               item = {
                 id: itemId,
-                name: bonus > 0 ? `${template.name} +${bonus}` : template.name,
+                name,
                 type: ItemType.ARMOR,
                 identified: false,
                 position: { x, y },
                 ac: template.ac,
                 bonus,
+                cursed: isCursed,
               } as Armor
             }
             break
@@ -786,10 +851,22 @@ export class DungeonService {
             const templates = ringTemplates.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
-              const bonus = this.random.nextInt(1, 3)
+
+              // Ring of Teleportation is ALWAYS cursed (Rogue tradition)
+              const isCursed = template.type === RingType.TELEPORTATION || this.rollCursedStatus(rarityRoll)
+              const bonus = this.rollEnchantment(rarityRoll, isCursed)
+
+              // Format name with bonus (e.g., "Ring of Protection +2" or "Ring of Protection -1")
+              let name = `Ring of ${template.type}`
+              if (bonus > 0) {
+                name = `${name} +${bonus}`
+              } else if (bonus < 0) {
+                name = `${name} ${bonus}` // Negative sign is already in bonus
+              }
+
               item = {
                 id: itemId,
-                name: `Ring of ${template.type} +${bonus}`,
+                name,
                 type: ItemType.RING,
                 identified: false,
                 position: { x, y },
@@ -798,6 +875,7 @@ export class DungeonService {
                 bonus,
                 materialName: 'unknown', // Set by IdentificationService
                 hungerModifier: 1.5,
+                cursed: isCursed,
               } as Ring
             }
             break

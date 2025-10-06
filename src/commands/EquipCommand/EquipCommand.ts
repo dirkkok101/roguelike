@@ -122,12 +122,22 @@ export class EquipCommand implements ICommand {
         return { ...state, messages }
     }
 
-    const messages = this.messageService.addMessage(
+    let messages = this.messageService.addMessage(
       state.messages,
       equipMessage,
       'success',
       state.turnCount
     )
+
+    // Check if newly equipped item is cursed (curse discovery)
+    if (this.curseService.isCursed(item)) {
+      messages = this.messageService.addMessage(
+        messages,
+        `The ${item.name} is cursed! You cannot remove it.`,
+        'warning',
+        state.turnCount
+      )
+    }
 
     return this.turnService.incrementTurn({
       ...state,
