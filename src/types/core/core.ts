@@ -138,6 +138,7 @@ export interface Player {
   equipment: Equipment
   inventory: Item[]
   statusEffects: StatusEffect[]
+  energy: number // Energy for turn system (0-199 typical range)
 }
 
 export interface Monster {
@@ -160,6 +161,8 @@ export interface Monster {
   level: number
   lastKnownPlayerPosition?: Position | null // Memory: last position where monster saw player
   turnsWithoutSight?: number // Counter: how many turns since monster last saw player
+  energy: number // Energy for turn system (0-199 typical range)
+  speed: number // Base speed (5=slow, 10=normal, 20=fast)
 }
 
 export enum MonsterBehavior {

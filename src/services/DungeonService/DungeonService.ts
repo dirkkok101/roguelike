@@ -532,6 +532,8 @@ export class DungeonService {
           hasStolen: false,
           lastKnownPlayerPosition: null,
           turnsWithoutSight: 0,
+          energy: this.random.nextInt(0, 99), // Random initial energy (staggered starts)
+          speed: 10, // Normal speed baseline
         })
       }
     }

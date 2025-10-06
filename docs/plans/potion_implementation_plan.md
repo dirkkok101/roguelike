@@ -256,28 +256,147 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 
 ---
 
-#### Task 2.5: Implement HASTE_SELF Potion
+#### Task 2.5: Implement HASTE_SELF Potion (Full Energy System)
 
-**Context**: Grants double actions per turn for 4-8 turns. Complex mechanic requiring turn system changes.
+**Context**: Grants double actions per turn for 4-8 turns. After research (priority queues, energy systems, action counters), implementing **full Angband-style energy system** for extensibility.
+
+**Design Decision**: Full energy system chosen over simple actionsRemaining because:
+- ✅ Handles player haste (immediate need: 2 actions/turn for 4-8 turns)
+- ✅ Scales to variable monster speeds (future: Zombie=slow, wands of haste/slow)
+- ✅ Precise speed calculations with energy carryover
+- ✅ Battle-tested in Angband/ADOM/Crawl
+
+**Energy System Mechanics**:
+- Energy threshold: 100 energy required to act
+- Speeds: Normal=10, Hasted=20 (2x rate), Slowed=5 (0.5x rate)
+- Energy carries over after actions (excess persists to next tick)
+- Player gets energy until threshold met, acts, then monsters process
 
 **Files to create/modify**:
-- `src/services/PotionService/PotionService.ts` (modify)
-- `src/services/TurnService/TurnService.ts` (modify)
+- `src/types/core/core.ts` (modify - add energy/speed fields)
+- `src/constants/energy.ts` (create - energy constants)
+- `src/services/TurnService/TurnService.ts` (modify - energy methods)
+- `src/services/TurnService/energy-system.test.ts` (create)
+- `src/services/MonsterTurnService/MonsterTurnService.ts` (modify - energy processing)
+- `src/services/MonsterTurnService/energy-turn-processing.test.ts` (create)
+- `src/services/PotionService/PotionService.ts` (modify - HASTE_SELF potion)
 - `src/services/PotionService/haste-potion.test.ts` (create)
-- `src/services/TurnService/haste-turn.test.ts` (create)
+- `src/main.ts` (modify - energy-based game loop)
+- `src/services/DungeonService/DungeonService.ts` (modify - monster energy init)
+- `src/__integration__/energy-game-loop.test.ts` (create)
 
 ##### Subtasks:
-- [ ] Add `applyHasteSelfPotion(player: Player): Player` method to PotionService
-- [ ] Apply HASTED status for 4-8 turns (random)
-- [ ] Add HASTE_SELF case to `applyPotion()` switch
-- [ ] Add `actionsRemaining: number` to GameState (default 1)
-- [ ] Update TurnService.incrementTurn() to check for HASTED status
-- [ ] If hasted, set actionsRemaining = 2; else actionsRemaining = 1
-- [ ] Decrement actionsRemaining on each player action
-- [ ] Only trigger monster turns when actionsRemaining reaches 0
-- [ ] Write PotionService tests: duration randomization, haste applied
-- [ ] Write TurnService tests: double actions when hasted, normal when not hasted
-- [ ] Git commit: "feat: implement HASTE_SELF potion with double actions (Phase 2.5)"
+
+**Task 2.5.1: Add energy/speed fields to core types**
+- [ ] Update `Player` interface: add `energy: number` field
+- [ ] Update `Monster` interface: add `energy: number`, `speed: number` fields
+- [ ] Initialize player energy to 100 in main.ts `createInitialState()` (can act immediately)
+- [ ] Initialize player energy to 100 in main.ts `replaySeed()` (can act immediately)
+- [ ] Initialize monster energy to random 0-99 in DungeonService (staggered starts)
+- [ ] Initialize monster speed to 10 in DungeonService (normal speed baseline)
+- [ ] Git commit: "feat: add energy/speed fields to Player and Monster (Phase 2.5.1)"
+
+**Task 2.5.2: Create energy constants**
+- [ ] Create `/src/constants/energy.ts`
+- [ ] Define `ENERGY_THRESHOLD = 100` (energy required to act)
+- [ ] Define `NORMAL_SPEED = 10` (baseline speed)
+- [ ] Define `HASTED_SPEED = 20` (player hasted, 2x rate)
+- [ ] Define `SLOWED_SPEED = 5` (slowed, 0.5x rate)
+- [ ] Git commit: "feat: create energy system constants (Phase 2.5.2)"
+
+**Task 2.5.3: Refactor TurnService for energy system**
+- [ ] Add generic `Actor` type: `type Actor = { energy: number }`
+- [ ] Add `grantEnergy<T extends Actor>(actor: T, speed: number): T` - grants energy based on speed
+- [ ] Add `canAct<T extends Actor>(actor: T): boolean` - checks if energy >= ENERGY_THRESHOLD
+- [ ] Add `consumeEnergy<T extends Actor>(actor: T): T` - subtracts ENERGY_THRESHOLD from energy
+- [ ] Add `getPlayerSpeed(player: Player): number` - returns HASTED_SPEED if HASTED, else NORMAL_SPEED
+- [ ] Add `grantPlayerEnergy(state: GameState): GameState` - grants energy to player based on speed
+- [ ] Add `consumePlayerEnergy(player: Player): Player` - wrapper for consumeEnergy
+- [ ] Add `canPlayerAct(player: Player): boolean` - wrapper for canAct
+- [ ] Modify `incrementTurn()` to only tick status effects (no energy granting)
+- [ ] Create `energy-system.test.ts` with 12 unit tests:
+  - [ ] Test `grantEnergy()` with normal speed (10 energy granted)
+  - [ ] Test `grantEnergy()` with hasted speed (20 energy granted)
+  - [ ] Test `grantEnergy()` with slowed speed (5 energy granted)
+  - [ ] Test `canAct()` returns true when energy >= 100
+  - [ ] Test `canAct()` returns false when energy < 100
+  - [ ] Test `consumeEnergy()` subtracts 100 from energy
+  - [ ] Test energy carryover (150 energy → consume → 50 remains)
+  - [ ] Test `getPlayerSpeed()` returns 20 when HASTED
+  - [ ] Test `getPlayerSpeed()` returns 10 when not HASTED
+  - [ ] Test `grantPlayerEnergy()` grants correct amount for normal player
+  - [ ] Test `grantPlayerEnergy()` grants correct amount for hasted player
+  - [ ] Test `canPlayerAct()` wrapper method
+- [ ] Git commit: "feat: refactor TurnService with energy system methods (Phase 2.5.3)"
+
+**Task 2.5.4: Update MonsterTurnService for energy**
+- [ ] Inject `TurnService` dependency into MonsterTurnService constructor
+- [ ] Update MonsterTurnService initialization in main.ts to pass turnService
+- [ ] Modify `processMonsterTurns()` to grant energy to monsters based on `monster.speed`
+- [ ] Process each monster in `while (turnService.canAct(monster))` loop (multiple actions possible)
+- [ ] Consume ENERGY_THRESHOLD from monster after each action
+- [ ] Update monster state with new energy value after processing
+- [ ] Create `energy-turn-processing.test.ts` with 8 unit tests:
+  - [ ] Test monster with speed 10 acts once per turn
+  - [ ] Test monster with speed 20 acts twice per turn
+  - [ ] Test monster with speed 5 acts once every 2 turns
+  - [ ] Test energy carryover between turns
+  - [ ] Test multiple monsters with different speeds
+  - [ ] Test monster with 150 energy acts once, 50 energy remains
+  - [ ] Test monster with 99 energy does not act
+  - [ ] Test dead monster (hp <= 0) does not process
+- [ ] Update existing MonsterTurnService tests to inject TurnService mock
+- [ ] Git commit: "feat: update MonsterTurnService with energy-based processing (Phase 2.5.4)"
+
+**Task 2.5.5: Implement HASTE_SELF potion**
+- [ ] Add `applyHasteSelfPotion(player: Player): { player: Player; duration: number }` method
+- [ ] Duration formula: 3 + 1d5 (results in 4-8 turns, matches Original Rogue)
+- [ ] Apply HASTED status effect via StatusEffectService
+- [ ] Add HASTE_SELF case to `applyPotion()` switch statement
+- [ ] Message: `"You feel yourself moving much faster! (Hasted for ${duration} turns)"`
+- [ ] Auto-identify potion on use (already handled by applyPotion)
+- [ ] Create `haste-potion.test.ts` with 9 unit tests:
+  - [ ] Test HASTED status applied to player
+  - [ ] Test duration is 4-8 turns (min: 3+1=4, max: 3+5=8)
+  - [ ] Test message includes duration
+  - [ ] Test potion auto-identifies on use
+  - [ ] Test does not kill player
+  - [ ] Test does not modify player stats (HP, strength, level)
+  - [ ] Test can stack with other status effects (HASTED + CONFUSED)
+  - [ ] Test replaces existing HASTED effect (does not stack with self)
+  - [ ] Test no state field in result (potion doesn't modify game state)
+- [ ] Git commit: "feat: implement HASTE_SELF potion with 4-8 turn duration (Phase 2.5.5)"
+
+**Task 2.5.6: Update main game loop (energy-based)**
+- [ ] Modify `currentKeydownHandler` in main.ts:
+  - [ ] **Phase 1**: Grant energy until player can act (`while (!turnService.canPlayerAct(gameState.player))`)
+  - [ ] Grant player energy in loop: `gameState = turnService.grantPlayerEnergy(gameState)`
+  - [ ] **Phase 2**: Execute command if command exists
+  - [ ] Consume player energy after command: `gameState = { ...gameState, player: turnService.consumePlayerEnergy(gameState.player) }`
+  - [ ] **Phase 3**: Process monsters only if player exhausted energy
+  - [ ] Check `if (!turnService.canPlayerAct(gameState.player))` before monster turns
+  - [ ] Process monster turns: `gameState = monsterTurnService.processMonsterTurns(gameState)`
+  - [ ] Increment turn after monster phase: `gameState = turnService.incrementTurn(gameState)`
+- [ ] Test manually: player with speed 10 acts once, then monsters act
+- [ ] Test manually: player with speed 20 (hasted) acts twice, then monsters act
+- [ ] Git commit: "feat: update main game loop with energy system (Phase 2.5.6)"
+
+**Task 2.5.7: Integration testing**
+- [ ] Create `/src/__integration__/energy-game-loop.test.ts`
+- [ ] Test scenario 1: Normal speed player (speed 10) acts once per turn cycle
+- [ ] Test scenario 2: Hasted player (speed 20) acts twice before monsters
+- [ ] Test scenario 3: Slow monster (speed 5) acts once every 2 turns
+- [ ] Test scenario 4: Fast monster (speed 20) acts twice per monster phase
+- [ ] Test scenario 5: Energy carryover - player with 150 energy acts, 50 remains
+- [ ] Test scenario 6: Haste expires mid-turn - speed drops from 20 to 10
+- [ ] Test scenario 7: Multiple monsters with mixed speeds (5, 10, 20)
+- [ ] Test scenario 8: Full turn cycle - player acts → monsters act → turn increments
+- [ ] Git commit: "test: add energy system integration tests (Phase 2.5.7)"
+
+**Task 2.5.8: Update plan document**
+- [ ] Mark Phase 2.5 complete in `docs/plans/potion_implementation_plan.md`
+- [ ] Document energy system design decisions in plan
+- [ ] Git commit: "docs: mark Phase 2.5 complete in potion plan (Phase 2.5.8)"
 
 ---
 

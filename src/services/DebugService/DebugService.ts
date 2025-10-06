@@ -225,6 +225,8 @@ export class DebugService {
       level: state.currentLevel,
       lastKnownPlayerPosition: null,
       turnsWithoutSight: 0,
+      energy: 100, // Debug monsters start with full energy
+      speed: 10, // Normal speed
     }
 
     const updatedLevel: Level = {
