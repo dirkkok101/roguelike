@@ -293,13 +293,13 @@ export class ItemSpawnService {
               const isCursed = this.rollCursedStatus(rarityRoll)
               const bonus = this.rollEnchantment(rarityRoll, isCursed)
 
-              // Format name with bonus (e.g., "Long Sword +2" or "Long Sword -1")
+              // Format name with bonus (e.g., "Long Sword +2")
+              // Cursed items (negative bonus) don't show enchantment until identified
               let name = template.name
               if (bonus > 0) {
                 name = `${template.name} +${bonus}`
-              } else if (bonus < 0) {
-                name = `${template.name} ${bonus}` // Negative sign is already in bonus
               }
+              // Note: negative bonuses hidden until curse is discovered on equip
 
               item = {
                 id: itemId,
@@ -322,13 +322,13 @@ export class ItemSpawnService {
               const isCursed = this.rollCursedStatus(rarityRoll)
               const bonus = this.rollEnchantment(rarityRoll, isCursed)
 
-              // Format name with bonus (e.g., "Plate Mail +2" or "Plate Mail -1")
+              // Format name with bonus (e.g., "Plate Mail +2")
+              // Cursed items (negative bonus) don't show enchantment until identified
               let name = template.name
               if (bonus > 0) {
                 name = `${template.name} +${bonus}`
-              } else if (bonus < 0) {
-                name = `${template.name} ${bonus}` // Negative sign is already in bonus
               }
+              // Note: negative bonuses hidden until curse is discovered on equip
 
               item = {
                 id: itemId,
@@ -390,13 +390,13 @@ export class ItemSpawnService {
               const isCursed = template.type === RingType.TELEPORTATION || this.rollCursedStatus(rarityRoll)
               const bonus = this.rollEnchantment(rarityRoll, isCursed)
 
-              // Format name with bonus (e.g., "Ring of Protection +2" or "Ring of Protection -1")
+              // Format name with bonus (e.g., "Ring of Protection +2")
+              // Cursed items (negative bonus) don't show enchantment until identified
               let name = `Ring of ${template.type}`
               if (bonus > 0) {
                 name = `${name} +${bonus}`
-              } else if (bonus < 0) {
-                name = `${name} ${bonus}` // Negative sign is already in bonus
               }
+              // Note: negative bonuses hidden until curse is discovered on equip
 
               item = {
                 id: itemId,

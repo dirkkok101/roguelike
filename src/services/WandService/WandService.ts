@@ -162,8 +162,11 @@ export class WandService {
       ? `You zap ${displayName}. ${target.name} is struck by ${elementType}! (${damage} damage)`
       : `You zap ${displayName}. ${target.name} is killed by ${elementType}! (${damage} damage)`
 
-    // Update monster in level
-    const updatedLevel = this.updateMonsterInLevel(level, damagedMonster)
+    // Update or remove monster based on whether it's dead
+    const updatedLevel = damagedMonster.hp > 0
+      ? this.updateMonsterInLevel(level, damagedMonster)
+      : this.removeMonsterFromLevel(level, target.id)
+
     const updatedState = this.updateLevelInState(state, updatedLevel)
 
     return { state: updatedState, message }
@@ -186,7 +189,11 @@ export class WandService {
       ? `You zap ${displayName}. Magic missiles strike ${target.name}! (${damage} damage)`
       : `You zap ${displayName}. Magic missiles kill ${target.name}! (${damage} damage)`
 
-    const updatedLevel = this.updateMonsterInLevel(level, damagedMonster)
+    // Update or remove monster based on whether it's dead
+    const updatedLevel = damagedMonster.hp > 0
+      ? this.updateMonsterInLevel(level, damagedMonster)
+      : this.removeMonsterFromLevel(level, target.id)
+
     const updatedState = this.updateLevelInState(state, updatedLevel)
 
     return { state: updatedState, message }
@@ -366,6 +373,16 @@ export class WandService {
     return {
       ...level,
       monsters: level.monsters.map(m => (m.id === monster.id ? monster : m)),
+    }
+  }
+
+  /**
+   * Helper: Remove a dead monster from the level's monster array
+   */
+  private removeMonsterFromLevel(level: Level, monsterId: string): Level {
+    return {
+      ...level,
+      monsters: level.monsters.filter(m => m.id !== monsterId),
     }
   }
 
