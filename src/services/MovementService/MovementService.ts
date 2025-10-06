@@ -1,4 +1,6 @@
-import { Position, Level, Player, Monster, Door, DoorState } from '@game/core/core'
+import { Position, Level, Player, Monster, Door, DoorState, StatusEffectType } from '@game/core/core'
+import { IRandomService } from '@services/RandomService'
+import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // RESULT TYPES
@@ -14,6 +16,10 @@ export interface ObstacleResult {
 // ============================================================================
 
 export class MovementService {
+  constructor(
+    private random: IRandomService,
+    private statusEffectService: StatusEffectService
+  ) {}
   /**
    * Check if position is walkable
    */
@@ -57,12 +63,22 @@ export class MovementService {
 
   /**
    * Calculate new position from direction
+   * If player is confused, direction is randomized
    */
   applyDirection(
     position: Position,
-    direction: 'up' | 'down' | 'left' | 'right'
+    direction: 'up' | 'down' | 'left' | 'right',
+    player?: Player
   ): Position {
-    switch (direction) {
+    // Randomize direction if player is confused
+    let actualDirection = direction
+    if (player && this.statusEffectService.hasStatusEffect(player, StatusEffectType.CONFUSED)) {
+      const directions: Array<'up' | 'down' | 'left' | 'right'> = ['up', 'down', 'left', 'right']
+      const randomIndex = this.random.roll('1d4') - 1 // Roll 1-4, convert to 0-3
+      actualDirection = directions[randomIndex]
+    }
+
+    switch (actualDirection) {
       case 'up':
         return { x: position.x, y: position.y - 1 }
       case 'down':

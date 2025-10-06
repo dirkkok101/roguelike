@@ -4,10 +4,12 @@ import {
   PotionType,
   GameState,
   ItemType,
+  StatusEffectType,
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
+import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // RESULT TYPE
@@ -29,7 +31,8 @@ export class PotionService {
   constructor(
     private random: IRandomService,
     private identificationService: IdentificationService,
-    private levelingService: LevelingService
+    private levelingService: LevelingService,
+    private statusEffectService: StatusEffectService
   ) {}
 
   /**
@@ -123,6 +126,14 @@ export class PotionService {
             state: result.state,
           }
         }
+
+      case PotionType.CONFUSION:
+        {
+          const result = this.applyConfusionPotion(player)
+          updatedPlayer = result.player
+          message = `Wait, what's going on here? (Confused for ${result.duration} turns)`
+        }
+        break
 
       default:
         message = `You quaff ${displayName}. (Effect not yet implemented)`
@@ -222,6 +233,23 @@ export class PotionService {
     // Use LevelingService to level up the player
     // This grants +1 level, rolls 1d8 for max HP increase, and fully heals
     return this.levelingService.levelUp(player)
+  }
+
+  private applyConfusionPotion(player: Player): { player: Player; duration: number } {
+    // Original Rogue: 19-21 turns of confusion
+    // Random duration: 19 + 1d3 (results in 19-21)
+    const duration = 19 + this.random.roll('1d3')
+
+    const updatedPlayer = this.statusEffectService.addStatusEffect(
+      player,
+      StatusEffectType.CONFUSED,
+      duration
+    )
+
+    return {
+      player: updatedPlayer,
+      duration,
+    }
   }
 
   private applyDetectMonsters(
