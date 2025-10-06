@@ -1,14 +1,14 @@
 # PotionService
 
 **Location**: `src/services/PotionService/PotionService.ts`
-**Dependencies**: RandomService, IdentificationService
-**Test Coverage**: All 5 potion types, healing caps, death handling
+**Dependencies**: RandomService, IdentificationService, StatusEffectService, LevelingService, FOVService
+**Test Coverage**: All 11 potion types, status effects, detection, healing caps, death handling
 
 ---
 
 ## Purpose
 
-Implements **all potion effects**: healing, strength manipulation, and poison. Handles identification-by-use and result messaging.
+Implements **all 11 potion types from Original Rogue (1980)**: healing, strength manipulation, poison, level progression, detection, and status effects. Handles identification-by-use, status effect application, and result messaging.
 
 ---
 
@@ -341,34 +341,178 @@ describe('PotionService - Poison', () => {
 
 ---
 
-## Potion Summary Table
+---
 
-| Potion Type | Power | Effect | Permanent? | Can Kill? |
-|-------------|-------|--------|------------|-----------|
-| **HEAL** | 1d8 | +HP | No | No |
-| **EXTRA_HEAL** | 3d8 | +HP (large) | No | No |
-| **GAIN_STRENGTH** | N/A | +1 STR, +1 Max STR | Yes | No |
-| **RESTORE_STRENGTH** | N/A | STR = Max STR | No | No |
-| **POISON** | 1d6 | -HP | No | Yes |
+### RAISE_LEVEL - Instant Level Up
+
+```typescript
+private applyRaiseLevelPotion(player: Player): Player
+```
+
+**Effect**: Instant level up using LevelingService
+
+**Message**: `"You feel more experienced! (Level: X)"`
+
+**Benefits**:
+- +1 Level
+- +HP (1d10, capped at maxHp + 10)
+- +Max HP (1d10)
+
+**Example**:
+```typescript
+// Before: Level 3, HP 18/30, XP 800
+// After: Level 4, HP 23/37, XP 800 (level granted without XP)
+```
 
 ---
 
-## Future Enhancements (Planned - See potion_implementation_plan.md)
+### DETECT_MONSTERS - Reveal All Monsters
 
-**Phase 1: Instant Effect Potions**:
-- **RAISE_LEVEL** - Instant level up (uses LevelingService)
-- **DETECT_MONSTERS** - Reveal all monsters on level
-- **DETECT_MAGIC** - Highlight magic items on level
+```typescript
+private applyDetectMonstersPotion(state: GameState): { monsters: Monster[]; count: number }
+```
 
-**Phase 2: Status Effect Potions** (requires StatusEffectService):
-- **CONFUSION** - Random movement (19-21 turns)
-- **BLINDNESS** - Cannot see (40-60 turns)
-- **HASTE_SELF** - Double actions per turn (4-8 turns)
+**Effect**: Temporarily adds all monsters on current level to `visibleCells`
 
-**Phase 3: Advanced Potions**:
-- **SEE_INVISIBLE** - Reveal invisible monsters (until level change)
-- **LEVITATION** - Float over traps (29-32 turns)
-- **HALLUCINATION** - Monsters appear different (850 turns) - Complex
-- **PARALYSIS** - Cannot move (variable duration)
+**Duration**: Until next movement or FOV recalculation
 
-**See**: [Potion Implementation Plan](../plans/potion_implementation_plan.md) for complete design and timeline.
+**Message**: `"You sense the presence of X monsters!"`
+
+**Example**:
+```typescript
+// Before: Player can see 2 nearby monsters
+// After: All 8 monsters on level briefly visible (1 turn)
+```
+
+---
+
+### DETECT_MAGIC - Highlight Magic Items
+
+```typescript
+private applyDetectMagicPotion(state: GameState): { items: Item[]; count: number }
+```
+
+**Effect**: Highlights magic items (scrolls, wands, rings, magic weapons/armor) on current level
+
+**Duration**: Permanent highlight until items are picked up
+
+**Message**: `"You sense the presence of X magic items!"`
+
+**Items Detected**:
+- Scrolls
+- Wands
+- Rings
+- Enchanted weapons (+X bonus)
+- Enchanted armor (+X bonus)
+
+---
+
+### CONFUSION - Random Movement
+
+```typescript
+private applyConfusionPotion(player: Player): Player
+```
+
+**Duration**: 19-21 turns (randomized)
+
+**Effect**: Applies CONFUSED status effect via StatusEffectService
+
+**Movement**: MovementService intercepts and randomizes direction
+
+**Message**: `"You feel confused! (Confused for X turns)"`
+
+**Test File**: `confusion-potion.test.ts`
+
+---
+
+### BLINDNESS - Cannot See
+
+```typescript
+private applyBlindnessPotion(player: Player): Player
+```
+
+**Duration**: 40-60 turns (randomized)
+
+**Effect**: Applies BLINDED status effect via StatusEffectService
+
+**Vision**: FOVService sets FOV radius to 0
+
+**Message**: `"You can't see anything! (Blinded for X turns)"`
+
+**Test File**: `blindness-potion.test.ts`
+
+---
+
+### HASTE_SELF - Double Actions
+
+```typescript
+private applyHasteSelfPotion(player: Player): { player: Player; duration: number }
+```
+
+**Duration**: 4-8 turns (3 + 1d5)
+
+**Effect**: Applies HASTED status effect via StatusEffectService
+
+**Actions**: Player gains energy twice as fast (double actions per turn)
+
+**Message**: `"You feel yourself moving much faster! (Hasted for X turns)"`
+
+**Test File**: `haste-potion.test.ts`
+
+---
+
+### SEE_INVISIBLE - Reveal Invisible Monsters
+
+```typescript
+private applySeeInvisiblePotion(player: Player): Player
+```
+
+**Duration**: 999 turns (effectively permanent until level change)
+
+**Effect**: Applies SEE_INVISIBLE status effect
+
+**Vision**: GameRenderer shows monsters with `isInvisible: true` (Phantoms)
+
+**Cleared**: MoveStairsCommand clears effect when changing levels
+
+**Message**: `"Your eyes tingle! You can see invisible creatures."`
+
+---
+
+### LEVITATION - Float Over Traps
+
+```typescript
+private applyLevitationPotion(player: Player): Player
+```
+
+**Duration**: 29-32 turns (randomized)
+
+**Effect**: Applies LEVITATING status effect
+
+**Trap Immunity**: TrapService checks status and returns 0 damage
+
+**Message**: `"You begin to float above the ground!"`
+
+**Trap Message**: `"You float over the trap."`
+
+**Test File**: TrapService `trap-effects.test.ts`
+
+---
+
+## Potion Summary Table
+
+| Potion Type | Power/Duration | Effect | Service Integration | Can Kill? |
+|-------------|----------------|--------|---------------------|-----------|
+| **HEAL** | 1d8 | +HP | Direct | No |
+| **EXTRA_HEAL** | 3d8 | +HP (large) | Direct | No |
+| **GAIN_STRENGTH** | Permanent | +1 STR, +1 Max STR | Direct | No |
+| **RESTORE_STRENGTH** | Instant | STR = Max STR | Direct | No |
+| **POISON** | 1d6 damage | -HP | Direct | Yes |
+| **RAISE_LEVEL** | Instant | +1 Level, +HP, +Max HP | LevelingService | No |
+| **DETECT_MONSTERS** | 1 turn | Reveal all monsters | FOVService | No |
+| **DETECT_MAGIC** | Permanent | Highlight magic items | GameState | No |
+| **CONFUSION** | 19-21 turns | Random movement | StatusEffectService | No |
+| **BLINDNESS** | 40-60 turns | FOV radius = 0 | StatusEffectService | No |
+| **HASTE_SELF** | 4-8 turns | Double energy gain | StatusEffectService | No |
+| **SEE_INVISIBLE** | Until stairs | Show invisible monsters | StatusEffectService | No |
+| **LEVITATION** | 29-32 turns | Trap immunity | StatusEffectService | No |
