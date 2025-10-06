@@ -35,8 +35,29 @@ export class MonsterSpawnService {
    * @throws Error if fetch fails or JSON is malformed
    */
   async loadMonsterData(): Promise<void> {
-    // TODO: Implement in Phase 2.1
-    throw new Error('Not implemented')
+    // Prevent duplicate loads
+    if (this.dataLoaded) {
+      return
+    }
+
+    try {
+      const response = await fetch('/data/monsters.json')
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch monsters.json: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      // Validate and store
+      this.monsterTemplates = this.validateMonsterData(data)
+      this.dataLoaded = true
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to load monster data: ${error.message}`)
+      }
+      throw new Error('Failed to load monster data: Unknown error')
+    }
   }
 
   /**
@@ -80,8 +101,92 @@ export class MonsterSpawnService {
    * @private
    */
   private validateMonsterData(data: any[]): MonsterTemplate[] {
-    // TODO: Implement in Phase 2.2
-    throw new Error('Not implemented')
+    if (!Array.isArray(data)) {
+      throw new Error('Monster data must be an array')
+    }
+
+    if (data.length === 0) {
+      throw new Error('Monster data array is empty')
+    }
+
+    const validatedTemplates: MonsterTemplate[] = []
+
+    for (let i = 0; i < data.length; i++) {
+      const monster = data[i]
+
+      // Check required fields exist
+      const requiredFields = [
+        'letter',
+        'name',
+        'hp',
+        'ac',
+        'damage',
+        'xpValue',
+        'level',
+        'speed',
+        'rarity',
+        'mean',
+        'aiProfile',
+      ]
+
+      for (const field of requiredFields) {
+        if (!(field in monster)) {
+          throw new Error(`Monster at index ${i} missing required field: ${field}`)
+        }
+      }
+
+      // Validate types
+      if (typeof monster.letter !== 'string' || monster.letter.length !== 1) {
+        throw new Error(`Monster at index ${i}: letter must be a single character string`)
+      }
+
+      if (typeof monster.name !== 'string') {
+        throw new Error(`Monster at index ${i}: name must be a string`)
+      }
+
+      if (typeof monster.hp !== 'string' || !monster.hp.match(/^\d+d\d+(\+\d+d\d+)*$/)) {
+        throw new Error(`Monster at index ${i}: hp must be dice notation (e.g., "1d8", "2d8")`)
+      }
+
+      if (typeof monster.ac !== 'number') {
+        throw new Error(`Monster at index ${i}: ac must be a number`)
+      }
+
+      if (typeof monster.damage !== 'string') {
+        throw new Error(`Monster at index ${i}: damage must be a string`)
+      }
+
+      if (typeof monster.xpValue !== 'number') {
+        throw new Error(`Monster at index ${i}: xpValue must be a number`)
+      }
+
+      if (typeof monster.level !== 'number' || monster.level < 1 || monster.level > 10) {
+        throw new Error(`Monster at index ${i}: level must be a number between 1 and 10`)
+      }
+
+      if (typeof monster.speed !== 'number' || monster.speed < 1) {
+        throw new Error(`Monster at index ${i}: speed must be a positive number`)
+      }
+
+      if (!['common', 'uncommon', 'rare'].includes(monster.rarity)) {
+        throw new Error(
+          `Monster at index ${i}: rarity must be "common", "uncommon", or "rare"`
+        )
+      }
+
+      if (typeof monster.mean !== 'boolean') {
+        throw new Error(`Monster at index ${i}: mean must be a boolean`)
+      }
+
+      if (typeof monster.aiProfile !== 'object' || monster.aiProfile === null) {
+        throw new Error(`Monster at index ${i}: aiProfile must be an object`)
+      }
+
+      // All validation passed, add to results
+      validatedTemplates.push(monster as MonsterTemplate)
+    }
+
+    return validatedTemplates
   }
 
   /**
