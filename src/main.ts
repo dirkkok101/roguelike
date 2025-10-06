@@ -120,7 +120,7 @@ async function initializeGame() {
     dungeonService,
     curseService
   )
-  const wandService = new WandService(identificationService)
+  const wandService = new WandService(identificationService, random, combatService, levelService)
   const modalController = new ModalController(identificationService, curseService)
 
   // Dungeon configuration
