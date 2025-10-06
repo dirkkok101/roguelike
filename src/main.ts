@@ -202,104 +202,104 @@ async function initializeGame() {
   }
   }
 
+  // Callback to start completely new game with random seed
+  function startNewGame() {
+    const newState = createInitialState()
+    startGame(newState)
+  }
+
+  // Callback to replay game with specific seed
+  function replaySeed(seed: string) {
+    // Create new game with specified seed
+    const gameRandom = new SeededRandom(seed)
+    const gameDungeonService = new DungeonService(gameRandom, itemData)
+
+    const level = gameDungeonService.generateLevel(1, dungeonConfig)
+    const startRoom = level.rooms[0]
+    const startPos: Position = {
+      x: startRoom.x + Math.floor(startRoom.width / 2),
+      y: startRoom.y + Math.floor(startRoom.height / 2),
+    }
+
+    const torch: Torch = {
+      id: 'initial-torch',
+      name: 'Torch',
+      type: ItemType.TORCH,
+      identified: true,
+      position: startPos,
+      fuel: 500,
+      maxFuel: 500,
+      radius: 2,
+      isPermanent: false,
+    }
+
+    const player = {
+      position: startPos,
+      hp: 12,
+      maxHp: 12,
+      strength: 16,
+      maxStrength: 16,
+      ac: 4,
+      level: 1,
+      xp: 0,
+      gold: 0,
+      hunger: 1300,
+      equipment: {
+        weapon: null,
+        armor: null,
+        leftRing: null,
+        rightRing: null,
+        lightSource: torch,
+      },
+      inventory: [],
+    }
+
+    const visibleCells = fovService.computeFOV(
+      startPos,
+      lightingService.getLightRadius(torch),
+      level
+    )
+
+    visibleCells.forEach((key) => {
+      const pos = fovService.keyToPos(key)
+      level.explored[pos.y][pos.x] = true
+    })
+
+    const itemNameMap = identificationService.generateItemNames()
+
+    const replayState: GameState = {
+      player,
+      currentLevel: 1,
+      levels: new Map([[1, level]]),
+      visibleCells,
+      messages: [
+        {
+          text: 'Welcome to the dungeon. Find the Amulet of Yendor!',
+          type: 'info',
+          turn: 0,
+        },
+      ],
+      turnCount: 0,
+      seed,
+      gameId: 'game-' + Date.now(),
+      isGameOver: false,
+      hasWon: false,
+      hasAmulet: false,
+      itemNameMap,
+      identifiedItems: new Set(),
+      debug: debugService.initializeDebugState(),
+      monstersKilled: 0,
+      itemsFound: 0,
+      itemsUsed: 0,
+      levelsExplored: 1,
+    }
+
+    startGame(replayState)
+  }
+
   // Function to start game with given state
   function startGame(initialState: GameState) {
     let gameState = initialState
-
-    // Callback to start completely new game with random seed
-    const startNewGame = () => {
-      const newState = createInitialState()
-      startGame(newState)
-    }
-
-    // Callback to replay game with specific seed
-    const replaySeed = (seed: string) => {
-      // Create new game with specified seed
-      const gameRandom = new SeededRandom(seed)
-      const gameDungeonService = new DungeonService(gameRandom, itemData)
-
-      const level = gameDungeonService.generateLevel(1, dungeonConfig)
-      const startRoom = level.rooms[0]
-      const startPos: Position = {
-        x: startRoom.x + Math.floor(startRoom.width / 2),
-        y: startRoom.y + Math.floor(startRoom.height / 2),
-      }
-
-      const torch: Torch = {
-        id: 'initial-torch',
-        name: 'Torch',
-        type: ItemType.TORCH,
-        identified: true,
-        position: startPos,
-        fuel: 500,
-        maxFuel: 500,
-        radius: 2,
-        isPermanent: false,
-      }
-
-      const player = {
-        position: startPos,
-        hp: 12,
-        maxHp: 12,
-        strength: 16,
-        maxStrength: 16,
-        ac: 4,
-        level: 1,
-        xp: 0,
-        gold: 0,
-        hunger: 1300,
-        equipment: {
-          weapon: null,
-          armor: null,
-          leftRing: null,
-          rightRing: null,
-          lightSource: torch,
-        },
-        inventory: [],
-      }
-
-      const visibleCells = fovService.computeFOV(
-        startPos,
-        lightingService.getLightRadius(torch),
-        level
-      )
-
-      visibleCells.forEach((key) => {
-        const pos = fovService.keyToPos(key)
-        level.explored[pos.y][pos.x] = true
-      })
-
-      const itemNameMap = identificationService.generateItemNames()
-
-      const replayState: GameState = {
-        player,
-        currentLevel: 1,
-        levels: new Map([[1, level]]),
-        visibleCells,
-        messages: [
-          {
-            text: 'Welcome to the dungeon. Find the Amulet of Yendor!',
-            type: 'info',
-            turn: 0,
-          },
-        ],
-        turnCount: 0,
-        seed,
-        gameId: 'game-' + Date.now(),
-        isGameOver: false,
-        hasWon: false,
-        hasAmulet: false,
-        itemNameMap,
-        identifiedItems: new Set(),
-        debug: debugService.initializeDebugState(),
-        monstersKilled: 0,
-        itemsFound: 0,
-        itemsUsed: 0,
-        levelsExplored: 1,
-      }
-
-      startGame(replayState)
-    }
 
     // Initialize renderer and inputHandler with all callbacks
     renderer = new GameRenderer(
@@ -416,6 +416,11 @@ async function initializeGame() {
           const newState = createInitialState()
           startGame(newState)
         }
+      },
+      // Custom Seed callback
+      (seed: string) => {
+        console.log('Starting game with custom seed:', seed)
+        replaySeed(seed)
       }
     )
   }
