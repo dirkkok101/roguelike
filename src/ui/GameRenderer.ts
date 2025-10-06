@@ -128,6 +128,20 @@ export class GameRenderer {
   }
 
   /**
+   * Check if death screen is visible
+   */
+  isDeathScreenVisible(): boolean {
+    return this.deathScreen.isVisible()
+  }
+
+  /**
+   * Check if victory screen is visible
+   */
+  isVictoryScreenVisible(): boolean {
+    return this.victoryScreen.isVisible()
+  }
+
+  /**
    * Get root container
    */
   getContainer(): HTMLElement {

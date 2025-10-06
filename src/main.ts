@@ -398,6 +398,11 @@ async function initializeGame() {
     // 2. Player acts and consumes energy
     // 3. Process monsters if player exhausted energy, then increment turn
     currentKeydownHandler = (event: KeyboardEvent) => {
+      // Don't process game input if death or victory screen is visible
+      if (renderer.isDeathScreenVisible() || renderer.isVictoryScreenVisible()) {
+        return
+      }
+
       // PHASE 1: Grant energy to ALL actors (player + monsters) until player can act
       // Always grant at least one tick to ensure monsters don't fall behind
       do {
