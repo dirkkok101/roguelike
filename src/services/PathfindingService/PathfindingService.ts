@@ -1,4 +1,5 @@
 import { Position, Level } from '@game/core/core'
+import { LevelService } from '@services/LevelService'
 
 // ============================================================================
 // PATHFINDING SERVICE - A* algorithm for monster AI
@@ -13,10 +14,14 @@ interface PathNode {
 }
 
 export class PathfindingService {
+  constructor(private levelService: LevelService) {}
   /**
    * Find path from start to goal using A*
    */
   findPath(start: Position, goal: Position, level: Level): Position[] | null {
+    // Get scare scroll positions for pathfinding blocking
+    const scareScrollPositions = this.levelService.getScareScrollPositions(level)
+
     const openSet: PathNode[] = []
     const closedSet = new Set<string>()
 
@@ -43,7 +48,7 @@ export class PathfindingService {
       closedSet.add(this.posKey(current.position))
 
       // Check neighbors
-      const neighbors = this.getNeighbors(current.position, level)
+      const neighbors = this.getNeighbors(current.position, level, scareScrollPositions)
       for (const neighborPos of neighbors) {
         const key = this.posKey(neighborPos)
         if (closedSet.has(key)) continue
@@ -100,8 +105,9 @@ export class PathfindingService {
 
   /**
    * Get walkable neighbors
+   * Excludes scare scroll positions (monsters avoid them)
    */
-  private getNeighbors(pos: Position, level: Level): Position[] {
+  private getNeighbors(pos: Position, level: Level, scareScrollPositions: Set<string>): Position[] {
     const neighbors: Position[] = []
     const directions = [
       { x: 0, y: -1 }, // Up
@@ -120,7 +126,10 @@ export class PathfindingService {
         newPos.y < level.height
       ) {
         const tile = level.tiles[newPos.y][newPos.x]
-        if (tile.walkable) {
+        const posKey = this.posKey(newPos)
+
+        // Exclude scare scroll positions (monsters won't path through them)
+        if (tile.walkable && !scareScrollPositions.has(posKey)) {
           neighbors.push(newPos)
         }
       }

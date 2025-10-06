@@ -8,6 +8,7 @@ import { FOVService } from '@services/FOVService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { HungerService } from '@services/HungerService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Monster, Player, Level, TileType } from '@game/core/core'
 
@@ -20,11 +21,12 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
     mockRandom = new MockRandom()
     const messageService = new MessageService()
     const statusEffectService = new StatusEffectService()
-    const pathfindingService = new PathfindingService()
+    const levelService = new LevelService()
+    const pathfindingService = new PathfindingService(levelService)
     const fovService = new FOVService(statusEffectService)
     const hungerService = new HungerService(mockRandom)
-    const turnService = new TurnService(statusEffectService)
-    const aiService = new MonsterAIService(pathfindingService, mockRandom, fovService)
+    const turnService = new TurnService(statusEffectService, levelService)
+    const aiService = new MonsterAIService(pathfindingService, mockRandom, fovService, levelService)
     combatService = new CombatService(mockRandom, hungerService)
     const abilityService = new SpecialAbilityService(mockRandom)
 

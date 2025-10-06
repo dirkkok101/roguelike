@@ -1,5 +1,6 @@
 import { MonsterAIService } from './MonsterAIService'
 import { PathfindingService } from '@services/PathfindingService'
+import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import { FOVService } from '@services/FOVService'
 import { GameState, Monster, MonsterBehavior } from '@game/core/core'
@@ -11,10 +12,11 @@ describe('MonsterAIService - SIMPLE Behavior', () => {
   let fovService: FOVService
 
   beforeEach(() => {
-    pathfinding = new PathfindingService()
+    const levelService = new LevelService()
+    pathfinding = new PathfindingService(levelService)
     mockRandom = new MockRandom()
     fovService = new FOVService()
-    service = new MonsterAIService(pathfinding, mockRandom, fovService)
+    service = new MonsterAIService(pathfinding, mockRandom, fovService, levelService)
   })
 
   function createTestMonster(overrides?: Partial<Monster>): Monster {

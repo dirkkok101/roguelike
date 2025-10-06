@@ -2,6 +2,7 @@ import { PickUpCommand } from './PickUpCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { GameState, Level, Player, TileType, ItemType, Item } from '@game/core/core'
@@ -18,7 +19,8 @@ describe('PickUpCommand - Amulet Pickup', () => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
 
     // Create mock IdentificationService
     mockIdentificationService = {

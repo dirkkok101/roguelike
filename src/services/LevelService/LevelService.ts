@@ -1,4 +1,4 @@
-import { Level, Position, Room } from '@game/core/core'
+import { Level, Position, Room, Scroll, ItemType, ScrollType } from '@game/core/core'
 
 // ============================================================================
 // LEVEL SERVICE - Level manipulation and spawn position logic
@@ -201,5 +201,50 @@ export class LevelService {
     }
 
     return roomTiles
+  }
+
+  // ============================================================================
+  // SCARE_MONSTER SCROLL HELPERS
+  // ============================================================================
+
+  /**
+   * Get all SCARE_MONSTER scrolls currently on the ground
+   */
+  getScareScrollsOnGround(level: Level): Scroll[] {
+    return level.items.filter(
+      (item) =>
+        item.type === ItemType.SCROLL &&
+        (item as Scroll).scrollType === ScrollType.SCARE_MONSTER
+    ) as Scroll[]
+  }
+
+  /**
+   * Check if there's a SCARE_MONSTER scroll at the given position
+   */
+  hasScareScrollAt(level: Level, position: Position): boolean {
+    return level.items.some(
+      (item) =>
+        item.type === ItemType.SCROLL &&
+        (item as Scroll).scrollType === ScrollType.SCARE_MONSTER &&
+        item.position?.x === position.x &&
+        item.position?.y === position.y
+    )
+  }
+
+  /**
+   * Get positions of all SCARE_MONSTER scrolls as a Set for O(1) lookup
+   * Returns Set<string> where each string is "x,y"
+   */
+  getScareScrollPositions(level: Level): Set<string> {
+    const positions = new Set<string>()
+    const scareScrolls = this.getScareScrollsOnGround(level)
+
+    for (const scroll of scareScrolls) {
+      if (scroll.position) {
+        positions.add(`${scroll.position.x},${scroll.position.y}`)
+      }
+    }
+
+    return positions
   }
 }

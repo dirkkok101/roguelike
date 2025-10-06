@@ -1,5 +1,6 @@
 import { TurnService } from './TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { LevelService } from '@services/LevelService'
 import { GameState } from '@game/core/core'
 
 describe('TurnService', () => {
@@ -7,7 +8,8 @@ describe('TurnService', () => {
 
   beforeEach(() => {
     const statusEffectService = new StatusEffectService()
-    service = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    service = new TurnService(statusEffectService, levelService)
   })
 
   function createTestState(turnCount: number = 0): GameState {

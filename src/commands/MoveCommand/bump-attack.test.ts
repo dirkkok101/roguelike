@@ -12,6 +12,7 @@ import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import {
   GameState,
@@ -54,7 +55,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
     // hungerService created earlier
     notificationService = new NotificationService(identificationService)
     regenerationService = new RegenerationService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   function createTestState(): GameState {

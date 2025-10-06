@@ -4,6 +4,7 @@ import { InventoryService } from '@services/InventoryService'
 import { LevelService } from '@services/LevelService'
 import { FOVService } from '@services/FOVService'
 import { DungeonService } from '@services/DungeonService'
+import { CurseService } from '@services/CurseService'
 import { MockRandom } from '@services/RandomService'
 import {
   Player,
@@ -26,6 +27,7 @@ describe('ScrollService - Identify Scroll', () => {
   let levelService: LevelService
   let fovService: FOVService
   let dungeonService: DungeonService
+  let curseService: CurseService
   let testPlayer: Player
   let testState: GameState
 
@@ -36,13 +38,15 @@ describe('ScrollService - Identify Scroll', () => {
     levelService = new LevelService()
     fovService = new FOVService()
     dungeonService = new DungeonService(mockRandom)
+    curseService = new CurseService()
     scrollService = new ScrollService(
       identificationService,
       inventoryService,
       levelService,
       fovService,
       mockRandom,
-      dungeonService
+      dungeonService,
+      curseService
     )
 
     testPlayer = {

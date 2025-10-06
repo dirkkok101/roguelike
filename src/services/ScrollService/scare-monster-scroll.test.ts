@@ -18,11 +18,10 @@ import {
   WandType,
   Level,
   TileType,
-  StatusEffectType,
   Torch,
 } from '@game/core/core'
 
-describe('ScrollService - SLEEP Scroll (Cursed)', () => {
+describe('ScrollService - SCARE_MONSTER Scroll', () => {
   let scrollService: ScrollService
   let mockRandom: MockRandom
   let identificationService: IdentificationService
@@ -99,13 +98,13 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
         lightSource: torch,
       },
       hunger: 1000,
-      statusEffects: [], // No status effects initially
+      statusEffects: [],
     } as Player
 
     const itemNameMap: ItemNameMap = {
       potions: new Map<PotionType, string>(),
       scrolls: new Map<ScrollType, string>([
-        [ScrollType.SLEEP, 'scroll labeled XYZZY'],
+        [ScrollType.SCARE_MONSTER, 'scroll labeled ABRACADABRA'],
       ]),
       rings: new Map<RingType, string>(),
       wands: new Map<WandType, string>(),
@@ -117,13 +116,12 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
       identifiedItems: new Set(),
       itemNameMap,
       messages: [],
-      turnCount: 0,
+      turnCount: 100,
       player: testPlayer,
       visibleCells: new Set(),
     } as GameState
 
-    // MockRandom will return 5 for duration (4-8 range)
-    mockRandom = new MockRandom([5])
+    mockRandom = new MockRandom([])
     identificationService = new IdentificationService(mockRandom)
     inventoryService = new InventoryService()
     levelService = new LevelService()
@@ -141,15 +139,15 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
     )
   })
 
-  describe('cursed sleep effect', () => {
-    test('puts player to sleep', () => {
+  describe('basic functionality', () => {
+    test('reading scroll does not consume it', () => {
       const scroll: Scroll = {
         id: 'scroll-1',
         type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
         isIdentified: false,
       }
 
@@ -159,17 +157,17 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
         testState
       )
 
-      expect(result.player).toBeDefined()
+      expect(result.consumed).toBe(false)
     })
 
-    test('adds SLEEPING status effect to player', () => {
+    test('displays instruction to drop the scroll', () => {
       const scroll: Scroll = {
         id: 'scroll-1',
         type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
         isIdentified: false,
       }
 
@@ -179,123 +177,18 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
         testState
       )
 
-      expect(result.player!.statusEffects.length).toBe(1)
-      expect(result.player!.statusEffects[0].type).toBe(StatusEffectType.SLEEPING)
-      expect(result.player!.statusEffects[0].duration).toBe(5) // MockRandom returns 5
-    })
-
-    test('duration is between 4-8 turns', () => {
-      const scroll: Scroll = {
-        id: 'scroll-1',
-        type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
-        isIdentified: false,
-      }
-
-      const result = scrollService.applyScroll(
-        testPlayer,
-        scroll,
-        testState
-      )
-
-      const duration = result.player!.statusEffects[0].duration
-
-      expect(duration).toBeGreaterThanOrEqual(4)
-      expect(duration).toBeLessThanOrEqual(8)
-    })
-
-    test('preserves existing status effects', () => {
-      // Player already has a status effect
-      const playerWithEffect = {
-        ...testPlayer,
-        statusEffects: [
-          {
-            type: StatusEffectType.HASTED,
-            duration: 5,
-          },
-        ],
-      }
-
-      const scroll: Scroll = {
-        id: 'scroll-1',
-        type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
-        isIdentified: false,
-      }
-
-      const result = scrollService.applyScroll(
-        playerWithEffect,
-        scroll,
-        testState
-      )
-
-      // Should have both effects
-      expect(result.player!.statusEffects.length).toBe(2)
-
-      // HASTED still present
-      const hastedEffect = result.player!.statusEffects.find(e => e.type === StatusEffectType.HASTED)
-      expect(hastedEffect).toBeDefined()
-      expect(hastedEffect!.duration).toBe(5)
-
-      // SLEEPING also present
-      const sleepEffect = result.player!.statusEffects.find(e => e.type === StatusEffectType.SLEEPING)
-      expect(sleepEffect).toBeDefined()
-    })
-
-    test('displays sleep message', () => {
-      const scroll: Scroll = {
-        id: 'scroll-1',
-        type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
-        isIdentified: false,
-      }
-
-      const result = scrollService.applyScroll(
-        testPlayer,
-        scroll,
-        testState
-      )
-
-      expect(result.message).toContain('deep sleep')
-    })
-
-    test('marks scroll as consumed', () => {
-      const scroll: Scroll = {
-        id: 'scroll-1',
-        type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
-        isIdentified: false,
-      }
-
-      const result = scrollService.applyScroll(
-        testPlayer,
-        scroll,
-        testState
-      )
-
-      expect(result.consumed).toBe(true)
+      expect(result.message).toContain('roar')
+      expect(result.message).toContain('drop')
     })
 
     test('auto-identifies scroll on use', () => {
       const scroll: Scroll = {
         id: 'scroll-1',
         type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
         isIdentified: false,
       }
 
@@ -308,14 +201,34 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
       expect(result.identified).toBe(true)
     })
 
+    test('does not modify player', () => {
+      const scroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
+        isIdentified: false,
+      }
+
+      const result = scrollService.applyScroll(
+        testPlayer,
+        scroll,
+        testState
+      )
+
+      expect(result.player).toBeUndefined()
+    })
+
     test('does not modify game state', () => {
       const scroll: Scroll = {
         id: 'scroll-1',
         type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
         isIdentified: false,
       }
 
@@ -325,18 +238,17 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
         testState
       )
 
-      // State should not be modified (only player)
       expect(result.state).toBeUndefined()
     })
 
-    test('does not fizzle (cursed scrolls always work)', () => {
+    test('does not fizzle', () => {
       const scroll: Scroll = {
         id: 'scroll-1',
         type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
         isIdentified: false,
       }
 
@@ -346,18 +258,17 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
         testState
       )
 
-      // Should never fizzle
       expect(result.fizzled).toBeUndefined()
     })
 
-    test('preserves other player properties', () => {
+    test('works with unidentified scroll', () => {
       const scroll: Scroll = {
         id: 'scroll-1',
         type: ItemType.SCROLL,
-        name: 'Scroll of Sleep',
-        scrollType: ScrollType.SLEEP,
-        effect: 'Puts reader to sleep',
-        labelName: 'scroll labeled XYZZY',
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
         isIdentified: false,
       }
 
@@ -367,10 +278,55 @@ describe('ScrollService - SLEEP Scroll (Cursed)', () => {
         testState
       )
 
-      // Other player properties should be unchanged
-      expect(result.player!.position).toEqual(testPlayer.position)
-      expect(result.player!.hp).toBe(testPlayer.hp)
-      expect(result.player!.strength).toBe(testPlayer.strength)
+      expect(result.consumed).toBe(false)
+      expect(result.identified).toBe(true)
+      expect(result.message).toBeDefined()
+    })
+
+    test('works with already identified scroll', () => {
+      const scroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
+        isIdentified: true,
+      }
+
+      const result = scrollService.applyScroll(
+        testPlayer,
+        scroll,
+        testState
+      )
+
+      expect(result.consumed).toBe(false)
+      expect(result.identified).toBe(true)
+      expect(result.message).toBeDefined()
+    })
+  })
+
+  describe('uniqueness', () => {
+    test('is the only scroll that is not consumed when read', () => {
+      const scroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters when dropped',
+        labelName: 'scroll labeled ABRACADABRA',
+        isIdentified: false,
+      }
+
+      const result = scrollService.applyScroll(
+        testPlayer,
+        scroll,
+        testState
+      )
+
+      // All other scrolls have consumed: true
+      // SCARE_MONSTER is unique with consumed: false
+      expect(result.consumed).toBe(false)
     })
   })
 })

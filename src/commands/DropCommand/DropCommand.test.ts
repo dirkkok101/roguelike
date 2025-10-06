@@ -2,9 +2,10 @@ import { DropCommand } from './DropCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
-import { GameState, Player, Item, ItemType, Weapon, Position } from '@game/core/core'
+import { GameState, Player, Item, ItemType, Weapon, Position, Scroll, ScrollType } from '@game/core/core'
 
 describe('DropCommand', () => {
   let inventoryService: InventoryService
@@ -17,7 +18,8 @@ describe('DropCommand', () => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
 
     // Create mock IdentificationService
     mockIdentificationService = {
@@ -340,6 +342,133 @@ describe('DropCommand', () => {
       expect(level?.items).toHaveLength(2)
       expect(level?.items[0].position).toEqual({ x: 5, y: 5 })
       expect(level?.items[1].position).toEqual({ x: 10, y: 10 })
+    })
+  })
+
+  describe('SCARE_MONSTER scroll tracking', () => {
+    test('adds droppedAtTurn when dropping SCARE_MONSTER scroll', () => {
+      const player = createTestPlayer({ x: 5, y: 5 })
+      const scareScroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters',
+        labelName: 'scroll labeled ABRACADABRA',
+        isIdentified: true,
+        char: '?',
+      }
+      player.inventory = [scareScroll]
+
+      const state = createTestState(player)
+      state.turnCount = 42
+      const command = new DropCommand('scroll-1', inventoryService, messageService, turnService, mockIdentificationService)
+      const result = command.execute(state)
+
+      const level = result.levels.get(1)
+      expect(level?.items).toHaveLength(1)
+
+      const droppedScroll = level?.items[0] as Scroll
+      expect(droppedScroll.scrollType).toBe(ScrollType.SCARE_MONSTER)
+      expect(droppedScroll.droppedAtTurn).toBe(42)
+    })
+
+    test('does not add droppedAtTurn to other scroll types', () => {
+      const player = createTestPlayer({ x: 5, y: 5 })
+      const identifyScroll: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Identify',
+        scrollType: ScrollType.IDENTIFY,
+        effect: 'Identifies an item',
+        labelName: 'scroll labeled XYZZY',
+        isIdentified: true,
+        char: '?',
+      }
+      player.inventory = [identifyScroll]
+
+      const state = createTestState(player)
+      state.turnCount = 42
+      const command = new DropCommand('scroll-1', inventoryService, messageService, turnService, mockIdentificationService)
+      const result = command.execute(state)
+
+      const level = result.levels.get(1)
+      expect(level?.items).toHaveLength(1)
+
+      const droppedScroll = level?.items[0] as Scroll
+      expect(droppedScroll.scrollType).toBe(ScrollType.IDENTIFY)
+      expect(droppedScroll.droppedAtTurn).toBeUndefined()
+    })
+
+    test('does not add droppedAtTurn to non-scroll items', () => {
+      const player = createTestPlayer({ x: 5, y: 5 })
+      const weapon: Weapon = {
+        id: 'weapon-1',
+        type: ItemType.WEAPON,
+        name: 'Mace',
+        char: ')',
+        damage: '2d4',
+        bonus: 0,
+        isIdentified: true,
+      }
+      player.inventory = [weapon]
+
+      const state = createTestState(player)
+      state.turnCount = 42
+      const command = new DropCommand('weapon-1', inventoryService, messageService, turnService, mockIdentificationService)
+      const result = command.execute(state)
+
+      const level = result.levels.get(1)
+      expect(level?.items).toHaveLength(1)
+
+      const droppedWeapon = level?.items[0] as Weapon
+      expect(droppedWeapon.type).toBe(ItemType.WEAPON)
+      expect((droppedWeapon as any).droppedAtTurn).toBeUndefined()
+    })
+
+    test('tracks correct turn count for multiple scare scrolls', () => {
+      const player = createTestPlayer({ x: 5, y: 5 })
+      const scareScroll1: Scroll = {
+        id: 'scroll-1',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters',
+        labelName: 'scroll labeled ABRACADABRA',
+        isIdentified: true,
+        char: '?',
+      }
+      player.inventory = [scareScroll1]
+
+      const state1 = createTestState(player)
+      state1.turnCount = 10
+      const command1 = new DropCommand('scroll-1', inventoryService, messageService, turnService, mockIdentificationService)
+      const result1 = command1.execute(state1)
+
+      // Player gets another scare scroll at a later turn
+      const scareScroll2: Scroll = {
+        id: 'scroll-2',
+        type: ItemType.SCROLL,
+        name: 'Scroll of Scare Monster',
+        scrollType: ScrollType.SCARE_MONSTER,
+        effect: 'Scares nearby monsters',
+        labelName: 'scroll labeled ABRACADABRA',
+        isIdentified: true,
+        char: '?',
+      }
+      result1.player.inventory = [scareScroll2]
+      const state2 = { ...result1, turnCount: 50 }
+      const command2 = new DropCommand('scroll-2', inventoryService, messageService, turnService, mockIdentificationService)
+      const result2 = command2.execute(state2)
+
+      const level = result2.levels.get(1)
+      expect(level?.items).toHaveLength(2)
+
+      const firstScroll = level?.items[0] as Scroll
+      const secondScroll = level?.items[1] as Scroll
+
+      expect(firstScroll.droppedAtTurn).toBe(10)
+      expect(secondScroll.droppedAtTurn).toBe(50)
     })
   })
 })

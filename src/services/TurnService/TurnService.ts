@@ -1,5 +1,6 @@
-import { GameState, Player, StatusEffectType } from '@game/core/core'
+import { GameState, Player, StatusEffectType, Scroll } from '@game/core/core'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { LevelService } from '@services/LevelService'
 import { ENERGY_THRESHOLD, NORMAL_SPEED, HASTED_SPEED } from '../../constants/energy'
 
 // ============================================================================
@@ -17,21 +18,58 @@ type Actor = { energy: number }
 // ============================================================================
 
 export class TurnService {
-  constructor(private statusEffectService: StatusEffectService) {}
+  constructor(
+    private statusEffectService: StatusEffectService,
+    private levelService: LevelService
+  ) {}
 
   /**
    * Increment turn counter by 1
    * Also ticks all player status effects (decrement duration, remove expired)
+   * Also removes deteriorated SCARE_MONSTER scrolls (>100 turns old)
    * Returns new GameState with incremented turnCount (immutable)
    */
   incrementTurn(state: GameState): GameState {
+    const newTurnCount = state.turnCount + 1
+
     // Tick status effects (decrement durations, remove expired)
     const { player, expired } = this.statusEffectService.tickStatusEffects(state.player)
 
     // TODO: Add messages for expired effects in Phase 2.6 UI work
     // For now, just silently remove expired effects
 
-    return { ...state, player, turnCount: state.turnCount + 1 }
+    // Remove deteriorated scare scrolls from current level
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return { ...state, player, turnCount: newTurnCount }
+    }
+
+    // Get all scare scrolls on the ground
+    const scareScrolls = this.levelService.getScareScrollsOnGround(level)
+
+    // Filter out deteriorated scrolls (>100 turns old)
+    const deterioratedScrollIds = new Set<string>()
+    for (const scroll of scareScrolls) {
+      if (scroll.droppedAtTurn !== undefined) {
+        const age = newTurnCount - scroll.droppedAtTurn
+        if (age > 100) {
+          deterioratedScrollIds.add(scroll.id)
+        }
+      }
+    }
+
+    // If no scrolls deteriorated, return early
+    if (deterioratedScrollIds.size === 0) {
+      return { ...state, player, turnCount: newTurnCount }
+    }
+
+    // Remove deteriorated scrolls from level items
+    const updatedItems = level.items.filter(item => !deterioratedScrollIds.has(item.id))
+    const updatedLevel = { ...level, items: updatedItems }
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    return { ...state, player, levels: updatedLevels, turnCount: newTurnCount }
   }
 
   /**

@@ -7,6 +7,7 @@ import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { HungerService } from '@services/HungerService'
 import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -44,7 +45,8 @@ describe('MoveCommand - Basic Movement', () => {
     combatService = new CombatService(mockRandom, hungerService)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
     regenerationService = new RegenerationService()
     notificationService = new NotificationService(identificationService)
   })

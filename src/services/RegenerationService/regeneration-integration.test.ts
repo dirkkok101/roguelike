@@ -12,6 +12,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { NotificationService } from '@services/NotificationService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import {
   GameState,
@@ -57,7 +58,8 @@ describe('RegenerationService - Integration Tests', () => {
     doorService = new DoorService(mockRandom)
     notificationService = new NotificationService()
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
 
     moveCommand = new MoveCommand(
       'right',

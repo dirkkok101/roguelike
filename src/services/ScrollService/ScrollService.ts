@@ -17,6 +17,7 @@ import { LevelService } from '@services/LevelService'
 import { FOVService } from '@services/FOVService'
 import { IRandomService } from '@services/RandomService'
 import { DungeonService } from '@services/DungeonService'
+import { CurseService } from '@services/CurseService'
 
 // ============================================================================
 // RESULT TYPE
@@ -52,7 +53,8 @@ export class ScrollService {
     private levelService: LevelService,
     private fovService: FOVService,
     private randomService: IRandomService,
-    private dungeonService: DungeonService
+    private dungeonService: DungeonService,
+    private curseService: CurseService
   ) {}
 
   /**
@@ -115,6 +117,12 @@ export class ScrollService {
 
       case ScrollType.SLEEP:
         return this.applySleep(player, state, displayName, identified)
+
+      case ScrollType.REMOVE_CURSE:
+        return this.applyRemoveCurse(player, state, displayName, identified)
+
+      case ScrollType.SCARE_MONSTER:
+        return this.applyScareMonster(player, state, displayName, identified)
 
       default:
         message = `You read ${displayName}. (Effect not yet implemented)`
@@ -705,6 +713,66 @@ export class ScrollService {
       message: `You read ${scrollName}. You fall into a deep sleep!`,
       identified,
       consumed: true,
+    }
+  }
+
+  // ============================================================================
+  // REMOVE_CURSE SCROLL
+  // ============================================================================
+
+  private applyRemoveCurse(
+    player: Player,
+    state: GameState,
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
+    // 1. Check if player has any cursed items
+    if (!this.curseService.hasAnyCursedItems(player)) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        consumed: true,
+      }
+    }
+
+    // 2. Get list of cursed items for message
+    const cursedItems = this.curseService.getCursedItemNames(player)
+
+    // 3. Remove curses from all equipped items
+    const updatedPlayer = this.curseService.removeCursesFromEquipment(player)
+
+    // 4. Build message with item names
+    const itemList = cursedItems.join(', ')
+    const message = cursedItems.length === 1
+      ? `You read ${scrollName}. You feel as if somebody is watching over you. The ${cursedItems[0]} glows briefly.`
+      : `You read ${scrollName}. You feel as if somebody is watching over you. Your equipment glows briefly.`
+
+    return {
+      player: updatedPlayer,
+      message,
+      identified,
+      consumed: true,
+    }
+  }
+
+  // ============================================================================
+  // SCARE_MONSTER SCROLL
+  // ============================================================================
+
+  private applyScareMonster(
+    player: Player,
+    state: GameState,
+    scrollName: string,
+    identified: boolean
+  ): ScrollEffectResult {
+    // SCARE_MONSTER is unique - it's NOT consumed when read
+    // Instead, the player should drop it on the ground
+    // When dropped, it will scare away adjacent monsters
+
+    return {
+      message: `You read ${scrollName}. You hear a loud roar and the scroll glows with an ominous light! You should drop this on the ground.`,
+      identified,
+      consumed: false, // Unique: not consumed when read
     }
   }
 }

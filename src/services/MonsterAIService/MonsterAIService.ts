@@ -2,6 +2,7 @@ import { Monster, GameState, Position, MonsterBehavior, MonsterState } from '@ga
 import { PathfindingService } from '@services/PathfindingService'
 import { IRandomService } from '@services/RandomService'
 import { FOVService } from '@services/FOVService'
+import { LevelService } from '@services/LevelService'
 
 // ============================================================================
 // MONSTER AI SERVICE - Behavior decision making
@@ -16,7 +17,8 @@ export class MonsterAIService {
   constructor(
     private pathfinding: PathfindingService,
     private random: IRandomService,
-    private fovService: FOVService
+    private fovService: FOVService,
+    private levelService: LevelService
   ) {}
 
   /**
@@ -188,6 +190,16 @@ export class MonsterAIService {
 
     const level = state.levels.get(state.currentLevel)
     if (!level) return { type: 'wait' }
+
+    // HIGHEST PRIORITY: Check for adjacent SCARE_MONSTER scrolls
+    // Monsters will flee from scare scrolls before any other behavior
+    const adjacentPositions = this.getAdjacentPositions(monster.position)
+    for (const pos of adjacentPositions) {
+      if (this.levelService.hasScareScrollAt(level, pos)) {
+        // Scare scroll detected! Flee from it
+        return this.fleeBehavior(monster, pos, level)
+      }
+    }
 
     const playerPos = state.player.position
     const playerPosKey = `${playerPos.x},${playerPos.y}`
@@ -497,5 +509,17 @@ export class MonsterAIService {
     const dx = Math.abs(pos1.x - pos2.x)
     const dy = Math.abs(pos1.y - pos2.y)
     return (dx === 1 && dy === 0) || (dx === 0 && dy === 1)
+  }
+
+  /**
+   * Get all adjacent positions (4-directional)
+   */
+  private getAdjacentPositions(pos: Position): Position[] {
+    return [
+      { x: pos.x, y: pos.y - 1 }, // Up
+      { x: pos.x, y: pos.y + 1 }, // Down
+      { x: pos.x - 1, y: pos.y }, // Left
+      { x: pos.x + 1, y: pos.y }, // Right
+    ]
   }
 }

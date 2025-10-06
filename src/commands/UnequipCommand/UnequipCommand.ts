@@ -3,6 +3,7 @@ import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { CurseService } from '@services/CurseService'
 
 // ============================================================================
 // UNEQUIP COMMAND - Unequip rings (weapons/armor swap automatically)
@@ -13,7 +14,8 @@ export class UnequipCommand implements ICommand {
     private ringSlot: 'left' | 'right',
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private curseService: CurseService
   ) {}
 
   execute(state: GameState): GameState {
@@ -27,6 +29,17 @@ export class UnequipCommand implements ICommand {
         state.messages,
         `You are not wearing a ring on your ${this.ringSlot} hand.`,
         'info',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // Check if cursed
+    if (this.curseService.isCursed(ring)) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        `The ${ring.name} is cursed! You cannot remove it.`,
+        'warning',
         state.turnCount
       )
       return { ...state, messages }

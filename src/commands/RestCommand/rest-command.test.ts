@@ -5,6 +5,7 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import {
@@ -38,7 +39,8 @@ describe('RestCommand', () => {
     fovService = new FOVService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
 
     command = new RestCommand(
       regenerationService,

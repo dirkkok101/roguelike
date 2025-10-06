@@ -282,11 +282,13 @@ export enum ItemType {
 export interface Weapon extends Item {
   damage: string
   bonus: number
+  cursed?: boolean // Cursed weapons cannot be unwielded
 }
 
 export interface Armor extends Item {
   ac: number
   bonus: number
+  cursed?: boolean // Cursed armor cannot be removed
 }
 
 export interface Ring extends Item {
@@ -295,6 +297,7 @@ export interface Ring extends Item {
   bonus: number
   materialName: string // e.g., "ruby", "sapphire", "wooden"
   hungerModifier: number // multiplier for hunger rate (1.5 = 50% faster)
+  cursed?: boolean // Cursed rings cannot be removed
 }
 
 export enum RingType {
@@ -337,6 +340,7 @@ export interface Scroll extends Item {
   scrollType: ScrollType
   effect: string
   labelName: string // e.g., "scroll labeled XYZZY"
+  droppedAtTurn?: number // Track when scare scroll was dropped (for deterioration)
 }
 
 export enum ScrollType {

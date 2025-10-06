@@ -4,6 +4,7 @@ import { InventoryService } from '@services/InventoryService'
 import { LevelService } from '@services/LevelService'
 import { FOVService } from '@services/FOVService'
 import { DungeonService } from '@services/DungeonService'
+import { CurseService } from '@services/CurseService'
 import { MockRandom } from '@services/RandomService'
 import {
   Player,
@@ -142,12 +143,16 @@ describe('ScrollService - TELEPORTATION Scroll', () => {
       inventoryService = new InventoryService()
       levelService = new LevelService()
       fovService = new FOVService()
+      dungeonService = new DungeonService(mockRandom)
+      const curseService = new CurseService()
       scrollService = new ScrollService(
         identificationService,
         inventoryService,
         levelService,
         fovService,
-        mockRandom
+        mockRandom,
+        dungeonService,
+        curseService
       )
     })
 
@@ -309,13 +314,15 @@ describe('ScrollService - TELEPORTATION Scroll', () => {
       levelService = new LevelService()
       fovService = new FOVService()
       dungeonService = new DungeonService(mockRandom)
+      const curseService = new CurseService()
       scrollService = new ScrollService(
         identificationService,
         inventoryService,
         levelService,
         fovService,
         mockRandom,
-        dungeonService
+        dungeonService,
+        curseService
       )
     })
 

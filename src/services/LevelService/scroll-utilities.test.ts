@@ -1,5 +1,5 @@
 import { LevelService } from './LevelService'
-import { Level, Position, Monster, TileType } from '@game/core/core'
+import { Level, Position, Monster, TileType, Scroll, ItemType, ScrollType } from '@game/core/core'
 
 describe('LevelService - Scroll Utility Methods', () => {
   let levelService: LevelService
@@ -317,6 +317,240 @@ describe('LevelService - Scroll Utility Methods', () => {
       expect(hasCenter).toBe(true)
       expect(hasCorner).toBe(true)
       expect(hasEdge).toBe(true)
+    })
+  })
+
+  describe('SCARE_MONSTER scroll helpers', () => {
+    describe('getScareScrollsOnGround', () => {
+      test('returns all SCARE_MONSTER scrolls on the ground', () => {
+        const scareScroll1: Scroll = {
+          id: 'scroll-1',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 3, y: 3 },
+        }
+
+        const scareScroll2: Scroll = {
+          id: 'scroll-2',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 5, y: 5 },
+        }
+
+        testLevel.items = [scareScroll1, scareScroll2]
+
+        const scareScrolls = levelService.getScareScrollsOnGround(testLevel)
+
+        expect(scareScrolls).toHaveLength(2)
+        expect(scareScrolls[0].scrollType).toBe(ScrollType.SCARE_MONSTER)
+        expect(scareScrolls[1].scrollType).toBe(ScrollType.SCARE_MONSTER)
+      })
+
+      test('filters out non-SCARE_MONSTER scrolls', () => {
+        const scareScroll: Scroll = {
+          id: 'scroll-1',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 3, y: 3 },
+        }
+
+        const identifyScroll: Scroll = {
+          id: 'scroll-2',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Identify',
+          scrollType: ScrollType.IDENTIFY,
+          effect: 'Identifies item',
+          labelName: 'scroll labeled XYZZY',
+          isIdentified: true,
+          char: '?',
+          position: { x: 4, y: 4 },
+        }
+
+        testLevel.items = [scareScroll, identifyScroll]
+
+        const scareScrolls = levelService.getScareScrollsOnGround(testLevel)
+
+        expect(scareScrolls).toHaveLength(1)
+        expect(scareScrolls[0].scrollType).toBe(ScrollType.SCARE_MONSTER)
+      })
+
+      test('returns empty array when no scare scrolls present', () => {
+        testLevel.items = []
+
+        const scareScrolls = levelService.getScareScrollsOnGround(testLevel)
+
+        expect(scareScrolls).toHaveLength(0)
+      })
+    })
+
+    describe('hasScareScrollAt', () => {
+      test('returns true when SCARE_MONSTER scroll at position', () => {
+        const scareScroll: Scroll = {
+          id: 'scroll-1',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 3, y: 3 },
+        }
+
+        testLevel.items = [scareScroll]
+
+        const result = levelService.hasScareScrollAt(testLevel, { x: 3, y: 3 })
+
+        expect(result).toBe(true)
+      })
+
+      test('returns false when no scare scroll at position', () => {
+        const scareScroll: Scroll = {
+          id: 'scroll-1',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 3, y: 3 },
+        }
+
+        testLevel.items = [scareScroll]
+
+        const result = levelService.hasScareScrollAt(testLevel, { x: 4, y: 4 })
+
+        expect(result).toBe(false)
+      })
+
+      test('returns false for different scroll type at position', () => {
+        const identifyScroll: Scroll = {
+          id: 'scroll-1',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Identify',
+          scrollType: ScrollType.IDENTIFY,
+          effect: 'Identifies item',
+          labelName: 'scroll labeled XYZZY',
+          isIdentified: true,
+          char: '?',
+          position: { x: 3, y: 3 },
+        }
+
+        testLevel.items = [identifyScroll]
+
+        const result = levelService.hasScareScrollAt(testLevel, { x: 3, y: 3 })
+
+        expect(result).toBe(false)
+      })
+    })
+
+    describe('getScareScrollPositions', () => {
+      test('returns Set of positions for all scare scrolls', () => {
+        const scareScroll1: Scroll = {
+          id: 'scroll-1',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 3, y: 3 },
+        }
+
+        const scareScroll2: Scroll = {
+          id: 'scroll-2',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 5, y: 5 },
+        }
+
+        testLevel.items = [scareScroll1, scareScroll2]
+
+        const positions = levelService.getScareScrollPositions(testLevel)
+
+        expect(positions.size).toBe(2)
+        expect(positions.has('3,3')).toBe(true)
+        expect(positions.has('5,5')).toBe(true)
+      })
+
+      test('uses "x,y" format for Set keys', () => {
+        const scareScroll: Scroll = {
+          id: 'scroll-1',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 3, y: 3 },
+        }
+
+        testLevel.items = [scareScroll]
+
+        const positions = levelService.getScareScrollPositions(testLevel)
+
+        // Check exact format
+        expect(positions.has('3,3')).toBe(true)
+        expect(positions.has('3-3')).toBe(false)
+        expect(positions.has('(3,3)')).toBe(false)
+      })
+
+      test('returns empty Set when no scare scrolls', () => {
+        testLevel.items = []
+
+        const positions = levelService.getScareScrollPositions(testLevel)
+
+        expect(positions.size).toBe(0)
+      })
+
+      test('provides O(1) lookup performance', () => {
+        const scareScroll: Scroll = {
+          id: 'scroll-1',
+          type: ItemType.SCROLL,
+          name: 'Scroll of Scare Monster',
+          scrollType: ScrollType.SCARE_MONSTER,
+          effect: 'Scares monsters',
+          labelName: 'scroll labeled ABRACADABRA',
+          isIdentified: true,
+          char: '?',
+          position: { x: 3, y: 3 },
+        }
+
+        testLevel.items = [scareScroll]
+
+        const positions = levelService.getScareScrollPositions(testLevel)
+
+        // O(1) lookup
+        const start = performance.now()
+        const result = positions.has('3,3')
+        const duration = performance.now() - start
+
+        expect(result).toBe(true)
+        expect(duration).toBeLessThan(1) // Should be instant
+      })
     })
   })
 })
