@@ -8,7 +8,7 @@ describe('QuitCommand', () => {
 
   beforeEach(() => {
     localStorageService = new LocalStorageService()
-    command = new QuitCommand(localStorageService)
+    command = new QuitCommand(localStorageService, jest.fn())
     localStorage.clear()
 
     // Suppress JSDOM navigation errors (window.location.reload is not implemented in test environment)

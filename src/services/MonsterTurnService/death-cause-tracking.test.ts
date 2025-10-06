@@ -81,6 +81,9 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
       currentPath: null,
       hasStolen: false,
       level: 1,
+      speed: 10,
+      energy: 100,
+      isInvisible: false,
       ...overrides,
     }
   }

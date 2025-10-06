@@ -114,6 +114,9 @@ describe('MonsterTurnService - Theft Mechanics', () => {
       visibleCells: new Set(),
       currentPath: null,
       hasStolen: false,
+      speed: 10,
+      energy: 100,
+      isInvisible: false,
       level: 1,
     }
 
@@ -153,6 +156,9 @@ describe('MonsterTurnService - Theft Mechanics', () => {
       visibleCells: new Set(),
       currentPath: null,
       hasStolen: false,
+      speed: 10,
+      energy: 100,
+      isInvisible: false,
       level: 1,
     }
 
@@ -192,6 +198,9 @@ describe('MonsterTurnService - Theft Mechanics', () => {
       visibleCells: new Set(),
       currentPath: null,
       hasStolen: false,
+      speed: 10,
+      energy: 100,
+      isInvisible: false,
       level: 1,
     }
 
@@ -232,6 +241,9 @@ describe('MonsterTurnService - Theft Mechanics', () => {
       visibleCells: new Set(),
       currentPath: null,
       hasStolen: false,
+      speed: 10,
+      energy: 100,
+      isInvisible: false,
       level: 1,
     }
 
@@ -272,6 +284,9 @@ describe('MonsterTurnService - Theft Mechanics', () => {
       visibleCells: new Set(),
       currentPath: null,
       hasStolen: false,
+      speed: 10,
+      energy: 100,
+      isInvisible: false,
       level: 1,
     }
 

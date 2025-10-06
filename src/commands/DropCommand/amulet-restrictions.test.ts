@@ -96,6 +96,8 @@ describe('DropCommand - Amulet Restrictions', () => {
         lightSource: null,
       },
       inventory,
+      statusEffects: [],
+      energy: 100,
     }
   }
 

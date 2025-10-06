@@ -9,6 +9,7 @@ import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { MonsterTurnService } from '@services/MonsterTurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { RegenerationService } from '@services/RegenerationService'
 import { MonsterAIService } from '@services/MonsterAIService'
 import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { PathfindingService } from '@services/PathfindingService'
@@ -16,7 +17,6 @@ import { DoorService } from '@services/DoorService'
 import { NotificationService } from '@services/NotificationService'
 import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
-import { StatusEffectService } from '@services/StatusEffectService'
 import { SeededRandom } from '@services/RandomService'
 import { createTestTorch } from '../test-utils'
 
@@ -45,6 +45,7 @@ describe('Integration: Game Loop', () => {
     leveling: LevelingService
     door: DoorService
     notification: NotificationService
+    regeneration: RegenerationService
     turn: TurnService
     pathfinding: PathfindingService
     ai: MonsterAIService
@@ -56,7 +57,8 @@ describe('Integration: Game Loop', () => {
     const random = new SeededRandom('test-game-loop')
     const movement = new MovementService()
     const lighting = new LightingService(random)
-    const fov = new FOVService()
+    const statusEffectService = new StatusEffectService()
+    const fov = new FOVService(statusEffectService)
     const message = new MessageService()
     const hunger = new HungerService(random)
     const combat = new CombatService(random, hunger)
@@ -64,12 +66,12 @@ describe('Integration: Game Loop', () => {
     const door = new DoorService()
     const identificationService = new IdentificationService(random)
     const notification = new NotificationService(identificationService)
-    const statusEffectService = new StatusEffectService()
+    const regeneration = new RegenerationService()
     const turn = new TurnService(statusEffectService)
     const pathfinding = new PathfindingService()
     const ai = new MonsterAIService(pathfinding, random, fov)
     const ability = new SpecialAbilityService(random)
-    const monsterTurn = new MonsterTurnService(random, ai, combat, ability, message)
+    const monsterTurn = new MonsterTurnService(random, ai, combat, ability, message, turn)
 
     services = {
       random,
@@ -82,6 +84,7 @@ describe('Integration: Game Loop', () => {
       leveling,
       door,
       notification,
+      regeneration,
       turn,
       pathfinding,
       ai,
@@ -175,10 +178,17 @@ describe('Integration: Game Loop', () => {
         behavior: 'SIMPLE',
         aggroRange: 5,
         fleeThreshold: 0,
+        intelligence: 1,
+        special: [],
       },
       state: 'SLEEPING',
       isAsleep: true,
-      isMean: false,
+      isAwake: false,
+      hasStolen: false,
+      level: 1,
+      speed: 10,
+      energy: 100,
+      isInvisible: false,
       visibleCells: new Set(),
       currentPath: null,
     }
@@ -237,6 +247,7 @@ describe('Integration: Game Loop', () => {
         services.leveling,
         services.door,
         services.hunger,
+        services.regeneration,
         services.notification,
         services.turn
       )
@@ -270,6 +281,7 @@ describe('Integration: Game Loop', () => {
         services.leveling,
         services.door,
         services.hunger,
+        services.regeneration,
         services.notification,
         services.turn
       )
@@ -318,6 +330,7 @@ describe('Integration: Game Loop', () => {
         services.leveling,
         services.door,
         services.hunger,
+        services.regeneration,
         services.notification,
         services.turn
       )
@@ -368,6 +381,7 @@ describe('Integration: Game Loop', () => {
           services.leveling,
           services.door,
           services.hunger,
+        services.regeneration,
           services.notification,
           services.turn
         )
@@ -402,6 +416,7 @@ describe('Integration: Game Loop', () => {
           services.leveling,
           services.door,
           services.hunger,
+        services.regeneration,
           services.notification,
           services.turn
         )
@@ -430,6 +445,7 @@ describe('Integration: Game Loop', () => {
         services.leveling,
         services.door,
         services.hunger,
+        services.regeneration,
         services.notification,
         services.turn
       )
@@ -464,6 +480,7 @@ describe('Integration: Game Loop', () => {
         services.leveling,
         services.door,
         services.hunger,
+        services.regeneration,
         services.notification,
         services.turn
       )

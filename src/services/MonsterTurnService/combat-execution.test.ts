@@ -120,6 +120,9 @@ describe('MonsterTurnService - Combat Execution', () => {
       currentPath: null,
       hasStolen: false,
       level: 1,
+      speed: 10, // Normal speed
+      energy: 100, // Start with energy to act immediately
+      isInvisible: false,
       ...overrides,
     }
   }
