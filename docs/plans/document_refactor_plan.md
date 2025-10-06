@@ -654,7 +654,7 @@ docs/
   - Already referenced at line 29: "using [Template](./plans/TEMPLATE.md)"
 
 - [x] Git commit: "docs: add plan template for future features (Phase 5.2)" ✅
-  - **Commit**: [To be added after commit]
+  - **Commit**: 3c35289
 
 ---
 
