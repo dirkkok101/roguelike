@@ -1,6 +1,7 @@
 import { LeaderboardEntry, LeaderboardFilters, DEFAULT_LEADERBOARD_FILTERS } from '@game/core/core'
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { EntryDetailsModal } from './EntryDetailsModal'
 
 // ============================================================================
 // LEADERBOARD SCREEN - Display leaderboard modal with sorting and filtering
@@ -13,6 +14,7 @@ export class LeaderboardScreen {
   private container: HTMLDivElement | null = null
   private leaderboardService: LeaderboardService
   private leaderboardStorageService: LeaderboardStorageService
+  private entryDetailsModal: EntryDetailsModal
   private currentTab: TabType = 'all'
   private currentPage = 0
   private sortColumn: SortColumn = 'rank'
@@ -25,6 +27,7 @@ export class LeaderboardScreen {
   ) {
     this.leaderboardService = leaderboardService
     this.leaderboardStorageService = leaderboardStorageService
+    this.entryDetailsModal = new EntryDetailsModal()
   }
 
   /**
@@ -153,13 +156,14 @@ export class LeaderboardScreen {
         </div>
         <div style="color: #888; font-size: 14px; margin-bottom: 10px;">
           ${totalPages > 1 ? '<span style="color: #88FF88;">[←][→]</span> Page | ' : ''}
+          <span style="color: #00FFFF;">[Click]</span> View Details |
           <span style="color: #FF6666;">[ESC]</span> Close
         </div>
       </div>
     `
 
-    // Add click handlers for column headers (sorting)
-    this.attachSortHandlers(modal, onClose)
+    // Add click handlers for column headers (sorting) and entry rows
+    this.attachHandlers(modal, onClose)
   }
 
   private renderTabs(): string {
@@ -244,7 +248,13 @@ export class LeaderboardScreen {
     const rowBg = index % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
 
     return `
-      <div style="display: grid; grid-template-columns: 60px 140px 80px 100px 120px 180px; gap: 5px; margin: 0 10px; padding: 8px 0; background: ${rowBg}; font-size: 13px; border-bottom: 1px solid #222;">
+      <div
+        class="entry-row"
+        data-entry-id="${entry.id}"
+        style="display: grid; grid-template-columns: 60px 140px 80px 100px 120px 180px; gap: 5px; margin: 0 10px; padding: 8px 0; background: ${rowBg}; font-size: 13px; border-bottom: 1px solid #222; cursor: pointer; transition: background 0.2s;"
+        onmouseover="this.style.background='rgba(255, 215, 0, 0.1)'"
+        onmouseout="this.style.background='${rowBg}'"
+      >
         <div style="text-align: center;">${rankBadge} ${rank}</div>
         <div style="text-align: right; color: #FFD700; font-weight: bold;">${entry.score.toLocaleString()}</div>
         <div style="text-align: center; color: #00FFFF;">${entry.finalLevel}</div>
@@ -353,7 +363,8 @@ export class LeaderboardScreen {
     }
   }
 
-  private attachSortHandlers(modal: HTMLDivElement, onClose: () => void): void {
+  private attachHandlers(modal: HTMLDivElement, onClose: () => void): void {
+    // Sort handlers for column headers
     const sortHandlers: { [key: string]: SortColumn } = {
       'sort-rank': 'rank',
       'sort-score': 'score',
@@ -390,6 +401,35 @@ export class LeaderboardScreen {
         element.addEventListener('click', () => {
           this.switchTab(tab, modal, onClose)
         })
+      }
+    })
+
+    // Entry row click handlers - open details modal
+    const entryRows = modal.querySelectorAll('.entry-row')
+    entryRows.forEach(row => {
+      row.addEventListener('click', () => {
+        const entryId = row.getAttribute('data-entry-id')
+        if (entryId) {
+          const entry = this.leaderboardStorageService.getEntry(entryId)
+          if (entry) {
+            this.showEntryDetails(entry, modal, onClose)
+          }
+        }
+      })
+    })
+  }
+
+  private showEntryDetails(entry: LeaderboardEntry, modal: HTMLDivElement, onClose: () => void): void {
+    // Hide leaderboard temporarily
+    if (this.container) {
+      this.container.style.display = 'none'
+    }
+
+    // Show entry details modal
+    this.entryDetailsModal.show(entry, () => {
+      // When details modal closes, show leaderboard again
+      if (this.container) {
+        this.container.style.display = 'flex'
       }
     })
   }

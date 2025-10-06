@@ -104,57 +104,60 @@
 
 ---
 
-### Phase 3: Leaderboard UI (Simple View) ⬜
+### Phase 3: Leaderboard UI (Simple View) ✅ COMPLETE
 
-#### Task 3.1: LeaderboardScreen Component ⬜
-- [ ] Create `src/ui/LeaderboardScreen.ts`
-- [ ] Implement table view layout
-- [ ] Implement tabbed navigation
-- [ ] Implement sorting
-- [ ] Implement pagination
-- [ ] Implement keyboard navigation
-- [ ] Create `src/ui/LeaderboardScreen/index.ts`
+#### Task 3.1: LeaderboardScreen Component ✅
+- [x] Create `src/ui/LeaderboardScreen.ts`
+- [x] Implement table view layout
+- [x] Implement tabbed navigation (All | Victories | Deaths)
+- [x] Implement sorting (click column headers, sort indicators ▲▼)
+- [x] Implement pagination (25 per page)
+- [x] Implement keyboard navigation (1/2/3 for tabs, ←→ for pages, ESC/Q to close)
+- [x] Create `src/ui/LeaderboardScreen/index.ts`
+- **Files**: `src/ui/LeaderboardScreen.ts`, `src/ui/LeaderboardScreen/index.ts`
+- **Commit**: "feat: implement LeaderboardScreen component" ✅
+
+#### Task 3.2: LeaderboardScreen Tests ✅
+- [x] Create `LeaderboardScreen.test.ts`
+- [x] Test rendering (modal, title, entry count, empty states)
+- [x] Test tab switching (keyboard shortcuts, filtering)
+- [x] Test sorting (default descending, sort indicators)
+- [x] Test pagination (multi-page, navigation, single page)
+- [x] Test keyboard controls (ESC/Q close, shortcuts display)
+- [x] Test visual elements (badges, borders, emojis)
+- **Files**: `src/ui/LeaderboardScreen.test.ts` (27 tests, all passing)
+- **Commit**: "test: add comprehensive LeaderboardScreen test suite" ✅
+
+#### Task 3.3: MainMenu Integration ✅
+- [x] Update `src/ui/MainMenu.ts` constructor to accept services
+- [x] Add "Leaderboard" button (gold color)
+- [x] Add keyboard shortcut `L`
+- [x] Open LeaderboardScreen modal with callback to return to menu
+- **Files**: `src/ui/MainMenu.ts`, `src/main.ts`
+- **Commit**: "feat: integrate LeaderboardScreen with MainMenu" ✅
+
+#### Task 3.4: Basic Styling ✅
+- [x] ASCII-style borders (┌─┐ └─┘)
+- [x] Color coding (victories=green, deaths=red, gold for score)
+- [x] Highlight top ranks with medal badges (🥇🥈🥉)
+- [x] Monospace layout
+- **Note**: Styling was included as part of Task 3.1 implementation
 - **Files**: `src/ui/LeaderboardScreen.ts`
-- **Commit**: "feat: implement LeaderboardScreen component"
-
-#### Task 3.2: LeaderboardScreen Tests ⬜
-- [ ] Create `LeaderboardScreen.test.ts`
-- [ ] Test rendering
-- [ ] Test tab switching
-- [ ] Test sorting
-- [ ] Test pagination
-- [ ] Test keyboard controls
-- **Files**: `src/ui/LeaderboardScreen.test.ts`
-- **Commit**: "test: add LeaderboardScreen tests"
-
-#### Task 3.3: MainMenu Integration ⬜
-- [ ] Update `src/ui/MainMenu.ts`
-- [ ] Add "Leaderboard" button
-- [ ] Add keyboard shortcut `L`
-- [ ] Open LeaderboardScreen modal
-- **Files**: `src/ui/MainMenu.ts`
-- **Commit**: "feat: add leaderboard button to MainMenu"
-
-#### Task 3.4: Basic Styling ⬜
-- [ ] ASCII-style borders
-- [ ] Color coding (gold/red)
-- [ ] Highlight personal bests
-- [ ] Monospace layout
-- **Files**: `src/ui/LeaderboardScreen.ts`
-- **Commit**: "style: add leaderboard styling"
 
 ---
 
-### Phase 4: Entry Details & Filtering ⬜
+### Phase 4: Entry Details & Filtering 🔄
 
-#### Task 4.1: EntryDetailsModal Component ⬜
-- [ ] Create `src/ui/EntryDetailsModal.ts`
-- [ ] Display full statistics
-- [ ] Show equipment snapshot
-- [ ] Show achievements
-- [ ] Copy seed button
-- **Files**: `src/ui/EntryDetailsModal.ts`
-- **Commit**: "feat: implement EntryDetailsModal"
+#### Task 4.1: EntryDetailsModal Component ✅
+- [x] Create `src/ui/EntryDetailsModal.ts`
+- [x] Display full statistics
+- [x] Show equipment snapshot
+- [x] Show achievements
+- [x] Copy seed button
+- [x] Integrate with LeaderboardScreen (clickable rows)
+- [x] Create comprehensive test suite (29 tests, all passing)
+- **Files**: `src/ui/EntryDetailsModal.ts`, `src/ui/EntryDetailsModal.test.ts`, `src/ui/LeaderboardScreen.ts`
+- **Commit**: "feat: implement EntryDetailsModal with full statistics display" ✅
 
 #### Task 4.2: Filter Controls ⬜
 - [ ] Add filter dropdowns
@@ -237,12 +240,12 @@
 
 ## Progress Tracking
 
-**Overall Progress**: 9/18 tasks complete (50%)
+**Overall Progress**: 14/18 tasks complete (78%)
 
 **Phase 1 (Core Infrastructure)**: 5/5 tasks ✅ COMPLETE
 **Phase 2 (Integration)**: 4/4 tasks ✅ COMPLETE
-**Phase 3 (UI Simple)**: 0/4 tasks ⬜
-**Phase 4 (UI Advanced)**: 0/3 tasks ⬜
+**Phase 3 (UI Simple)**: 4/4 tasks ✅ COMPLETE
+**Phase 4 (UI Advanced)**: 1/3 tasks 🔄 IN PROGRESS
 **Phase 5 (Statistics)**: 0/3 tasks ⬜
 **Phase 6 (Polish)**: 0/3 tasks ⬜
 
