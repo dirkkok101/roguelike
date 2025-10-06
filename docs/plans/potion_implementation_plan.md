@@ -1,6 +1,6 @@
 # Potion System Implementation Plan
 
-**Status**: 🚧 In Progress
+**Status**: 🚧 In Progress (Phase 3 Complete - Test Maintenance in Progress)
 **Version**: 1.0
 **Created**: 2025-10-06
 **Last Updated**: 2025-10-06
@@ -26,8 +26,9 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 - [x] Phase 2: StatusEffectService handles duration-based effects (confusion, blindness, haste)
 - [x] Phase 2: 3 status effect potions (CONFUSION, BLINDNESS, HASTE_SELF)
 - [x] Phase 2: Full energy system implemented (Angband-style, supports variable speeds)
-- [ ] All tests pass with >80% coverage
-- [ ] Architecture follows CLAUDE.md principles (no logic in commands)
+- [x] Phase 3 Complete: 2 advanced potions (SEE_INVISIBLE, LEVITATION)
+- [ ] All tests pass with >80% coverage (153/159 suites passing, 1702/1730 tests passing)
+- [x] Architecture follows CLAUDE.md principles (no logic in commands)
 - [ ] Documentation updated (game design, service docs, plan)
 
 ---
