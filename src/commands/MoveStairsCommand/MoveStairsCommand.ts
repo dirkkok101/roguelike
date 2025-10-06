@@ -1,4 +1,4 @@
-import { GameState } from '@game/core/core'
+import { GameState, StatusEffectType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
 import { DungeonService, DungeonConfig } from '@services/DungeonService'
@@ -7,6 +7,7 @@ import { LightingService } from '@services/LightingService'
 import { VictoryService } from '@services/VictoryService'
 import { LevelService } from '@services/LevelService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // MOVE STAIRS COMMAND - Navigate between dungeon levels
@@ -22,7 +23,8 @@ export class MoveStairsCommand implements ICommand {
     private messageService: MessageService,
     private victoryService: VictoryService,
     private levelService: LevelService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private statusEffectService: StatusEffectService
   ) {}
 
   execute(state: GameState): GameState {
@@ -117,8 +119,9 @@ export class MoveStairsCommand implements ICommand {
     const preferredPosition = direction === 'down' ? level.stairsUp : level.stairsDown
     const spawnPos = this.levelService.getSpawnPosition(level, preferredPosition)
 
-    // Update player position
-    const updatedPlayer = { ...state.player, position: spawnPos }
+    // Update player position and clear SEE_INVISIBLE (Original Rogue: lasts until level change)
+    let updatedPlayer = { ...state.player, position: spawnPos }
+    updatedPlayer = this.statusEffectService.removeStatusEffect(updatedPlayer, StatusEffectType.SEE_INVISIBLE)
 
     // Compute FOV for new position
     const lightRadius = this.lightingService.getLightRadius(

@@ -151,6 +151,13 @@ export class PotionService {
         }
         break
 
+      case PotionType.SEE_INVISIBLE:
+        {
+          updatedPlayer = this.applySeeInvisiblePotion(player)
+          message = `Your eyes tingle. You can now see invisible creatures!`
+        }
+        break
+
       default:
         message = `You quaff ${displayName}. (Effect not yet implemented)`
     }
@@ -301,6 +308,21 @@ export class PotionService {
       player: updatedPlayer,
       duration,
     }
+  }
+
+  private applySeeInvisiblePotion(player: Player): Player {
+    // Original Rogue: Lasts until level change
+    // Using 999 turns (effectively permanent until stairs are used)
+    // StairsCommand will clear this effect when changing levels
+    const duration = 999
+
+    const updatedPlayer = this.statusEffectService.addStatusEffect(
+      player,
+      StatusEffectType.SEE_INVISIBLE,
+      duration
+    )
+
+    return updatedPlayer
   }
 
   private applyDetectMonsters(

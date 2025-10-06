@@ -534,6 +534,7 @@ export class DungeonService {
           turnsWithoutSight: 0,
           energy: this.random.nextInt(0, 99), // Random initial energy (staggered starts)
           speed: 10, // Normal speed baseline
+          isInvisible: false, // Default: visible (Phantoms will override this)
         })
       }
     }

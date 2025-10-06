@@ -169,6 +169,7 @@ export class GameRenderer {
     // Check for status effects to show visual indicators
     const isConfused = state.player.statusEffects.some((e) => e.type === StatusEffectType.CONFUSED)
     const isHasted = state.player.statusEffects.some((e) => e.type === StatusEffectType.HASTED)
+    const canSeeInvisible = state.player.statusEffects.some((e) => e.type === StatusEffectType.SEE_INVISIBLE)
 
     let html = '<pre class="dungeon-grid">'
 
@@ -215,9 +216,10 @@ export class GameRenderer {
           if (monster) {
             const isDetected = state.detectedMonsters.has(monster.id)
             const isVisible = visState === 'visible'
+            const canRenderInvisible = !monster.isInvisible || canSeeInvisible
 
-            // Render if visible OR if detected and in explored area
-            if (isVisible || isDetected) {
+            // Render if (visible OR detected) AND (not invisible OR has SEE_INVISIBLE)
+            if ((isVisible || isDetected) && canRenderInvisible) {
               char = monster.letter
               color = isVisible
                 ? this.renderingService.getColorForEntity(monster, visState)
