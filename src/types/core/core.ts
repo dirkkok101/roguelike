@@ -192,6 +192,10 @@ export interface GameState {
   identifiedItems: Set<string> // Item types that have been identified
   debug?: DebugState // Debug state (optional for production builds)
 
+  // Detection state (from detection potions)
+  detectedMonsters: Set<string> // Monster IDs revealed by DETECT_MONSTERS potion
+  detectedMagicItems: Set<string> // Magic item IDs highlighted by DETECT_MAGIC potion
+
   // Run statistics (for death screen and achievements)
   monstersKilled: number // Total monsters killed this run
   itemsFound: number // Total items picked up this run

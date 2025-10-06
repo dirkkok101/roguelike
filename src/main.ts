@@ -193,6 +193,8 @@ async function initializeGame() {
     hasAmulet: false,
     itemNameMap,
     identifiedItems: new Set(),
+    detectedMonsters: new Set(),
+    detectedMagicItems: new Set(),
     debug: debugService.initializeDebugState(),
     // Run statistics (initialized to 0)
     monstersKilled: 0,
@@ -287,6 +289,8 @@ async function initializeGame() {
       hasAmulet: false,
       itemNameMap,
       identifiedItems: new Set(),
+      detectedMonsters: new Set(),
+      detectedMagicItems: new Set(),
       debug: debugService.initializeDebugState(),
       monstersKilled: 0,
       itemsFound: 0,
