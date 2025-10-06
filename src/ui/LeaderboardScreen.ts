@@ -256,13 +256,12 @@ export class LeaderboardScreen {
 
   private renderTabs(): string {
     const allEntries = this.leaderboardStorageService.getAllEntries()
-    const victoryCount = allEntries.filter(e => e.isVictory).length
-    const deathCount = allEntries.filter(e => !e.isVictory).length
+    const counts = this.leaderboardService.getEntryCounts(allEntries)
 
     const tabs = [
-      { id: 'all', label: 'All', count: allEntries.length, color: '#FFD700' },
-      { id: 'victories', label: 'Victories', count: victoryCount, color: '#00FF00' },
-      { id: 'deaths', label: 'Deaths', count: deathCount, color: '#FF4444' },
+      { id: 'all', label: 'All', count: counts.total, color: '#FFD700' },
+      { id: 'victories', label: 'Victories', count: counts.victories, color: '#00FF00' },
+      { id: 'deaths', label: 'Deaths', count: counts.deaths, color: '#FF4444' },
     ]
 
     return `
@@ -635,17 +634,14 @@ export class LeaderboardScreen {
       row.addEventListener('click', () => {
         const seed = row.getAttribute('data-seed')
         if (seed) {
-          // Get all entries for this seed
+          // Get best entry for this seed
           const allEntries = this.leaderboardStorageService.getAllEntries()
-          const seedEntries = allEntries.filter(e => e.seed === seed)
-
-          // Find best entry (highest score)
-          const bestEntry = seedEntries.reduce((best, current) =>
-            current.score > best.score ? current : best
-          )
+          const bestEntry = this.leaderboardService.getBestEntryForSeed(allEntries, seed)
 
           // Show details of best run
-          this.showEntryDetails(bestEntry, modal, onClose)
+          if (bestEntry) {
+            this.showEntryDetails(bestEntry, modal, onClose)
+          }
         }
       })
     })

@@ -428,8 +428,7 @@ export class LeaderboardService {
     // Group entries by seed
     entries.forEach((entry) => {
       const existing = seedMap.get(entry.seed) || []
-      existing.push(entry)
-      seedMap.set(entry.seed, existing)
+      seedMap.set(entry.seed, [...existing, entry])
     })
 
     // Convert to SeedGroup array with aggregate stats
@@ -487,6 +486,36 @@ export class LeaderboardService {
     })
 
     return sorted
+  }
+
+  /**
+   * Get entry counts by outcome
+   * Returns total, victories, and deaths counts
+   */
+  getEntryCounts(entries: LeaderboardEntry[]): {
+    total: number
+    victories: number
+    deaths: number
+  } {
+    return {
+      total: entries.length,
+      victories: entries.filter((e) => e.isVictory).length,
+      deaths: entries.filter((e) => !e.isVictory).length,
+    }
+  }
+
+  /**
+   * Get the best entry for a specific seed
+   * Returns the entry with the highest score for the given seed
+   */
+  getBestEntryForSeed(
+    entries: LeaderboardEntry[],
+    seed: string
+  ): LeaderboardEntry | null {
+    const seedEntries = entries.filter((e) => e.seed === seed)
+    return seedEntries.length > 0
+      ? seedEntries.reduce((best, e) => (e.score > best.score ? e : best))
+      : null
   }
 
   // ============================================================================
