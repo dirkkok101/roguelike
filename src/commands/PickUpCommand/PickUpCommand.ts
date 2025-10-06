@@ -4,6 +4,7 @@ import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { IdentificationService } from '@services/IdentificationService'
+import { LevelService } from '@services/LevelService'
 
 // ============================================================================
 // PICK UP COMMAND - Pick up items from the dungeon floor
@@ -14,7 +15,8 @@ export class PickUpCommand implements ICommand {
     private inventoryService: InventoryService,
     private messageService: MessageService,
     private turnService: TurnService,
-    private identificationService: IdentificationService
+    private identificationService: IdentificationService,
+    private levelService: LevelService
   ) {}
 
   execute(state: GameState): GameState {
@@ -53,8 +55,7 @@ export class PickUpCommand implements ICommand {
     const updatedPlayer = this.inventoryService.addItem(state.player, itemAtPosition)
 
     // Remove item from level
-    const updatedItems = level.items.filter((item) => item.id !== itemAtPosition.id)
-    const updatedLevel = { ...level, items: updatedItems }
+    const updatedLevel = this.levelService.removeItemFromLevel(level, itemAtPosition.id)
     const updatedLevels = new Map(state.levels)
     updatedLevels.set(state.currentLevel, updatedLevel)
 

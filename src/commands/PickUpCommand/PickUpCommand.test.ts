@@ -12,6 +12,7 @@ describe('PickUpCommand', () => {
   let messageService: MessageService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
+  let levelService: LevelService
   let mockIdentificationService: jest.Mocked<IdentificationService>
   let command: PickUpCommand
 
@@ -19,7 +20,7 @@ describe('PickUpCommand', () => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
-    const levelService = new LevelService()
+    levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
 
     // Create mock IdentificationService
@@ -27,7 +28,7 @@ describe('PickUpCommand', () => {
       getDisplayName: jest.fn((item: Item) => item.name),
     } as any
 
-    command = new PickUpCommand(inventoryService, messageService, turnService, mockIdentificationService)
+    command = new PickUpCommand(inventoryService, messageService, turnService, mockIdentificationService, levelService)
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {

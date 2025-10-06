@@ -62,6 +62,19 @@ export class LevelService {
   }
 
   // ============================================================================
+  // ITEM MANIPULATION METHODS
+  // ============================================================================
+
+  /**
+   * Remove an item from the level by its ID
+   * Returns a new level with the item removed from items array
+   */
+  removeItemFromLevel(level: Level, itemId: string): Level {
+    const updatedItems = level.items.filter((item) => item.id !== itemId)
+    return { ...level, items: updatedItems }
+  }
+
+  // ============================================================================
   // SCROLL UTILITY METHODS
   // ============================================================================
 
