@@ -10,6 +10,7 @@ export class LocalStorageService {
 
   /**
    * Save game state to LocalStorage
+   * Auto-cleanup old saves if quota exceeded
    */
   saveGame(state: GameState): void {
     try {
@@ -22,6 +23,37 @@ export class LocalStorageService {
 
       console.log(`Game ${exists ? 'overwritten' : 'saved'}: ${state.gameId}`)
     } catch (error) {
+      // Check if quota exceeded (check both name and message for test compatibility)
+      if (
+        error instanceof DOMException &&
+        (error.name === 'QuotaExceededError' || error.message.includes('QuotaExceededError'))
+      ) {
+        console.warn('Storage quota exceeded, cleaning up old saves...')
+
+        // Try to free space by deleting old saves (keep current game)
+        const cleaned = this.cleanupOldSaves(state.gameId)
+
+        if (cleaned > 0) {
+          console.log(`Deleted ${cleaned} old save(s) to free space`)
+
+          // Retry save after cleanup
+          try {
+            const saveKey = this.getSaveKey(state.gameId)
+            const serialized = this.serializeGameState(state)
+            localStorage.setItem(saveKey, serialized)
+            localStorage.setItem(this.CONTINUE_KEY, state.gameId)
+            console.log(`Game saved after cleanup: ${state.gameId}`)
+            return
+          } catch (retryError) {
+            console.error('Save failed even after cleanup:', retryError)
+            throw new Error('Save failed - storage quota exceeded even after cleanup')
+          }
+        } else {
+          console.error('No old saves to clean up')
+          throw new Error('Save failed - storage quota exceeded?')
+        }
+      }
+
       console.error('Failed to save game:', error)
       throw new Error('Save failed - storage quota exceeded?')
     }
@@ -149,6 +181,26 @@ export class LocalStorageService {
     }
 
     return saves
+  }
+
+  /**
+   * Cleanup old saves to free storage space
+   * Deletes all saves except the current game
+   * Returns number of saves deleted
+   */
+  private cleanupOldSaves(currentGameId: string): number {
+    const allSaves = this.listSaves()
+    let deletedCount = 0
+
+    for (const gameId of allSaves) {
+      // Don't delete the current game
+      if (gameId !== currentGameId) {
+        this.deleteSave(gameId)
+        deletedCount++
+      }
+    }
+
+    return deletedCount
   }
 
   private getSaveKey(gameId: string): string {
