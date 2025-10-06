@@ -1,7 +1,7 @@
 # Items
 
-**Version**: 2.0
-**Last Updated**: 2025-10-05
+**Version**: 2.1
+**Last Updated**: 2025-10-06
 **Related Docs**: [Light Sources](./06-light-sources.md) | [Identification](./07-identification.md) | [Hunger](./08-hunger.md) | [Character](./02-character.md)
 
 ---
@@ -161,14 +161,17 @@
 
 ---
 
-**Total Potion Types**: 11 core potions (5 implemented, 6 planned)
+**Total Potion Types**: 11 core potions ✅ **All Implemented**
 
 **Implementation Status**:
-- ✅ Healing, Extra Healing, Gain Strength, Restore Strength, Poison
-- 🚧 Raise Level, Detect Monsters, Detect Magic, Confusion, Blindness, Haste Self (planned)
-- 📋 Levitation, See Invisible (Phase 3)
+- ✅ **Phase 1**: Healing, Extra Healing, Gain Strength, Restore Strength, Poison
+- ✅ **Phase 2**: Raise Level, Detect Monsters, Detect Magic
+- ✅ **Phase 3**: Confusion, Blindness, Haste Self
+- ✅ **Phase 4**: Levitation, See Invisible
 
-**See**: [Potion Implementation Plan](../plans/potion_implementation_plan.md) for development timeline.
+**Test Coverage**: 159/159 test suites passing (100%), 1732/1732 tests (100%)
+
+**See**: [Potion Implementation Plan](../plans/potion_implementation_plan.md) for complete design documentation.
 
 ### Scrolls (`?`)
 **Nature**: Single-use magic items
