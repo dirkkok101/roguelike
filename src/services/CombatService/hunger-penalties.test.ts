@@ -63,6 +63,7 @@ describe('CombatService - Hunger Penalties', () => {
       currentPath: null,
       hasStolen: false,
       level: 1,
+      speed: 10,
     }
   }
 

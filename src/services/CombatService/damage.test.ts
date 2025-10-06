@@ -59,6 +59,7 @@ describe('CombatService - Damage Calculation', () => {
       currentPath: null,
       hasStolen: false,
       level: 1,
+      speed: 10,
     }
   }
 

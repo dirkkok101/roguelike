@@ -59,6 +59,7 @@ describe('SpecialAbilityService - Ability Orchestration', () => {
       currentPath: null,
       hasStolen: false,
       level: 1,
+      speed: 10,
     }
   }
 

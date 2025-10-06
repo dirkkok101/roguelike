@@ -42,6 +42,7 @@ describe('MonsterAIService - FOV and Awareness', () => {
       currentPath: null,
       hasStolen: false,
       level: 1,
+      speed: 10,
       ...overrides,
     }
   }

@@ -7,6 +7,9 @@
     "damage": "1d2",
     "xpValue": 1,
     "level": 1,
+    "speed": 15,
+    "rarity": "common",
+    "mean": false,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
@@ -23,6 +26,9 @@
     "damage": "1d4",
     "xpValue": 1,
     "level": 1,
+    "speed": 10,
+    "rarity": "common",
+    "mean": false,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
@@ -39,6 +45,9 @@
     "damage": "1d3",
     "xpValue": 2,
     "level": 1,
+    "speed": 12,
+    "rarity": "common",
+    "mean": true,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
@@ -55,6 +64,9 @@
     "damage": "1d8",
     "xpValue": 5,
     "level": 2,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": true,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 3,
@@ -71,6 +83,9 @@
     "damage": "1d8",
     "xpValue": 7,
     "level": 2,
+    "speed": 5,
+    "rarity": "uncommon",
+    "mean": true,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
@@ -87,6 +102,9 @@
     "damage": "1d8+1d8",
     "xpValue": 120,
     "level": 6,
+    "speed": 7,
+    "rarity": "uncommon",
+    "mean": true,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 3,
@@ -103,6 +121,9 @@
     "damage": "1d8+3d10",
     "xpValue": 5000,
     "level": 10,
+    "speed": 18,
+    "rarity": "rare",
+    "mean": true,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 5,

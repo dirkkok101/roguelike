@@ -1,8 +1,8 @@
 # Dungeon
 
-**Version**: 2.0
-**Last Updated**: 2025-10-05
-**Related Docs**: [Monsters](./04-monsters.md) | [Light Sources](./06-light-sources.md) | [UI Design](./11-ui-design.md)
+**Version**: 2.1
+**Last Updated**: 2025-10-06
+**Related Docs**: [Monsters](./04-monsters.md) | [Light Sources](./06-light-sources.md) | [UI Design](./11-ui-design.md) | [MonsterSpawnService](../services/MonsterSpawnService.md)
 
 ---
 
@@ -160,21 +160,86 @@
 
 ### Early Levels (1-3)
 - **Difficulty**: Low
-- **Monsters**: Weak (Bat, Snake, Hobgoblin)
+- **Monster Count**: 5-9 monsters (progressive scaling)
+  - Level 1: 5 monsters = `(1 × 2) + 3`
+  - Level 2: 7 monsters = `(2 × 2) + 3`
+  - Level 3: 9 monsters = `(3 × 2) + 3`
+- **Monster Types**: Weak (Bat, Snake, Hobgoblin, Kobold, Emu)
 - **Loot**: Basic equipment, torches, food
 - **Goal**: Learn mechanics, build resources
 
 ### Mid Levels (4-7)
 - **Difficulty**: Moderate
-- **Monsters**: Stronger (Centaur, Troll, Leprechaun)
+- **Monster Count**: 11-17 monsters (progressive scaling)
+  - Level 4: 11 monsters = `(4 × 2) + 3`
+  - Level 5: 13 monsters = `(5 × 2) + 3`
+  - Level 6: 15 monsters = `(6 × 2) + 3`
+  - Level 7: 17 monsters = `(7 × 2) + 3`
+- **Monster Types**: Stronger (Centaur, Troll, Leprechaun, Nymph, Medusa)
 - **Loot**: Better weapons/armor, lanterns, oil flasks
 - **Goal**: Prepare for late game (upgrade equipment)
 
 ### Late Levels (8-10)
 - **Difficulty**: High
-- **Monsters**: Powerful (Dragon, Jabberwock, Vampire)
+- **Monster Count**: 19-20 monsters (capped at 20)
+  - Level 8: 19 monsters = `(8 × 2) + 3`
+  - Level 9: 20 monsters = `min((9 × 2) + 3, 20)` **(capped)**
+  - Level 10: 20 monsters = `min((10 × 2) + 3, 20)` **(capped)**
+- **Monster Types**: Powerful (Dragon, Jabberwock, Vampire, Wraith, Ur-vile, Griffin)
+- **Boss Restrictions**: Dragon (level 10) only spawns on depth 9-10
 - **Loot**: Artifact lights, enchanted gear, Amulet of Yendor (Level 10)
 - **Goal**: Survive, retrieve Amulet, escape to surface
+
+---
+
+### Monster Spawn Formula
+
+**Formula**: `Math.min((depth × 2) + 3, 20)`
+
+**Table**:
+| Depth | Formula | Count | Notes |
+|-------|---------|-------|-------|
+| 1 | (1 × 2) + 3 | **5** | Early game, learning phase |
+| 2 | (2 × 2) + 3 | **7** | |
+| 3 | (3 × 2) + 3 | **9** | |
+| 4 | (4 × 2) + 3 | **11** | Mid game begins |
+| 5 | (5 × 2) + 3 | **13** | |
+| 6 | (6 × 2) + 3 | **15** | |
+| 7 | (7 × 2) + 3 | **17** | |
+| 8 | (8 × 2) + 3 | **19** | Late game begins |
+| 9 | min((9 × 2) + 3, 20) | **20** | **Capped** - Dragon can spawn |
+| 10 | min((10 × 2) + 3, 20) | **20** | **Capped** - Amulet level |
+
+**Rationale**:
+- **Progressive difficulty**: Linear scaling (2 monsters per depth) keeps challenge increasing
+- **Capped at 20**: Prevents overwhelming player at deep levels
+- **Early game manageable**: 5 monsters at level 1 allows learning without punishment
+- **Late game intense**: 20 monsters at level 10 creates gauntlet for Amulet retrieval
+
+**Before Refactor**: Spawned `depth + 1` monsters (max 8), too few at late game
+
+**After Refactor**: Spawned `(depth × 2) + 3` monsters (max 20), proper difficulty curve
+
+**Implementation**: [MonsterSpawnService](../services/MonsterSpawnService.md) → `getSpawnCount(depth)` method
+
+---
+
+### Weighted Spawning
+
+**Monster Selection**:
+- **Level filtering**: Only spawn monsters with `level <= depth + 2`
+- **Rarity weighting**: Common (50%), Uncommon (30%), Rare (20%)
+- **Boss restrictions**: Monsters level ≥ 10 only spawn at `depth >= level - 1`
+
+**Examples**:
+- **Level 1**: Only level 1-3 monsters (Kobold, Snake, Bat, Hobgoblin, Emu, Aquator)
+- **Level 5**: Level 1-7 monsters (adds Centaur, Troll, Leprechaun, Nymph, Yeti, etc.)
+- **Level 9**: Dragon (level 10) becomes eligible (boss restriction: depth ≥ 9)
+- **Level 10**: All monsters eligible, but weighted by rarity
+
+**Data-Driven**: Monster templates loaded from `public/data/monsters.json`
+
+**See**: [Monsters: Scaling by Dungeon Level](./04-monsters.md#6-scaling-by-dungeon-level) for full spawn rules
 
 ---
 

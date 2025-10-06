@@ -37,9 +37,10 @@ See [Architecture Guide](../architecture.md) for details.
 | [MonsterTurnService](./MonsterTurnService.md) | Monster turn processing | `processMonsterTurns` | MonsterAIService, CombatService |
 | [SpecialAbilityService](./SpecialAbilityService.md) | Monster abilities | `applyAbility`, `processBreathWeapon` | RandomService, CombatService |
 | **Level Generation** ||||
-| [DungeonService](./DungeonService.md) | Level generation orchestration | `generateLevel` | RoomGen, CorridorGen, Random |
+| [DungeonService](./DungeonService.md) | Level generation orchestration | `generateLevel` | RoomGen, CorridorGen, MonsterSpawn, Random |
 | [RoomGenerationService](./RoomGenerationService.md) | Room creation | `generateRooms` | RandomService |
 | [CorridorGenerationService](./CorridorGenerationService.md) | Corridor pathfinding | `generateCorridors` | RandomService |
+| [MonsterSpawnService](./MonsterSpawnService.md) | Data-driven monster spawning | `loadMonsterData`, `spawnMonsters` | RandomService |
 | [LevelService](./LevelService.md) | Level utilities | `getSpawnPosition` | None |
 | **Pathfinding & Rendering** ||||
 | [PathfindingService](./PathfindingService.md) | A* algorithm | `findPath` | None |
@@ -86,11 +87,12 @@ Monster behavior and abilities:
 - [MonsterTurnService](./MonsterTurnService.md) - Turn processing
 - [SpecialAbilityService](./SpecialAbilityService.md) - Special abilities (breath, drain, etc.)
 
-### Level Generation (4 services)
+### Level Generation (5 services)
 Procedural dungeon generation:
 - [DungeonService](./DungeonService.md) - Generation orchestration
 - [RoomGenerationService](./RoomGenerationService.md) - Room creation
 - [CorridorGenerationService](./CorridorGenerationService.md) - Corridor generation
+- [MonsterSpawnService](./MonsterSpawnService.md) - Data-driven monster spawning
 - [LevelService](./LevelService.md) - Level utilities
 
 ### Pathfinding & Rendering (2 services)

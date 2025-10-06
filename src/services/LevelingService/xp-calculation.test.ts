@@ -61,6 +61,7 @@ describe('LevelingService - XP Calculation', () => {
       visibleCells: new Set(),
       currentPath: null,
       awarenessRadius: 5,
+      speed: 10,
     }
   }
 
