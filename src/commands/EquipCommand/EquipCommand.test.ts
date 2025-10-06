@@ -2,8 +2,10 @@ import { EquipCommand } from './EquipCommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
+import { CurseService } from '@services/CurseService'
 import {
   GameState,
   Player,
@@ -22,12 +24,15 @@ describe('EquipCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockIdentificationService: jest.Mocked<IdentificationService>
+  let curseService: CurseService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
+    curseService = new CurseService()
 
     // Create mock IdentificationService
     mockIdentificationService = {
@@ -162,7 +167,7 @@ describe('EquipCommand', () => {
       player.inventory = [weapon]
 
       const state = createTestState(player)
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.player.equipment.weapon?.id).toBe('sword-1')
@@ -175,7 +180,7 @@ describe('EquipCommand', () => {
       player.inventory = [weapon]
 
       const state = createTestState(player)
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -189,7 +194,7 @@ describe('EquipCommand', () => {
       player.inventory = [weapon]
 
       const state = createTestState(player)
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(1)
@@ -205,7 +210,7 @@ describe('EquipCommand', () => {
       result.inventory = [...result.inventory, newWeapon]
 
       const state = createTestState(result)
-      const command = new EquipCommand('sword-2', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('sword-2', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const finalResult = command.execute(state)
 
       expect(finalResult.player.equipment.weapon?.id).toBe('sword-2')
@@ -220,7 +225,7 @@ describe('EquipCommand', () => {
       player.inventory = [armor]
 
       const state = createTestState(player)
-      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.player.equipment.armor?.id).toBe('armor-1')
@@ -233,7 +238,7 @@ describe('EquipCommand', () => {
       player.inventory = [armor]
 
       const state = createTestState(player)
-      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.player.ac).toBe(5)
@@ -245,7 +250,7 @@ describe('EquipCommand', () => {
       player.inventory = [armor]
 
       const state = createTestState(player)
-      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('armor-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -261,7 +266,7 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
-      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing?.id).toBe('ring-1')
@@ -274,7 +279,7 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
-      const command = new EquipCommand('ring-1', 'right', inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('ring-1', 'right', inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.player.equipment.rightRing?.id).toBe('ring-1')
@@ -286,7 +291,7 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
-      const command = new EquipCommand('ring-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('ring-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing).toBeNull()
@@ -302,7 +307,7 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
-      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('You put on Ring of Protection on your left hand.')
@@ -314,7 +319,7 @@ describe('EquipCommand', () => {
       const player = createTestPlayer()
       const state = createTestState(player)
 
-      const command = new EquipCommand('nonexistent', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('nonexistent', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.player.equipment.weapon).toBeNull()
@@ -329,7 +334,7 @@ describe('EquipCommand', () => {
       let result = inventoryService.equipWeapon(player, weapon)
       const state = createTestState(result)
 
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const finalResult = command.execute(state)
 
       expect(finalResult.messages[0].text).toBe('Short Sword is already equipped.')
@@ -347,7 +352,7 @@ describe('EquipCommand', () => {
       player.inventory = [potion as any]
 
       const state = createTestState(player)
-      const command = new EquipCommand('potion-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('potion-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('You cannot equip that item.')
@@ -360,12 +365,151 @@ describe('EquipCommand', () => {
       player.inventory = [weapon]
 
       const state = createTestState(player)
-      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
 
       command.execute(state)
 
       expect(state.player.equipment.weapon).toBeNull()
       expect(state.turnCount).toBe(0)
+    })
+  })
+
+  describe('cursed equipment', () => {
+    test('cannot swap cursed weapon', () => {
+      const player = createTestPlayer()
+      const cursedWeapon: Weapon = {
+        ...createTestWeapon('sword-1', 'Cursed Short Sword'),
+        cursed: true,
+      }
+      const newWeapon = createTestWeapon('sword-2', 'Long Sword')
+
+      player.inventory = [cursedWeapon]
+      let result = inventoryService.equipWeapon(player, cursedWeapon)
+      result.inventory = [...result.inventory, newWeapon]
+
+      const state = createTestState(result)
+      const command = new EquipCommand('sword-2', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const finalResult = command.execute(state)
+
+      // Cursed weapon should still be equipped
+      expect(finalResult.player.equipment.weapon?.id).toBe('sword-1')
+      expect(finalResult.player.inventory.find((i) => i.id === 'sword-2')).toBeDefined()
+    })
+
+    test('cannot swap cursed armor', () => {
+      const player = createTestPlayer()
+      const cursedArmor: Armor = {
+        ...createTestArmor('armor-1', 'Cursed Chain Mail', 5),
+        cursed: true,
+      }
+      const newArmor = createTestArmor('armor-2', 'Plate Mail', 7)
+
+      player.inventory = [cursedArmor]
+      let result = inventoryService.equipArmor(player, cursedArmor)
+      result.inventory = [...result.inventory, newArmor]
+
+      const state = createTestState(result)
+      const command = new EquipCommand('armor-2', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const finalResult = command.execute(state)
+
+      // Cursed armor should still be equipped
+      expect(finalResult.player.equipment.armor?.id).toBe('armor-1')
+      expect(finalResult.player.inventory.find((i) => i.id === 'armor-2')).toBeDefined()
+    })
+
+    test('displays warning when trying to swap cursed weapon', () => {
+      const player = createTestPlayer()
+      const cursedWeapon: Weapon = {
+        ...createTestWeapon('sword-1', 'Cursed Short Sword'),
+        cursed: true,
+      }
+      const newWeapon = createTestWeapon('sword-2', 'Long Sword')
+
+      player.inventory = [cursedWeapon]
+      let result = inventoryService.equipWeapon(player, cursedWeapon)
+      result.inventory = [...result.inventory, newWeapon]
+
+      const state = createTestState(result)
+      const command = new EquipCommand('sword-2', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const finalResult = command.execute(state)
+
+      expect(finalResult.messages).toHaveLength(1)
+      expect(finalResult.messages[0].text).toBe('The Cursed Short Sword is cursed! You cannot remove it.')
+      expect(finalResult.messages[0].type).toBe('warning')
+    })
+
+    test('displays warning when trying to swap cursed armor', () => {
+      const player = createTestPlayer()
+      const cursedArmor: Armor = {
+        ...createTestArmor('armor-1', 'Cursed Chain Mail', 5),
+        cursed: true,
+      }
+      const newArmor = createTestArmor('armor-2', 'Plate Mail', 7)
+
+      player.inventory = [cursedArmor]
+      let result = inventoryService.equipArmor(player, cursedArmor)
+      result.inventory = [...result.inventory, newArmor]
+
+      const state = createTestState(result)
+      const command = new EquipCommand('armor-2', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const finalResult = command.execute(state)
+
+      expect(finalResult.messages).toHaveLength(1)
+      expect(finalResult.messages[0].text).toBe('The Cursed Chain Mail is cursed! You cannot remove it.')
+      expect(finalResult.messages[0].type).toBe('warning')
+    })
+
+    test('does not increment turn when cursed', () => {
+      const player = createTestPlayer()
+      const cursedWeapon: Weapon = {
+        ...createTestWeapon('sword-1', 'Cursed Short Sword'),
+        cursed: true,
+      }
+      const newWeapon = createTestWeapon('sword-2', 'Long Sword')
+
+      player.inventory = [cursedWeapon]
+      let result = inventoryService.equipWeapon(player, cursedWeapon)
+      result.inventory = [...result.inventory, newWeapon]
+
+      const state = createTestState(result)
+      const command = new EquipCommand('sword-2', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const finalResult = command.execute(state)
+
+      expect(finalResult.turnCount).toBe(0)
+    })
+
+    test('can equip weapon when no weapon equipped', () => {
+      const player = createTestPlayer()
+      const weapon = createTestWeapon('sword-1', 'Short Sword')
+      player.inventory = [weapon]
+
+      const state = createTestState(player)
+      const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      expect(result.player.equipment.weapon?.id).toBe('sword-1')
+      expect(result.turnCount).toBe(1)
+    })
+
+    test('can swap uncursed weapon normally', () => {
+      const player = createTestPlayer()
+      const uncursedWeapon: Weapon = {
+        ...createTestWeapon('sword-1', 'Short Sword'),
+        cursed: false,
+      }
+      const newWeapon = createTestWeapon('sword-2', 'Long Sword')
+
+      player.inventory = [uncursedWeapon]
+      let result = inventoryService.equipWeapon(player, uncursedWeapon)
+      result.inventory = [...result.inventory, newWeapon]
+
+      const state = createTestState(result)
+      const command = new EquipCommand('sword-2', null, inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const finalResult = command.execute(state)
+
+      expect(finalResult.player.equipment.weapon?.id).toBe('sword-2')
+      expect(finalResult.player.inventory.find((i) => i.id === 'sword-1')).toBeDefined()
+      expect(finalResult.turnCount).toBe(1)
     })
   })
 })

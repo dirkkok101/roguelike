@@ -2,6 +2,7 @@ import { CloseDoorCommand } from './CloseDoorCommand'
 import { MessageService } from '@services/MessageService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import {
   GameState,
@@ -23,7 +24,8 @@ describe('CloseDoorCommand', () => {
     messageService = new MessageService()
     doorService = new DoorService()
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {

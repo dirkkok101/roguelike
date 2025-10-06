@@ -18,6 +18,7 @@ import { NotificationService } from '@services/NotificationService'
 import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
 import { SeededRandom } from '@services/RandomService'
+import { LevelService } from '@services/LevelService'
 import { createTestTorch } from '../test-utils'
 
 /**
@@ -67,9 +68,10 @@ describe('Integration: Game Loop', () => {
     const identificationService = new IdentificationService(random)
     const notification = new NotificationService(identificationService)
     const regeneration = new RegenerationService()
-    const turn = new TurnService(statusEffectService)
-    const pathfinding = new PathfindingService()
-    const ai = new MonsterAIService(pathfinding, random, fov)
+    const levelService = new LevelService()
+    const turn = new TurnService(statusEffectService, levelService)
+    const pathfinding = new PathfindingService(levelService)
+    const ai = new MonsterAIService(pathfinding, random, fov, levelService)
     const ability = new SpecialAbilityService(random)
     const monsterTurn = new MonsterTurnService(random, ai, combat, ability, message, turn)
 

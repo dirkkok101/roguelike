@@ -12,6 +12,7 @@ import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
 
@@ -46,7 +47,8 @@ describe('MoveCommand - Starvation Death', () => {
     combatService = new CombatService(mockRandom, hungerService)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   function createTestPlayer(overrides: Partial<Player> = {}): Player {

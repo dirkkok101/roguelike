@@ -4,6 +4,7 @@ import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { IdentificationService } from '@services/IdentificationService'
+import { CurseService } from '@services/CurseService'
 
 // ============================================================================
 // EQUIP COMMAND - Equip weapons, armor, and rings
@@ -16,7 +17,8 @@ export class EquipCommand implements ICommand {
     private inventoryService: InventoryService,
     private messageService: MessageService,
     private turnService: TurnService,
-    private identificationService: IdentificationService
+    private identificationService: IdentificationService,
+    private curseService: CurseService
   ) {}
 
   execute(state: GameState): GameState {
@@ -54,11 +56,31 @@ export class EquipCommand implements ICommand {
 
     switch (item.type) {
       case ItemType.WEAPON:
+        // Check if current weapon is cursed
+        if (this.curseService.isCursed(state.player.equipment.weapon)) {
+          const messages = this.messageService.addMessage(
+            state.messages,
+            `The ${state.player.equipment.weapon!.name} is cursed! You cannot remove it.`,
+            'warning',
+            state.turnCount
+          )
+          return { ...state, messages }
+        }
         updatedPlayer = this.inventoryService.equipWeapon(state.player, item as Weapon)
         equipMessage = `You wield ${displayName}.`
         break
 
       case ItemType.ARMOR:
+        // Check if current armor is cursed
+        if (this.curseService.isCursed(state.player.equipment.armor)) {
+          const messages = this.messageService.addMessage(
+            state.messages,
+            `The ${state.player.equipment.armor!.name} is cursed! You cannot remove it.`,
+            'warning',
+            state.turnCount
+          )
+          return { ...state, messages }
+        }
         updatedPlayer = this.inventoryService.equipArmor(state.player, item as Armor)
         equipMessage = `You put on ${displayName}.`
         break

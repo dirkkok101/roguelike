@@ -7,6 +7,7 @@ import { PathfindingService } from '@services/PathfindingService'
 import { FOVService } from '@services/FOVService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Monster, MonsterBehavior, Player } from '@game/core/core'
 
@@ -21,13 +22,14 @@ describe('MonsterTurnService - Turn Processing', () => {
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    const pathfinding = new PathfindingService()
+    const levelService = new LevelService()
+    const pathfinding = new PathfindingService(levelService)
     const statusEffectService = new StatusEffectService()
     const fovService = new FOVService(statusEffectService)
     messageService = new MessageService()
-    turnService = new TurnService(statusEffectService)
+    turnService = new TurnService(statusEffectService, levelService)
 
-    aiService = new MonsterAIService(pathfinding, mockRandom, fovService)
+    aiService = new MonsterAIService(pathfinding, mockRandom, fovService, levelService)
     combatService = new CombatService(mockRandom)
     abilityService = new SpecialAbilityService(mockRandom)
 

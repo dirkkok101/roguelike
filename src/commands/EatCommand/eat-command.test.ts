@@ -3,6 +3,7 @@ import { InventoryService } from '@services/InventoryService'
 import { HungerService, HungerState } from '@services/HungerService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import {
@@ -29,7 +30,8 @@ describe('EatCommand', () => {
     hungerService = new HungerService(mockRandom)
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {

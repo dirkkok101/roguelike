@@ -8,6 +8,7 @@ import { CombatService } from '@services/CombatService'
 import { PathfindingService } from '@services/PathfindingService'
 import { HungerService } from '@services/HungerService'
 import { MessageService } from '@services/MessageService'
+import { LevelService } from '@services/LevelService'
 
 /**
  * Integration test: Service Initialization
@@ -44,7 +45,8 @@ describe('Integration: Service Initialization', () => {
     })
 
     test('PathfindingService initializes correctly', () => {
-      const service = new PathfindingService()
+      const levelService = new LevelService()
+      const service = new PathfindingService(levelService)
       expect(service).toBeDefined()
       expect(service.findPath).toBeDefined()
     })
@@ -78,27 +80,29 @@ describe('Integration: Service Initialization', () => {
       expect(service.regenerate).toBeDefined()
     })
 
-    test('MonsterAIService requires all 3 dependencies', () => {
-      const pathfinding = new PathfindingService()
+    test('MonsterAIService requires all 4 dependencies', () => {
+      const levelService = new LevelService()
+      const pathfinding = new PathfindingService(levelService)
       const fovService = new FOVService()
 
-      // This test validates the bug fix: MonsterAIService needs FOVService
-      const service = new MonsterAIService(pathfinding, random, fovService)
+      // This test validates the bug fix: MonsterAIService needs FOVService and LevelService
+      const service = new MonsterAIService(pathfinding, random, fovService, levelService)
 
       expect(service).toBeDefined()
       expect(service.decideAction).toBeDefined()
       expect(service.computeMonsterFOV).toBeDefined()
 
-      // Note: Missing FOVService is caught by TypeScript at compile time,
-      // not at runtime. This test documents the correct 3-parameter signature.
+      // Note: Missing FOVService or LevelService is caught by TypeScript at compile time,
+      // not at runtime. This test documents the correct 4-parameter signature.
     })
 
     test('MonsterTurnService initializes with complete dependency chain', () => {
-      const pathfinding = new PathfindingService()
+      const levelService = new LevelService()
+      const pathfinding = new PathfindingService(levelService)
       const fovService = new FOVService()
       const hungerService = new HungerService(random)
       const combatService = new CombatService(random, hungerService)
-      const aiService = new MonsterAIService(pathfinding, random, fovService)
+      const aiService = new MonsterAIService(pathfinding, random, fovService, levelService)
       const abilityService = new SpecialAbilityService(random)
 
       // Full dependency chain as used in main.ts
@@ -123,11 +127,13 @@ describe('Integration: Service Initialization', () => {
       const randomSvc = new SeededRandom('test')
       const messageSvc = new MessageService()
       const fovSvc = new FOVService()
-      const pathfindingSvc = new PathfindingService()
+      const levelSvc = new LevelService()
+      const pathfindingSvc = new PathfindingService(levelSvc)
 
       expect(randomSvc).toBeDefined()
       expect(messageSvc).toBeDefined()
       expect(fovSvc).toBeDefined()
+      expect(levelSvc).toBeDefined()
       expect(pathfindingSvc).toBeDefined()
 
       // 2. Services with single dependencies
@@ -141,7 +147,7 @@ describe('Integration: Service Initialization', () => {
 
       // 3. Services with multiple dependencies
       const combatSvc = new CombatService(randomSvc, hungerSvc)
-      const aiSvc = new MonsterAIService(pathfindingSvc, randomSvc, fovSvc)
+      const aiSvc = new MonsterAIService(pathfindingSvc, randomSvc, fovSvc, levelSvc)
 
       expect(combatSvc).toBeDefined()
       expect(aiSvc).toBeDefined()
@@ -164,11 +170,12 @@ describe('Integration: Service Initialization', () => {
       const randomSvc = new SeededRandom('test')
       const messageSvc = new MessageService()
       const fovSvc = new FOVService()
-      const pathfindingSvc = new PathfindingService()
+      const levelSvc = new LevelService()
+      const pathfindingSvc = new PathfindingService(levelSvc)
       const hungerSvc = new HungerService(randomSvc)
       const combatSvc = new CombatService(randomSvc, hungerSvc)
       const abilitySvc = new SpecialAbilityService(randomSvc)
-      const aiSvc = new MonsterAIService(pathfindingSvc, randomSvc, fovSvc)
+      const aiSvc = new MonsterAIService(pathfindingSvc, randomSvc, fovSvc, levelSvc)
       const monsterTurnSvc = new MonsterTurnService(
         randomSvc,
         aiSvc,
@@ -188,9 +195,10 @@ describe('Integration: Service Initialization', () => {
   describe('Regression Tests for Known Issues', () => {
     test('MonsterAIService has access to FOVService methods', () => {
       // Regression test for bug fixed in commit b4c225f
-      const pathfinding = new PathfindingService()
+      const levelService = new LevelService()
+      const pathfinding = new PathfindingService(levelService)
       const fovService = new FOVService()
-      const aiService = new MonsterAIService(pathfinding, random, fovService)
+      const aiService = new MonsterAIService(pathfinding, random, fovService, levelService)
 
       // Create a mock monster and state to verify FOV computation works
       const mockMonster = {

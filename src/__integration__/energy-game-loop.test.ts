@@ -10,6 +10,7 @@ import { FOVService } from '@services/FOVService'
 import { HungerService } from '@services/HungerService'
 import { DebugService } from '@services/DebugService'
 import { MockRandom } from '@services/RandomService'
+import { LevelService } from '@services/LevelService'
 import {
   GameState,
   Level,
@@ -210,14 +211,15 @@ describe('Energy Game Loop - Integration Tests', () => {
   beforeEach(() => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
     messageService = new MessageService()
     hungerService = new HungerService(mockRandom)
     debugService = new DebugService(messageService)
     combatService = new CombatService(mockRandom, hungerService, debugService)
-    pathfindingService = new PathfindingService()
+    pathfindingService = new PathfindingService(levelService)
     fovService = new FOVService(statusEffectService)
-    monsterAIService = new MonsterAIService(pathfindingService, mockRandom, fovService)
+    monsterAIService = new MonsterAIService(pathfindingService, mockRandom, fovService, levelService)
     specialAbilityService = new SpecialAbilityService(mockRandom)
     monsterTurnService = new MonsterTurnService(
       mockRandom,

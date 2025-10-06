@@ -405,6 +405,125 @@ export class DungeonService {
   }
 
   // ============================================================================
+  // MONSTER SPAWNING (Single Monster for CREATE_MONSTER Scroll)
+  // ============================================================================
+
+  /**
+   * Spawn a single monster at specific position (for CREATE_MONSTER scroll)
+   * Note: Bulk monster spawning has been moved to MonsterSpawnService
+   */
+  spawnSingleMonster(position: Position, depth: number): Monster {
+    // Monster templates based on depth
+    const templates = [
+      {
+        letter: 'B',
+        name: 'Bat',
+        hpDice: '1d8',
+        ac: 3,
+        damage: '1d2',
+        xpValue: 1,
+        level: 1,
+        behavior: MonsterBehavior.SIMPLE,
+      },
+      {
+        letter: 'K',
+        name: 'Kobold',
+        hpDice: '1d4',
+        ac: 7,
+        damage: '1d4',
+        xpValue: 1,
+        level: 1,
+        behavior: MonsterBehavior.SIMPLE,
+      },
+      {
+        letter: 'S',
+        name: 'Snake',
+        hpDice: '1d6',
+        ac: 5,
+        damage: '1d3',
+        xpValue: 2,
+        level: 1,
+        behavior: MonsterBehavior.SIMPLE,
+      },
+      {
+        letter: 'O',
+        name: 'Orc',
+        hpDice: '1d8',
+        ac: 6,
+        damage: '1d8',
+        xpValue: 5,
+        level: 2,
+        behavior: MonsterBehavior.SMART,
+      },
+      {
+        letter: 'Z',
+        name: 'Zombie',
+        hpDice: '2d8',
+        ac: 8,
+        damage: '1d8',
+        xpValue: 7,
+        level: 2,
+        behavior: MonsterBehavior.SIMPLE,
+      },
+      {
+        letter: 'T',
+        name: 'Troll',
+        hpDice: '6d8',
+        ac: 4,
+        damage: '1d8+1d8',
+        xpValue: 120,
+        level: 6,
+        behavior: MonsterBehavior.SMART,
+      },
+    ]
+
+    // Filter templates by depth
+    const availableTemplates = templates.filter((t) => t.level <= depth)
+    if (availableTemplates.length === 0) {
+      // Fallback to bat if no templates available
+      availableTemplates.push(templates[0])
+    }
+
+    // Pick random template
+    const template = this.random.pickRandom(availableTemplates)
+
+    // Roll HP
+    const hp = this.random.roll(template.hpDice)
+
+    return {
+      id: `monster-scroll-${this.random.nextInt(1000, 9999)}`,
+      letter: template.letter,
+      name: template.name,
+      position,
+      hp,
+      maxHp: hp,
+      ac: template.ac,
+      damage: template.damage,
+      xpValue: template.xpValue,
+      level: template.level,
+      aiProfile: {
+        behavior: template.behavior,
+        intelligence: template.level,
+        aggroRange: 5 + template.level,
+        fleeThreshold: 0.0,
+        special: [],
+      },
+      isAsleep: false, // Spawned monsters are awake (aggressive!)
+      isAwake: true,
+      state: MonsterState.WANDERING,
+      visibleCells: new Set(),
+      currentPath: null,
+      hasStolen: false,
+      lastKnownPlayerPosition: null,
+      turnsWithoutSight: 0,
+      energy: this.random.nextInt(0, 99),
+      speed: 10,
+      isInvisible: false,
+      statusEffects: [], // No status effects on spawn
+    }
+  }
+
+  // ============================================================================
   // ITEM SPAWNING
   // ============================================================================
 

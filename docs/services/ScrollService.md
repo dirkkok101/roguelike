@@ -1,14 +1,15 @@
 # ScrollService
 
 **Location**: `src/services/ScrollService/ScrollService.ts`
-**Dependencies**: IdentificationService, InventoryService
-**Test Coverage**: All 3 scroll types, item targeting, enchantment limits
+**Dependencies**: IdentificationService, InventoryService, LevelService, FOVService, RandomService, DungeonService, CurseService
+**Test Coverage**: All 11 scroll types, 1885 tests passing
+**Status**: Complete - All scroll types implemented ✅
 
 ---
 
 ## Purpose
 
-Implements **scroll effects** with item targeting: identify items, enchant weapons (+1 damage), enchant armor (+1 AC). Handles auto-identification and target validation.
+Implements **all 11 scroll effects** from the original Rogue: identification, enchantment, map manipulation, teleportation, monster control, and curse removal. Handles auto-identification, target validation, and complex game state modifications.
 
 ---
 
@@ -22,40 +23,31 @@ Applies scroll effect with optional item targeting.
 **Returns**:
 ```typescript
 interface ScrollEffectResult {
-  player: Player      // Updated player (with enchanted items)
-  message: string     // Effect description
-  identified: boolean // Was scroll unidentified before use?
+  player?: Player      // Updated player (status effects, enchanted items)
+  state?: GameState    // Updated game state (level modifications, teleportation)
+  message: string      // Effect description
+  identified: boolean  // Was scroll unidentified before use?
+  fizzled?: boolean    // Did scroll fail (no target, wrong location)?
+  consumed: boolean    // Should scroll be removed? (false for SCARE_MONSTER)
 }
 ```
 
 **Process**:
 1. Check if scroll is already identified
-2. Validate target item (if required)
+2. Validate target (if required)
 3. Apply effect based on scroll type
 4. Auto-identify scroll by use
-5. Return result with message
-
-**Example**:
-```typescript
-const result = service.applyScroll(player, enchantScroll, state, weaponId)
-// result.player.equipment.weapon.bonus: 0 → 1
-// result.message: "You read scroll labeled XYZZY. Long Sword glows brightly! (+1)"
-// result.identified: true
-```
+5. Return result with message and state updates
 
 ---
 
 ## Scroll Types
 
-### IDENTIFY - Reveal Item Type
-
-```typescript
-private applyIdentify(player: Player, targetItemId: string | undefined, state: GameState, scrollName: string): { player: Player; message: string }
-```
+### 1. IDENTIFY - Reveal Item Type ✅
 
 **Requires**: Target item ID
-
 **Effect**: Identifies the **type** of target item (not just the instance)
+**Consumed**: Yes
 
 **Example**:
 ```typescript
@@ -68,145 +60,205 @@ private applyIdentify(player: Player, targetItemId: string | undefined, state: G
 **Messages**:
 - Success: `"You read scroll labeled XYZZY. This is Potion of Healing!"`
 - No target: `"You read scroll labeled XYZZY, but nothing happens."`
-- Invalid target: `"You read scroll labeled XYZZY, but the item is gone."`
 
 ---
 
-### ENCHANT_WEAPON - Increase Weapon Bonus
-
-```typescript
-private applyEnchantWeapon(player: Player, targetItemId: string | undefined, scrollName: string): { player: Player; message: string }
-```
+### 2. ENCHANT_WEAPON - Increase Weapon Bonus ✅
 
 **Requires**: Target weapon ID
-
 **Effect**: Increases weapon bonus by +1 (max +3)
+**Consumed**: Yes
 
-**Bonus Mechanics**:
-```typescript
-damage = roll(weapon.damage) + weapon.bonus
-// Long Sword: 1d12 + 0 → 1d12 + 1
-```
-
-**Enchantment Process**:
-1. Find weapon in inventory
-2. Check if bonus < 3
-3. Create enchanted weapon: `{ ...weapon, bonus: bonus + 1 }`
-4. Remove old weapon, add enchanted weapon
-5. Update equipment if weapon was equipped
+**Formula**: `damage = roll(weapon.damage) + weapon.bonus`
 
 **Messages**:
 - Success: `"You read scroll labeled ELBERETH. Long Sword glows brightly! (+1)"`
-- No target: `"You read scroll labeled ELBERETH, but nothing happens."`
-- Not weapon: `"You read scroll labeled ELBERETH, but the item is not a weapon."`
-- Max enchant: `"You read scroll labeled ELBERETH. Long Sword is already at maximum enchantment!"`
-
-**Max Enchantment**: +3 (balance cap)
+- Max enchant: `"Long Sword is already at maximum enchantment!"`
 
 ---
 
-### ENCHANT_ARMOR - Increase Armor Bonus
-
-```typescript
-private applyEnchantArmor(player: Player, targetItemId: string | undefined, scrollName: string): { player: Player; message: string }
-```
+### 3. ENCHANT_ARMOR - Increase Armor Bonus ✅
 
 **Requires**: Target armor ID
-
 **Effect**: Increases armor bonus by +1 (max +3)
+**Consumed**: Yes
 
-**Armor Class Formula**:
-```typescript
-effectiveAC = armor.ac - armor.bonus
-// Chain Mail: AC 5 - 0 = 5
-// Chain Mail +1: AC 5 - 1 = 4 (better protection, lower AC)
-```
-
-**Note**: In D&D-style systems, **lower AC = better**. Bonus reduces effective AC.
-
-**Enchantment Process**:
-1. Find armor in inventory
-2. Check if bonus < 3
-3. Create enchanted armor: `{ ...armor, bonus: bonus + 1 }`
-4. Remove old armor, add enchanted armor
-5. Update equipment if armor was equipped
+**Formula**: `effectiveAC = armor.ac - armor.bonus` (lower AC = better)
 
 **Messages**:
 - Success: `"You read scroll labeled NR 9. Chain Mail glows with protection! [AC 4]"`
-- No target: `"You read scroll labeled NR 9, but nothing happens."`
-- Not armor: `"You read scroll labeled NR 9, but the item is not armor."`
-- Max enchant: `"You read scroll labeled NR 9. Plate Mail is already at maximum enchantment!"`
-
-**Max Enchantment**: +3 (balance cap)
+- Max enchant: `"Plate Mail is already at maximum enchantment!"`
 
 ---
 
-## Item Targeting
+### 4. TELEPORTATION - Random Teleport ✅
 
-### Why targetItemId?
+**Requires**: None
+**Effect**: Teleport player to random walkable location on current level
+**Consumed**: Yes
+**State Changes**: Player position, FOV update
 
-**Some scrolls require target**: IDENTIFY, ENCHANT_WEAPON, ENCHANT_ARMOR
+**Algorithm**:
+1. Get all walkable tiles (no monsters, no walls)
+2. Random select destination
+3. Update player position
+4. Recompute FOV at new location
 
-**User Flow**:
-1. Player presses `r` (read scroll)
-2. UI prompts: `"Read which scroll? [a-z]"`
-3. Player selects scroll
-4. If scroll needs target:
-   - UI prompts: `"Identify which item? [a-z]"` or `"Enchant which weapon?"`
-5. Command executes with `targetItemId`
-
-**No Target Handling**: Scroll fizzles (`"but nothing happens"`)
-
----
-
-## Equipment Updates
-
-### Enchanting Equipped Items
-
-**Challenge**: Item is in both inventory and equipment
-
-**Solution**: Update both locations
-
-```typescript
-// Enchant weapon
-let updatedPlayer = this.inventoryService.removeItem(player, weapon.id)
-updatedPlayer = this.inventoryService.addItem(updatedPlayer, enchantedWeapon)
-
-// If weapon was equipped, update equipment too
-if (updatedPlayer.equipment.weapon?.id === weapon.id) {
-  updatedPlayer = {
-    ...updatedPlayer,
-    equipment: { ...updatedPlayer.equipment, weapon: enchantedWeapon },
-  }
-}
-```
-
-**Why Needed?** Equipment holds references to items, must stay in sync with inventory.
+**Messages**:
+- Success: `"You read scroll labeled FOOBAR. You feel a wrenching sensation!"`
+- Fizzle: `"You read scroll labeled FOOBAR, but nothing happens."` (no valid tiles)
 
 ---
 
-## Identification System
+### 5. CREATE_MONSTER - Spawn Monster ✅
 
-### Auto-Identify on Use
+**Requires**: None
+**Effect**: Spawn random monster adjacent to player
+**Consumed**: Yes
+**State Changes**: Level monsters array
+**Risk**: HIGH (cursed scroll - creates threat)
 
-**Process**:
-```typescript
-const identified = !this.identificationService.isIdentified(scroll, state)
-const displayName = this.identificationService.getDisplayName(scroll, state)
+**Algorithm**:
+1. Find empty adjacent tiles (8 directions)
+2. Fizzle if no space available
+3. Spawn monster appropriate for level depth
+4. Add monster to level
 
-// Apply effect...
+**Messages**:
+- Success: `"You read scroll labeled HACKEM MUCHE. You hear a faint cry of anguish!"`
+- Fizzle: `"You read scroll labeled HACKEM MUCHE, but nothing happens."` (no space)
 
-return { player: updatedPlayer, message, identified }
-```
+---
 
-**Unidentified Scroll**:
-- Before use: `"scroll labeled XYZZY"` (random label)
-- After use: `"Scroll of Identify"` (real name)
+### 6. MAGIC_MAPPING - Reveal Map ✅
 
-**Already Identified**:
-- `identified = false` (was already known)
+**Requires**: None
+**Effect**: Reveal entire level layout (walls, doors, corridors, stairs)
+**Consumed**: Yes
+**State Changes**: Level explored tiles
+**Important**: Does NOT reveal items, monsters, or traps
 
-See [IdentificationService](./IdentificationService.md) for details.
+**Algorithm**:
+1. Get all tiles on current level
+2. Mark all as explored (not visible)
+3. Update level.explored array
+4. FOV remains unchanged
+
+**Messages**:
+- Success: `"You read scroll labeled VAS CORP BET MANI. The dungeon layout is revealed!"`
+
+---
+
+### 7. LIGHT - Illuminate Room ✅
+
+**Requires**: None (must be in room, not corridor)
+**Effect**: Light entire room, reveal contents
+**Consumed**: Yes
+**State Changes**: Room tiles marked explored AND visible
+
+**Algorithm**:
+1. Check if player in room (flood-fill detection)
+2. Fizzle if in corridor
+3. Mark all room tiles as explored and visible
+4. Update FOV to include entire room
+5. Reveal items/monsters in room
+
+**Messages**:
+- Success: `"You read scroll labeled READ ME. The room floods with light!"`
+- Fizzle: `"You read scroll labeled READ ME, but you're in a corridor."`
+
+---
+
+### 8. HOLD_MONSTER - Freeze Monster ✅
+
+**Requires**: Target monster ID (adjacent)
+**Effect**: Freeze target monster for 3-6 turns
+**Consumed**: Yes
+**State Changes**: Monster status effects
+
+**Algorithm**:
+1. Find monster by target ID
+2. Fizzle if no monster or not adjacent
+3. Apply HELD status effect
+4. Set duration = random(3, 6)
+5. Monster skips all turns while held
+
+**Messages**:
+- Success: `"You read scroll labeled LOREM IPSUM. The Orc freezes in place!"`
+- Fizzle: `"You read scroll labeled LOREM IPSUM, but nothing happens."` (no adjacent monster)
+
+---
+
+### 9. SLEEP - Curse Reader ✅
+
+**Requires**: None
+**Effect**: Put player to sleep for 4-8 turns
+**Consumed**: Yes
+**State Changes**: Player status effects
+**Risk**: VERY HIGH (cursed scroll - defenseless)
+
+**Algorithm**:
+1. Apply SLEEPING status to player
+2. Set duration = random(4, 8)
+3. Player cannot act during sleep
+4. Monsters continue taking turns
+
+**Messages**:
+- Success: `"You read scroll labeled XYZZY. You fall into a deep sleep!"`
+
+---
+
+### 10. REMOVE_CURSE - Free Cursed Items ✅
+
+**Requires**: None (affects all equipped cursed items)
+**Effect**: Remove curse from all equipped items
+**Consumed**: Yes
+**State Changes**: Player equipment curse flags
+
+**Algorithm**:
+1. Check if player has any cursed items
+2. Fizzle if no cursed items
+3. Remove curse flag from all equipped items
+4. Items can now be unequipped normally
+
+**Messages**:
+- Success: `"You read scroll labeled HACKEM MUCHE. You feel as if somebody is watching over you. The Cursed Ring glows briefly."`
+- Multiple items: `"Your equipment glows briefly."`
+- Fizzle: `"You read scroll labeled HACKEM MUCHE, but nothing happens."` (no cursed items)
+
+---
+
+### 11. SCARE_MONSTER - Drop Scroll, Monsters Flee ✅
+
+**Requires**: None
+**Effect**: Drop scroll on ground, monsters avoid tile and flee if adjacent
+**Consumed**: **NO** (unique - only scroll not consumed!)
+**State Changes**: Scroll dropped on ground with `droppedAtTurn` tracking
+
+**Special Mechanics**:
+- NOT consumed on read (returned to DropCommand)
+- Dropped at player position with turn tracking
+- Monsters cannot pathfind through scare scroll tiles
+- Adjacent monsters flee (FLEEING state)
+- Scroll deteriorates after 100 turns
+
+**Algorithm**:
+1. Service returns `consumed: false` (unique)
+2. DropCommand drops scroll at player position
+3. LevelService tracks scare scroll positions
+4. PathfindingService blocks tiles with scare scrolls
+5. MonsterAIService checks adjacent tiles (highest priority)
+6. If adjacent → trigger flee behavior
+7. TurnService removes scrolls >100 turns old
+
+**Messages**:
+- Success: `"You read scroll labeled ELBERETH. You hear a loud roar and the scroll glows with an ominous light! You should drop this on the ground."`
+
+**Integration**:
+- **PathfindingService**: Monsters won't path through scare scroll tiles
+- **MonsterAIService**: Adjacent monsters flee (checked before all other AI)
+- **TurnService**: Removes expired scrolls (>100 turns)
+- **LevelService**: `getScareScrollsOnGround()`, `hasScareScrollAt()`, `getScareScrollPositions()`
 
 ---
 
@@ -214,46 +266,115 @@ See [IdentificationService](./IdentificationService.md) for details.
 
 ```typescript
 interface ScrollEffectResult {
-  player: Player      // Updated player (enchanted items, etc.)
-  message: string     // User-friendly message
-  identified: boolean // Was scroll unidentified before use?
+  player?: Player      // Updated player (status effects, enchanted items, position)
+  state?: GameState    // Updated game state (level modifications, monster changes)
+  message: string      // User-friendly message
+  identified: boolean  // Was scroll unidentified before use?
+  fizzled?: boolean    // Did scroll fail to work? (no target, wrong location)
+  consumed: boolean    // Should scroll be removed? (false for SCARE_MONSTER)
 }
 ```
 
-**No Death**: Scrolls cannot kill player (unlike potions)
+**When to Use Each Field**:
+- `player` - Scroll modifies player directly (SLEEP, enchantment, REMOVE_CURSE)
+- `state` - Scroll modifies game state (MAGIC_MAPPING, TELEPORTATION, CREATE_MONSTER)
+- `player` + `state` - Both affected (TELEPORTATION updates position + FOV)
+- `fizzled` - Scroll had no effect, no turn consumed
+- `consumed: false` - SCARE_MONSTER only (dropped on ground)
 
 ---
 
-## Usage in Commands
+## Item Targeting
 
-### ReadCommand
+### Targeted Scrolls
 
+**Item-Targeted**: IDENTIFY, ENCHANT_WEAPON, ENCHANT_ARMOR
+**Monster-Targeted**: HOLD_MONSTER (adjacent monster ID)
+
+**User Flow**:
+1. Player presses `r` (read scroll)
+2. UI prompts: `"Read which scroll? [a-z]"`
+3. Player selects scroll
+4. If scroll needs target:
+   - UI prompts: `"Identify which item?"` or `"Enchant which weapon?"`
+5. Command executes with `targetItemId`
+
+**No Target Handling**: Scroll fizzles, `consumed: false`, no turn consumed
+
+---
+
+## State Modification Patterns
+
+### Pattern 1: Level Modification (MAGIC_MAPPING)
 ```typescript
-execute(state: GameState): GameState {
-  const scroll = findScrollInInventory(player, itemId)
+private applyMagicMapping(state: GameState): ScrollEffectResult {
+  const level = state.levels.get(state.currentLevel)
+  const allTiles = this.levelService.getAllTiles(level)
 
-  // Prompt for target if needed
-  let targetItemId: string | undefined
-  if (needsTarget(scroll.scrollType)) {
-    targetItemId = promptForTarget(scroll.scrollType)
+  const newExplored = level.explored.map(row => [...row])
+  for (const tile of allTiles) {
+    newExplored[tile.y][tile.x] = true
   }
 
-  // Apply scroll effect
-  const result = this.scrollService.applyScroll(player, scroll, state, targetItemId)
-
-  // Update identification
-  let updatedState = state
-  if (result.identified) {
-    updatedState = this.identificationService.identifyByUse(scroll, state)
-  }
-
-  // Remove scroll from inventory
-  const updatedPlayer = this.inventoryService.removeItem(result.player, scroll.id)
+  const updatedLevel = { ...level, explored: newExplored }
+  const updatedLevels = new Map(state.levels)
+  updatedLevels.set(state.currentLevel, updatedLevel)
 
   return {
-    ...updatedState,
+    state: { ...state, levels: updatedLevels },
+    message: "The dungeon layout is revealed!",
+    identified: true,
+    consumed: true
+  }
+}
+```
+
+### Pattern 2: Player Position (TELEPORTATION)
+```typescript
+private applyTeleportation(state: GameState): ScrollEffectResult {
+  const walkableTiles = this.levelService.getAllWalkableTiles(level)
+  const targetPos = this.randomService.pickRandom(walkableTiles)
+
+  const updatedPlayer = { ...player, position: targetPos }
+  const fovResult = this.fovService.updateFOVAndExploration(targetPos, radius, level)
+
+  return {
     player: updatedPlayer,
-    messages: this.messageService.addMessage(updatedState.messages, result.message, 'success'),
+    state: { ...state, visibleCells: fovResult.visibleCells },
+    message: "You feel a wrenching sensation!",
+    identified: true,
+    consumed: true
+  }
+}
+```
+
+### Pattern 3: Level Entity Addition (CREATE_MONSTER)
+```typescript
+private applyCreateMonster(state: GameState): ScrollEffectResult {
+  const adjacentTiles = this.levelService.getEmptyAdjacentTiles(player.position, level)
+
+  if (adjacentTiles.length === 0) {
+    return {
+      message: "Nothing happens.",
+      identified: true,
+      fizzled: true,
+      consumed: false
+    }
+  }
+
+  const spawnPos = this.randomService.pickRandom(adjacentTiles)
+  const newMonster = this.dungeonService.spawnSingleMonster(spawnPos, level.depth)
+
+  const updatedLevel = {
+    ...level,
+    monsters: [...level.monsters, newMonster]
+  }
+
+  return {
+    state: { ...state, levels: updateLevelsMap(state.levels, updatedLevel) },
+    message: "You hear a faint cry of anguish!",
+    identified: true,
+    consumed: true
   }
 }
 ```
@@ -265,69 +386,61 @@ execute(state: GameState): GameState {
 All methods return **new objects**, never mutate inputs:
 
 ```typescript
-private applyEnchantWeapon(player: Player, targetItemId: string, scrollName: string) {
-  const enchantedWeapon: Weapon = { ...weapon, bonus: weapon.bonus + 1 }
+// ✅ Good: Create new objects with spread operators
+const enchantedWeapon = { ...weapon, bonus: weapon.bonus + 1 }
+const updatedPlayer = { ...player, inventory: [...player.inventory.filter(i => i.id !== weapon.id), enchantedWeapon] }
 
-  // Create new player with updated inventory and equipment
-  let updatedPlayer = this.inventoryService.removeItem(player, weapon.id)
-  updatedPlayer = this.inventoryService.addItem(updatedPlayer, enchantedWeapon)
-
-  return { player: updatedPlayer, message }
-}
+// ❌ Bad: Direct mutation
+weapon.bonus += 1
+player.inventory.push(enchantedWeapon)
 ```
 
 ---
 
 ## Testing
 
-**Test Files**:
-- `identify-scroll.test.ts` - Item identification
-- `enchant-weapon.test.ts` - Weapon enchantment, max cap
-- `enchant-armor.test.ts` - Armor enchantment, AC calculation
-- `targeting.test.ts` - Target validation
+**Test Files** (One per scroll type):
+- `identify-scroll.test.ts` - Item identification (13 tests)
+- `enchant-scrolls.test.ts` - Weapon/armor enchantment (20 tests)
+- `teleportation-scroll.test.ts` - Teleportation mechanics (15 tests)
+- `create-monster-scroll.test.ts` - Monster spawning (12 tests)
+- `magic-mapping-scroll.test.ts` - Map revelation (10 tests)
+- `light-scroll.test.ts` - Room illumination (13 tests)
+- `hold-monster-scroll.test.ts` - Monster freezing (18 tests)
+- `sleep-scroll.test.ts` - Player sleep curse (14 tests)
+- `remove-curse-scroll.test.ts` - Curse removal (13 tests)
+- `scare-monster-scroll.test.ts` - Monster scaring (10 tests)
 
-**Example Test**:
-```typescript
-describe('ScrollService - Enchant Weapon', () => {
-  test('increases weapon bonus by 1', () => {
-    const weapon = createWeapon('Long Sword', '1d12', 0)
-    const player = { ...basePlayer, inventory: [weapon] }
-    const scroll = createScroll(ScrollType.ENCHANT_WEAPON)
+**Total Coverage**: 138+ tests across all scroll types
 
-    const result = service.applyScroll(player, scroll, state, weapon.id)
+---
 
-    const enchantedWeapon = result.player.inventory.find((i) => i.type === ItemType.WEAPON) as Weapon
-    expect(enchantedWeapon.bonus).toBe(1)
-    expect(result.message).toContain('glows brightly')
-  })
+## Edge Cases Handled
 
-  test('caps enchantment at +3', () => {
-    const weapon = createWeapon('Long Sword +3', '1d12', 3)
-    const player = { ...basePlayer, inventory: [weapon] }
-    const scroll = createScroll(ScrollType.ENCHANT_WEAPON)
+1. **TELEPORTATION** - Fizzles if no walkable tiles available
+2. **CREATE_MONSTER** - Fizzles if no adjacent space
+3. **LIGHT** - Fizzles if player in corridor (not room)
+4. **HOLD_MONSTER** - Fizzles if no monster at target position
+5. **REMOVE_CURSE** - Fizzles if no cursed items equipped
+6. **SCARE_MONSTER** - Deteriorates after 100 turns, removed by TurnService
 
-    const result = service.applyScroll(player, scroll, state, weapon.id)
+---
 
-    const unchangedWeapon = result.player.inventory.find((i) => i.type === ItemType.WEAPON) as Weapon
-    expect(unchangedWeapon.bonus).toBe(3)
-    expect(result.message).toContain('already at maximum enchantment')
-  })
+## Scroll Summary Table
 
-  test('updates equipped weapon if enchanted', () => {
-    const weapon = createWeapon('Long Sword', '1d12', 0)
-    const player = {
-      ...basePlayer,
-      inventory: [weapon],
-      equipment: { ...baseEquipment, weapon },
-    }
-    const scroll = createScroll(ScrollType.ENCHANT_WEAPON)
-
-    const result = service.applyScroll(player, scroll, state, weapon.id)
-
-    expect(result.player.equipment.weapon.bonus).toBe(1)
-  })
-})
-```
+| Scroll | Target? | Effect | Consumed | Complexity |
+|--------|---------|--------|----------|------------|
+| **IDENTIFY** | Item | Reveal item type | Yes | Low |
+| **ENCHANT_WEAPON** | Weapon | +1 damage bonus (max +3) | Yes | Low |
+| **ENCHANT_ARMOR** | Armor | +1 AC bonus (max +3) | Yes | Low |
+| **TELEPORTATION** | None | Random teleport | Yes | Low |
+| **CREATE_MONSTER** | None | Spawn monster (cursed) | Yes | Low |
+| **MAGIC_MAPPING** | None | Reveal level map | Yes | Medium |
+| **LIGHT** | None | Illuminate room | Yes | Medium |
+| **HOLD_MONSTER** | Monster | Freeze 3-6 turns | Yes | Medium |
+| **SLEEP** | None | Sleep 4-8 turns (cursed) | Yes | Medium |
+| **REMOVE_CURSE** | None | Remove all curses | Yes | Medium |
+| **SCARE_MONSTER** | None | Drop scroll, monsters flee | **NO** | High |
 
 ---
 
@@ -335,64 +448,54 @@ describe('ScrollService - Enchant Weapon', () => {
 
 - **IdentificationService** - Item name display and auto-identification
 - **InventoryService** - Find items, remove/add enchanted items
-- **MessageService** - Display scroll effect messages
+- **LevelService** - Walkable tiles, room detection, scare scroll tracking
+- **FOVService** - Field of view updates after teleportation/light
+- **DungeonService** - Monster spawning
+- **CurseService** - Curse detection and removal
+- **PathfindingService** - Scare scroll avoidance
+- **MonsterAIService** - Flee behavior from scare scrolls
+- **TurnService** - Scare scroll deterioration
 
 ---
 
 ## Design Rationale
 
-### Why Identify by Type (Not Instance)?
-
-**Original Rogue behavior** - Identifying one "blue potion" identifies all "blue potions".
-
-**Learning Mechanic** - Player learns potion colors across entire game.
-
-**Simplicity** - Don't need to track individual item identification.
-
----
-
 ### Why +3 Enchantment Cap?
-
 **Balance** - Prevents overpowered weapons/armor late game.
 
-**Diminishing Returns** - Scrolls become less valuable after +3.
+### Why SCARE_MONSTER Not Consumed?
+**Original Rogue** - Only scroll that drops on ground for tactical positioning.
 
-**Original Rogue** - Had enchantment caps for balance.
+### Why 100 Turn Deterioration?
+**Balance** - Prevents permanent safe zones, forces tactical use.
 
----
+### Why MAGIC_MAPPING Doesn't Reveal Items/Monsters?
+**Balance** - Still need exploration, maintains FOV importance.
 
-### Why Lower AC = Better?
-
-**D&D Tradition** - Original D&D used descending AC (lower = harder to hit).
-
-**Rogue Mechanics** - Inherited from D&D combat system.
-
-**Bonus Reduces AC**: Enchantment makes armor better by lowering effective AC.
+### Why SLEEP Wake-on-Damage Not Implemented?
+**Deferred** - Original Rogue didn't have this, can add later if too punishing.
 
 ---
 
-## Scroll Summary Table
+## Dependencies Diagram
 
-| Scroll Type | Requires Target? | Effect | Max Limit |
-|-------------|------------------|--------|-----------|
-| **IDENTIFY** | Yes (any item) | Reveal item type | N/A |
-| **ENCHANT_WEAPON** | Yes (weapon) | +1 damage bonus | +3 |
-| **ENCHANT_ARMOR** | Yes (armor) | +1 AC bonus (-1 effective AC) | +3 |
+```
+ScrollService
+├── IdentificationService (item names)
+├── InventoryService (item manipulation)
+├── LevelService (walkable tiles, room detection, scare scroll tracking)
+├── FOVService (visibility updates)
+├── RandomService (teleport position, duration rolls)
+├── DungeonService (monster spawning)
+└── CurseService (curse detection/removal)
+```
 
 ---
 
-## Future Enhancements (Not Yet Implemented)
+## Implementation Complete ✅
 
-**Additional Scroll Types**:
-- **MAGIC_MAPPING** - Reveal entire level map
-- **TELEPORTATION** - Teleport to random location
-- **REMOVE_CURSE** - Remove curse from equipped item
-- **SCARE_MONSTER** - Drop scroll, monsters flee from tile
-- **HOLD_MONSTER** - Freeze target monster
-- **CREATE_MONSTER** - Spawn random monster (curse)
-- **AGGRAVATE_MONSTERS** - Wake all monsters (curse)
-- **ENCHANT_RING** - Increase ring bonus
+**Status**: All 11 scroll types implemented and tested
+**Tests**: 1885 tests passing
+**Date**: 2025-10-06
 
-**Map Reveal System**: Required for MAGIC_MAPPING (Phase 4).
-
-**Curse System**: Required for REMOVE_CURSE, curse scrolls (Phase 3).
+See `/docs/plans/scroll_implementation_plan.md` for complete implementation history.

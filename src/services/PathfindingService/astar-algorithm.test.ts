@@ -1,11 +1,14 @@
 import { PathfindingService } from './PathfindingService'
+import { LevelService } from '@services/LevelService'
 import { Level, Position } from '@game/core/core'
 
 describe('PathfindingService - A* Algorithm', () => {
   let service: PathfindingService
+  let levelService: LevelService
 
   beforeEach(() => {
-    service = new PathfindingService()
+    levelService = new LevelService()
+    service = new PathfindingService(levelService)
   })
 
   function createTestLevel(walkableMap: boolean[][]): Level {

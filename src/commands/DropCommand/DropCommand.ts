@@ -1,4 +1,4 @@
-import { GameState, ItemType } from '@game/core/core'
+import { GameState, ItemType, Scroll, ScrollType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
@@ -64,9 +64,20 @@ export class DropCommand implements ICommand {
     const updatedPlayer = this.inventoryService.removeItem(state.player, this.itemId)
 
     // Add position to item and add to level
-    const itemWithPosition = {
+    // Special handling for SCARE_MONSTER scrolls - track when dropped for deterioration
+    let itemWithPosition = {
       ...item,
       position: { ...state.player.position },
+    }
+
+    if (item.type === ItemType.SCROLL) {
+      const scroll = item as Scroll
+      if (scroll.scrollType === ScrollType.SCARE_MONSTER) {
+        itemWithPosition = {
+          ...itemWithPosition,
+          droppedAtTurn: state.turnCount,
+        } as Scroll
+      }
     }
 
     const updatedItems = [...level.items, itemWithPosition]

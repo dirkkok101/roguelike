@@ -93,11 +93,12 @@ async function initializeGame() {
   const scoreCalculationService = new ScoreCalculationService()
   const preferencesService = new PreferencesService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
+  const levelService = new LevelService()
   const combatService = new CombatService(random, hungerService, debugService)
-  const pathfindingService = new PathfindingService()
-  const monsterAIService = new MonsterAIService(pathfindingService, random, fovService)
+  const pathfindingService = new PathfindingService(levelService)
+  const monsterAIService = new MonsterAIService(pathfindingService, random, fovService, levelService)
   const specialAbilityService = new SpecialAbilityService(random)
-  const turnService = new TurnService(statusEffectService)
+  const turnService = new TurnService(statusEffectService, levelService)
   const monsterTurnService = new MonsterTurnService(
     random,
     monsterAIService,
@@ -111,7 +112,6 @@ async function initializeGame() {
   const potionService = new PotionService(random, identificationService, levelingService, statusEffectService)
   const scrollService = new ScrollService(identificationService, inventoryService)
   const wandService = new WandService(identificationService)
-  const levelService = new LevelService()
 
   // Dungeon configuration
   const dungeonConfig = {

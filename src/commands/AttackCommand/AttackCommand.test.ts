@@ -3,6 +3,7 @@ import { CombatService } from '@services/CombatService'
 import { MessageService } from '@services/MessageService'
 import { LevelingService } from '@services/LevelingService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, Monster, MonsterBehavior } from '@game/core/core'
@@ -21,7 +22,8 @@ describe('AttackCommand', () => {
     combatService = new CombatService(mockRandom)
     levelingService = new LevelingService(mockRandom)
     statusEffectService = new StatusEffectService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   function createTestPlayer(): Player {

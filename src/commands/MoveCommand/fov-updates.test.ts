@@ -7,6 +7,7 @@ import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { HungerService } from '@services/HungerService'
 import { NotificationService } from '@services/NotificationService'
 import { RegenerationService } from '@services/RegenerationService'
@@ -44,7 +45,8 @@ describe('MoveCommand - FOV Updates', () => {
     combatService = new CombatService(mockRandom, hungerService)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
     // hungerService created earlier
     notificationService = new NotificationService(identificationService)
     regenerationService = new RegenerationService()

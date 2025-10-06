@@ -52,25 +52,47 @@ export class ReadScrollCommand implements ICommand {
       this.targetItemId
     )
 
-    // 4. Remove scroll from inventory (consumed)
-    const updatedPlayer = this.inventoryService.removeItem(
-      result.player,
-      this.itemId
-    )
+    // 4. Handle fizzle (scroll failed - no turn consumed, scroll not removed)
+    if (result.fizzled) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        result.message,
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
 
-    // 5. Add message and increment turn
+    // 5. Use updated state if scroll modified it (e.g., MAGIC_MAPPING, TELEPORTATION)
+    const baseState = result.state || state
+
+    // 6. Use updated player if scroll modified it (e.g., enchantments, status effects)
+    const updatedPlayer = result.player || baseState.player
+
+    // 7. Handle scroll consumption
+    let finalPlayer = updatedPlayer
+    if (result.consumed) {
+      // Normal: Remove scroll from inventory
+      finalPlayer = this.inventoryService.removeItem(updatedPlayer, this.itemId)
+    } else {
+      // SCARE_MONSTER: Drop scroll at player position instead of consuming
+      // TODO: Implement scroll dropping when SCARE_MONSTER is added
+      finalPlayer = this.inventoryService.removeItem(updatedPlayer, this.itemId)
+    }
+
+    // 8. Add message and increment turn
     const messages = this.messageService.addMessage(
-      state.messages,
+      baseState.messages,
       result.message,
       'info',
-      state.turnCount
+      baseState.turnCount
     )
 
     return this.turnService.incrementTurn({
-      ...state,
-      player: updatedPlayer,
+      ...baseState,
+      player: finalPlayer,
       messages,
-      itemsUsed: state.itemsUsed + 1, // Track scroll use for death screen
+      itemsUsed: baseState.itemsUsed + 1, // Track scroll use for death screen
     })
   }
 }

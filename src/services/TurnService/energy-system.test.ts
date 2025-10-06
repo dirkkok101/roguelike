@@ -1,5 +1,6 @@
 import { TurnService } from './TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { LevelService } from '@services/LevelService'
 import { Player, GameState, Equipment, StatusEffectType } from '@game/core/core'
 import { ENERGY_THRESHOLD, NORMAL_SPEED, HASTED_SPEED, SLOWED_SPEED } from '../../constants/energy'
 
@@ -73,7 +74,8 @@ describe('TurnService - Energy System', () => {
 
   beforeEach(() => {
     statusEffectService = new StatusEffectService()
-    service = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    service = new TurnService(statusEffectService, levelService)
   })
 
   describe('grantEnergy', () => {

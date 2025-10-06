@@ -40,7 +40,7 @@ describe('MoveStairsCommand', () => {
     lightingService = new LightingService(mockRandom)
     victoryService = new VictoryService()
     levelService = new LevelService()
-    turnService = new TurnService(statusEffectService)
+    turnService = new TurnService(statusEffectService, levelService)
 
     dungeonConfig = {
       width: 80,

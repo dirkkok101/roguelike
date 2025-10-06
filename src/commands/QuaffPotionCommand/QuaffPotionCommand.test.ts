@@ -3,6 +3,7 @@ import { InventoryService } from '@services/InventoryService'
 import { PotionService } from '@services/PotionService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
@@ -25,7 +26,8 @@ describe('QuaffPotionCommand', () => {
     statusEffectService = new StatusEffectService()
     potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
     messageService = new MessageService()
-    turnService = new TurnService(statusEffectService)
+    const levelService = new LevelService()
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   function createTestPlayer(hp: number = 20): Player {
