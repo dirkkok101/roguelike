@@ -166,6 +166,7 @@ export interface Monster {
   energy: number // Energy for turn system (0-199 typical range)
   speed: number // Base speed (5=slow, 10=normal, 20=fast)
   isInvisible: boolean // True for Phantoms, revealed by SEE_INVISIBLE potion (default false)
+  statusEffects: StatusEffect[] // Status effects (HELD, CONFUSED, etc.)
 }
 
 export enum MonsterBehavior {

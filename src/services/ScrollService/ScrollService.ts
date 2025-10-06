@@ -7,6 +7,9 @@ import {
   Weapon,
   Armor,
   Level,
+  Monster,
+  StatusEffect,
+  StatusEffectType,
 } from '@game/core/core'
 import { IdentificationService } from '@services/IdentificationService'
 import { InventoryService } from '@services/InventoryService'
@@ -106,6 +109,9 @@ export class ScrollService {
 
       case ScrollType.LIGHT:
         return this.applyLight(player, state, displayName, identified)
+
+      case ScrollType.HOLD_MONSTER:
+        return this.applyHoldMonster(player, state, displayName, identified, targetItemId)
 
       default:
         message = `You read ${displayName}. (Effect not yet implemented)`
@@ -563,6 +569,104 @@ export class ScrollService {
     return {
       state: updatedState,
       message: `You read ${scrollName}. The room floods with light!`,
+      identified,
+      consumed: true,
+    }
+  }
+
+  // ============================================================================
+  // HOLD_MONSTER SCROLL
+  // ============================================================================
+
+  private applyHoldMonster(
+    player: Player,
+    state: GameState,
+    scrollName: string,
+    identified: boolean,
+    targetId?: string
+  ): ScrollEffectResult {
+    // 1. Check if target ID was provided
+    if (!targetId) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 2. Get current level
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return {
+        message: `You read ${scrollName}, but nothing happens.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 3. Find target monster by ID
+    const targetMonster = level.monsters.find(m => m.id === targetId)
+    if (!targetMonster) {
+      return {
+        message: `You read ${scrollName}, but the monster is gone.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 4. Check if monster is adjacent (within 1 tile)
+    const dx = Math.abs(targetMonster.position.x - player.position.x)
+    const dy = Math.abs(targetMonster.position.y - player.position.y)
+    const isAdjacent = dx <= 1 && dy <= 1 && (dx + dy > 0)
+
+    if (!isAdjacent) {
+      return {
+        message: `You read ${scrollName}, but the ${targetMonster.name} is too far away.`,
+        identified,
+        fizzled: true,
+        consumed: false,
+      }
+    }
+
+    // 5. Apply HELD status effect (3-6 turns)
+    const heldDuration = this.randomService.nextInt(3, 6)
+    const heldEffect: StatusEffect = {
+      type: StatusEffectType.HELD,
+      duration: heldDuration,
+    }
+
+    // 6. Update monster with HELD status
+    const updatedMonster: Monster = {
+      ...targetMonster,
+      statusEffects: [...targetMonster.statusEffects, heldEffect],
+    }
+
+    // 7. Update monsters array in level
+    const updatedMonsters = level.monsters.map(m =>
+      m.id === targetId ? updatedMonster : m
+    )
+
+    const updatedLevel: Level = {
+      ...level,
+      monsters: updatedMonsters,
+    }
+
+    // 8. Update level in levels map
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    // 9. Create updated state
+    const updatedState: GameState = {
+      ...state,
+      levels: updatedLevels,
+    }
+
+    return {
+      state: updatedState,
+      message: `You read ${scrollName}. The ${targetMonster.name} freezes in place!`,
       identified,
       consumed: true,
     }
