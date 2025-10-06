@@ -16,10 +16,11 @@ export class LocalStorageService {
       const saveKey = this.getSaveKey(state.gameId)
       const serialized = this.serializeGameState(state)
 
+      const exists = localStorage.getItem(saveKey) !== null
       localStorage.setItem(saveKey, serialized)
       localStorage.setItem(this.CONTINUE_KEY, state.gameId)
 
-      console.log(`Game saved: ${state.gameId}`)
+      console.log(`Game ${exists ? 'overwritten' : 'saved'}: ${state.gameId}`)
     } catch (error) {
       console.error('Failed to save game:', error)
       throw new Error('Save failed - storage quota exceeded?')
@@ -28,6 +29,7 @@ export class LocalStorageService {
 
   /**
    * Load game state from LocalStorage
+   * Attempts to migrate old saves, deletes if migration fails
    */
   loadGame(gameId?: string): GameState | null {
     try {
@@ -43,9 +45,28 @@ export class LocalStorageService {
         return null
       }
 
-      return this.deserializeGameState(serialized)
+      // Attempt to deserialize and migrate
+      const state = this.deserializeGameState(serialized)
+
+      // VALIDATE: Check if migration succeeded
+      if (!this.isValidSaveState(state)) {
+        console.warn(`Save migration failed for ${targetId}, deleting corrupted save...`)
+        this.deleteSave(targetId)
+        return null
+      }
+
+      console.log(`Save loaded successfully: ${targetId}`)
+      return state
     } catch (error) {
       console.error('Failed to load game:', error)
+
+      // Delete corrupted save that caused parse error
+      const targetId = gameId || this.getContinueGameId()
+      if (targetId) {
+        console.warn(`Deleting corrupted save: ${targetId}`)
+        this.deleteSave(targetId)
+      }
+
       return null
     }
   }
@@ -64,6 +85,33 @@ export class LocalStorageService {
     }
 
     console.log(`Save deleted: ${gameId}`)
+  }
+
+  /**
+   * Validate that loaded/migrated save has all required fields
+   * Returns false for corrupted saves that can't be recovered
+   */
+  private isValidSaveState(state: GameState): boolean {
+    // Check critical player fields exist
+    if (!state.player || typeof state.player.energy !== 'number') {
+      return false
+    }
+
+    if (!Array.isArray(state.player.statusEffects)) {
+      return false
+    }
+
+    // Check critical game state fields
+    if (!state.levels || !state.visibleCells || !state.player.position) {
+      return false
+    }
+
+    // Check player position is valid
+    if (typeof state.player.position.x !== 'number' || typeof state.player.position.y !== 'number') {
+      return false
+    }
+
+    return true
   }
 
   /**
@@ -117,6 +165,8 @@ export class LocalStorageService {
       levels: Array.from(state.levels.entries()), // Map → Array
       visibleCells: Array.from(state.visibleCells), // Set → Array
       identifiedItems: Array.from(state.identifiedItems), // Set → Array
+      detectedMonsters: Array.from(state.detectedMonsters || []), // Set → Array
+      detectedMagicItems: Array.from(state.detectedMagicItems || []), // Set → Array
       // Note: Monster visibleCells and currentPath also need conversion
       // This is done per-level
     }
@@ -142,6 +192,7 @@ export class LocalStorageService {
   /**
    * Deserialize JSON string to GameState
    * Restore Map and Set types
+   * Migrate old saves by adding defaults for missing fields
    */
   private deserializeGameState(json: string): GameState {
     const data = JSON.parse(json)
@@ -156,22 +207,34 @@ export class LocalStorageService {
             ...level,
             monsters: level.monsters.map((m: any) => ({
               ...m,
-              visibleCells: new Set(m.visibleCells),
+              visibleCells: new Set(m.visibleCells || []),
             })),
           },
         ]
       })
     )
 
-    // Restore Sets
-    const visibleCells = new Set(data.visibleCells)
-    const identifiedItems = new Set(data.identifiedItems)
+    // Restore Sets with defaults for missing fields
+    const visibleCells = new Set(data.visibleCells || [])
+    const identifiedItems = new Set(data.identifiedItems || [])
+    const detectedMonsters = new Set(data.detectedMonsters || [])
+    const detectedMagicItems = new Set(data.detectedMagicItems || [])
+
+    // MIGRATION: Add defaults for missing player fields (from older save versions)
+    const player = {
+      ...data.player,
+      energy: data.player.energy ?? 100, // Default: can act immediately
+      statusEffects: data.player.statusEffects ?? [], // Default: no effects
+    }
 
     return {
       ...data,
+      player,
       levels,
       visibleCells,
       identifiedItems,
+      detectedMonsters,
+      detectedMagicItems,
     }
   }
 }
