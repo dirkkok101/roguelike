@@ -44,6 +44,9 @@ describe('EatCommand', () => {
       xp: 0,
       gold: 0,
       hunger: 1300,
+      inventory: [],
+      statusEffects: [],
+      energy: 100,
       equipment: {
         weapon: null,
         armor: null,
@@ -51,7 +54,6 @@ describe('EatCommand', () => {
         rightRing: null,
         lightSource: null,
       },
-      inventory: [],
       ...overrides,
     }
   }
@@ -238,7 +240,6 @@ describe('EatCommand', () => {
     test('returns "no food" message when inventory empty', () => {
       // Arrange: Player with no food
       const player = createTestPlayer({
-        inventory: [],
       })
       const state = createTestState({ player })
       command = new EatCommand(

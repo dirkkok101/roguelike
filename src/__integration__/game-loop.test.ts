@@ -155,6 +155,8 @@ describe('Integration: Game Loop', () => {
         lightSource: createTestTorch(),
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

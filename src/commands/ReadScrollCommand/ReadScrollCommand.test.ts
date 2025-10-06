@@ -46,6 +46,8 @@ describe('ReadScrollCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

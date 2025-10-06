@@ -42,6 +42,8 @@ describe('RefillLanternCommand', () => {
         lightSource: createTestLantern({ fuel: lanternFuel, maxFuel: 1000 }),
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

@@ -5,6 +5,9 @@ import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { MessageService } from '@services/MessageService'
 import { PathfindingService } from '@services/PathfindingService'
 import { FOVService } from '@services/FOVService'
+import { StatusEffectService } from '@services/StatusEffectService'
+import { HungerService } from '@services/HungerService'
+import { TurnService } from '@services/TurnService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Monster, Player, Level, TileType } from '@game/core/core'
 
@@ -16,13 +19,16 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
   beforeEach(() => {
     mockRandom = new MockRandom()
     const messageService = new MessageService()
+    const statusEffectService = new StatusEffectService()
     const pathfindingService = new PathfindingService()
-    const fovService = new FOVService()
+    const fovService = new FOVService(statusEffectService)
+    const hungerService = new HungerService(mockRandom)
+    const turnService = new TurnService(statusEffectService)
     const aiService = new MonsterAIService(pathfindingService, mockRandom, fovService)
-    combatService = new CombatService(mockRandom)
+    combatService = new CombatService(mockRandom, hungerService)
     const abilityService = new SpecialAbilityService(mockRandom)
 
-    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService)
+    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService, turnService)
   })
 
   function createTestPlayer(overrides: Partial<Player> = {}): Player {
@@ -45,6 +51,8 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
       ...overrides,
     }
   }

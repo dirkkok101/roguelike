@@ -5,6 +5,9 @@ import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { MessageService } from '@services/MessageService'
 import { PathfindingService } from '@services/PathfindingService'
 import { FOVService } from '@services/FOVService'
+import { StatusEffectService } from '@services/StatusEffectService'
+import { HungerService } from '@services/HungerService'
+import { TurnService } from '@services/TurnService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Monster, MonsterBehavior, Item } from '@game/core/core'
 
@@ -14,15 +17,18 @@ describe('MonsterTurnService - Theft Mechanics', () => {
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    const statusEffectService = new StatusEffectService()
     const pathfinding = new PathfindingService()
-    const fovService = new FOVService()
+    const fovService = new FOVService(statusEffectService)
     const messageService = new MessageService()
+    const hungerService = new HungerService(mockRandom)
+    const turnService = new TurnService(statusEffectService)
 
     const aiService = new MonsterAIService(pathfinding, mockRandom, fovService)
-    const combatService = new CombatService(mockRandom)
+    const combatService = new CombatService(mockRandom, hungerService)
     const abilityService = new SpecialAbilityService(mockRandom)
 
-    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService)
+    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService, turnService)
   })
 
   function createTestState(monsters: Monster[] = []): GameState {

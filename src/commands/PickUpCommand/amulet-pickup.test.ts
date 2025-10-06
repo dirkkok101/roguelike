@@ -75,6 +75,8 @@ describe('PickUpCommand - Amulet Pickup', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

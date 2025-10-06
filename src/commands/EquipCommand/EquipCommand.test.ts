@@ -55,6 +55,8 @@ describe('EquipCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

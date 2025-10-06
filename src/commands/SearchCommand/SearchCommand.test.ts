@@ -46,6 +46,8 @@ describe('SearchCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

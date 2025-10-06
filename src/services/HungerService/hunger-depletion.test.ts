@@ -23,6 +23,9 @@ describe('HungerService - Hunger Depletion', () => {
       xp: 0,
       gold: 0,
       hunger: 1300,
+      inventory: [],
+      statusEffects: [],
+      energy: 100,
       equipment: {
         weapon: null,
         armor: null,
@@ -31,6 +34,8 @@ describe('HungerService - Hunger Depletion', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
       ...overrides,
     }
   }
@@ -210,7 +215,7 @@ describe('HungerService - Hunger Depletion', () => {
       expect(rate).toBe(1.5)
     })
 
-    test('returns 2.0 for two regular rings', () => {
+    test('returns 1.8 for two regular rings (Protection + Regeneration)', () => {
       // Arrange
       const rings = [
         createTestRing(RingType.PROTECTION),
@@ -221,7 +226,7 @@ describe('HungerService - Hunger Depletion', () => {
       const rate = service.calculateHungerRate(rings)
 
       // Assert
-      expect(rate).toBe(2.0)
+      expect(rate).toBe(1.8) // Protection +0.5, Regeneration +0.3
     })
 
     test('returns 0.5 for Slow Digestion ring', () => {

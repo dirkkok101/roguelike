@@ -48,6 +48,8 @@ describe('PickUpCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

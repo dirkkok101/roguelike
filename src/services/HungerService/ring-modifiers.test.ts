@@ -23,6 +23,9 @@ describe('HungerService - Ring Modifiers', () => {
       xp: 0,
       gold: 0,
       hunger: 1300,
+      inventory: [],
+      statusEffects: [],
+      energy: 100,
       equipment: {
         weapon: null,
         armor: null,
@@ -31,6 +34,8 @@ describe('HungerService - Ring Modifiers', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
       ...overrides,
     }
   }
@@ -71,7 +76,7 @@ describe('HungerService - Ring Modifiers', () => {
     expect(result.player.hunger).toBe(998.5) // 1000 - 1.5
   })
 
-  test('Regeneration ring increases hunger rate to 1.5x', () => {
+  test('Regeneration ring increases hunger rate to 1.3x', () => {
     // Arrange
     const regenerationRing = createTestRing(RingType.REGENERATION)
     const player = createTestPlayer({
@@ -89,7 +94,7 @@ describe('HungerService - Ring Modifiers', () => {
     const result = service.tickHunger(player)
 
     // Assert
-    expect(result.player.hunger).toBe(998.5) // 1000 - 1.5
+    expect(result.player.hunger).toBe(998.7) // 1000 - 1.3
   })
 
   test('Add Strength ring increases hunger rate to 1.5x', () => {
@@ -134,7 +139,7 @@ describe('HungerService - Ring Modifiers', () => {
     expect(result.player.hunger).toBe(999.5) // 1000 - 0.5
   })
 
-  test('Two regular rings result in 2.0x rate', () => {
+  test('Two regular rings result in 1.8x rate (Protection + Regeneration)', () => {
     // Arrange
     const protectionRing = createTestRing(RingType.PROTECTION, 'ring-protection-1')
     const regenerationRing = createTestRing(RingType.REGENERATION, 'ring-regeneration-1')
@@ -153,7 +158,7 @@ describe('HungerService - Ring Modifiers', () => {
     const result = service.tickHunger(player)
 
     // Assert
-    expect(result.player.hunger).toBe(998) // 1000 - 2.0
+    expect(result.player.hunger).toBe(998.2) // 1000 - 1.8 (Protection +0.5, Regeneration +0.3)
   })
 
   test('Slow Digestion + Protection result in 1.0x rate', () => {

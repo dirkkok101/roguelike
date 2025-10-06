@@ -44,6 +44,8 @@ describe('AttackCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

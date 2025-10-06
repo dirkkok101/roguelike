@@ -72,6 +72,8 @@ describe('RestCommand', () => {
       hunger: 1300,
       equipment: defaultEquipment,
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
 
     const level: Level = {

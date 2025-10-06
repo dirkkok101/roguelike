@@ -46,6 +46,8 @@ describe('CloseDoorCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 

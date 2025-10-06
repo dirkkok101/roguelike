@@ -98,7 +98,7 @@ describe('VictoryScreen', () => {
     const stats = createVictoryStats()
     screen.show(stats, jest.fn())
 
-    expect(document.body.textContent).toContain('Press [N] for New Game')
+    expect(document.body.textContent).toContain('Press [N] to Continue')
   })
 
   test('calls onNewGame when N key pressed', () => {
