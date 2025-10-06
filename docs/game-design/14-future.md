@@ -156,44 +156,6 @@
 
 ## 2. Technical Improvements
 
-### Mobile Support
-
-**Touch Controls**:
-- Swipe to move
-- Tap to interact
-- Virtual command buttons
-
-**Simplified UI**:
-- Larger touch targets
-- Streamlined inventory
-- Gesture controls
-
-**Responsive Layout**:
-- Optimize for portrait/landscape
-- Adjust font sizes
-- Collapsible panels
-
----
-
-### Multiplayer
-
-**Shared Dungeon**:
-- Co-op exploration
-- Shared loot
-- Revive fallen allies
-
-**Leaderboards**:
-- High scores
-- Fastest victories
-- Challenge mode rankings
-
-**PvP** (optional):
-- Arena battles
-- Duels
-- Competitive mode
-
----
-
 ### Cloud Saves
 
 **Sync Across Devices**:
