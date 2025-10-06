@@ -143,6 +143,14 @@ export class PotionService {
         }
         break
 
+      case PotionType.HASTE_SELF:
+        {
+          const result = this.applyHasteSelfPotion(player)
+          updatedPlayer = result.player
+          message = `You feel yourself moving much faster! (Hasted for ${result.duration} turns)`
+        }
+        break
+
       default:
         message = `You quaff ${displayName}. (Effect not yet implemented)`
     }
@@ -269,6 +277,23 @@ export class PotionService {
     const updatedPlayer = this.statusEffectService.addStatusEffect(
       player,
       StatusEffectType.BLIND,
+      duration
+    )
+
+    return {
+      player: updatedPlayer,
+      duration,
+    }
+  }
+
+  private applyHasteSelfPotion(player: Player): { player: Player; duration: number } {
+    // Original Rogue: 4-8 turns of haste
+    // Random duration: 3 + 1d5 (results in 4-8)
+    const duration = 3 + this.random.roll('1d5')
+
+    const updatedPlayer = this.statusEffectService.addStatusEffect(
+      player,
+      StatusEffectType.HASTED,
       duration
     )
 
