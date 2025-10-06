@@ -31,6 +31,8 @@ describe('TurnService', () => {
           lightSource: null,
         },
         inventory: [],
+        statusEffects: [],
+        energy: 100,
       },
       currentLevel: 1,
       levels: new Map(),
@@ -84,7 +86,13 @@ describe('TurnService', () => {
 
       const result = service.incrementTurn(state)
 
-      expect(result.player).toBe(state.player)
+      // Player is updated (status effects ticked), but properties preserved
+      expect(result.player).not.toBe(state.player) // New object due to immutability
+      expect(result.player.position).toStrictEqual(state.player.position)
+      expect(result.player.hp).toBe(state.player.hp)
+      expect(result.player.level).toBe(state.player.level)
+
+      // Other state properties are unchanged (same reference)
       expect(result.currentLevel).toBe(state.currentLevel)
       expect(result.levels).toBe(state.levels)
       expect(result.messages).toBe(state.messages)
