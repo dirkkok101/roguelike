@@ -66,8 +66,17 @@ export class TargetingService {
    * Uses Manhattan distance (L1 norm) for classic roguelike feel
    */
   getVisibleMonsters(player: Player, level: Level, fovCells: Set<string>): Monster[] {
-    // TODO: Implement in Phase 1.2
-    throw new Error('Not implemented')
+    // Filter monsters that are in FOV
+    const visibleMonsters = level.monsters.filter((monster) =>
+      this.fovService.isInFOV(monster.position, fovCells)
+    )
+
+    // Sort by distance from player (closest first)
+    return visibleMonsters.sort((a, b) => {
+      const distA = this.distance(player.position, a.position)
+      const distB = this.distance(player.position, b.position)
+      return distA - distB
+    })
   }
 
   /**
@@ -79,8 +88,37 @@ export class TargetingService {
     visibleMonsters: Monster[],
     direction: 'next' | 'prev' | 'nearest'
   ): Monster | null {
-    // TODO: Implement in Phase 1.2
-    throw new Error('Not implemented')
+    // Return null if no monsters visible
+    if (visibleMonsters.length === 0) {
+      return null
+    }
+
+    // If direction is 'nearest', return first monster (already sorted by distance)
+    if (direction === 'nearest') {
+      return visibleMonsters[0]
+    }
+
+    // Find current target index
+    const currentIndex = currentTargetId
+      ? visibleMonsters.findIndex((m) => m.id === currentTargetId)
+      : -1
+
+    // Calculate next index based on direction
+    let nextIndex: number
+
+    if (direction === 'next') {
+      // Cycle to next monster (wrap around to start)
+      nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % visibleMonsters.length
+    } else {
+      // direction === 'prev'
+      // Cycle to previous monster (wrap around to end)
+      nextIndex =
+        currentIndex === -1
+          ? visibleMonsters.length - 1
+          : (currentIndex - 1 + visibleMonsters.length) % visibleMonsters.length
+    }
+
+    return visibleMonsters[nextIndex]
   }
 
   /**
@@ -98,8 +136,27 @@ export class TargetingService {
     requiresLOS: boolean,
     fovCells: Set<string>
   ): TargetValidation {
-    // TODO: Implement in Phase 1.2
-    throw new Error('Not implemented')
+    // Check if monster is in FOV (if LOS required)
+    if (requiresLOS && !this.fovService.isInFOV(monster.position, fovCells)) {
+      return {
+        isValid: false,
+        reason: 'You cannot see that monster.',
+      }
+    }
+
+    // Check distance (Manhattan distance)
+    const dist = this.distance(player.position, monster.position)
+    if (dist > maxRange) {
+      return {
+        isValid: false,
+        reason: `That monster is too far away. (Range: ${maxRange})`,
+      }
+    }
+
+    // All checks passed
+    return {
+      isValid: true,
+    }
   }
 
   // ============================================================================
