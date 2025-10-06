@@ -398,12 +398,36 @@ export class InputHandler {
         event.preventDefault()
         this.modalController.showItemSelection('wand', 'Zap which wand?', state, (item) => {
           if (item) {
-            this.pendingCommand = new ZapWandCommand(
-              item.id,
-              this.inventoryService,
-              this.wandService,
-              this.messageService,
-              this.turnService
+            // After wand selected, show targeting modal
+            const wand = item as any // Cast to Wand (will have range property)
+            const wandRange = wand.range || 5 // Default range if not set yet
+
+            const targetingRequest = {
+              mode: 'MONSTER' as const,
+              maxRange: wandRange,
+              requiresLOS: true,
+            }
+
+            this.modalController.showTargeting(
+              targetingRequest,
+              state,
+              (result) => {
+                // Targeting confirmed
+                if (result.success && result.targetMonsterId) {
+                  this.pendingCommand = new ZapWandCommand(
+                    item.id,
+                    this.inventoryService,
+                    this.wandService,
+                    this.messageService,
+                    this.turnService,
+                    result.targetMonsterId
+                  )
+                }
+              },
+              () => {
+                // Targeting cancelled - do nothing
+                this.pendingCommand = null
+              }
             )
           }
         })
