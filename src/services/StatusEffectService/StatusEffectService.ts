@@ -54,4 +54,36 @@ export class StatusEffectService {
   getStatusEffect(player: Player, effectType: StatusEffectType): StatusEffect | undefined {
     return player.statusEffects.find(e => e.type === effectType)
   }
+
+  /**
+   * Tick all status effects (decrement duration by 1, remove expired effects)
+   * Returns updated player and list of expired effect types
+   */
+  tickStatusEffects(player: Player): { player: Player; expired: StatusEffectType[] } {
+    const expired: StatusEffectType[] = []
+    const tickedEffects: StatusEffect[] = []
+
+    for (const effect of player.statusEffects) {
+      const newDuration = effect.duration - 1
+
+      if (newDuration <= 0) {
+        // Effect has expired
+        expired.push(effect.type)
+      } else {
+        // Effect still active, decrement duration
+        tickedEffects.push({
+          ...effect,
+          duration: newDuration,
+        })
+      }
+    }
+
+    return {
+      player: {
+        ...player,
+        statusEffects: tickedEffects,
+      },
+      expired,
+    }
+  }
 }
