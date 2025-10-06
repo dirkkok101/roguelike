@@ -45,8 +45,8 @@ See [Architecture Guide](../architecture.md) for details.
 | [PathfindingService](./PathfindingService.md) | A* algorithm | `findPath` | None |
 | [RenderingService](./RenderingService.md) | Visual rendering | `getVisibilityState`, `getTileColor` | None |
 | **Item Systems** ||||
-| [PotionService](./PotionService.md) | Potion effects | `applyPotion` | RandomService, StatusEffectService |
-| [StatusEffectService](./StatusEffectService.md) | Status effects, durations | `addStatusEffect`, `tickStatusEffects` | RandomService |
+| [PotionService](./PotionService.md) | Potion effects (11 types) | `applyPotion` | RandomService, IdentificationService, StatusEffectService, LevelingService, FOVService |
+| [StatusEffectService](./StatusEffectService.md) | Status effects, durations | `addStatusEffect`, `tickStatusEffects` | None |
 | [ScrollService](./ScrollService.md) | Scroll effects | `applyScroll` | None |
 | [WandService](./WandService.md) | Wand effects, charges | `applyWand`, `decrementCharge` | RandomService |
 | [IdentificationService](./IdentificationService.md) | Item identification | `identifyItem`, `getDisplayName` | None |
@@ -55,7 +55,7 @@ See [Architecture Guide](../architecture.md) for details.
 | [MessageService](./MessageService.md) | Message log management | `addMessage`, `groupMessages` | None |
 | [NotificationService](./NotificationService.md) | Auto-notifications | `generateNotifications` | None |
 | [ContextService](./ContextService.md) | Turn context tracking | `createContext`, `updateContext` | None |
-| [TurnService](./TurnService.md) | Turn increment | `incrementTurn` | None |
+| [TurnService](./TurnService.md) | Turn management, energy system | `incrementTurn`, `grantPlayerEnergy`, `consumePlayerEnergy` | StatusEffectService |
 | [VictoryService](./VictoryService.md) | Win condition checking | `checkVictory`, `calculateScore` | None |
 | [DebugService](./DebugService.md) | Debug tools | `toggleGodMode`, `revealMap` | None |
 | **Persistence** ||||
@@ -67,13 +67,14 @@ See [Architecture Guide](../architecture.md) for details.
 
 ## Service Categories
 
-### Core Game Logic (9 services)
+### Core Game Logic (10 services)
 Essential gameplay systems:
 - [MovementService](./MovementService.md) - Movement, collision
 - [CombatService](./CombatService.md) - Combat mechanics
 - [FOVService](./FOVService.md) - Field of view
 - [LightingService](./LightingService.md) - Light management
 - [HungerService](./HungerService.md) - Hunger system
+- [RegenerationService](./RegenerationService.md) - Health regeneration
 - [LevelingService](./LevelingService.md) - XP and leveling
 - [InventoryService](./InventoryService.md) - Item management
 - [DoorService](./DoorService.md) - Door mechanics
@@ -202,14 +203,16 @@ Services (orchestrated by commands)
     │   ├── MovementService
     │   ├── FOVService
     │   ├── MessageService
-    │   └── TurnService
+    │   └── StatusEffectService
     │
     ├── RandomService (injected everywhere)
     │
     └── Composite Services (depend on other services)
+        ├── TurnService → StatusEffectService
         ├── CombatService → RandomService, HungerService
         ├── MonsterAIService → PathfindingService, RandomService
         ├── MonsterTurnService → MonsterAIService, CombatService
+        ├── PotionService → RandomService, StatusEffectService, LevelingService, FOVService
         └── DungeonService → RoomGen, CorridorGen, RandomService
 ```
 
@@ -285,4 +288,4 @@ describe('CombatService - Hit Calculation', () => {
 
 ---
 
-**Last Updated**: 2025-10-05
+**Last Updated**: 2025-10-06
