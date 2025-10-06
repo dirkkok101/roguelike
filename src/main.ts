@@ -128,7 +128,7 @@ async function initializeGame() {
 
   // Create new random service with game-specific seed
   const gameRandom = new SeededRandom(gameSeed)
-  const gameDungeonService = new DungeonService(gameRandom, itemData)
+  const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
 
   // Generate procedural dungeon using DungeonService
   const level = gameDungeonService.generateLevel(1, dungeonConfig)
