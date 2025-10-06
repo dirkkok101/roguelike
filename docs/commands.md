@@ -2,7 +2,7 @@
 
 **Version**: 1.0
 **Last Updated**: 2025-10-05
-**Related Docs**: [Architecture](./architecture.md) | [Services](./services.md) | [CLAUDE.md](../CLAUDE.md) | [Testing Strategy](./testing-strategy.md) | [Architectural Review](./ARCHITECTURAL_REVIEW.md)
+**Related Docs**: [Architecture](./architecture.md) | [Services](./services/README.md) | [CLAUDE.md](../CLAUDE.md) | [Testing Strategy](./testing-strategy.md) | [Architectural Review](./ARCHITECTURAL_REVIEW.md)
 
 ---
 
@@ -2594,7 +2594,7 @@ return { ...state, messages: errorMessages }
 
 ### Related Documentation
 - [Architecture Overview](./architecture.md)
-- [Services Guide](./services.md)
+- [Services Guide](./services/README.md)
 - [CLAUDE.md - Architectural Principles](../CLAUDE.md#core-architectural-principles)
 - [Testing Strategy](./testing-strategy.md)
 - [Architectural Review Checklist](./ARCHITECTURAL_REVIEW.md)
