@@ -332,7 +332,7 @@ while (hp < maxHp && !interrupted) {
 - **Game Design**: [Character - Health Regeneration](../game-design/02-character.md#3-health-regeneration)
 - **Core Systems**: [RegenerationService](../systems-core.md#6-regenerationservice)
 - **Implementation Plan**: [regeneration_plan.md](../regeneration_plan.md)
-- **Commands**: [RestCommand](../commands.md#restcommand)
+- **Commands**: [RestCommand](../commands/README.md#restcommand)
 
 ---
 
