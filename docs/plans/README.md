@@ -18,7 +18,7 @@ These documents are **archived for reference only**. They represent completed fe
 | Plan | Status | Completed | Description |
 |------|--------|-----------|-------------|
 | **[Death Screen Refactor](./death_screen_refactor.md)** | 📦 Archived | 2025-10-06 | Death and victory screen implementation |
-| **[Documentation Refactor](./document_refactor_plan.md)** | 🚧 In Progress | 2025-10-06 | SOLID principles applied to documentation |
+| **[Documentation Refactor](./document_refactor_plan.md)** | 📦 Archived | 2025-10-06 | SOLID principles applied to documentation (6 phases, 12 commits) |
 | **[Game Design Refactor](./game_design_document_refactor_plan.md)** | 📦 Archived | 2025-10-05 | Game design docs restructure (Phases 1-6) |
 | **[Light Source Refactor](./light_source_plan.md)** | 📦 Archived | 2025-10-05 | Light source data model refactor (fuel tracking) |
 | **[Regeneration Service](./regeneration_plan.md)** | 📦 Archived | 2025-10-05 | Natural health regeneration implementation |
