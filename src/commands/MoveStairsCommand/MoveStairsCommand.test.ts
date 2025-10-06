@@ -6,6 +6,7 @@ import { LightingService } from '@services/LightingService'
 import { VictoryService } from '@services/VictoryService'
 import { LevelService } from '@services/LevelService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { SeededRandom, MockRandom } from '@services/RandomService'
 import { GameState, Player, Position, Level } from '@game/core/core'
 
@@ -17,6 +18,7 @@ describe('MoveStairsCommand', () => {
   let victoryService: VictoryService
   let levelService: LevelService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
   let dungeonConfig: DungeonConfig
 
   beforeEach(() => {
@@ -24,11 +26,12 @@ describe('MoveStairsCommand', () => {
     const random = new SeededRandom('test-seed')
     const mockRandom = new MockRandom()
     dungeonService = new DungeonService(random)
-    fovService = new FOVService()
+    statusEffectService = new StatusEffectService()
+    fovService = new FOVService(statusEffectService)
     lightingService = new LightingService(mockRandom)
     victoryService = new VictoryService()
     levelService = new LevelService()
-    turnService = new TurnService()
+    turnService = new TurnService(statusEffectService)
 
     dungeonConfig = {
       width: 80,
@@ -62,6 +65,8 @@ describe('MoveStairsCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 
@@ -141,7 +146,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -163,7 +169,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -184,7 +191,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -207,7 +215,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -231,7 +240,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -259,7 +269,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -284,7 +295,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -308,7 +320,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -328,7 +341,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -356,7 +370,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -381,7 +396,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -402,7 +418,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -429,7 +446,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 
@@ -452,7 +470,8 @@ describe('MoveStairsCommand', () => {
         messageService,
         victoryService,
         levelService,
-        turnService
+        turnService,
+        statusEffectService
       )
       const result = command.execute(state)
 

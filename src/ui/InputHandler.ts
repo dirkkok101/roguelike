@@ -49,6 +49,7 @@ import { WandService } from '@services/WandService'
 import { TurnService } from '@services/TurnService'
 import { SearchService } from '@services/SearchService'
 import { LevelService } from '@services/LevelService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -87,6 +88,7 @@ export class InputHandler {
     private wandService: WandService,
     private turnService: TurnService,
     private levelService: LevelService,
+    private statusEffectService: StatusEffectService,
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal
     private onReturnToMenu: () => void
@@ -234,7 +236,8 @@ export class InputHandler {
           this.messageService,
           this.victoryService,
           this.levelService,
-          this.turnService
+          this.turnService,
+          this.statusEffectService
         )
 
       case '<':
@@ -248,7 +251,8 @@ export class InputHandler {
           this.messageService,
           this.victoryService,
           this.levelService,
-          this.turnService
+          this.turnService,
+          this.statusEffectService
         )
 
       // =====================================================================

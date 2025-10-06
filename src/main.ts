@@ -352,6 +352,7 @@ async function initializeGame() {
       wandService,
       turnService,
       levelService,
+      statusEffectService,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
       returnToMenu
