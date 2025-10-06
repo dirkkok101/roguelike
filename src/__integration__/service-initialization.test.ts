@@ -1,6 +1,7 @@
 import { SeededRandom } from '@services/RandomService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { MonsterAIService } from '@services/MonsterAIService'
 import { MonsterTurnService } from '@services/MonsterTurnService'
 import { SpecialAbilityService } from '@services/SpecialAbilityService'
@@ -39,7 +40,8 @@ describe('Integration: Service Initialization', () => {
     })
 
     test('FOVService initializes correctly', () => {
-      const service = new FOVService()
+      const statusEffectService = new StatusEffectService()
+      const service = new FOVService(statusEffectService)
       expect(service).toBeDefined()
       expect(service.computeFOV).toBeDefined()
     })
@@ -83,7 +85,8 @@ describe('Integration: Service Initialization', () => {
     test('MonsterAIService requires all 4 dependencies', () => {
       const levelService = new LevelService()
       const pathfinding = new PathfindingService(levelService)
-      const fovService = new FOVService()
+      const statusEffectService = new StatusEffectService()
+      const fovService = new FOVService(statusEffectService)
 
       // This test validates the bug fix: MonsterAIService needs FOVService and LevelService
       const service = new MonsterAIService(pathfinding, random, fovService, levelService)
@@ -99,7 +102,8 @@ describe('Integration: Service Initialization', () => {
     test('MonsterTurnService initializes with complete dependency chain', () => {
       const levelService = new LevelService()
       const pathfinding = new PathfindingService(levelService)
-      const fovService = new FOVService()
+      const statusEffectService = new StatusEffectService()
+      const fovService = new FOVService(statusEffectService)
       const hungerService = new HungerService(random)
       const combatService = new CombatService(random, hungerService)
       const aiService = new MonsterAIService(pathfinding, random, fovService, levelService)
@@ -126,7 +130,8 @@ describe('Integration: Service Initialization', () => {
       // 1. Foundation services (no dependencies)
       const randomSvc = new SeededRandom('test')
       const messageSvc = new MessageService()
-      const fovSvc = new FOVService()
+      const statusEffectService = new StatusEffectService()
+      const fovSvc = new FOVService(statusEffectService)
       const levelSvc = new LevelService()
       const pathfindingSvc = new PathfindingService(levelSvc)
 
@@ -169,7 +174,8 @@ describe('Integration: Service Initialization', () => {
 
       const randomSvc = new SeededRandom('test')
       const messageSvc = new MessageService()
-      const fovSvc = new FOVService()
+      const statusEffectService = new StatusEffectService()
+      const fovSvc = new FOVService(statusEffectService)
       const levelSvc = new LevelService()
       const pathfindingSvc = new PathfindingService(levelSvc)
       const hungerSvc = new HungerService(randomSvc)
@@ -197,7 +203,8 @@ describe('Integration: Service Initialization', () => {
       // Regression test for bug fixed in commit b4c225f
       const levelService = new LevelService()
       const pathfinding = new PathfindingService(levelService)
-      const fovService = new FOVService()
+      const statusEffectService = new StatusEffectService()
+      const fovService = new FOVService(statusEffectService)
       const aiService = new MonsterAIService(pathfinding, random, fovService, levelService)
 
       // Create a mock monster and state to verify FOV computation works

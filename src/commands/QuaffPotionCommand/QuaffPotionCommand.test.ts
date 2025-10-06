@@ -99,7 +99,8 @@ describe('QuaffPotionCommand', () => {
       inventoryService,
       potionService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -118,7 +119,8 @@ describe('QuaffPotionCommand', () => {
       inventoryService,
       potionService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -143,7 +145,8 @@ describe('QuaffPotionCommand', () => {
       inventoryService,
       potionService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -166,7 +169,8 @@ describe('QuaffPotionCommand', () => {
       inventoryService,
       potionService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -187,7 +191,8 @@ describe('QuaffPotionCommand', () => {
       inventoryService,
       potionService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 

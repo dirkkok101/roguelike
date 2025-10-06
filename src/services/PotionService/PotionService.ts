@@ -57,6 +57,12 @@ export class PotionService {
           if (result.maxHpIncrease) {
             message += ' You feel permanently stronger! (Max HP +1)'
           }
+          if (result.curedConfusion) {
+            message += ' Your head clears!'
+          }
+          if (result.curedBlindness) {
+            message += ' You can see again!'
+          }
         }
         break
 
@@ -67,6 +73,12 @@ export class PotionService {
           message = `You feel much better! (+${result.healAmount} HP)`
           if (result.maxHpIncrease) {
             message += ' You feel permanently stronger! (Max HP +1)'
+          }
+          if (result.curedConfusion) {
+            message += ' Your head clears!'
+          }
+          if (result.curedBlindness) {
+            message += ' You can see again!'
           }
         }
         break
@@ -179,7 +191,7 @@ export class PotionService {
   private applyHealPotion(
     player: Player,
     potion: Potion
-  ): { player: Player; healAmount: number; maxHpIncrease: boolean } {
+  ): { player: Player; healAmount: number; maxHpIncrease: boolean; curedConfusion: boolean; curedBlindness: boolean } {
     const healAmount = this.random.roll(potion.power)
 
     // Check for overheal (healing at full HP grants +1 max HP)
@@ -195,17 +207,31 @@ export class PotionService {
     const newHp = Math.min(player.hp + healAmount, newMaxHp)
     const actualHeal = newHp - player.hp
 
+    // Rogue mechanic: Healing cures confusion and blindness
+    const hadConfusion = this.statusEffectService.hasStatusEffect(player, StatusEffectType.CONFUSED)
+    const hadBlindness = this.statusEffectService.hasStatusEffect(player, StatusEffectType.BLIND)
+
+    let updatedPlayer: Player = { ...player, hp: newHp, maxHp: newMaxHp }
+    if (hadConfusion) {
+      updatedPlayer = this.statusEffectService.removeStatusEffect(updatedPlayer, StatusEffectType.CONFUSED)
+    }
+    if (hadBlindness) {
+      updatedPlayer = this.statusEffectService.removeStatusEffect(updatedPlayer, StatusEffectType.BLIND)
+    }
+
     return {
-      player: { ...player, hp: newHp, maxHp: newMaxHp },
+      player: updatedPlayer,
       healAmount: actualHeal,
       maxHpIncrease: shouldIncreaseMaxHp,
+      curedConfusion: hadConfusion,
+      curedBlindness: hadBlindness,
     }
   }
 
   private applyExtraHealPotion(
     player: Player,
     potion: Potion
-  ): { player: Player; healAmount: number; maxHpIncrease: boolean } {
+  ): { player: Player; healAmount: number; maxHpIncrease: boolean; curedConfusion: boolean; curedBlindness: boolean } {
     const healAmount = this.random.roll(potion.power)
 
     // Check for overheal (healing at full HP grants +1 max HP)
@@ -221,10 +247,24 @@ export class PotionService {
     const newHp = Math.min(player.hp + healAmount, newMaxHp)
     const actualHeal = newHp - player.hp
 
+    // Rogue mechanic: Healing cures confusion and blindness
+    const hadConfusion = this.statusEffectService.hasStatusEffect(player, StatusEffectType.CONFUSED)
+    const hadBlindness = this.statusEffectService.hasStatusEffect(player, StatusEffectType.BLIND)
+
+    let updatedPlayer: Player = { ...player, hp: newHp, maxHp: newMaxHp }
+    if (hadConfusion) {
+      updatedPlayer = this.statusEffectService.removeStatusEffect(updatedPlayer, StatusEffectType.CONFUSED)
+    }
+    if (hadBlindness) {
+      updatedPlayer = this.statusEffectService.removeStatusEffect(updatedPlayer, StatusEffectType.BLIND)
+    }
+
     return {
-      player: { ...player, hp: newHp, maxHp: newMaxHp },
+      player: updatedPlayer,
       healAmount: actualHeal,
       maxHpIncrease: shouldIncreaseMaxHp,
+      curedConfusion: hadConfusion,
+      curedBlindness: hadBlindness,
     }
   }
 

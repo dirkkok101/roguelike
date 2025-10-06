@@ -173,6 +173,7 @@ describe('ZapWandCommand', () => {
       wandService,
       messageService,
       turnService,
+      statusEffectService,
       'monster-1' // Target monster
     )
     const result = command.execute(state)
@@ -192,7 +193,8 @@ describe('ZapWandCommand', () => {
       inventoryService,
       wandService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -217,7 +219,8 @@ describe('ZapWandCommand', () => {
       inventoryService,
       wandService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -237,7 +240,8 @@ describe('ZapWandCommand', () => {
       inventoryService,
       wandService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -260,6 +264,7 @@ describe('ZapWandCommand', () => {
       wandService,
       messageService,
       turnService,
+      statusEffectService,
       'monster-1'
     )
     const result = command.execute(state)

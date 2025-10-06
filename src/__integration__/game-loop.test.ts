@@ -56,9 +56,9 @@ describe('Integration: Game Loop', () => {
 
   beforeEach(() => {
     const random = new SeededRandom('test-game-loop')
-    const movement = new MovementService()
-    const lighting = new LightingService(random)
     const statusEffectService = new StatusEffectService()
+    const movement = new MovementService(random, statusEffectService)
+    const lighting = new LightingService(random)
     const fov = new FOVService(statusEffectService)
     const message = new MessageService()
     const hunger = new HungerService(random)

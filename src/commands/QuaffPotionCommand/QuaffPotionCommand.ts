@@ -1,9 +1,10 @@
-import { GameState, ItemType, Potion } from '@game/core/core'
+import { GameState, ItemType, Potion, StatusEffectType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { PotionService } from '@services/PotionService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // QUAFF POTION COMMAND - Drink a potion from inventory
@@ -15,10 +16,22 @@ export class QuaffPotionCommand implements ICommand {
     private inventoryService: InventoryService,
     private potionService: PotionService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private statusEffectService: StatusEffectService
   ) {}
 
   execute(state: GameState): GameState {
+    // 0. Check if player can drink (not confused)
+    if (this.statusEffectService.hasStatusEffect(state.player, StatusEffectType.CONFUSED)) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'You are too confused to drink!',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
     // 1. Find item in inventory
     const item = this.inventoryService.findItem(state.player, this.itemId)
 
