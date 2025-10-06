@@ -7,6 +7,10 @@ import { ContextService } from '@services/ContextService'
 import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { DeathService } from '@services/DeathService'
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { ScoreCalculationService } from '@services/ScoreCalculationService'
+import { PreferencesService } from '@services/PreferencesService'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -41,6 +45,10 @@ export class GameRenderer {
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
     private deathService: DeathService,
+    private leaderboardService: LeaderboardService,
+    private leaderboardStorageService: LeaderboardStorageService,
+    private scoreCalculationService: ScoreCalculationService,
+    private preferencesService: PreferencesService,
     private onReturnToMenu: () => void,
     private onStartNewGame: () => void,
     private onReplaySeed: (seed: string) => void,
@@ -61,8 +69,8 @@ export class GameRenderer {
     this.commandBar = new ContextualCommandBar(contextService)
     this.messageHistoryModal = new MessageHistoryModal()
     this.helpModal = new HelpModal(contextService)
-    this.victoryScreen = new VictoryScreen()
-    this.deathScreen = new DeathScreen()
+    this.victoryScreen = new VictoryScreen(leaderboardService, leaderboardStorageService)
+    this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService, scoreCalculationService)
   }
 
   /**
@@ -80,6 +88,7 @@ export class GameRenderer {
 
       this.deathScreen.show(
         stats,
+        state,
         () => {
           // New Game (random seed)
           this.onStartNewGame()
@@ -99,7 +108,7 @@ export class GameRenderer {
     // Check for victory before rendering
     if (state.hasWon && !this.victoryScreen.isVisible()) {
       const stats = this.victoryService.getVictoryStats(state)
-      this.victoryScreen.show(stats, () => {
+      this.victoryScreen.show(stats, state, () => {
         // Return to main menu
         this.onReturnToMenu()
       })

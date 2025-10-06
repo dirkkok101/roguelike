@@ -6,6 +6,7 @@ import { RenderingService } from '@services/RenderingService'
 import { MovementService } from '@services/MovementService'
 import { MessageService } from '@services/MessageService'
 import { DungeonService } from '@services/DungeonService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { CombatService } from '@services/CombatService'
 import { PathfindingService } from '@services/PathfindingService'
 import { MonsterAIService } from '@services/MonsterAIService'
@@ -30,6 +31,10 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { DeathService } from '@services/DeathService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { ScoreCalculationService } from '@services/ScoreCalculationService'
+import { PreferencesService } from '@services/PreferencesService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -60,7 +65,18 @@ async function initializeGame() {
   const renderingService = new RenderingService(fovService)
   const movementService = new MovementService(random, statusEffectService)
   const messageService = new MessageService()
-  const dungeonService = new DungeonService(random, itemData)
+
+  // Load monster data
+  const monsterSpawnService = new MonsterSpawnService(random)
+  try {
+    await monsterSpawnService.loadMonsterData()
+    console.log('Monsters loaded from monsters.json')
+  } catch (error) {
+    console.error('Failed to load monsters.json:', error)
+    throw error // Fatal error - game cannot proceed without monster data
+  }
+
+  const dungeonService = new DungeonService(random, monsterSpawnService, itemData)
   const hungerService = new HungerService(random)
   const regenerationService = new RegenerationService()
   const levelingService = new LevelingService(random)
@@ -72,6 +88,10 @@ async function initializeGame() {
   const victoryService = new VictoryService()
   const deathService = new DeathService()
   const localStorageService = new LocalStorageService()
+  const leaderboardService = new LeaderboardService()
+  const leaderboardStorageService = new LeaderboardStorageService()
+  const scoreCalculationService = new ScoreCalculationService()
+  const preferencesService = new PreferencesService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const levelService = new LevelService()
   const combatService = new CombatService(random, hungerService, debugService)
@@ -116,7 +136,7 @@ async function initializeGame() {
 
   // Create new random service with game-specific seed
   const gameRandom = new SeededRandom(gameSeed)
-  const gameDungeonService = new DungeonService(gameRandom, itemData)
+  const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
 
   // Generate procedural dungeon using DungeonService
   const level = gameDungeonService.generateLevel(1, dungeonConfig)
@@ -322,6 +342,10 @@ async function initializeGame() {
       victoryService,
       localStorageService,
       deathService,
+      leaderboardService,
+      leaderboardStorageService,
+      scoreCalculationService,
+      preferencesService,
       returnToMenu,
       startNewGame,
       replaySeed
@@ -406,7 +430,7 @@ async function initializeGame() {
   }
 
   // Create main menu instance
-  const mainMenu = new MainMenu()
+  const mainMenu = new MainMenu(leaderboardService, leaderboardStorageService, preferencesService)
 
   // Track active event listeners for cleanup
   let currentKeydownHandler: ((e: KeyboardEvent) => void) | null = null

@@ -59,6 +59,7 @@ describe('CombatService - Equipment Bonuses', () => {
       visibleCells: new Set(),
       currentPath: null,
       hasStolen: false,
+      speed: 10,
     }
   }
 
