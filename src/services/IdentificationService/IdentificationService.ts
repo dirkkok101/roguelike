@@ -31,6 +31,8 @@ const POTION_DESCRIPTORS = [
   'glowing',
   'murky',
   'sparkling',
+  'milky',
+  'viscous',
 ]
 
 const SCROLL_LABELS = [

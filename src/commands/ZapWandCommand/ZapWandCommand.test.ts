@@ -3,6 +3,7 @@ import { InventoryService } from '@services/InventoryService'
 import { WandService } from '@services/WandService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, ItemType, Wand, WandType } from '@game/core/core'
@@ -12,6 +13,7 @@ describe('ZapWandCommand', () => {
   let wandService: WandService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -20,7 +22,8 @@ describe('ZapWandCommand', () => {
     mockRandom = new MockRandom()
     wandService = new WandService(identificationService)
     messageService = new MessageService()
-    turnService = new TurnService()
+    statusEffectService = new StatusEffectService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(): Player {
@@ -43,6 +46,8 @@ describe('ZapWandCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 
