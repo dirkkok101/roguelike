@@ -89,13 +89,13 @@ export class GameRenderer {
       this.deathScreen.show(
         stats,
         state,
-        () => {
+        (characterName: string) => {
           // New Game (random seed)
-          this.onStartNewGame()
+          this.onStartNewGame(characterName)
         },
-        () => {
+        (seed: string, characterName: string) => {
           // Replay Seed (same dungeon)
-          this.onReplaySeed(state.seed)
+          this.onReplaySeed(seed, characterName)
         },
         () => {
           // Quit to Menu
@@ -108,9 +108,9 @@ export class GameRenderer {
     // Check for victory before rendering
     if (state.hasWon && !this.victoryScreen.isVisible()) {
       const stats = this.victoryService.getVictoryStats(state)
-      this.victoryScreen.show(stats, state, () => {
-        // Return to main menu
-        this.onReturnToMenu()
+      this.victoryScreen.show(stats, state, (characterName: string) => {
+        // New Game after victory
+        this.onStartNewGame(characterName)
       })
       return // Don't render game when victory screen shown
     }
