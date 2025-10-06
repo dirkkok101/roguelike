@@ -65,7 +65,7 @@
 
 ---
 
-### Phase 2: Victory/Death Integration 🔄
+### Phase 2: Victory/Death Integration ✅ COMPLETE
 
 #### Task 2.1: Victory Screen Integration ✅
 - [x] Update `src/ui/VictoryScreen.ts` constructor to accept services
@@ -76,29 +76,31 @@
 - **Files**: `src/ui/VictoryScreen.ts`, `src/ui/VictoryScreen.test.ts`, `src/ui/GameRenderer.ts`, `src/main.ts`
 - **Commit**: "feat: integrate leaderboard with VictoryScreen" ✅
 
-#### Task 2.2: Death Screen Integration ⬜
-- [ ] Update `src/ui/DeathScreen.ts` constructor to accept services
-- [ ] Create leaderboard entry on death
-- [ ] Persist entry to storage
-- [ ] Add rank message display
-- [ ] Add "View Leaderboard" button
-- **Files**: `src/ui/DeathScreen.ts`
-- **Commit**: "feat: integrate leaderboard with DeathScreen"
+#### Task 2.2: Death Screen Integration ✅
+- [x] Update `src/ui/DeathScreen.ts` constructor to accept services
+- [x] Create leaderboard entry on death
+- [x] Persist entry to storage
+- [x] Add rank message display
+- [ ] Add "View Leaderboard" button (deferred to Phase 3 - requires LeaderboardScreen)
+- **Files**: `src/ui/DeathScreen.ts`, `src/ui/DeathScreen.test.ts`, `src/ui/GameRenderer.ts`, `src/services/LeaderboardService/LeaderboardService.ts`
+- **Commit**: "feat: integrate leaderboard with DeathScreen" ✅
 
-#### Task 2.3: Equipment Snapshot Helper ⬜
-- [ ] Create equipment serialization helper
-- [ ] Extract weapon/armor/light/rings names
-- [ ] Format as readable strings
-- [ ] Include in LeaderboardEntry
-- **Files**: `src/services/LeaderboardService/LeaderboardService.ts`
-- **Commit**: "feat: add equipment snapshot extraction"
+#### Task 2.3: Equipment Snapshot Helper ✅
+- [x] Create equipment serialization helper (already implemented in Phase 1)
+- [x] Extract weapon/armor/light/rings names
+- [x] Format as readable strings
+- [x] Include in LeaderboardEntry
+- **Files**: `src/services/LeaderboardService/LeaderboardService.ts` (extractEquipmentSnapshot method)
+- **Note**: This was completed as part of Task 1.2 (LeaderboardService implementation)
 
-#### Task 2.4: Integration Tests ⬜
-- [ ] Test victory creates entry
-- [ ] Test death creates entry
-- [ ] Test entry persistence
-- **Files**: Integration test files
-- **Commit**: "test: add victory/death integration tests"
+#### Task 2.4: Integration Tests ✅
+- [x] Test victory creates entry (added in VictoryScreen.test.ts)
+- [x] Test death creates entry (added in DeathScreen.test.ts)
+- [x] Test entry persistence (covered in both test files)
+- [x] Test rank display with badges
+- [x] Test percentile calculation
+- **Files**: `src/ui/VictoryScreen.test.ts`, `src/ui/DeathScreen.test.ts`
+- **Note**: Integration tests were added as part of Tasks 2.1 and 2.2
 
 ---
 
@@ -235,10 +237,10 @@
 
 ## Progress Tracking
 
-**Overall Progress**: 6/18 tasks complete (33%)
+**Overall Progress**: 9/18 tasks complete (50%)
 
 **Phase 1 (Core Infrastructure)**: 5/5 tasks ✅ COMPLETE
-**Phase 2 (Integration)**: 1/4 tasks ✅ | 3 tasks remaining
+**Phase 2 (Integration)**: 4/4 tasks ✅ COMPLETE
 **Phase 3 (UI Simple)**: 0/4 tasks ⬜
 **Phase 4 (UI Advanced)**: 0/3 tasks ⬜
 **Phase 5 (Statistics)**: 0/3 tasks ⬜
