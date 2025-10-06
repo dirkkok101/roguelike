@@ -1,0 +1,410 @@
+import { LeaderboardScreen } from './LeaderboardScreen'
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { GameState } from '@game/core/core'
+
+describe('LeaderboardScreen', () => {
+  let screen: LeaderboardScreen
+  let leaderboardService: LeaderboardService
+  let leaderboardStorageService: LeaderboardStorageService
+
+  beforeEach(() => {
+    leaderboardService = new LeaderboardService()
+    leaderboardStorageService = new LeaderboardStorageService()
+    screen = new LeaderboardScreen(leaderboardService, leaderboardStorageService)
+    document.body.innerHTML = ''
+    localStorage.clear()
+  })
+
+  afterEach(() => {
+    screen.hide()
+    document.body.innerHTML = ''
+    localStorage.clear()
+  })
+
+  function createTestState(overrides?: Partial<GameState>): GameState {
+    return {
+      player: {
+        position: { x: 5, y: 5 },
+        hp: 12,
+        maxHp: 12,
+        strength: 16,
+        maxStrength: 16,
+        ac: 4,
+        level: 5,
+        xp: 1000,
+        gold: 250,
+        hunger: 500,
+        equipment: {
+          weapon: null,
+          armor: null,
+          leftRing: null,
+          rightRing: null,
+          lightSource: null,
+        },
+        inventory: [],
+        statusEffects: [],
+      },
+      currentLevel: 5,
+      levels: new Map(),
+      visibleCells: new Set(),
+      detectedMonsters: new Set(),
+      detectedMagicItems: new Set(),
+      messages: [],
+      turnCount: 500,
+      seed: 'test-seed',
+      gameId: 'test-game',
+      isGameOver: false,
+      hasWon: false,
+      hasAmulet: false,
+      itemNameMap: {
+        potions: new Map(),
+        scrolls: new Map(),
+        rings: new Map(),
+        wands: new Map(),
+      },
+      identifiedItems: new Set(),
+      monstersKilled: 10,
+      itemsFound: 15,
+      itemsUsed: 8,
+      levelsExplored: 5,
+      ...overrides,
+    } as GameState
+  }
+
+  describe('rendering', () => {
+    test('displays leaderboard title', () => {
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('LEADERBOARD')
+    })
+
+    test('creates modal with leaderboard-modal class', () => {
+      screen.show(jest.fn())
+
+      const modal = document.querySelector('.leaderboard-modal')
+      expect(modal).not.toBeNull()
+    })
+
+    test('creates overlay with modal-overlay class', () => {
+      screen.show(jest.fn())
+
+      const overlay = document.querySelector('.modal-overlay')
+      expect(overlay).not.toBeNull()
+    })
+
+    test('displays empty state when no entries', () => {
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('No entries found')
+    })
+
+    test('displays entry count in title', () => {
+      // Add some entries
+      for (let i = 0; i < 5; i++) {
+        const state = createTestState({ gameId: `game-${i}` })
+        const entry = leaderboardService.createEntry(state, true, 1000 * (i + 1))
+        leaderboardStorageService.addEntry(entry)
+      }
+
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('5 total runs')
+    })
+  })
+
+  describe('tab switching', () => {
+    beforeEach(() => {
+      // Add mixed entries
+      for (let i = 0; i < 3; i++) {
+        const victoryState = createTestState({ gameId: `victory-${i}` })
+        const victoryEntry = leaderboardService.createEntry(victoryState, true, 5000 + i * 1000)
+        leaderboardStorageService.addEntry(victoryEntry)
+      }
+
+      for (let i = 0; i < 4; i++) {
+        const deathState = createTestState({ gameId: `death-${i}` })
+        const deathEntry = leaderboardService.createEntry(deathState, false, 1000 + i * 500)
+        leaderboardStorageService.addEntry(deathEntry)
+      }
+    })
+
+    test('displays all entries in "All" tab by default', () => {
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('All (7)')
+    })
+
+    test('switches to victories tab with keyboard shortcut', () => {
+      screen.show(jest.fn())
+
+      const event = new KeyboardEvent('keydown', { key: '2' })
+      document.dispatchEvent(event)
+
+      expect(document.body.textContent).toContain('Victories (3)')
+    })
+
+    test('switches to deaths tab with keyboard shortcut', () => {
+      screen.show(jest.fn())
+
+      const event = new KeyboardEvent('keydown', { key: '3' })
+      document.dispatchEvent(event)
+
+      expect(document.body.textContent).toContain('Deaths (4)')
+    })
+
+    test('filters entries by victories tab', () => {
+      screen.show(jest.fn())
+
+      const event = new KeyboardEvent('keydown', { key: '2' })
+      document.dispatchEvent(event)
+
+      const victoryCount = (document.body.textContent?.match(/✓ Victory/g) || []).length
+      expect(victoryCount).toBe(3)
+    })
+
+    test('filters entries by deaths tab', () => {
+      screen.show(jest.fn())
+
+      const event = new KeyboardEvent('keydown', { key: '3' })
+      document.dispatchEvent(event)
+
+      const deathCount = (document.body.textContent?.match(/✗ Death/g) || []).length
+      expect(deathCount).toBe(4)
+    })
+  })
+
+  describe('sorting', () => {
+    beforeEach(() => {
+      // Add entries with different values
+      const entries = [
+        { gameId: 'game-1', score: 5000, level: 8, turns: 1000 },
+        { gameId: 'game-2', score: 3000, level: 10, turns: 500 },
+        { gameId: 'game-3', score: 7000, level: 6, turns: 1500 },
+      ]
+
+      entries.forEach(({ gameId, score, level, turns }) => {
+        const state = createTestState({
+          gameId,
+          player: { ...createTestState().player, level },
+          turnCount: turns,
+        })
+        const entry = leaderboardService.createEntry(state, true, score)
+        leaderboardStorageService.addEntry(entry)
+      })
+    })
+
+    test('sorts by score descending by default', () => {
+      screen.show(jest.fn())
+
+      const text = document.body.textContent || ''
+
+      // Highest score (7,000) should appear before lowest score (3,000) in text
+      const index7000 = text.indexOf('7,000')
+      const index3000 = text.indexOf('3,000')
+
+      expect(index7000).toBeGreaterThan(0)
+      expect(index3000).toBeGreaterThan(0)
+      expect(index7000).toBeLessThan(index3000)
+    })
+
+    test('displays sort indicator on active column', () => {
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('▼')
+    })
+  })
+
+  describe('pagination', () => {
+    test('paginates entries when more than 25', () => {
+      // Add 30 entries
+      for (let i = 0; i < 30; i++) {
+        const state = createTestState({ gameId: `game-${i}` })
+        const entry = leaderboardService.createEntry(state, true, 1000 * (i + 1))
+        leaderboardStorageService.addEntry(entry)
+      }
+
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('Page 1 of 2')
+      expect(document.body.textContent).toContain('1-25 of 30')
+    })
+
+    test('navigates to next page with arrow key', () => {
+      // Add 30 entries
+      for (let i = 0; i < 30; i++) {
+        const state = createTestState({ gameId: `game-${i}` })
+        const entry = leaderboardService.createEntry(state, true, 1000 * (i + 1))
+        leaderboardStorageService.addEntry(entry)
+      }
+
+      screen.show(jest.fn())
+
+      const event = new KeyboardEvent('keydown', { key: 'ArrowRight' })
+      document.dispatchEvent(event)
+
+      expect(document.body.textContent).toContain('Page 2 of 2')
+      expect(document.body.textContent).toContain('26-30 of 30')
+    })
+
+    test('navigates to previous page with arrow key', () => {
+      // Add 30 entries
+      for (let i = 0; i < 30; i++) {
+        const state = createTestState({ gameId: `game-${i}` })
+        const entry = leaderboardService.createEntry(state, true, 1000 * (i + 1))
+        leaderboardStorageService.addEntry(entry)
+      }
+
+      screen.show(jest.fn())
+
+      // Go to page 2
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+      expect(document.body.textContent).toContain('Page 2 of 2')
+
+      // Go back to page 1
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }))
+      expect(document.body.textContent).toContain('Page 1 of 2')
+    })
+
+    test('does not show pagination for single page', () => {
+      // Add only 10 entries
+      for (let i = 0; i < 10; i++) {
+        const state = createTestState({ gameId: `game-${i}` })
+        const entry = leaderboardService.createEntry(state, true, 1000 * (i + 1))
+        leaderboardStorageService.addEntry(entry)
+      }
+
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).not.toContain('Page')
+    })
+  })
+
+  describe('keyboard controls', () => {
+    test('closes modal with ESC key', () => {
+      const callback = jest.fn()
+      screen.show(callback)
+      expect(screen.isVisible()).toBe(true)
+
+      const event = new KeyboardEvent('keydown', { key: 'Escape' })
+      document.dispatchEvent(event)
+
+      expect(screen.isVisible()).toBe(false)
+      expect(callback).toHaveBeenCalled()
+    })
+
+    test('closes modal with Q key', () => {
+      const callback = jest.fn()
+      screen.show(callback)
+      expect(screen.isVisible()).toBe(true)
+
+      const event = new KeyboardEvent('keydown', { key: 'q' })
+      document.dispatchEvent(event)
+
+      expect(screen.isVisible()).toBe(false)
+      expect(callback).toHaveBeenCalled()
+    })
+
+    test('displays keyboard shortcuts in footer', () => {
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('[1] All')
+      expect(document.body.textContent).toContain('[2] Victories')
+      expect(document.body.textContent).toContain('[3] Deaths')
+      expect(document.body.textContent).toContain('[ESC] Close')
+    })
+  })
+
+  describe('visual elements', () => {
+    test('displays medal badges for top 3 ranks', () => {
+      // Add 5 entries
+      for (let i = 0; i < 5; i++) {
+        const state = createTestState({ gameId: `game-${i}` })
+        const entry = leaderboardService.createEntry(state, true, 1000 * (5 - i))
+        leaderboardStorageService.addEntry(entry)
+      }
+
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('🥇')
+      expect(document.body.textContent).toContain('🥈')
+      expect(document.body.textContent).toContain('🥉')
+    })
+
+    test('displays trophy emoji in title', () => {
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('🏆')
+    })
+
+    test('shows ASCII borders around table', () => {
+      // Add an entry so table renders
+      const state = createTestState()
+      const entry = leaderboardService.createEntry(state, true, 5000)
+      leaderboardStorageService.addEntry(entry)
+
+      screen.show(jest.fn())
+
+      expect(document.body.textContent).toContain('┌')
+      expect(document.body.textContent).toContain('└')
+    })
+  })
+
+  describe('empty states', () => {
+    test('shows empty message for victories tab when no victories', () => {
+      // Add only deaths
+      const state = createTestState()
+      const entry = leaderboardService.createEntry(state, false, 1000)
+      leaderboardStorageService.addEntry(entry)
+
+      screen.show(jest.fn())
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: '2' }))
+
+      expect(document.body.textContent).toContain('Win your first game!')
+    })
+
+    test('shows empty message for deaths tab when no deaths', () => {
+      // Add only victories
+      const state = createTestState()
+      const entry = leaderboardService.createEntry(state, true, 5000)
+      leaderboardStorageService.addEntry(entry)
+
+      screen.show(jest.fn())
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: '3' }))
+
+      expect(document.body.textContent).toContain('No deaths yet...')
+    })
+  })
+
+  describe('visibility', () => {
+    test('isVisible returns true when shown', () => {
+      expect(screen.isVisible()).toBe(false)
+
+      screen.show(jest.fn())
+
+      expect(screen.isVisible()).toBe(true)
+    })
+
+    test('isVisible returns false after hide', () => {
+      screen.show(jest.fn())
+      expect(screen.isVisible()).toBe(true)
+
+      screen.hide()
+
+      expect(screen.isVisible()).toBe(false)
+    })
+
+    test('removes modal from DOM when hidden', () => {
+      screen.show(jest.fn())
+      const modalBefore = document.querySelector('.leaderboard-modal')
+      expect(modalBefore).not.toBeNull()
+
+      screen.hide()
+
+      const modalAfter = document.querySelector('.leaderboard-modal')
+      expect(modalAfter).toBeNull()
+    })
+  })
+})

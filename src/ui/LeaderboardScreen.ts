@@ -152,7 +152,7 @@ export class LeaderboardScreen {
           <span style="color: #FF4444;">[3]</span> Deaths
         </div>
         <div style="color: #888; font-size: 14px; margin-bottom: 10px;">
-          <span style="color: #88FF88;">[←][→]</span> Page |
+          ${totalPages > 1 ? '<span style="color: #88FF88;">[←][→]</span> Page | ' : ''}
           <span style="color: #FF6666;">[ESC]</span> Close
         </div>
       </div>
