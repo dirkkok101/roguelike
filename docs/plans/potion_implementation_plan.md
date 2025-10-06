@@ -406,16 +406,15 @@ Implement all 11 core potion types from Original Rogue (1980), including instant
 **Context**: Player needs to see active status effects (CONFUSED, BLIND, HASTED).
 
 **Files to create/modify**:
-- `src/ui/StatusBar.ts` (modify)
 - `src/ui/GameRenderer.ts` (modify)
 
 ##### Subtasks:
-- [ ] Add status effect indicator section to StatusBar
-- [ ] Show active status effects with icons/text (e.g., "Confused (12)", "Blind! (45)", "Fast! (6)")
-- [ ] Update GameRenderer to darken/blur screen when BLIND
-- [ ] Add visual indicator for CONFUSED (e.g., "?" icon near player)
-- [ ] Add visual indicator for HASTED (e.g., lightning bolt icon)
-- [ ] Git commit: "feat: add status effect UI indicators (Phase 2.6)"
+- [x] Add status effect indicator section to stats display
+- [x] Show active status effects with icons/text (e.g., "Confused (12)", "Blind! (45)", "Fast! (6)")
+- [x] Add visual indicator for CONFUSED (e.g., "?" icon near player)
+- [x] Add visual indicator for HASTED (e.g., lightning bolt icon)
+- [x] BLIND naturally handled by FOVService (returns empty set when blind)
+- [x] Git commit: "feat: add status effect UI indicators (Phase 2.6)"
 
 ---
 
