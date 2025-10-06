@@ -19,16 +19,67 @@ Uses a magical wand from inventory to cast powerful spells. Unlike scrolls, wand
 2. Inventory modal shows wands only
 3. Prompt: "Zap which wand?"
 4. Player selects wand
-5. Wand effect activates
-6. Wand charge decrements (-1)
-7. If charges reach 0, wand becomes "empty" (cannot use)
-8. Turn increments
+5. **Targeting modal appears** (NEW)
+6. Player selects target monster (Tab/Shift+Tab to cycle, * for nearest)
+7. Player confirms target (Enter) or cancels (ESC)
+8. Wand effect activates on selected target
+9. Wand charge decrements (-1)
+10. If charges reach 0, wand becomes "empty" (cannot use)
+11. Turn increments
 
 ### Charge System
 - **Initial charges**: Random (3-10 charges when found)
 - **Per use**: -1 charge
 - **Empty wand**: Still in inventory but unusable (shows "empty")
 - **No recharging**: Empty wands cannot be refilled (drop or keep for identification)
+
+---
+
+## Targeting System
+
+### Overview
+All wands now require targeting a monster before use. The targeting system provides:
+- **Visual Feedback**: Shows selected target with stats (HP, distance)
+- **Smart Defaults**: Auto-selects nearest valid monster
+- **Keyboard Navigation**: Tab/Shift+Tab to cycle, * for nearest
+- **Validation**: Range and line-of-sight checks before execution
+
+### Controls
+| Key | Action |
+|-----|--------|
+| **Tab** | Cycle to next target |
+| **Shift+Tab** | Cycle to previous target |
+| **\*** | Select nearest valid target |
+| **Enter** | Confirm target and zap |
+| **ESC** | Cancel targeting |
+
+### Targeting Rules
+1. **Line of Sight**: Monster must be visible (in FOV)
+2. **Range Limit**: Distance ≤ wand range (varies by wand type)
+3. **Existence**: Monster must still be alive
+4. **Valid Target**: Must pass all validation checks
+
+### Range by Wand Type
+| Wand Type | Range (tiles) | Category |
+|-----------|---------------|----------|
+| Lightning, Fire, Cold | 8 | Long range beam |
+| Magic Missile, Teleport Away | 7 | Standard attack |
+| Sleep, Slow Monster, Cancellation | 6 | Moderate utility |
+| Haste Monster, Polymorph | 5 | Close range utility |
+
+**Distance Calculation**: Manhattan distance (|x2-x1| + |y2-y1|)
+
+### Targeting Validation
+The command performs multiple validation checks:
+
+```
+1. Target exists? → "Target no longer exists."
+2. Target visible? → "Target no longer visible."
+3. Target in range? → "Target out of range. (Range: X)"
+4. Wand has charges? → "The wand has no charges left."
+```
+
+**Defense in depth**: Validation occurs at UI, command, and service layers.
 
 ---
 
@@ -60,6 +111,10 @@ Uses a magical wand from inventory to cast powerful spells. Unlike scrolls, wand
 |-----------|---------|-------|
 | **Not in inventory** | "You do not have that item." | No |
 | **Not a wand** | "You cannot zap that." | No |
+| **No target selected** | "No target selected." | No |
+| **Target doesn't exist** | "Target no longer exists." | No |
+| **Target not visible** | "Target no longer visible." | No |
+| **Target out of range** | "Target out of range. (Range: X)" | No |
 | **No charges** | "The wand has no charges left." | No |
 
 ---
@@ -82,6 +137,7 @@ Uses a magical wand from inventory to cast powerful spells. Unlike scrolls, wand
 
 - **InventoryService**: Find wand, update charges
 - **WandService**: Wand effect application, charge management
+- **TargetingService**: Target validation, range checks, LOS validation (NEW)
 - **MessageService**: Message log updates
 - **TurnService**: Turn increment
 
@@ -112,7 +168,7 @@ Uses a magical wand from inventory to cast powerful spells. Unlike scrolls, wand
 
 5. **Identification Persistence**: Identified wands stay identified even when empty
 
-6. **Target Selection**: Future feature - some wands require direction/monster target (not yet implemented)
+6. **Target Selection**: All wands require targeting a visible monster within range (NEW)
 
 ---
 
@@ -129,21 +185,38 @@ ZapWandCommand.execute()
 │   └── Message: "You cannot zap that." (no turn)
 │
 └─ Valid wand:
-    ├── WandService.applyWand(player, wand, state, targetItemId)
+    ├── Validate target monster ID provided (NEW)
+    │   └─ If not provided:
+    │       └── Message: "No target selected." (no turn)
+    │
+    ├── Validate target exists in current level (NEW)
+    │   └─ If not found:
+    │       └── Message: "Target no longer exists." (no turn)
+    │
+    ├── Validate target in FOV (line of sight) (NEW)
+    │   └─ If not visible:
+    │       └── Message: "Target no longer visible." (no turn)
+    │
+    ├── Validate target in range (Manhattan distance) (NEW)
+    │   └─ If distance > wand.range:
+    │       └── Message: "Target out of range. (Range: X)" (no turn)
+    │
+    ├── WandService.applyWand(player, wand, state, targetMonsterId)
     │   ├── Check charges
     │   │   └─ If charges = 0:
     │   │       └── Message: "The wand has no charges left." (no turn)
     │   │
     │   ├── Apply wand effect based on wandType
-    │   │   ├─ LIGHTNING: Line damage 4d6
-    │   │   ├─ FIRE: Area damage 3d6 + burn
-    │   │   ├─ COLD: Damage 2d6 + slow
-    │   │   ├─ TELEPORT: Teleport target away
+    │   │   ├─ LIGHTNING: Beam damage 6d6 (range 8)
+    │   │   ├─ FIRE: Beam damage 6d6 (range 8)
+    │   │   ├─ COLD: Beam damage 6d6 (range 8)
+    │   │   ├─ MAGIC_MISSILE: Direct damage 2d6 (range 7)
+    │   │   ├─ TELEPORT_AWAY: Teleport target away (range 7)
     │   │   └─ ... (other wand types)
     │   │
     │   ├── Decrement charges (charges - 1)
     │   ├── Mark wand type as identified
-    │   └── Return { player, wand, message }
+    │   └── Return { player, wand, message, state }
     │
     ├── Update wand in inventory (remove old, add updated)
     ├── Add effect message to log
@@ -154,11 +227,48 @@ ZapWandCommand.execute()
 
 ## Examples
 
-### Example 1: Zap Lightning Wand
+### Example 1: Targeting and Zapping (NEW)
+```
+Player with Wand of Lightning (5 charges, identified, range 8)
+3 visible monsters: Orc (3 tiles away), Kobold (5 tiles), Troll (7 tiles)
+Player presses: z → (selects Lightning Wand)
+→ Targeting modal appears
+→ Auto-selects nearest: Orc (3 tiles, in range, valid)
+Player presses: Tab
+→ Cycles to: Kobold (5 tiles, in range, valid)
+Player presses: Tab
+→ Cycles to: Troll (7 tiles, in range, valid)
+Player presses: *
+→ Jumps back to nearest: Orc
+Player presses: Enter
+→ Targeting confirmed
+→ "You zap a Wand of Lightning."
+→ "The bolt strikes the Orc for 22 damage!"
+→ Orc killed
+→ Wand charges: 5 → 4
+→ Turn: 100 → 101
+```
+
+### Example 2: Out of Range
+```
+Player with Wand of Polymorph (3 charges, range 5)
+Monster visible: Dragon (8 tiles away)
+Player presses: z → (selects Polymorph Wand)
+→ Targeting modal shows: Dragon (8 tiles, OUT OF RANGE, invalid)
+→ Visual feedback shows red/invalid state
+Player presses: Enter
+→ "Target out of range. (Range: 5)"
+→ No turn consumed
+→ (Move closer and try again)
+```
+
+### Example 3: Zap Lightning Wand (Classic)
 ```
 Player with Wand of Lightning (5 charges, identified)
-Monster nearby
+Monster nearby (2 tiles)
 Player presses: z → (selects Lightning Wand)
+→ Targeting modal auto-selects nearest monster
+Player presses: Enter
 → "You zap a Wand of Lightning."
 → "The bolt strikes the Orc for 18 damage!"
 → Orc killed
@@ -201,19 +311,27 @@ Player presses: z → (selects Death Wand)
 ## Tactical Use
 
 **Offensive Wands:**
-- **Lightning/Fire/Cold**: Use on tough monsters (Dragons, Trolls)
+- **Lightning/Fire/Cold**: Use on tough monsters (Dragons, Trolls) - **8 tile range**
+- **Magic Missile**: General purpose damage - **7 tile range**
 - **Death**: Save for bosses (low charges, high risk/reward)
-- **Striking**: General purpose damage
 
 **Utility Wands:**
-- **Slow Monster**: Use on fast enemies (Kestrels, Bats)
-- **Teleport**: Emergency escape (zap monster away)
-- **Invisibility**: Sneak past monster groups
+- **Slow Monster**: Use on fast enemies (Kestrels, Bats) - **6 tile range**
+- **Teleport**: Emergency escape (zap monster away) - **7 tile range**
+- **Polymorph**: Risky but fun - **5 tile range** (close!)
+
+**Targeting Tactics (NEW):**
+- **Range Awareness**: Check wand range before engaging (beam wands: 8, utility: 5-6)
+- **Nearest First**: Auto-target (Enter) is usually correct
+- **Cycle to Priority**: Tab to skip weak monsters, target threats
+- **Position Matters**: Move closer if target out of range (better than wasting turn)
+- **Escape Tool**: Teleport Away on adjacent monster for instant distance
 
 **When NOT to Zap:**
 - Weak monsters (save charges for harder fights)
 - Unknown wands at critical moments (could be Haste Monster!)
 - Last charge unless desperate (wand becomes useless)
+- Monsters out of range (move closer first)
 
 **Charge Management:**
 - Identify wands ASAP (know charge count)
