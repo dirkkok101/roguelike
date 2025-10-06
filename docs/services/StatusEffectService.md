@@ -1,9 +1,9 @@
 # StatusEffectService
 
 **Location**: `src/services/StatusEffectService/StatusEffectService.ts`
-**Dependencies**: RandomService
-**Test Coverage**: Duration tracking, expiration, stacking, tick system
-**Status**: 🚧 Planned (See potion_implementation_plan.md)
+**Dependencies**: None (standalone service)
+**Test Coverage**: Duration tracking, expiration, stacking, tick system, all 5 status effects
+**Status**: ✅ Complete (All potion status effects implemented)
 
 ---
 
@@ -403,4 +403,4 @@ describe('StatusEffectService - Tick System', () => {
 ---
 
 **Last Updated**: 2025-10-06
-**Status**: 🚧 Planned (Phase 2 of potion_implementation_plan.md)
+**Status**: ✅ Complete - All 5 status effects implemented (CONFUSED, BLINDED, HASTED, LEVITATING, SEE_INVISIBLE)

@@ -1,42 +1,112 @@
 # TurnService
 
 **Location**: `src/services/TurnService/TurnService.ts`
-**Dependencies**: None
-**Test Coverage**: Turn increment, turn retrieval
+**Dependencies**: StatusEffectService
+**Test Coverage**: Turn increment, status effect ticking, energy system integration
 
 ---
 
 ## Purpose
 
-Centralized **turn counter management** for the turn-based game loop. Standardizes turn increment across all 26 commands, replacing inline `turnCount + 1` arithmetic.
+Centralized **turn management system** that handles:
+1. Turn counter incrementing
+2. Status effect duration ticking
+3. Energy-based action system (player and monsters)
+4. Turn-based game loop coordination
 
 ---
 
 ## Public API
 
-### `incrementTurn(state: GameState): GameState`
-Increments turn counter by 1 (immutable).
+### Turn Management
+
+#### `incrementTurn(state: GameState): GameState`
+Increments turn counter and ticks all status effects.
+
+**Process**:
+1. Increment turnCount by 1
+2. Tick player status effects (reduce duration by 1)
+3. Remove expired effects
+4. Return new game state
 
 **Usage**:
 ```typescript
+// In commands
 return this.turnService.incrementTurn(state)
 ```
 
-**Before (deprecated pattern)**:
+**Example**:
 ```typescript
-return { ...state, turnCount: state.turnCount + 1 }
+// Before: turnCount: 100, player has CONFUSED (5 turns remaining)
+const newState = turnService.incrementTurn(state)
+// After: turnCount: 101, player has CONFUSED (4 turns remaining)
 ```
-
-**See**: [claude.md - TurnService Standardization](../claude.md#6-real-example-turnservice-standardization-fixed-in-commit-1902d9c)
 
 ---
 
-### `getCurrentTurn(state: GameState): number`
+#### `getCurrentTurn(state: GameState): number`
 Retrieves current turn count.
 
 **Usage**:
 ```typescript
 const turn = this.turnService.getCurrentTurn(state)
+```
+
+---
+
+### Energy System (Angband-style)
+
+#### `grantPlayerEnergy(state: GameState): GameState`
+Grants energy to player based on speed/haste status.
+
+**Energy Grant**:
+- Base: 100 energy per turn
+- HASTED: 200 energy per turn (double speed)
+
+**Usage**:
+```typescript
+// Main game loop - grant energy until player can act
+while (!turnService.canPlayerAct(state.player)) {
+  state = turnService.grantPlayerEnergy(state)
+}
+```
+
+---
+
+#### `consumePlayerEnergy(player: Player, amount: number = 100): Player`
+Consumes energy after player action.
+
+**Default Cost**: 100 energy (standard action)
+
+**Usage**:
+```typescript
+// After executing command
+const updatedPlayer = turnService.consumePlayerEnergy(state.player)
+```
+
+---
+
+#### `canPlayerAct(player: Player): boolean`
+Checks if player has enough energy to act.
+
+**Threshold**: 100 energy required
+
+**Usage**:
+```typescript
+if (turnService.canPlayerAct(player)) {
+  // Process command
+}
+```
+
+---
+
+#### `grantEnergy(entity: Player | Monster, amount: number): Player | Monster`
+Generic energy grant for any entity.
+
+**Usage**:
+```typescript
+// Grant monster energy based on speed
+const updatedMonster = turnService.grantEnergy(monster, monster.speed)
 ```
 
 ---
@@ -52,14 +122,26 @@ const turn = this.turnService.getCurrentTurn(state)
 **Benefits**:
 - Eliminates duplication
 - Single source of truth
-- Easy to extend (future: turn-based effects, status decay)
+- Automatic status effect ticking
 - No arithmetic in commands (architectural compliance)
 
-**Future Extensions** (Phase 3):
-- Trigger turn-based effects (poison damage, regeneration)
-- Status effect duration decrement
-- Monster turn scheduling
-- Time-based events (hunger tick, fuel consumption)
+### Why Energy System?
+
+**Problem**: Original turn-based system couldn't support variable speeds
+
+**Solution**: Angband-style energy system
+
+**Benefits**:
+- **Variable Speed**: Monsters can act at different rates (speed 5 = slow, 10 = normal, 20 = fast)
+- **Haste Support**: Player with HASTED status gains energy twice as fast
+- **Flexible Actions**: Future support for actions costing different energy amounts
+- **Smooth Gameplay**: Natural turn progression without rigid "one action per turn" constraint
+
+**Implementation**:
+- Entities accumulate energy each turn
+- Actions cost 100 energy
+- Speed determines energy gain rate (speed 10 = 100 energy/turn)
+- When energy >= 100, entity can act
 
 ---
 
@@ -86,11 +168,82 @@ return this.turnService.incrementTurn({
 ## Related Services
 
 - **All Commands** - Use `incrementTurn()` at end of execution
+- **StatusEffectService** - Ticks status effects via `tickStatusEffects()`
+- **MonsterTurnService** - Uses energy system for monster turn processing
+- **PotionService** - HASTE_SELF potion doubles energy gain
+- **MovementService** - All movement consumes 100 energy
 - **MessageService** - Uses turn number for message timestamping
-- **MonsterTurnService** - Coordinates monster turns with player turns (future)
+- **Main Game Loop** - Manages energy grant/consume cycle
 
 ---
 
-## Implementation Reference
+## Game Loop Integration
 
-See `src/services/TurnService/TurnService.ts` (23 lines total)
+```typescript
+// Main game loop (simplified)
+function handlePlayerAction(command: Command, state: GameState): GameState {
+  // Phase 1: Grant energy until player can act
+  while (!turnService.canPlayerAct(state.player)) {
+    state = turnService.grantPlayerEnergy(state)
+  }
+
+  // Phase 2: Execute command
+  state = command.execute(state)
+
+  // Phase 3: Consume player energy
+  state = {
+    ...state,
+    player: turnService.consumePlayerEnergy(state.player)
+  }
+
+  // Phase 4: Process monsters (if player exhausted energy)
+  if (!turnService.canPlayerAct(state.player)) {
+    state = monsterTurnService.processMonsterTurns(state)
+  }
+
+  return state
+}
+```
+
+---
+
+## Implementation Details
+
+**Status Effect Integration**:
+```typescript
+incrementTurn(state: GameState): GameState {
+  // Tick status effects
+  const updatedPlayer = this.statusEffectService.tickStatusEffects(state.player)
+
+  return {
+    ...state,
+    player: updatedPlayer,
+    turnCount: state.turnCount + 1,
+  }
+}
+```
+
+**Energy System**:
+```typescript
+grantPlayerEnergy(state: GameState): GameState {
+  const hasHaste = state.player.statusEffects.some(e => e.type === 'HASTED')
+  const energyGain = hasHaste ? 200 : 100 // Double speed when hasted
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      energy: state.player.energy + energyGain
+    }
+  }
+}
+```
+
+---
+
+## See Also
+
+- [StatusEffectService](./StatusEffectService.md) - Status effect management
+- [MonsterTurnService](./MonsterTurnService.md) - Monster AI and turn processing
+- [PotionService](./PotionService.md) - HASTE_SELF potion implementation
+- [Energy System Plan](../plans/potion_implementation_plan.md) - Complete energy system design
