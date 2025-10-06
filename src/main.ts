@@ -77,19 +77,20 @@ async function initializeGame() {
   const pathfindingService = new PathfindingService()
   const monsterAIService = new MonsterAIService(pathfindingService, random, fovService)
   const specialAbilityService = new SpecialAbilityService(random)
+  const turnService = new TurnService(statusEffectService)
   const monsterTurnService = new MonsterTurnService(
     random,
     monsterAIService,
     combatService,
     specialAbilityService,
-    messageService
+    messageService,
+    turnService
   )
   const modalController = new ModalController(identificationService)
   const doorService = new DoorService()
   const potionService = new PotionService(random, identificationService, levelingService, statusEffectService)
   const scrollService = new ScrollService(identificationService, inventoryService)
   const wandService = new WandService(identificationService)
-  const turnService = new TurnService(statusEffectService)
   const levelService = new LevelService()
 
   // Dungeon configuration

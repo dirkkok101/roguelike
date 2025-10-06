@@ -3,10 +3,11 @@ import { MonsterAIService, MonsterAction } from '@services/MonsterAIService'
 import { CombatService } from '@services/CombatService'
 import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { MessageService } from '@services/MessageService'
+import { TurnService } from '@services/TurnService'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
-// MONSTER TURN SERVICE - Process all monster turns
+// MONSTER TURN SERVICE - Process all monster turns with energy system
 // ============================================================================
 
 export class MonsterTurnService {
@@ -15,11 +16,13 @@ export class MonsterTurnService {
     private aiService: MonsterAIService,
     private combatService: CombatService,
     private abilityService: SpecialAbilityService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private turnService: TurnService
   ) {}
 
   /**
-   * Process turns for all monsters on current level
+   * Process turns for all monsters on current level with energy system
+   * Grants energy to each monster based on speed, processes multiple actions if energy allows
    */
   processMonsterTurns(state: GameState): GameState {
     const level = state.levels.get(state.currentLevel)
@@ -34,32 +37,56 @@ export class MonsterTurnService {
         continue
       }
 
-      // Update monster (wake up check, FOV, memory, state transitions)
-      let updatedMonster = this.aiService.checkWakeUp(monster, currentState)
-      updatedMonster = this.aiService.computeMonsterFOV(updatedMonster, currentState)
-      updatedMonster = this.aiService.updateMonsterMemory(updatedMonster, currentState)
-      updatedMonster = this.aiService.updateMonsterState(updatedMonster, currentState)
+      // Grant energy to monster based on speed
+      let updatedMonster = this.turnService.grantEnergy(monster, monster.speed)
 
-      // Apply regeneration if monster has it
-      if (this.abilityService.hasSpecial(updatedMonster, 'regenerates')) {
-        const regenResult = this.abilityService.regenerate(updatedMonster)
-        if (regenResult.monster) {
-          updatedMonster = regenResult.monster
+      // Save energy grant to level immediately
+      currentState = this.updateMonsterInLevel(updatedMonster, currentState)
+
+      // Process monster while it has enough energy to act
+      while (this.turnService.canAct(updatedMonster)) {
+        // Update monster (wake up check, FOV, memory, state transitions)
+        updatedMonster = this.aiService.checkWakeUp(updatedMonster, currentState)
+        updatedMonster = this.aiService.computeMonsterFOV(updatedMonster, currentState)
+        updatedMonster = this.aiService.updateMonsterMemory(updatedMonster, currentState)
+        updatedMonster = this.aiService.updateMonsterState(updatedMonster, currentState)
+
+        // Apply regeneration if monster has it
+        if (this.abilityService.hasSpecial(updatedMonster, 'regenerates')) {
+          const regenResult = this.abilityService.regenerate(updatedMonster)
+          if (regenResult.monster) {
+            updatedMonster = regenResult.monster
+          }
+        }
+
+        // Save updated monster to level BEFORE executing actions
+        // This ensures state changes (wake-up, FOV, memory) persist even if action is 'wait'
+        currentState = this.updateMonsterInLevel(updatedMonster, currentState)
+
+        // Decide action
+        const action = this.aiService.decideAction(updatedMonster, currentState)
+
+        // Execute action
+        const result = this.executeMonsterAction(updatedMonster, action, currentState)
+        currentState = result
+
+        // Consume energy after action
+        const currentLevel = currentState.levels.get(currentState.currentLevel)
+        if (currentLevel) {
+          const monsterAfterAction = currentLevel.monsters.find((m) => m.id === updatedMonster.id)
+          if (monsterAfterAction) {
+            updatedMonster = this.turnService.consumeEnergy(monsterAfterAction)
+            currentState = this.updateMonsterInLevel(updatedMonster, currentState)
+          }
+        }
+
+        // Stop processing if player died
+        if (currentState.player.hp <= 0) {
+          break
         }
       }
 
-      // Save updated monster to level BEFORE executing actions
-      // This ensures state changes (wake-up, FOV, memory) persist even if action is 'wait'
-      currentState = this.updateMonsterInLevel(updatedMonster, currentState)
-
-      // Decide action
-      const action = this.aiService.decideAction(updatedMonster, currentState)
-
-      // Execute action
-      const result = this.executeMonsterAction(updatedMonster, action, currentState)
-      currentState = result
-
-      // Stop processing if player died
+      // Stop processing monsters if player died
       if (currentState.player.hp <= 0) {
         break
       }
