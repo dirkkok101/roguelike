@@ -3,6 +3,7 @@ import { InventoryService } from '@services/InventoryService'
 import { PotionService } from '@services/PotionService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
 import { MockRandom } from '@services/RandomService'
@@ -13,6 +14,7 @@ describe('QuaffPotionCommand', () => {
   let potionService: PotionService
   let messageService: MessageService
   let turnService: TurnService
+  let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
 
   beforeEach(() => {
@@ -20,9 +22,10 @@ describe('QuaffPotionCommand', () => {
     mockRandom = new MockRandom()
     const identificationService = new IdentificationService()
     const levelingService = new LevelingService(mockRandom)
-    potionService = new PotionService(mockRandom, identificationService, levelingService)
+    statusEffectService = new StatusEffectService()
+    potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
     messageService = new MessageService()
-    turnService = new TurnService()
+    turnService = new TurnService(statusEffectService)
   })
 
   function createTestPlayer(hp: number = 20): Player {
@@ -45,6 +48,8 @@ describe('QuaffPotionCommand', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 
