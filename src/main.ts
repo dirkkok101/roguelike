@@ -6,6 +6,7 @@ import { RenderingService } from '@services/RenderingService'
 import { MovementService } from '@services/MovementService'
 import { MessageService } from '@services/MessageService'
 import { DungeonService } from '@services/DungeonService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { CombatService } from '@services/CombatService'
 import { PathfindingService } from '@services/PathfindingService'
 import { MonsterAIService } from '@services/MonsterAIService'
@@ -60,7 +61,18 @@ async function initializeGame() {
   const renderingService = new RenderingService(fovService)
   const movementService = new MovementService(random, statusEffectService)
   const messageService = new MessageService()
-  const dungeonService = new DungeonService(random, itemData)
+
+  // Load monster data
+  const monsterSpawnService = new MonsterSpawnService(random)
+  try {
+    await monsterSpawnService.loadMonsterData()
+    console.log('Monsters loaded from monsters.json')
+  } catch (error) {
+    console.error('Failed to load monsters.json:', error)
+    throw error // Fatal error - game cannot proceed without monster data
+  }
+
+  const dungeonService = new DungeonService(random, monsterSpawnService, itemData)
   const hungerService = new HungerService(random)
   const regenerationService = new RegenerationService()
   const levelingService = new LevelingService(random)

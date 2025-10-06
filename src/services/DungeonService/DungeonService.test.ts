@@ -166,8 +166,8 @@ describe('DungeonService', () => {
     test('should generate identical dungeons with same seed', () => {
       const random1 = new SeededRandom('deterministic-seed')
       const random2 = new SeededRandom('deterministic-seed')
-      const service1 = new DungeonService(random1)
-      const service2 = new DungeonService(random2)
+      const service1 = new DungeonService(random1, mockMonsterSpawnService)
+      const service2 = new DungeonService(random2, mockMonsterSpawnService)
 
       const level1 = service1.generateLevel(1, defaultConfig)
       const level2 = service2.generateLevel(1, defaultConfig)

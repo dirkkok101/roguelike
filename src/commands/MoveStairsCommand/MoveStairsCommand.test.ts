@@ -1,6 +1,7 @@
 import { MoveStairsCommand } from './MoveStairsCommand'
 import { MessageService } from '@services/MessageService'
 import { DungeonService, DungeonConfig } from '@services/DungeonService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
 import { VictoryService } from '@services/VictoryService'
@@ -25,7 +26,15 @@ describe('MoveStairsCommand', () => {
     messageService = new MessageService()
     const random = new SeededRandom('test-seed')
     const mockRandom = new MockRandom()
-    dungeonService = new DungeonService(random)
+
+    // Mock MonsterSpawnService
+    const mockMonsterSpawnService = {
+      loadMonsterData: jest.fn().mockResolvedValue(undefined),
+      spawnMonsters: jest.fn().mockReturnValue([]),
+      getSpawnCount: jest.fn().mockReturnValue(5),
+    } as unknown as MonsterSpawnService
+
+    dungeonService = new DungeonService(random, mockMonsterSpawnService)
     statusEffectService = new StatusEffectService()
     fovService = new FOVService(statusEffectService)
     lightingService = new LightingService(mockRandom)
