@@ -3,7 +3,7 @@
 **Version**: 1.0
 **Created**: 2025-10-05
 **Status**: Planning
-**Related Docs**: [Game Design](./game-design.md) | [CLAUDE.md](../CLAUDE.md) | [Architecture](./architecture.md)
+**Related Docs**: [Game Design](../game-design/README.md) | [CLAUDE.md](../../CLAUDE.md) | [Architecture](../architecture.md)
 
 ---
 
@@ -1042,10 +1042,10 @@ from classic roguelikes (Rogue 1980, NetHack, Angband).
 ## 13. References
 
 ### Related Documentation
-- [CLAUDE.md](../CLAUDE.md) - Workflow rules, SOLID principles
-- [Game Design](./game-design.md) - Current monolithic doc (to be replaced)
-- [Architecture](./architecture.md) - Technical architecture
-- [Systems Core](./systems-core.md) - Core systems (lighting, FOV)
+- [CLAUDE.md](../../CLAUDE.md) - Workflow rules, SOLID principles
+- [Game Design](../game-design/README.md) - Current modular docs (result of this refactor)
+- [Architecture](../architecture.md) - Technical architecture
+- [Systems Core](../systems-core.md) - Core systems (lighting, FOV)
 - [Regeneration Plan](./regeneration_plan.md) - Health regeneration mechanics
 - [Light Source Plan](./light_source_plan.md) - Lighting system details
 

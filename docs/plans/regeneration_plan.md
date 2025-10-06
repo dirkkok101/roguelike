@@ -3,7 +3,7 @@
 **Version**: 1.0
 **Created**: 2025-10-05
 **Status**: Planning
-**Related Docs**: [Game Design](./game-design.md) | [Systems Core](./systems-core.md) | [Architecture](./architecture.md) | [CLAUDE.md](../CLAUDE.md)
+**Related Docs**: [Game Design](../game-design/README.md) | [Systems Core](../systems-core.md) | [Architecture](../architecture.md) | [CLAUDE.md](../../CLAUDE.md)
 
 ---
 
@@ -684,11 +684,11 @@ docs/regeneration_plan.md            # This file - mark complete
 - **Modern roguelikes**: Exploration healing, hunger gates
 
 ### Project Documentation
-- [CLAUDE.md](../CLAUDE.md) - Architecture principles, workflow
-- [Game Design](./game-design.md) - Core mechanics, character stats
-- [Systems Core](./systems-core.md) - Service layer documentation
-- [Architecture](./architecture.md) - Technical patterns, data structures
-- [Testing Strategy](./testing-strategy.md) - Test organization
+- [CLAUDE.md](../../CLAUDE.md) - Architecture principles, workflow
+- [Game Design](../game-design/README.md) - Core mechanics, character stats
+- [Systems Core](../systems-core.md) - Service layer documentation
+- [Architecture](../architecture.md) - Technical patterns, data structures
+- [Testing Strategy](../testing-strategy.md) - Test organization
 
 ### Related Services
 - `HungerService` - Food consumption, hunger mechanics
