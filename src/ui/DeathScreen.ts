@@ -31,8 +31,8 @@ export class DeathScreen {
   show(
     stats: ComprehensiveDeathStats,
     state: GameState,
-    onNewGame: () => void,
-    onReplaySeed: () => void,
+    onNewGame: (characterName: string) => void,
+    onReplaySeed: (seed: string, characterName: string) => void,
     onQuitToMenu: () => void
   ): void {
     // Calculate score using ScoreCalculationService
@@ -56,7 +56,7 @@ export class DeathScreen {
     const allEntries = this.leaderboardStorageService.getAllEntries()
     const rankInfo = this.leaderboardService.calculateRank(score, allEntries)
 
-    this.container = this.createDeathModal(stats, rankInfo, onNewGame, onReplaySeed, onQuitToMenu)
+    this.container = this.createDeathModal(stats, state, rankInfo, onNewGame, onReplaySeed, onQuitToMenu)
     document.body.appendChild(this.container)
   }
 
@@ -72,9 +72,10 @@ export class DeathScreen {
 
   private createDeathModal(
     stats: ComprehensiveDeathStats,
+    state: GameState,
     rankInfo: { rank: number; percentile: number },
-    onNewGame: () => void,
-    onReplaySeed: () => void,
+    onNewGame: (characterName: string) => void,
+    onReplaySeed: (seed: string, characterName: string) => void,
     onQuitToMenu: () => void
   ): HTMLDivElement {
     const overlay = document.createElement('div')
@@ -207,11 +208,13 @@ export class DeathScreen {
       if (key === 'n') {
         document.removeEventListener('keydown', handleKeyPress)
         this.hide()
-        onNewGame()
+        // Use same character name for new game
+        onNewGame(state.characterName)
       } else if (key === 'r') {
         document.removeEventListener('keydown', handleKeyPress)
         this.hide()
-        onReplaySeed()
+        // Replay same seed with same character name
+        onReplaySeed(state.seed, state.characterName)
       } else if (key === 'q') {
         document.removeEventListener('keydown', handleKeyPress)
         this.hide()

@@ -232,6 +232,7 @@ export interface GameState {
   turnCount: number
   seed: string
   gameId: string
+  characterName: string // Player's character name for leaderboard
   isGameOver: boolean
   hasWon: boolean
   hasAmulet: boolean // Player has retrieved the Amulet of Yendor
@@ -446,6 +447,7 @@ export interface LeaderboardEntry {
   // Meta
   id: string // Unique entry ID (gameId + timestamp)
   gameId: string // Game instance ID
+  characterName: string // Player's character name
   timestamp: number // Unix timestamp (milliseconds)
   seed: string // Dungeon seed for verification
 

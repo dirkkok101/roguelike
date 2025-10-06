@@ -50,8 +50,8 @@ export class GameRenderer {
     private scoreCalculationService: ScoreCalculationService,
     private preferencesService: PreferencesService,
     private onReturnToMenu: () => void,
-    private onStartNewGame: () => void,
-    private onReplaySeed: (seed: string) => void,
+    private onStartNewGame: (characterName: string) => void,
+    private onReplaySeed: (seed: string, characterName: string) => void,
     _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,

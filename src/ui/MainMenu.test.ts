@@ -54,24 +54,48 @@ describe('MainMenu', () => {
     expect(document.body.textContent).toContain('[?] Help')
   })
 
-  test('calls onNewGame when N pressed', () => {
+  test('shows character name modal when N pressed', () => {
     const callback = jest.fn()
     menu.show(false, callback, jest.fn())
 
     const event = new KeyboardEvent('keydown', { key: 'n' })
     document.dispatchEvent(event)
 
-    expect(callback).toHaveBeenCalled()
+    // Character name modal should be shown
+    expect(document.querySelector('.character-name-modal')).toBeTruthy()
   })
 
-  test('calls onNewGame when uppercase N pressed', () => {
+  test('shows character name modal when uppercase N pressed', () => {
     const callback = jest.fn()
     menu.show(false, callback, jest.fn())
 
     const event = new KeyboardEvent('keydown', { key: 'N' })
     document.dispatchEvent(event)
 
-    expect(callback).toHaveBeenCalled()
+    // Character name modal should be shown
+    expect(document.querySelector('.character-name-modal')).toBeTruthy()
+  })
+
+  test('calls onNewGame with character name when modal submitted', () => {
+    const callback = jest.fn()
+    menu.show(false, callback, jest.fn())
+
+    // Press N to show character name modal
+    const nEvent = new KeyboardEvent('keydown', { key: 'n' })
+    document.dispatchEvent(nEvent)
+
+    // Find the input field and change its value
+    const input = document.querySelector('input[type="text"]') as HTMLInputElement
+    expect(input).toBeTruthy()
+
+    input.value = 'TestHero'
+
+    // Press Enter on document (modal listens to document-level events)
+    const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' })
+    document.dispatchEvent(enterEvent)
+
+    // onNewGame should be called with the character name
+    expect(callback).toHaveBeenCalledWith('TestHero')
   })
 
   test('calls onContinue when C pressed with save', () => {

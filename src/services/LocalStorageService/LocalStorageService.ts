@@ -312,6 +312,8 @@ export class LocalStorageService {
       detectedMonsters,
       detectedMagicItems,
       itemNameMap,
+      // MIGRATION: Add default characterName for old saves
+      characterName: data.characterName ?? 'Unknown Hero',
     }
   }
 }

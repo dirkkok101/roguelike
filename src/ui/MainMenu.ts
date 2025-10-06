@@ -2,6 +2,10 @@ import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { PreferencesService } from '@services/PreferencesService'
 import { LeaderboardScreen } from './LeaderboardScreen'
+import { CharacterNameModal } from './CharacterNameModal'
+
+const LAST_CHARACTER_NAME_KEY = 'roguelike_last_character_name'
+const DEFAULT_CHARACTER_NAME = 'Anonymous'
 
 /**
  * MainMenu - Main menu screen with Continue/New Game/Help/Leaderboard options
@@ -10,13 +14,15 @@ export class MainMenu {
   private container: HTMLDivElement | null = null
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null
   private leaderboardScreen: LeaderboardScreen
+  private characterNameModal: CharacterNameModal
+  private preferencesService: PreferencesService
 
   // Store show() parameters for re-showing after seed input cancel
   private lastShowParams: {
     hasSave: boolean
-    onNewGame: () => void
+    onNewGame: (characterName: string) => void
     onContinue: () => void
-    onCustomSeed: (seed: string) => void
+    onCustomSeed: (seed: string, characterName: string) => void
   } | null = null
 
   constructor(
@@ -24,25 +30,27 @@ export class MainMenu {
     leaderboardStorageService: LeaderboardStorageService,
     preferencesService: PreferencesService
   ) {
+    this.preferencesService = preferencesService
     this.leaderboardScreen = new LeaderboardScreen(
       leaderboardService,
       leaderboardStorageService,
       preferencesService
     )
+    this.characterNameModal = new CharacterNameModal()
   }
 
   /**
    * Show main menu
    * @param hasSave Whether a save exists (shows Continue option)
-   * @param onNewGame Callback when N is pressed
+   * @param onNewGame Callback when N is pressed (receives characterName)
    * @param onContinue Callback when C is pressed
-   * @param onCustomSeed Callback when custom seed is provided
+   * @param onCustomSeed Callback when custom seed is provided (receives seed and characterName)
    */
   show(
     hasSave: boolean,
-    onNewGame: () => void,
+    onNewGame: (characterName: string) => void,
     onContinue: () => void,
-    onCustomSeed: (seed: string) => void
+    onCustomSeed: (seed: string, characterName: string) => void
   ): void {
     // Store parameters for potential re-show (e.g., after ESC from seed input)
     this.lastShowParams = { hasSave, onNewGame, onContinue, onCustomSeed }
@@ -75,9 +83,9 @@ export class MainMenu {
 
   private createMenuModal(
     hasSave: boolean,
-    onNewGame: () => void,
+    onNewGame: (characterName: string) => void,
     onContinue: () => void,
-    onCustomSeed: (seed: string) => void
+    onCustomSeed: (seed: string, characterName: string) => void
   ): HTMLDivElement {
     const overlay = document.createElement('div')
     overlay.className = 'modal-overlay main-menu'
@@ -154,14 +162,18 @@ export class MainMenu {
       if (key === 'n') {
         e.preventDefault()
         this.hide()
-        onNewGame()
+        this.showCharacterNameInput((characterName) => {
+          onNewGame(characterName)
+        })
       } else if (key === 'c' && hasSave) {
         e.preventDefault()
         this.hide()
         onContinue()
       } else if (key === 's') {
         e.preventDefault()
-        this.showSeedInput(onCustomSeed)
+        this.showCharacterNameInput((characterName) => {
+          this.showSeedInput(onCustomSeed, characterName)
+        })
       } else if (key === 'l') {
         e.preventDefault()
         this.showLeaderboard()
@@ -176,6 +188,33 @@ export class MainMenu {
 
     overlay.appendChild(modal)
     return overlay
+  }
+
+  private showCharacterNameInput(onSubmit: (characterName: string) => void): void {
+    // Load last-used character name from preferences
+    const lastCharacterName = this.preferencesService.load<string>(LAST_CHARACTER_NAME_KEY) || DEFAULT_CHARACTER_NAME
+
+    // Show character name modal
+    this.characterNameModal.show(
+      lastCharacterName,
+      (characterName) => {
+        // Save character name to preferences for next time
+        this.preferencesService.save(LAST_CHARACTER_NAME_KEY, characterName)
+        // Call the submit callback with the character name
+        onSubmit(characterName)
+      },
+      () => {
+        // User cancelled - return to main menu
+        if (this.lastShowParams) {
+          this.show(
+            this.lastShowParams.hasSave,
+            this.lastShowParams.onNewGame,
+            this.lastShowParams.onContinue,
+            this.lastShowParams.onCustomSeed
+          )
+        }
+      }
+    )
   }
 
   private showLeaderboard(): void {
@@ -196,7 +235,7 @@ export class MainMenu {
     })
   }
 
-  private showSeedInput(onCustomSeed: (seed: string) => void): void {
+  private showSeedInput(onCustomSeed: (seed: string, characterName: string) => void, characterName: string): void {
     // Hide main menu temporarily
     this.hide()
 
@@ -277,7 +316,7 @@ export class MainMenu {
           // Valid seed - clean up and start game
           document.removeEventListener('keydown', handleKeyPress)
           overlay.remove()
-          onCustomSeed(seed)
+          onCustomSeed(seed, characterName)
         } else {
           // Invalid seed - shake the input
           input.style.borderColor = '#FF0000'
