@@ -50,11 +50,84 @@ export class TargetingService {
 
   /**
    * Main targeting entry point
-   * Routes to appropriate targeting logic based on mode
+   * Automatically selects best target based on request
+   * Useful for auto-targeting (nearest monster) or AI
    */
   selectTarget(request: TargetingRequest, state: GameState): TargetingResult {
-    // TODO: Implement in Phase 1.4
-    throw new Error('Not implemented')
+    const currentLevel = state.levels.get(state.currentLevel)
+    if (!currentLevel) {
+      return {
+        success: false,
+        message: 'Invalid level state.',
+      }
+    }
+
+    switch (request.mode) {
+      case TargetingMode.MONSTER:
+        return this.selectMonsterTarget(request, state, currentLevel)
+
+      case TargetingMode.DIRECTION:
+        return {
+          success: false,
+          message: 'Direction targeting requires user input (not automated).',
+        }
+
+      case TargetingMode.POSITION:
+        return {
+          success: false,
+          message: 'Position targeting requires user input (not automated).',
+        }
+
+      default:
+        return {
+          success: false,
+          message: 'Invalid targeting mode.',
+        }
+    }
+  }
+
+  /**
+   * Helper: Auto-select nearest valid monster target
+   */
+  private selectMonsterTarget(
+    request: TargetingRequest,
+    state: GameState,
+    level: Level
+  ): TargetingResult {
+    // Get visible monsters sorted by distance
+    const visibleMonsters = this.getVisibleMonsters(state.player, level, state.visibleCells)
+
+    if (visibleMonsters.length === 0) {
+      return {
+        success: false,
+        message: 'No monsters in range.',
+      }
+    }
+
+    // Find first valid target (monsters already sorted by distance)
+    for (const monster of visibleMonsters) {
+      const validation = this.isValidMonsterTarget(
+        monster,
+        state.player,
+        level,
+        request.maxRange,
+        request.requiresLOS,
+        state.visibleCells
+      )
+
+      if (validation.isValid) {
+        return {
+          success: true,
+          targetMonsterId: monster.id,
+        }
+      }
+    }
+
+    // No valid targets found
+    return {
+      success: false,
+      message: 'No valid targets in range.',
+    }
   }
 
   // ============================================================================
