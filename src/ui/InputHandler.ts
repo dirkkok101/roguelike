@@ -314,6 +314,9 @@ export class InputHandler {
           const scrollItem = scroll as Scroll
 
           if (scrollItem.scrollType === ScrollType.IDENTIFY) {
+            // Close scroll selection modal before opening target selection
+            this.modalController.hide()
+
             // Show unidentified items
             this.modalController.showItemSelection(
               'unidentified',
@@ -333,6 +336,9 @@ export class InputHandler {
               }
             )
           } else if (scrollItem.scrollType === ScrollType.ENCHANT_WEAPON) {
+            // Close scroll selection modal before opening target selection
+            this.modalController.hide()
+
             // Show weapons
             this.modalController.showItemSelection(
               'weapon',
@@ -352,6 +358,9 @@ export class InputHandler {
               }
             )
           } else if (scrollItem.scrollType === ScrollType.ENCHANT_ARMOR) {
+            // Close scroll selection modal before opening target selection
+            this.modalController.hide()
+
             // Show armor
             this.modalController.showItemSelection(
               'armor',

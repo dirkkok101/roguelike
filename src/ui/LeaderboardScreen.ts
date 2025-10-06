@@ -436,9 +436,10 @@ export class LeaderboardScreen {
     }
 
     return `
-      <pre style="color: #CCCCCC; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px;">┌─────┬──────────┬───────┬────────┬─────────┬──────────────┐</pre>
-      <div style="display: grid; grid-template-columns: 60px 140px 80px 100px 120px 180px; gap: 5px; margin: 0 10px; font-size: 13px; font-weight: bold; color: #FFD700; padding: 5px 0; border-bottom: 1px solid #444;">
+      <pre style="color: #CCCCCC; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px;">┌─────┬────────────┬──────────┬───────┬────────┬─────────┬──────────────┐</pre>
+      <div style="display: grid; grid-template-columns: 60px 120px 140px 80px 100px 120px 180px; gap: 5px; margin: 0 10px; font-size: 13px; font-weight: bold; color: #FFD700; padding: 5px 0; border-bottom: 1px solid #444;">
         <div class="sort-rank" style="cursor: pointer; text-align: center;">Rank${getSortIndicator('rank')}</div>
+        <div style="text-align: left;">Character</div>
         <div class="sort-score" style="cursor: pointer; text-align: right;">Score${getSortIndicator('score')}</div>
         <div class="sort-level" style="cursor: pointer; text-align: center;">Level${getSortIndicator('level')}</div>
         <div class="sort-turns" style="cursor: pointer; text-align: right;">Turns${getSortIndicator('turns')}</div>
@@ -446,7 +447,7 @@ export class LeaderboardScreen {
         <div class="sort-date" style="cursor: pointer; text-align: left;">Date${getSortIndicator('date')}</div>
       </div>
       ${entries.map((entry, index) => this.renderTableRow(entry, index)).join('')}
-      <pre style="color: #CCCCCC; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px;">└─────┴──────────┴───────┴────────┴─────────┴──────────────┘</pre>
+      <pre style="color: #CCCCCC; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px;">└─────┴────────────┴──────────┴───────┴────────┴─────────┴──────────────┘</pre>
     `
   }
 
@@ -456,6 +457,7 @@ export class LeaderboardScreen {
     const outcomeColor = entry.isVictory ? '#00FF00' : '#FF6666'
     const outcomeText = entry.isVictory ? '✓ Victory' : '✗ Death'
     const date = new Date(entry.timestamp).toLocaleDateString()
+    const characterName = entry.characterName || 'Unknown'
 
     const rowBg = index % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
 
@@ -463,11 +465,12 @@ export class LeaderboardScreen {
       <div
         class="entry-row"
         data-entry-id="${entry.id}"
-        style="display: grid; grid-template-columns: 60px 140px 80px 100px 120px 180px; gap: 5px; margin: 0 10px; padding: 8px 0; background: ${rowBg}; font-size: 13px; border-bottom: 1px solid #222; cursor: pointer; transition: background 0.2s;"
+        style="display: grid; grid-template-columns: 60px 120px 140px 80px 100px 120px 180px; gap: 5px; margin: 0 10px; padding: 8px 0; background: ${rowBg}; font-size: 13px; border-bottom: 1px solid #222; cursor: pointer; transition: background 0.2s;"
         onmouseover="this.style.background='rgba(255, 215, 0, 0.1)'"
         onmouseout="this.style.background='${rowBg}'"
       >
         <div style="text-align: center;">${rankBadge} ${rank}</div>
+        <div style="text-align: left; color: #00FF88; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${characterName}</div>
         <div style="text-align: right; color: #FFD700; font-weight: bold;">${entry.score.toLocaleString()}</div>
         <div style="text-align: center; color: #00FFFF;">${entry.finalLevel}</div>
         <div style="text-align: right; color: #888;">${entry.totalTurns.toLocaleString()}</div>

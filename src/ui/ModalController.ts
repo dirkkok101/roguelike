@@ -126,8 +126,16 @@ export class ModalController {
         if (index < filteredItems.length) {
           event.preventDefault()
           const item = filteredItems[index]
+          const topModalBefore = this.modalStack[this.modalStack.length - 1]
           topCallback(item)
-          this.hide()
+          const topModalAfter = this.modalStack[this.modalStack.length - 1]
+
+          // Only hide if the top modal is still the same one
+          // (callback may have opened a new modal, e.g., targeting scrolls)
+          if (topModalBefore === topModalAfter) {
+            this.hide()
+          }
+
           return true
         }
       }

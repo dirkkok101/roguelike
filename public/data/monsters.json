@@ -1,5 +1,24 @@
 [
   {
+    "letter": "A",
+    "name": "Aquator",
+    "hp": "5d8",
+    "ac": 2,
+    "damage": "0d0",
+    "xpValue": 50,
+    "level": 5,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 3,
+      "aggroRange": 7,
+      "fleeThreshold": 0.0,
+      "special": ["rust_armor"]
+    }
+  },
+  {
     "letter": "B",
     "name": "Bat",
     "hp": "1d8",
@@ -19,41 +38,231 @@
     }
   },
   {
-    "letter": "K",
-    "name": "Kobold",
-    "hp": "1d4",
-    "ac": 7,
-    "damage": "1d4",
-    "xpValue": 1,
-    "level": 1,
-    "speed": 10,
-    "rarity": "common",
+    "letter": "C",
+    "name": "Centaur",
+    "hp": "4d8",
+    "ac": 4,
+    "damage": "1d2+1d5+1d5",
+    "xpValue": 30,
+    "level": 4,
+    "speed": 12,
+    "rarity": "uncommon",
     "mean": false,
     "aiProfile": {
-      "behavior": "SIMPLE",
-      "intelligence": 1,
-      "aggroRange": 7,
-      "fleeThreshold": 0.0,
+      "behavior": "SMART",
+      "intelligence": 6,
+      "aggroRange": 10,
+      "fleeThreshold": 0.2,
       "special": []
     }
   },
   {
-    "letter": "S",
-    "name": "Snake",
-    "hp": "1d6",
-    "ac": 5,
-    "damage": "1d3",
+    "letter": "D",
+    "name": "Dragon",
+    "hp": "10d8",
+    "ac": -1,
+    "damage": "1d8+3d10",
+    "xpValue": 5000,
+    "level": 10,
+    "speed": 18,
+    "rarity": "rare",
+    "mean": true,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 8,
+      "aggroRange": 15,
+      "fleeThreshold": 0.15,
+      "special": ["mean", "breath_weapon"]
+    }
+  },
+  {
+    "letter": "E",
+    "name": "Emu",
+    "hp": "1d8",
+    "ac": 7,
+    "damage": "1d2",
     "xpValue": 2,
     "level": 1,
-    "speed": 12,
+    "speed": 10,
+    "rarity": "common",
+    "mean": true,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 1,
+      "aggroRange": 6,
+      "fleeThreshold": 0.0,
+      "special": ["mean"]
+    }
+  },
+  {
+    "letter": "F",
+    "name": "Venus Flytrap",
+    "hp": "8d8",
+    "ac": 3,
+    "damage": "1d6",
+    "xpValue": 100,
+    "level": 6,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "STATIONARY",
+      "intelligence": 1,
+      "aggroRange": 2,
+      "fleeThreshold": 0.0,
+      "special": ["hold_player"]
+    }
+  },
+  {
+    "letter": "G",
+    "name": "Griffin",
+    "hp": "13d8",
+    "ac": 2,
+    "damage": "4d3+3d5",
+    "xpValue": 6000,
+    "level": 10,
+    "speed": 18,
+    "rarity": "rare",
+    "mean": true,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 7,
+      "aggroRange": 12,
+      "fleeThreshold": 0.1,
+      "special": ["regeneration", "flying", "mean"]
+    }
+  },
+  {
+    "letter": "H",
+    "name": "Hobgoblin",
+    "hp": "1d8",
+    "ac": 5,
+    "damage": "1d8",
+    "xpValue": 3,
+    "level": 1,
+    "speed": 10,
     "rarity": "common",
     "mean": true,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
-      "aggroRange": 5,
+      "aggroRange": 7,
       "fleeThreshold": 0.0,
-      "special": []
+      "special": ["mean"]
+    }
+  },
+  {
+    "letter": "I",
+    "name": "Ice Monster",
+    "hp": "1d8",
+    "ac": 9,
+    "damage": "0d0",
+    "xpValue": 20,
+    "level": 5,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 2,
+      "aggroRange": 6,
+      "fleeThreshold": 0.0,
+      "special": ["freeze_player"]
+    }
+  },
+  {
+    "letter": "J",
+    "name": "Jabberwock",
+    "hp": "15d8",
+    "ac": 6,
+    "damage": "2d12+2d4",
+    "xpValue": 7000,
+    "level": 10,
+    "speed": 18,
+    "rarity": "rare",
+    "mean": true,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 7,
+      "aggroRange": 12,
+      "fleeThreshold": 0.1,
+      "special": ["mean"]
+    }
+  },
+  {
+    "letter": "K",
+    "name": "Kestrel",
+    "hp": "1d8",
+    "ac": 7,
+    "damage": "1d4",
+    "xpValue": 4,
+    "level": 2,
+    "speed": 15,
+    "rarity": "common",
+    "mean": true,
+    "aiProfile": {
+      "behavior": "ERRATIC",
+      "intelligence": 2,
+      "aggroRange": 8,
+      "fleeThreshold": 0.0,
+      "special": ["flying", "mean"]
+    }
+  },
+  {
+    "letter": "L",
+    "name": "Leprechaun",
+    "hp": "3d8",
+    "ac": 8,
+    "damage": "1d1",
+    "xpValue": 25,
+    "level": 4,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "THIEF",
+      "intelligence": 6,
+      "aggroRange": 10,
+      "fleeThreshold": 1.0,
+      "special": ["steal_gold"]
+    }
+  },
+  {
+    "letter": "M",
+    "name": "Medusa",
+    "hp": "8d8",
+    "ac": 2,
+    "damage": "3d4+3d4+2d5",
+    "xpValue": 500,
+    "level": 8,
+    "speed": 12,
+    "rarity": "rare",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 7,
+      "aggroRange": 10,
+      "fleeThreshold": 0.2,
+      "special": ["confuse_player"]
+    }
+  },
+  {
+    "letter": "N",
+    "name": "Nymph",
+    "hp": "3d8",
+    "ac": 9,
+    "damage": "0d0",
+    "xpValue": 80,
+    "level": 6,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "THIEF",
+      "intelligence": 7,
+      "aggroRange": 8,
+      "fleeThreshold": 1.0,
+      "special": ["steal_item", "teleport"]
     }
   },
   {
@@ -76,20 +285,77 @@
     }
   },
   {
-    "letter": "Z",
-    "name": "Zombie",
-    "hp": "2d8",
-    "ac": 8,
-    "damage": "1d8",
-    "xpValue": 7,
-    "level": 2,
-    "speed": 5,
-    "rarity": "uncommon",
+    "letter": "P",
+    "name": "Phantom",
+    "hp": "8d8",
+    "ac": 3,
+    "damage": "4d4",
+    "xpValue": 400,
+    "level": 8,
+    "speed": 15,
+    "rarity": "rare",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 7,
+      "aggroRange": 10,
+      "fleeThreshold": 0.2,
+      "special": ["invisible"]
+    }
+  },
+  {
+    "letter": "Q",
+    "name": "Quagga",
+    "hp": "3d8",
+    "ac": 3,
+    "damage": "1d5+1d5",
+    "xpValue": 15,
+    "level": 3,
+    "speed": 10,
+    "rarity": "common",
     "mean": true,
     "aiProfile": {
       "behavior": "SIMPLE",
-      "intelligence": 1,
+      "intelligence": 2,
+      "aggroRange": 7,
+      "fleeThreshold": 0.0,
+      "special": ["mean"]
+    }
+  },
+  {
+    "letter": "R",
+    "name": "Rattlesnake",
+    "hp": "2d8",
+    "ac": 3,
+    "damage": "1d6",
+    "xpValue": 12,
+    "level": 3,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 2,
       "aggroRange": 6,
+      "fleeThreshold": 0.0,
+      "special": ["drain_strength"]
+    }
+  },
+  {
+    "letter": "S",
+    "name": "Snake",
+    "hp": "1d8",
+    "ac": 5,
+    "damage": "1d3",
+    "xpValue": 2,
+    "level": 1,
+    "speed": 10,
+    "rarity": "common",
+    "mean": true,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 2,
+      "aggroRange": 5,
       "fleeThreshold": 0.0,
       "special": []
     }
@@ -114,22 +380,117 @@
     }
   },
   {
-    "letter": "D",
-    "name": "Dragon",
-    "hp": "10d8",
-    "ac": -1,
-    "damage": "1d8+3d10",
-    "xpValue": 5000,
-    "level": 10,
-    "speed": 18,
+    "letter": "U",
+    "name": "Ur-vile",
+    "hp": "7d8",
+    "ac": -2,
+    "damage": "1d9+1d9+2d9",
+    "xpValue": 1500,
+    "level": 9,
+    "speed": 15,
     "rarity": "rare",
     "mean": true,
     "aiProfile": {
       "behavior": "SMART",
-      "intelligence": 8,
-      "aggroRange": 15,
+      "intelligence": 7,
+      "aggroRange": 10,
       "fleeThreshold": 0.15,
-      "special": ["mean", "breath_weapon"]
+      "special": ["mean"]
+    }
+  },
+  {
+    "letter": "V",
+    "name": "Vampire",
+    "hp": "8d8",
+    "ac": 1,
+    "damage": "1d10",
+    "xpValue": 800,
+    "level": 8,
+    "speed": 15,
+    "rarity": "rare",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 7,
+      "aggroRange": 10,
+      "fleeThreshold": 0.3,
+      "special": ["regeneration", "drain_max_hp"]
+    }
+  },
+  {
+    "letter": "W",
+    "name": "Wraith",
+    "hp": "5d8",
+    "ac": 4,
+    "damage": "1d6",
+    "xpValue": 200,
+    "level": 7,
+    "speed": 12,
+    "rarity": "rare",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SMART",
+      "intelligence": 6,
+      "aggroRange": 9,
+      "fleeThreshold": 0.25,
+      "special": ["drain_xp"]
+    }
+  },
+  {
+    "letter": "X",
+    "name": "Xeroc",
+    "hp": "7d8",
+    "ac": 7,
+    "damage": "4d4",
+    "xpValue": 150,
+    "level": 7,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 3,
+      "aggroRange": 7,
+      "fleeThreshold": 0.2,
+      "special": []
+    }
+  },
+  {
+    "letter": "Y",
+    "name": "Yeti",
+    "hp": "4d8",
+    "ac": 6,
+    "damage": "1d6+1d6",
+    "xpValue": 35,
+    "level": 4,
+    "speed": 10,
+    "rarity": "uncommon",
+    "mean": false,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 3,
+      "aggroRange": 7,
+      "fleeThreshold": 0.15,
+      "special": []
+    }
+  },
+  {
+    "letter": "Z",
+    "name": "Zombie",
+    "hp": "2d8",
+    "ac": 8,
+    "damage": "1d8",
+    "xpValue": 7,
+    "level": 2,
+    "speed": 5,
+    "rarity": "uncommon",
+    "mean": true,
+    "aiProfile": {
+      "behavior": "SIMPLE",
+      "intelligence": 1,
+      "aggroRange": 6,
+      "fleeThreshold": 0.0,
+      "special": []
     }
   }
 ]

@@ -24,7 +24,7 @@ export class VictoryScreen {
    * Display victory screen with final stats
    * Also creates and stores leaderboard entry
    */
-  show(stats: VictoryStats, state: GameState, onNewGame: () => void): void {
+  show(stats: VictoryStats, state: GameState, onNewGame: (characterName: string) => void): void {
     // Create and store leaderboard entry
     const leaderboardEntry = this.leaderboardService.createEntry(
       state,
@@ -40,7 +40,7 @@ export class VictoryScreen {
       allEntries
     )
 
-    this.container = this.createVictoryModal(stats, rankInfo, onNewGame)
+    this.container = this.createVictoryModal(stats, state, rankInfo, onNewGame)
     document.body.appendChild(this.container)
   }
 
@@ -56,8 +56,9 @@ export class VictoryScreen {
 
   private createVictoryModal(
     stats: VictoryStats,
+    state: GameState,
     rankInfo: { rank: number; percentile: number },
-    onNewGame: () => void
+    onNewGame: (characterName: string) => void
   ): HTMLDivElement {
     const overlay = document.createElement('div')
     overlay.className = 'modal-overlay'
@@ -131,7 +132,8 @@ export class VictoryScreen {
       if (e.key.toLowerCase() === 'n') {
         document.removeEventListener('keydown', handleKeyPress)
         this.hide()
-        onNewGame()
+        // Use same character name for new game after victory
+        onNewGame(state.characterName)
       }
     }
     document.addEventListener('keydown', handleKeyPress)

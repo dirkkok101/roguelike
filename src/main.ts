@@ -140,7 +140,7 @@ async function initializeGame() {
   let inputHandler: InputHandler
 
   // Create initial game state
-  function createInitialState(): GameState {
+  function createInitialState(characterName: string): GameState {
   // Generate unique seed for this game
   const gameSeed = `seed-${Date.now()}`
 
@@ -223,6 +223,7 @@ async function initializeGame() {
     turnCount: 0,
     seed: gameSeed,
     gameId: 'game-' + Date.now(),
+    characterName,
     isGameOver: false,
     hasWon: false,
     hasAmulet: false,
@@ -240,13 +241,13 @@ async function initializeGame() {
   }
 
   // Callback to start completely new game with random seed
-  function startNewGame() {
-    const newState = createInitialState()
+  function startNewGame(characterName: string) {
+    const newState = createInitialState(characterName)
     startGame(newState)
   }
 
   // Callback to replay game with specific seed
-  function replaySeed(seed: string) {
+  function replaySeed(seed: string, characterName: string) {
     // Create new game with specified seed
     const gameRandom = new SeededRandom(seed)
     const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
@@ -321,6 +322,7 @@ async function initializeGame() {
       turnCount: 0,
       seed,
       gameId: 'game-' + Date.now(),
+      characterName,
       isGameOver: false,
       hasWon: false,
       hasAmulet: false,
@@ -407,6 +409,11 @@ async function initializeGame() {
     // 2. Player acts and consumes energy
     // 3. Process monsters if player exhausted energy, then increment turn
     currentKeydownHandler = (event: KeyboardEvent) => {
+      // Don't process game input if death or victory screen is visible
+      if (renderer.isDeathScreenVisible() || renderer.isVictoryScreenVisible()) {
+        return
+      }
+
       // PHASE 1: Grant energy to ALL actors (player + monsters) until player can act
       // Always grant at least one tick to ensure monsters don't fall behind
       do {
@@ -472,8 +479,8 @@ async function initializeGame() {
     mainMenu.show(
       hasSave,
       // New Game callback
-      () => {
-        const newState = createInitialState()
+      (characterName: string) => {
+        const newState = createInitialState(characterName)
         startGame(newState)
       },
       // Continue callback
@@ -484,14 +491,15 @@ async function initializeGame() {
           startGame(savedState)
         } else {
           console.error('Failed to load save, starting new game')
-          const newState = createInitialState()
+          // If load fails, fall back to new game with default character name
+          const newState = createInitialState('Unknown Hero')
           startGame(newState)
         }
       },
       // Custom Seed callback
-      (seed: string) => {
+      (seed: string, characterName: string) => {
         console.log('Starting game with custom seed:', seed)
-        replaySeed(seed)
+        replaySeed(seed, characterName)
       }
     )
   }

@@ -77,6 +77,7 @@ export class LeaderboardService {
       // Meta
       id,
       gameId: state.gameId,
+      characterName: state.characterName,
       timestamp: Date.now(),
       seed: state.seed,
 
