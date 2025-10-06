@@ -1,11 +1,21 @@
 import { MainMenu } from './MainMenu'
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { PreferencesService } from '@services/PreferencesService'
 
 describe('MainMenu', () => {
   let menu: MainMenu
+  let leaderboardService: LeaderboardService
+  let leaderboardStorageService: LeaderboardStorageService
+  let preferencesService: PreferencesService
 
   beforeEach(() => {
-    menu = new MainMenu()
+    leaderboardService = new LeaderboardService()
+    leaderboardStorageService = new LeaderboardStorageService()
+    preferencesService = new PreferencesService()
+    menu = new MainMenu(leaderboardService, leaderboardStorageService, preferencesService)
     document.body.innerHTML = ''
+    localStorage.clear()
   })
 
   afterEach(() => {

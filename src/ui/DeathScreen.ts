@@ -1,6 +1,7 @@
 import { ComprehensiveDeathStats } from '@services/DeathService'
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { GameState } from '@game/core/core'
 
 // ============================================================================
@@ -11,13 +12,16 @@ export class DeathScreen {
   private container: HTMLDivElement | null = null
   private leaderboardService: LeaderboardService
   private leaderboardStorageService: LeaderboardStorageService
+  private scoreCalculationService: ScoreCalculationService
 
   constructor(
     leaderboardService: LeaderboardService,
-    leaderboardStorageService: LeaderboardStorageService
+    leaderboardStorageService: LeaderboardStorageService,
+    scoreCalculationService: ScoreCalculationService
   ) {
     this.leaderboardService = leaderboardService
     this.leaderboardStorageService = leaderboardStorageService
+    this.scoreCalculationService = scoreCalculationService
   }
 
   /**
@@ -31,8 +35,13 @@ export class DeathScreen {
     onReplaySeed: () => void,
     onQuitToMenu: () => void
   ): void {
-    // Calculate score from death stats
-    const score = (stats.totalGold * 10) + (stats.finalLevel * 100) + (stats.totalXP * 5) - Math.floor(stats.totalTurns / 10)
+    // Calculate score using ScoreCalculationService
+    const score = this.scoreCalculationService.calculateScore(
+      stats.totalGold,
+      stats.finalLevel,
+      stats.totalXP,
+      stats.totalTurns
+    )
 
     // Create and store leaderboard entry
     const leaderboardEntry = this.leaderboardService.createEntry(

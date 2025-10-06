@@ -1,17 +1,20 @@
 import { LeaderboardScreen } from './LeaderboardScreen'
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { PreferencesService } from '@services/PreferencesService'
 import { GameState } from '@game/core/core'
 
 describe('LeaderboardScreen', () => {
   let screen: LeaderboardScreen
   let leaderboardService: LeaderboardService
   let leaderboardStorageService: LeaderboardStorageService
+  let preferencesService: PreferencesService
 
   beforeEach(() => {
     leaderboardService = new LeaderboardService()
     leaderboardStorageService = new LeaderboardStorageService()
-    screen = new LeaderboardScreen(leaderboardService, leaderboardStorageService)
+    preferencesService = new PreferencesService()
+    screen = new LeaderboardScreen(leaderboardService, leaderboardStorageService, preferencesService)
     document.body.innerHTML = ''
     localStorage.clear()
   })
@@ -507,7 +510,7 @@ describe('LeaderboardScreen', () => {
       )
 
       // Create new screen instance
-      const newScreen = new LeaderboardScreen(leaderboardService, leaderboardStorageService)
+      const newScreen = new LeaderboardScreen(leaderboardService, leaderboardStorageService, preferencesService)
       newScreen.show(jest.fn())
 
       // Check that preferences were loaded
@@ -618,7 +621,7 @@ describe('LeaderboardScreen', () => {
         JSON.stringify({ dateRange: 'all', entriesPerPage: 25, viewMode: 'seeds' })
       )
 
-      const newScreen = new LeaderboardScreen(leaderboardService, leaderboardStorageService)
+      const newScreen = new LeaderboardScreen(leaderboardService, leaderboardStorageService, preferencesService)
 
       // Add some entries
       const state = createTestState({ gameId: 'game-1', seed: 'test-seed' })

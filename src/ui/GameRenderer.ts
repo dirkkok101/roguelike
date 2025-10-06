@@ -9,6 +9,8 @@ import { LocalStorageService } from '@services/LocalStorageService'
 import { DeathService } from '@services/DeathService'
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { ScoreCalculationService } from '@services/ScoreCalculationService'
+import { PreferencesService } from '@services/PreferencesService'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -45,6 +47,8 @@ export class GameRenderer {
     private deathService: DeathService,
     private leaderboardService: LeaderboardService,
     private leaderboardStorageService: LeaderboardStorageService,
+    private scoreCalculationService: ScoreCalculationService,
+    private preferencesService: PreferencesService,
     private onReturnToMenu: () => void,
     private onStartNewGame: () => void,
     private onReplaySeed: (seed: string) => void,
@@ -66,7 +70,7 @@ export class GameRenderer {
     this.messageHistoryModal = new MessageHistoryModal()
     this.helpModal = new HelpModal(contextService)
     this.victoryScreen = new VictoryScreen(leaderboardService, leaderboardStorageService)
-    this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService)
+    this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService, scoreCalculationService)
   }
 
   /**

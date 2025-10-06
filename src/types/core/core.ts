@@ -471,11 +471,12 @@ export interface LeaderboardEntry {
   achievements: string[]
 
   // Equipment (snapshot at death/victory)
-  finalEquipment?: {
-    weapon?: string // "Long Sword +2"
-    armor?: string // "Chain Mail +1"
-    lightSource?: string // "Phial of Galadriel"
-    rings?: string[] // ["Ring of Regeneration", "Ring of Slow Digestion"]
+  // Always populated - uses "None" for unequipped slots
+  finalEquipment: {
+    weapon: string // "Long Sword +2" or "None"
+    armor: string // "Chain Mail +1" or "None"
+    lightSource: string // "Phial of Galadriel" or "None"
+    rings: string[] // ["Ring of Regeneration"] or [] for empty
   }
 
   // Efficiency metrics (derived)

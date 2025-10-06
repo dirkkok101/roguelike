@@ -1,6 +1,7 @@
 import { LeaderboardEntry, LeaderboardFilters, DEFAULT_LEADERBOARD_FILTERS } from '@game/core/core'
-import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardService, SeedGroup } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { PreferencesService } from '@services/PreferencesService'
 import { EntryDetailsModal } from './EntryDetailsModal'
 
 // ============================================================================
@@ -18,15 +19,6 @@ interface LeaderboardPreferences {
   viewMode: ViewMode
 }
 
-interface SeedGroup {
-  seed: string
-  entries: LeaderboardEntry[]
-  bestScore: number
-  totalRuns: number
-  victories: number
-  defeats: number
-}
-
 const DEFAULT_PREFERENCES: LeaderboardPreferences = {
   entriesPerPage: 25,
   dateRange: 'all',
@@ -39,6 +31,7 @@ export class LeaderboardScreen {
   private container: HTMLDivElement | null = null
   private leaderboardService: LeaderboardService
   private leaderboardStorageService: LeaderboardStorageService
+  private preferencesService: PreferencesService
   private entryDetailsModal: EntryDetailsModal
   private currentTab: TabType = 'all'
   private currentPage = 0
@@ -48,44 +41,38 @@ export class LeaderboardScreen {
   private dateRange: DateRange = 'all'
   private viewMode: ViewMode = 'entries'
   private expandedSeed: string | null = null
+  private keydownHandler: ((e: KeyboardEvent) => void) | null = null
 
   constructor(
     leaderboardService: LeaderboardService,
-    leaderboardStorageService: LeaderboardStorageService
+    leaderboardStorageService: LeaderboardStorageService,
+    preferencesService: PreferencesService
   ) {
     this.leaderboardService = leaderboardService
     this.leaderboardStorageService = leaderboardStorageService
+    this.preferencesService = preferencesService
     this.entryDetailsModal = new EntryDetailsModal()
 
-    // Load preferences from localStorage
+    // Load preferences from PreferencesService
     this.loadPreferences()
   }
 
   private loadPreferences(): void {
-    try {
-      const saved = localStorage.getItem(PREFERENCES_KEY)
-      if (saved) {
-        const preferences: LeaderboardPreferences = JSON.parse(saved)
-        this.entriesPerPage = preferences.entriesPerPage || DEFAULT_PREFERENCES.entriesPerPage
-        this.dateRange = preferences.dateRange || DEFAULT_PREFERENCES.dateRange
-        this.viewMode = preferences.viewMode || DEFAULT_PREFERENCES.viewMode
-      }
-    } catch (error) {
-      console.error('Failed to load leaderboard preferences:', error)
+    const saved = this.preferencesService.load<LeaderboardPreferences>(PREFERENCES_KEY)
+    if (saved) {
+      this.entriesPerPage = saved.entriesPerPage || DEFAULT_PREFERENCES.entriesPerPage
+      this.dateRange = saved.dateRange || DEFAULT_PREFERENCES.dateRange
+      this.viewMode = saved.viewMode || DEFAULT_PREFERENCES.viewMode
     }
   }
 
   private savePreferences(): void {
-    try {
-      const preferences: LeaderboardPreferences = {
-        entriesPerPage: this.entriesPerPage,
-        dateRange: this.dateRange,
-        viewMode: this.viewMode,
-      }
-      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences))
-    } catch (error) {
-      console.error('Failed to save leaderboard preferences:', error)
+    const preferences: LeaderboardPreferences = {
+      entriesPerPage: this.entriesPerPage,
+      dateRange: this.dateRange,
+      viewMode: this.viewMode,
     }
+    this.preferencesService.save(PREFERENCES_KEY, preferences)
   }
 
   /**
@@ -108,6 +95,12 @@ export class LeaderboardScreen {
     if (this.container) {
       this.container.remove()
       this.container = null
+    }
+
+    // Clean up event listener to prevent memory leak
+    if (this.keydownHandler) {
+      document.removeEventListener('keydown', this.keydownHandler)
+      this.keydownHandler = null
     }
   }
 
@@ -146,13 +139,16 @@ export class LeaderboardScreen {
     // Render initial content
     this.renderModalContent(modal, onClose)
 
-    // Handle keyboard input
-    const handleKeyPress = (e: KeyboardEvent) => {
+    // Handle keyboard input - store handler for cleanup
+    this.keydownHandler = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase()
 
       // Close modal
       if (key === 'escape' || key === 'q') {
-        document.removeEventListener('keydown', handleKeyPress)
+        if (this.keydownHandler) {
+          document.removeEventListener('keydown', this.keydownHandler)
+          this.keydownHandler = null
+        }
         this.hide()
         onClose()
         return
@@ -174,24 +170,36 @@ export class LeaderboardScreen {
         this.nextPage(modal, onClose)
       }
     }
-    document.addEventListener('keydown', handleKeyPress)
+    document.addEventListener('keydown', this.keydownHandler)
 
     overlay.appendChild(modal)
     return overlay
   }
 
   private renderModalContent(modal: HTMLDivElement, onClose: () => void): void {
-    // Get filtered entries based on current tab and date range
+    // Get all entries and apply filtering using service
     const allEntries = this.leaderboardStorageService.getAllEntries()
-    const filteredEntries = this.filterEntriesByTab(allEntries)
+
+    // Filter by outcome (tab)
+    const outcomeFiltered = this.leaderboardService.filterByOutcome(
+      allEntries,
+      this.currentTab
+    )
+
+    // Filter by date range
+    const dateRangeDays = this.getDateRangeDays()
+    const filteredEntries = this.leaderboardService.filterByDateRange(
+      outcomeFiltered,
+      dateRangeDays
+    )
 
     let content: string
     let totalPages: number
     let itemCount: number
 
     if (this.viewMode === 'seeds') {
-      // Seed-based view
-      const seedGroups = this.groupEntriesBySeed(filteredEntries)
+      // Seed-based view - use service to group entries
+      const seedGroups = this.leaderboardService.groupEntriesBySeed(filteredEntries)
       totalPages = Math.ceil(seedGroups.length / this.entriesPerPage)
       const startIndex = this.currentPage * this.entriesPerPage
       const endIndex = startIndex + this.entriesPerPage
@@ -199,8 +207,12 @@ export class LeaderboardScreen {
       content = this.renderSeedGroupsTable(pageSeedGroups)
       itemCount = seedGroups.length
     } else {
-      // Normal entries view
-      const sortedEntries = this.sortEntries(filteredEntries)
+      // Normal entries view - use service to sort entries
+      const sortedEntries = this.leaderboardService.sortEntriesByColumn(
+        filteredEntries,
+        this.sortColumn,
+        this.sortAscending
+      )
       totalPages = Math.ceil(sortedEntries.length / this.entriesPerPage)
       const startIndex = this.currentPage * this.entriesPerPage
       const endIndex = startIndex + this.entriesPerPage
@@ -501,96 +513,18 @@ export class LeaderboardScreen {
     }
   }
 
-  private filterEntriesByTab(entries: LeaderboardEntry[]): LeaderboardEntry[] {
-    // First filter by tab
-    let filtered = entries
-    switch (this.currentTab) {
-      case 'victories':
-        filtered = entries.filter(e => e.isVictory)
-        break
-      case 'deaths':
-        filtered = entries.filter(e => !e.isVictory)
-        break
-      default:
-        filtered = entries
-    }
-
-    // Then filter by date range
-    return this.filterEntriesByDateRange(filtered)
-  }
-
-  private filterEntriesByDateRange(entries: LeaderboardEntry[]): LeaderboardEntry[] {
-    if (this.dateRange === 'all') return entries
-
-    const now = Date.now()
-    const ranges: { [key in DateRange]: number} = {
+  /**
+   * Convert DateRange to number of days for service filtering
+   * Returns 0 for 'all' (no date filtering)
+   */
+  private getDateRangeDays(): number {
+    const ranges: { [key in DateRange]: number } = {
       'all': 0,
-      '7days': 7 * 24 * 60 * 60 * 1000,
-      '30days': 30 * 24 * 60 * 60 * 1000,
-      '90days': 90 * 24 * 60 * 60 * 1000,
+      '7days': 7,
+      '30days': 30,
+      '90days': 90,
     }
-
-    const cutoff = now - ranges[this.dateRange]
-    return entries.filter(e => e.timestamp >= cutoff)
-  }
-
-  private groupEntriesBySeed(entries: LeaderboardEntry[]): SeedGroup[] {
-    const seedMap = new Map<string, LeaderboardEntry[]>()
-
-    // Group entries by seed
-    entries.forEach(entry => {
-      const existing = seedMap.get(entry.seed) || []
-      existing.push(entry)
-      seedMap.set(entry.seed, existing)
-    })
-
-    // Convert to SeedGroup array
-    const groups: SeedGroup[] = []
-    seedMap.forEach((seedEntries, seed) => {
-      const bestScore = Math.max(...seedEntries.map(e => e.score))
-      const victories = seedEntries.filter(e => e.isVictory).length
-      const defeats = seedEntries.length - victories
-
-      groups.push({
-        seed,
-        entries: seedEntries,
-        bestScore,
-        totalRuns: seedEntries.length,
-        victories,
-        defeats,
-      })
-    })
-
-    // Sort by best score descending
-    return groups.sort((a, b) => b.bestScore - a.bestScore)
-  }
-
-  private sortEntries(entries: LeaderboardEntry[]): LeaderboardEntry[] {
-    const sorted = [...entries]
-
-    sorted.sort((a, b) => {
-      let comparison = 0
-
-      switch (this.sortColumn) {
-        case 'rank':
-        case 'score':
-          comparison = b.score - a.score // Higher score = better rank
-          break
-        case 'level':
-          comparison = b.finalLevel - a.finalLevel
-          break
-        case 'turns':
-          comparison = b.totalTurns - a.totalTurns
-          break
-        case 'date':
-          comparison = b.timestamp - a.timestamp
-          break
-      }
-
-      return this.sortAscending ? -comparison : comparison
-    })
-
-    return sorted
+    return ranges[this.dateRange]
   }
 
   private switchTab(tab: TabType, modal: HTMLDivElement, onClose: () => void): void {
@@ -608,7 +542,9 @@ export class LeaderboardScreen {
 
   private nextPage(modal: HTMLDivElement, onClose: () => void): void {
     const allEntries = this.leaderboardStorageService.getAllEntries()
-    const filteredEntries = this.filterEntriesByTab(allEntries)
+    const outcomeFiltered = this.leaderboardService.filterByOutcome(allEntries, this.currentTab)
+    const dateRangeDays = this.getDateRangeDays()
+    const filteredEntries = this.leaderboardService.filterByDateRange(outcomeFiltered, dateRangeDays)
     const totalPages = Math.ceil(filteredEntries.length / this.entriesPerPage)
 
     if (this.currentPage < totalPages - 1) {

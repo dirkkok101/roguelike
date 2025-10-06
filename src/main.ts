@@ -33,6 +33,8 @@ import { DeathService } from '@services/DeathService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { ScoreCalculationService } from '@services/ScoreCalculationService'
+import { PreferencesService } from '@services/PreferencesService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -88,6 +90,8 @@ async function initializeGame() {
   const localStorageService = new LocalStorageService()
   const leaderboardService = new LeaderboardService()
   const leaderboardStorageService = new LeaderboardStorageService()
+  const scoreCalculationService = new ScoreCalculationService()
+  const preferencesService = new PreferencesService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const combatService = new CombatService(random, hungerService, debugService)
   const pathfindingService = new PathfindingService()
@@ -340,6 +344,8 @@ async function initializeGame() {
       deathService,
       leaderboardService,
       leaderboardStorageService,
+      scoreCalculationService,
+      preferencesService,
       returnToMenu,
       startNewGame,
       replaySeed
@@ -424,7 +430,7 @@ async function initializeGame() {
   }
 
   // Create main menu instance
-  const mainMenu = new MainMenu(leaderboardService, leaderboardStorageService)
+  const mainMenu = new MainMenu(leaderboardService, leaderboardStorageService, preferencesService)
 
   // Track active event listeners for cleanup
   let currentKeydownHandler: ((e: KeyboardEvent) => void) | null = null

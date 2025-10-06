@@ -2,17 +2,20 @@ import { DeathScreen } from './DeathScreen'
 import { ComprehensiveDeathStats } from '@services/DeathService'
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { GameState } from '@game/core/core'
 
 describe('DeathScreen', () => {
   let screen: DeathScreen
   let leaderboardService: LeaderboardService
   let leaderboardStorageService: LeaderboardStorageService
+  let scoreCalculationService: ScoreCalculationService
 
   beforeEach(() => {
     leaderboardService = new LeaderboardService()
     leaderboardStorageService = new LeaderboardStorageService()
-    screen = new DeathScreen(leaderboardService, leaderboardStorageService)
+    scoreCalculationService = new ScoreCalculationService()
+    screen = new DeathScreen(leaderboardService, leaderboardStorageService, scoreCalculationService)
     // Clean up any existing modals
     document.body.innerHTML = ''
     localStorage.clear()

@@ -1,5 +1,6 @@
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { PreferencesService } from '@services/PreferencesService'
 import { LeaderboardScreen } from './LeaderboardScreen'
 
 /**
@@ -20,9 +21,14 @@ export class MainMenu {
 
   constructor(
     leaderboardService: LeaderboardService,
-    leaderboardStorageService: LeaderboardStorageService
+    leaderboardStorageService: LeaderboardStorageService,
+    preferencesService: PreferencesService
   ) {
-    this.leaderboardScreen = new LeaderboardScreen(leaderboardService, leaderboardStorageService)
+    this.leaderboardScreen = new LeaderboardScreen(
+      leaderboardService,
+      leaderboardStorageService,
+      preferencesService
+    )
   }
 
   /**

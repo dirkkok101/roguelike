@@ -21,6 +21,18 @@ export interface PersonalBests {
 }
 
 /**
+ * Grouped entries by seed with aggregate statistics
+ */
+export interface SeedGroup {
+  seed: string
+  entries: LeaderboardEntry[]
+  bestScore: number
+  totalRuns: number
+  victories: number
+  defeats: number
+}
+
+/**
  * Rank information for a score
  */
 export interface RankInfo {
@@ -373,6 +385,108 @@ export class LeaderboardService {
       deepestLevel: [...entries].sort((a, b) => b.deepestLevel - a.deepestLevel)[0],
       mostKills: [...entries].sort((a, b) => b.monstersKilled - a.monstersKilled)[0],
     }
+  }
+
+  /**
+   * Filter entries by outcome (all, victories, or deaths)
+   */
+  filterByOutcome(
+    entries: LeaderboardEntry[],
+    outcome: 'all' | 'victories' | 'deaths'
+  ): LeaderboardEntry[] {
+    switch (outcome) {
+      case 'victories':
+        return entries.filter((e) => e.isVictory)
+      case 'deaths':
+        return entries.filter((e) => !e.isVictory)
+      default:
+        return entries
+    }
+  }
+
+  /**
+   * Filter entries by date range
+   * Returns entries within the specified number of days from now
+   * Pass 0 for 'all' to return all entries
+   */
+  filterByDateRange(entries: LeaderboardEntry[], days: number): LeaderboardEntry[] {
+    if (days === 0) return entries
+
+    const now = Date.now()
+    const cutoff = now - days * 24 * 60 * 60 * 1000
+    return entries.filter((e) => e.timestamp >= cutoff)
+  }
+
+  /**
+   * Group entries by dungeon seed with aggregate statistics
+   * Useful for comparing performance on the same dungeon layout
+   * Returns groups sorted by best score descending
+   */
+  groupEntriesBySeed(entries: LeaderboardEntry[]): SeedGroup[] {
+    const seedMap = new Map<string, LeaderboardEntry[]>()
+
+    // Group entries by seed
+    entries.forEach((entry) => {
+      const existing = seedMap.get(entry.seed) || []
+      existing.push(entry)
+      seedMap.set(entry.seed, existing)
+    })
+
+    // Convert to SeedGroup array with aggregate stats
+    const groups: SeedGroup[] = []
+    seedMap.forEach((seedEntries, seed) => {
+      const bestScore = Math.max(...seedEntries.map((e) => e.score))
+      const victories = seedEntries.filter((e) => e.isVictory).length
+      const defeats = seedEntries.length - victories
+
+      groups.push({
+        seed,
+        entries: seedEntries,
+        bestScore,
+        totalRuns: seedEntries.length,
+        victories,
+        defeats,
+      })
+    })
+
+    // Sort by best score descending
+    return groups.sort((a, b) => b.bestScore - a.bestScore)
+  }
+
+  /**
+   * Sort entries by specified column and order
+   * Public method for UI to call
+   */
+  sortEntriesByColumn(
+    entries: LeaderboardEntry[],
+    column: 'rank' | 'score' | 'level' | 'turns' | 'date',
+    ascending: boolean
+  ): LeaderboardEntry[] {
+    const sorted = [...entries]
+
+    sorted.sort((a, b) => {
+      let comparison = 0
+
+      switch (column) {
+        case 'rank':
+        case 'score':
+          comparison = b.score - a.score // Higher score = better rank
+          break
+        case 'level':
+          comparison = b.finalLevel - a.finalLevel
+          break
+        case 'turns':
+          comparison = b.totalTurns - a.totalTurns
+          break
+        case 'date':
+          comparison = b.timestamp - a.timestamp
+          break
+      }
+
+      return ascending ? -comparison : comparison
+    })
+
+    return sorted
   }
 
   // ============================================================================
