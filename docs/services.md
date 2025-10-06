@@ -90,13 +90,13 @@ A **Service** is a class that encapsulates **all game logic and rules** for a sp
 
 ---
 
-### 1.3 Quick Reference: 32 Existing Services
+### 1.3 Quick Reference: 33 Existing Services
 
 **Core Game Loop**:
 - CombatService, MovementService, TurnService, MonsterTurnService
 
 **Player Management**:
-- InventoryService, HungerService, LevelingService
+- InventoryService, HungerService, RegenerationService, LevelingService
 
 **World & Perception**:
 - FOVService, LightingService, RenderingService, DungeonService

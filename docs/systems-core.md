@@ -410,9 +410,210 @@ MoveCommand Flow:
 
 ---
 
-## 6. Performance Considerations
+## 6. RegenerationService
 
-### 6.1 FOV Optimization
+**Inspiration**: Original Rogue (1980) natural healing, NetHack's ring mechanics, Angband's regeneration system
+
+### 6.1 Core Mechanic
+
+**Natural Regeneration**: Player heals **1 HP per 10 turns** when conditions are met
+
+**Turn Counter Tracking**:
+- Internal Map stores counter per player (keyed by position + maxHP)
+- Counter increments each turn
+- Resets to 0 after healing occurs
+
+**Formula**:
+```typescript
+BASE_TURNS = 10  // Turns between heals (normal)
+RING_TURNS = 5   // Turns between heals (with ring)
+HUNGER_THRESHOLD = 100  // Minimum hunger required
+
+canRegenerate = !inCombat && hunger > HUNGER_THRESHOLD && hp < maxHp
+if (canRegenerate && counter >= requiredTurns) {
+  hp = min(hp + 1, maxHp)
+  counter = 0
+}
+```
+
+---
+
+### 6.2 Blocking Conditions
+
+**Combat Blocking**:
+- No regeneration when enemy visible in FOV
+- Prevents healing during active combat
+- Encourages tactical retreat
+
+**Hunger Gating**:
+- Requires hunger > 100 to regenerate
+- Body needs food reserves to heal
+- Prevents infinite healing via starvation
+
+**Max HP Cap**:
+- Stops regenerating at maxHp
+- Use potions or rest command for full healing
+
+---
+
+### 6.3 Ring of Regeneration
+
+**Effect**: Doubles regeneration rate (5 turns instead of 10)
+
+**Detection**:
+```typescript
+hasRegenerationRing(player: Player): boolean {
+  const leftRing = player.equipment.leftRing
+  const rightRing = player.equipment.rightRing
+
+  return (leftRing?.ringType === RingType.REGENERATION) ||
+         (rightRing?.ringType === RingType.REGENERATION)
+}
+```
+
+**Hunger Cost**: +30% hunger consumption rate (handled by HungerService)
+
+**Synergy**: Combine with Ring of Slow Digestion (-50% hunger) for net -20% rate
+
+---
+
+### 6.4 Rest Command Integration
+
+**RestCommand** uses RegenerationService to heal until full HP or interrupted:
+
+```typescript
+Rest Loop:
+  WHILE hp < maxHp AND !interrupted:
+    1. Tick hunger (check for starvation death)
+    2. Tick regeneration (with combat check)
+    3. Tick light fuel
+    4. Update FOV
+    5. Check for enemy in FOV → interrupt
+    6. Check for hunger ≤ 0 → interrupt
+    7. Safety limit: 1000 turns max
+```
+
+**Keybindings**: `5` or `.` to rest
+
+**Interruptions**:
+- Enemy appears in FOV
+- Hunger reaches 0 (too hungry to rest)
+- Starvation death (0 hunger + HP damage)
+
+**Messages**:
+- `"Rested for X turns. Fully healed! (HP/maxHP)"`
+- `"You are interrupted by a nearby enemy!"`
+- `"You are too hungry to rest!"`
+
+---
+
+### 6.5 Integration with Other Systems
+
+**HungerService**:
+- Checks hunger threshold (> 100) before allowing regen
+- Applies ring hunger modifier (+30% for Regeneration ring)
+- Handles starvation damage during rest
+
+**FOVService**:
+- Provides visibleCells set for combat detection
+- Used to check if monsters are nearby (blocks regen)
+
+**LightingService**:
+- Fuel consumption continues during rest
+- Warnings issued if torch/lantern runs out mid-rest
+
+**TurnService**:
+- Increments turn count for each rest cycle
+- Ensures proper game time tracking
+
+**MoveCommand**:
+- Calls RegenerationService.tickRegeneration() each turn
+- Regeneration happens automatically during movement
+
+---
+
+### 6.6 Testing Strategy
+
+**Unit Tests** (46 tests across 4 files):
+- `natural-regen.test.ts`: Base 10-turn cycle, hunger gating
+- `ring-regen.test.ts`: Ring detection, rate doubling (5 turns)
+- `combat-blocking.test.ts`: FOV-based combat detection
+- `ring-hunger-penalty.test.ts`: Hunger rate modifications
+
+**Integration Tests** (8 tests):
+- Full combat → retreat → heal cycles
+- Hunger depletion blocking regeneration
+- Ring rate doubling in real gameplay
+- Rest command with monster interruptions
+- Turn count accuracy across systems
+
+**Coverage**: >95% for RegenerationService
+
+---
+
+### 6.7 Design Rationale
+
+**Turn-Based Formula**:
+- Predictable healing rate (1 HP / 10 turns = ~6 HP / minute)
+- Players can plan tactical retreats
+- Encourages "hit-and-run" combat style
+
+**Combat Blocking**:
+- Prevents exploiting regen during combat
+- Forces tactical positioning (break line of sight)
+- Matches original Rogue behavior
+
+**Hunger Gate**:
+- Resource tradeoff: food vs healing
+- Prevents infinite healing loop
+- Creates strategic depth (manage food vs HP)
+
+**Ring Tradeoff**:
+- 2x healing speed vs +30% food cost
+- Balances power with resource pressure
+- Synergizes with Slow Digestion ring
+
+**Immutability**:
+- Counter tracked externally (Map<string, number>)
+- Player object never mutated
+- Enables time-travel debugging, undo/redo
+
+---
+
+### 6.8 Implementation Notes
+
+**Counter Key Generation**:
+```typescript
+private getCounterKey(player: Player): string {
+  return `${player.position.x},${player.position.y},${player.maxHp}`
+}
+```
+- Unique per player location + max HP
+- Allows multiple players (future multiplayer)
+- Resets if maxHP changes (potion overheal)
+
+**Immutable Updates**:
+```typescript
+return {
+  player: { ...player, hp: newHp },
+  messages: [...messages],
+  healed: true
+}
+```
+- Always return new objects
+- Never mutate parameters
+- Result objects include metadata (healed, messages)
+
+**See**:
+- `src/services/RegenerationService/RegenerationService.ts` for implementation
+- `src/commands/RestCommand/RestCommand.ts` for rest loop
+- `docs/regeneration_plan.md` for full design specification
+
+---
+
+## 7. Performance Considerations
+
+### 7.1 FOV Optimization
 
 **Caching**:
 - Only recompute FOV when necessary (movement, light change, door state change)

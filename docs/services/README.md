@@ -27,6 +27,7 @@ See [Architecture Guide](../architecture.md) for details.
 | [FOVService](./FOVService.md) | Field of view, shadowcasting | `computeFOV`, `updateFOVAndExploration` | None |
 | [LightingService](./LightingService.md) | Light sources, fuel management | `tickFuel`, `getLightRadius`, `refillLantern` | RandomService |
 | [HungerService](./HungerService.md) | Hunger tracking, starvation | `tickHunger`, `consumeFood` | None |
+| [RegenerationService](./RegenerationService.md) | Health regeneration (1 HP/10 turns) | `tickRegeneration`, `hasRegenerationRing` | None |
 | [LevelingService](./LevelingService.md) | XP, level-up, stat progression | `addExperience`, `levelUp` | None |
 | [InventoryService](./InventoryService.md) | Item management, equipping | `addItem`, `equipWeapon`, `canCarry` | None |
 | [DoorService](./DoorService.md) | Door state management | `openDoor`, `closeDoor`, `canOpenDoor` | None |
