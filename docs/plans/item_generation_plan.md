@@ -206,11 +206,11 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 
 ---
 
-### Phase 2: Testing Cursed Item System (Priority: HIGH)
+### Phase 2: Testing Cursed Item System (Priority: HIGH) ✅
 
 **Objective**: Comprehensive test coverage for all curse mechanics
 
-#### Task 2.1: DungeonService Cursed Item Tests ⬜
+#### Task 2.1: DungeonService Cursed Item Tests ✅
 
 **Context**: Verify curse generation logic works correctly
 
@@ -218,20 +218,20 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/services/DungeonService/cursed-item-generation.test.ts`
 
 ##### Subtasks:
-- [ ] Test: `rollCursedStatus()` returns correct percentages (MockRandom)
-- [ ] Test: `rollEnchantment()` returns -1 to -3 for cursed items
-- [ ] Test: Cursed weapons spawn with negative bonus
-- [ ] Test: Cursed armor spawns with negative bonus
-- [ ] Test: Cursed rings spawn with negative bonus
-- [ ] Test: Ring of Teleportation always cursed
-- [ ] Test: Curse rates match expected (5%, 8%, 12% for rarity tiers)
-- [ ] Test: Name formatting correct for negative enchantments
-- [ ] Expected: 15+ tests
-- [ ] Git commit: "test: add cursed item generation tests (Phase 2.1)"
+- [x] Test: `rollCursedStatus()` returns correct percentages (MockRandom)
+- [x] Test: `rollEnchantment()` returns -1 to -3 for cursed items
+- [x] Test: Cursed weapons spawn with negative bonus
+- [x] Test: Cursed armor spawns with negative bonus
+- [x] Test: Cursed rings spawn with negative bonus
+- [x] Test: Ring of Teleportation always cursed
+- [x] Test: Curse rates match expected (5%, 8%, 12% for rarity tiers)
+- [x] Test: Name formatting correct for negative enchantments
+- [x] Expected: 15+ tests (13 tests implemented)
+- [x] Git commit: "test: add cursed item generation tests (Phase 2.1)"
 
 ---
 
-#### Task 2.2: EquipCommand Curse Discovery Tests ⬜
+#### Task 2.2: EquipCommand Curse Discovery Tests ✅
 
 **Context**: Verify curse discovery message triggers correctly
 
@@ -239,18 +239,18 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/commands/EquipCommand/EquipCommand.test.ts`
 
 ##### Subtasks:
-- [ ] Test: Equipping cursed weapon shows warning message
-- [ ] Test: Equipping cursed armor shows warning message
-- [ ] Test: Equipping cursed ring shows warning message
-- [ ] Test: Equipping non-cursed item shows no warning
-- [ ] Test: Message type is 'warning'
-- [ ] Test: Cannot unequip cursed item (existing test, verify still passes)
-- [ ] Expected: 6 new tests
-- [ ] Git commit: "test: add curse discovery tests to EquipCommand (Phase 2.2)"
+- [x] Test: Equipping cursed weapon shows warning message
+- [x] Test: Equipping cursed armor shows warning message
+- [x] Test: Equipping cursed ring shows warning message
+- [x] Test: Equipping non-cursed item shows no warning
+- [x] Test: Message type is 'warning'
+- [x] Test: Cannot unequip cursed item (existing test, verify still passes)
+- [x] Expected: 6 new tests (6 tests implemented)
+- [x] Git commit: "test: add curse discovery tests to EquipCommand (Phase 2.2)"
 
 ---
 
-#### Task 2.3: ScrollService Curse Removal Tests ⬜
+#### Task 2.3: ScrollService Curse Removal Tests ✅
 
 **Context**: Verify Enchant scrolls remove curses
 
@@ -258,13 +258,13 @@ Implement cursed item generation (weapons, armor, rings) with negative enchantme
 - `src/services/ScrollService/enchant-scrolls.test.ts`
 
 ##### Subtasks:
-- [ ] Test: Enchant Weapon on cursed weapon removes curse
-- [ ] Test: Enchant Armor on cursed armor removes curse
-- [ ] Test: Enchanting cursed item at max enchantment still removes curse
-- [ ] Test: Message indicates curse was lifted
-- [ ] Test: Item can now be unequipped after enchanting
-- [ ] Expected: 5 new tests
-- [ ] Git commit: "test: add curse removal tests for enchant scrolls (Phase 2.3)"
+- [x] Test: Enchant Weapon on cursed weapon removes curse
+- [x] Test: Enchant Armor on cursed armor removes curse
+- [x] Test: Enchanting cursed item at max enchantment still removes curse
+- [x] Test: Message indicates curse was lifted
+- [x] Test: Item can now be unequipped after enchanting
+- [x] Expected: 5 new tests (6 tests implemented)
+- [x] Git commit: "test: add curse removal tests for enchant scrolls (Phase 2.3)"
 
 ---
 
