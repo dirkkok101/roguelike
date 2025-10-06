@@ -134,7 +134,8 @@ export class DeathScreen {
 
       <div class="death-footer" style="margin-top: 25px; border-top: 1px solid #444; padding-top: 20px;">
         <div style="color: #888; margin-bottom: 8px; font-size: 13px;">
-          Seed: <span style="color: #AAA; user-select: all; cursor: text;">${stats.seed}</span>
+          Seed: <span id="death-seed" style="color: #AAA; user-select: all; cursor: pointer; padding: 2px 6px; background: rgba(255, 255, 255, 0.05); border-radius: 3px;">${stats.seed}</span>
+          <span id="copy-indicator" style="color: #00FF00; font-size: 11px; margin-left: 8px; opacity: 0; transition: opacity 0.3s;">✓ Copied!</span>
         </div>
         <div style="color: #888; margin-bottom: 15px; font-style: italic; font-size: 14px;">
           Permadeath - Your save has been deleted
@@ -171,6 +172,41 @@ export class DeathScreen {
       }
     }
     document.addEventListener('keydown', handleKeyPress)
+
+    // Handle seed copy to clipboard
+    const seedElement = modal.querySelector('#death-seed')
+    const copyIndicator = modal.querySelector('#copy-indicator')
+
+    if (seedElement && copyIndicator) {
+      seedElement.addEventListener('click', async () => {
+        try {
+          // Try modern clipboard API first
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(stats.seed)
+            // Show success indicator
+            copyIndicator.setAttribute('style', 'color: #00FF00; font-size: 11px; margin-left: 8px; opacity: 1; transition: opacity 0.3s;')
+            setTimeout(() => {
+              copyIndicator.setAttribute('style', 'color: #00FF00; font-size: 11px; margin-left: 8px; opacity: 0; transition: opacity 0.3s;')
+            }, 2000)
+          } else {
+            // Fallback: select text for manual copy
+            const selection = window.getSelection()
+            const range = document.createRange()
+            range.selectNodeContents(seedElement)
+            selection?.removeAllRanges()
+            selection?.addRange(range)
+          }
+        } catch (err) {
+          console.error('Failed to copy seed:', err)
+          // Fallback: select text for manual copy
+          const selection = window.getSelection()
+          const range = document.createRange()
+          range.selectNodeContents(seedElement)
+          selection?.removeAllRanges()
+          selection?.addRange(range)
+        }
+      })
+    }
 
     overlay.appendChild(modal)
     return overlay
