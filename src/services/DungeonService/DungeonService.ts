@@ -18,6 +18,7 @@ import {
   Potion,
   Scroll,
   Ring,
+  Wand,
   Food,
   Torch,
   Lantern,
@@ -26,6 +27,7 @@ import {
   PotionType,
   ScrollType,
   RingType,
+  WandType,
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { RoomGenerationService, RoomGenerationConfig } from '@services/RoomGenerationService'
@@ -669,6 +671,26 @@ export class DungeonService {
         { type: RingType.STEALTH, effect: 'stealth', rarity: 'rare' },
       ]
 
+    const wandTemplates =
+      this.itemData?.wands.map((w) => ({
+        type: WandType[w.type as keyof typeof WandType],
+        damage: w.damage,
+        charges: w.charges,
+        rarity: w.rarity,
+      })) ||
+      [
+        { type: WandType.LIGHTNING, damage: '6d6', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.FIRE, damage: '6d6', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.COLD, damage: '6d6', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.MAGIC_MISSILE, damage: '2d6', charges: '4d4', rarity: 'common' },
+        { type: WandType.SLEEP, damage: '0', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.HASTE_MONSTER, damage: '0', charges: '3d3', rarity: 'rare' },
+        { type: WandType.SLOW_MONSTER, damage: '0', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.POLYMORPH, damage: '0', charges: '3d3', rarity: 'rare' },
+        { type: WandType.TELEPORT_AWAY, damage: '0', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.CANCELLATION, damage: '0', charges: '3d3', rarity: 'rare' },
+      ]
+
     const foodTemplates =
       this.itemData?.food.map((f) => ({
         name: f.name,
@@ -717,9 +739,12 @@ export class DungeonService {
         // Late game (8-10): Fewer torches, more lanterns/oil, rare artifacts
         const categories: string[] = []
 
-        // Base categories (12 each)
+        // Base categories (12 each, 8 for wand)
         for (let j = 0; j < 12; j++) {
           categories.push('weapon', 'armor', 'potion', 'scroll', 'ring', 'food')
+        }
+        for (let j = 0; j < 8; j++) {
+          categories.push('wand')
         }
 
         // Extra food weight (total food weight: 18)
@@ -877,6 +902,31 @@ export class DungeonService {
                 hungerModifier: 1.5,
                 cursed: isCursed,
               } as Ring
+            }
+            break
+          }
+
+          case 'wand': {
+            const templates = wandTemplates.filter((t) => t.rarity === rarityRoll)
+            if (templates.length > 0) {
+              const template = this.random.pickRandom(templates)
+
+              // Roll for charges (e.g., "3d3" = 3-9 charges)
+              const maxCharges = this.random.roll(template.charges)
+              const currentCharges = maxCharges
+
+              item = {
+                id: itemId,
+                name: `Wand of ${template.type}`,
+                type: ItemType.WAND,
+                identified: false,
+                position: { x, y },
+                wandType: template.type,
+                damage: template.damage,
+                charges: maxCharges,
+                currentCharges,
+                woodName: 'unknown', // Set by IdentificationService
+              } as Wand
             }
             break
           }
