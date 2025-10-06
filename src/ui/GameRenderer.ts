@@ -182,27 +182,43 @@ export class GameRenderer {
         let char = tile.char
         let color = this.renderingService.getColorForTile(tile, visState)
 
-        // Items and gold (only if visible, before monsters so monsters render on top)
-        if (visState === 'visible') {
-          // Gold piles
-          const gold = level.gold.find((g) => g.position.x === x && g.position.y === y)
-          if (gold) {
-            char = '*'
-            color = '#FFD700' // Gold
+        // Items and gold (visible or detected in explored areas)
+        if (visState === 'visible' || visState === 'explored') {
+          // Gold piles (only if visible)
+          if (visState === 'visible') {
+            const gold = level.gold.find((g) => g.position.x === x && g.position.y === y)
+            if (gold) {
+              char = '*'
+              color = '#FFD700' // Gold
+            }
           }
 
-          // Items
+          // Items (visible or detected)
           const item = level.items.find((i) => i.position?.x === x && i.position?.y === y)
           if (item) {
-            char = this.getItemSymbol(item.type)
-            color = this.getItemColor(item.type)
+            const isDetected = state.detectedMagicItems.has(item.id)
+            const isVisible = visState === 'visible'
+
+            // Render if visible OR if detected and in explored area
+            if (isVisible || isDetected) {
+              char = this.getItemSymbol(item.type)
+              color = isVisible ? this.getItemColor(item.type) : this.dimColor(this.getItemColor(item.type))
+            }
           }
 
-          // Monsters (only if visible, render on top of items)
+          // Monsters (visible or detected in explored areas, render on top of items)
           const monster = level.monsters.find((m) => m.position.x === x && m.position.y === y)
           if (monster) {
-            char = monster.letter
-            color = this.renderingService.getColorForEntity(monster, visState)
+            const isDetected = state.detectedMonsters.has(monster.id)
+            const isVisible = visState === 'visible'
+
+            // Render if visible OR if detected and in explored area
+            if (isVisible || isDetected) {
+              char = monster.letter
+              color = isVisible
+                ? this.renderingService.getColorForEntity(monster, visState)
+                : this.dimColor(this.renderingService.getColorForEntity(monster, 'visible'))
+            }
           }
         }
 
@@ -360,6 +376,23 @@ export class GameRenderer {
 
     // Auto-scroll to bottom to show latest messages
     this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight
+  }
+
+  /**
+   * Dim a color for detected entities (not directly visible)
+   */
+  private dimColor(color: string): string {
+    // Convert hex to RGB, reduce brightness by 50%, return hex
+    const hex = color.replace('#', '')
+    const r = parseInt(hex.substr(0, 2), 16)
+    const g = parseInt(hex.substr(2, 2), 16)
+    const b = parseInt(hex.substr(4, 2), 16)
+
+    const dimmedR = Math.floor(r * 0.5)
+    const dimmedG = Math.floor(g * 0.5)
+    const dimmedB = Math.floor(b * 0.5)
+
+    return `#${dimmedR.toString(16).padStart(2, '0')}${dimmedG.toString(16).padStart(2, '0')}${dimmedB.toString(16).padStart(2, '0')}`
   }
 
   /**
