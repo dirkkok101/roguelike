@@ -68,11 +68,9 @@ export class VictoryScreen {
     `
 
     modal.innerHTML = `
-      <div class="victory-title" style="font-size: 24px; color: #FFD700; margin-bottom: 20px;">
-        ╔═══════════════════════════════╗
-        ║    VICTORY IS YOURS!          ║
-        ║  You escaped with the Amulet  ║
-        ╚═══════════════════════════════╝
+      <div class="victory-title" style="margin-bottom: 20px;">
+        <div style="font-size: 32px; color: #FFD700; font-weight: bold; margin-bottom: 5px; letter-spacing: 3px;">VICTORY IS YOURS!</div>
+        <div style="font-size: 20px; color: #FFA500; margin-top: 10px;">You escaped with the Amulet</div>
       </div>
 
       <div class="victory-stats" style="margin: 20px 0; text-align: left;">
