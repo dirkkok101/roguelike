@@ -1,8 +1,8 @@
 # Monsters
 
-**Version**: 2.0
-**Last Updated**: 2025-10-05
-**Related Docs**: [Combat](./09-combat.md) | [Dungeon](./03-dungeon.md) | [Character](./02-character.md)
+**Version**: 2.1
+**Last Updated**: 2025-10-06
+**Related Docs**: [Combat](./09-combat.md) | [Dungeon](./03-dungeon.md) | [Character](./02-character.md) | [MonsterSpawnService](../services/MonsterSpawnService.md)
 
 ---
 
@@ -223,6 +223,140 @@
 - Expect optimal pathing
 - Use terrain to advantage
 - Tactical retreats viable
+
+---
+
+## 8. Monster Speeds
+
+**New in Version 2.1**: Variable monster speeds for the energy system
+
+**Why Speed Matters**:
+The energy system determines action frequency. Every game tick, monsters gain energy equal to their speed:
+```
+monster.energy += monster.speed
+if (monster.energy >= 100) {
+  monster.takeTurn()
+  monster.energy -= 100
+}
+```
+
+**Before Refactor**: All monsters had hardcoded `speed = 10`, making the energy system ineffective.
+
+**After Refactor**: Monsters have variable speeds from data files (`monsters.json`), creating tactical variety.
+
+---
+
+### Speed Categories
+
+| Speed | Category | Actions Per Turn Cycle | Monsters |
+|-------|----------|------------------------|----------|
+| **5** | Slow | ~1 action per 20 turns | Zombie |
+| **7** | Slow-Normal | ~1 action per 15 turns | Troll |
+| **10** | Normal (Baseline) | 1 action per 10 turns | Kobold, Orc, Hobgoblin, Emu, Snake, Quagga, Yeti, Xeroc, Leprechaun, Nymph, Aquator, Ice Monster, Rattlesnake, Venus Flytrap |
+| **12** | Fast | ~1 action per 8 turns | Centaur, Medusa, Wraith |
+| **15** | Very Fast | ~1 action per 7 turns | Bat, Kestrel, Ur-vile, Vampire, Phantom |
+| **18** | Ultra Fast | ~1 action per 5-6 turns | Dragon, Griffin, Jabberwock |
+
+---
+
+### Speed Table (All Monsters)
+
+| Monster | Speed | Rationale |
+|---------|-------|-----------|
+| Aquator (A) | 10 | Normal speed, armor-rusting creature |
+| Bat (B) | 15 | Very fast, flying, erratic movement |
+| Centaur (C) | 12 | Fast, multiple attacks |
+| **Dragon (D)** | **18** | **Ultra fast boss**, flying, flame breath |
+| Emu (E) | 10 | Normal speed, mean |
+| Venus Flytrap (F) | 10 | Stationary (doesn't chase), normal attack speed |
+| **Griffin (G)** | **18** | **Ultra fast**, regenerates, flying, boss-tier |
+| Hobgoblin (H) | 10 | Normal speed, mean |
+| Ice Monster (I) | 10 | Normal speed, freezes player |
+| **Jabberwock (J)** | **18** | **Ultra fast boss**, high damage |
+| Kestrel (K) | 15 | Very fast, flying, erratic |
+| Leprechaun (L) | 10 | Normal speed, thief |
+| Medusa (M) | 12 | Fast, confuses player, multiple attacks |
+| Nymph (N) | 10 | Normal speed, thief, teleports |
+| Orc (O) | 10 | Normal speed, greedy |
+| Phantom (P) | 15 | Very fast, invisible |
+| Quagga (Q) | 10 | Normal speed, mean |
+| Rattlesnake (R) | 10 | Normal speed, reduces strength |
+| Snake (S) | 10 | Normal speed, mean |
+| Troll (T) | 7 | Slow-normal, regenerates (compensates for speed) |
+| Ur-vile (U) | 15 | Very fast, tough AC, mean |
+| Vampire (V) | 15 | Very fast, regenerates, drains HP, coward |
+| Wraith (W) | 12 | Fast, drains XP |
+| Xeroc (X) | 10 | Normal speed, no special abilities |
+| Yeti (Y) | 10 | Normal speed, two attacks |
+| **Zombie (Z)** | **5** | **Slow**, mean, undead |
+
+---
+
+### Design Rationale
+
+**Boss Monsters (Speed 18)**:
+- Dragon, Griffin, Jabberwock are endgame threats
+- Ultra fast speed makes them dangerous even with fewer spawns
+- Compensates for high XP value (players avoid fighting)
+
+**Flying Monsters (Speed 12-15)**:
+- Bat, Kestrel, Griffin: Flying creatures are naturally faster
+- Can cross difficult terrain (future enhancement)
+
+**Regenerators (Speed 7-10)**:
+- Troll (7): Slow speed balances regeneration advantage
+- Griffin (18): Speed + regeneration = boss tier
+- Vampire (15): Fast but flees when low HP (balanced)
+
+**Thieves (Speed 10)**:
+- Leprechaun, Nymph: Normal speed for hit-and-run tactics
+- Don't need speed advantage (teleportation/fleeing compensates)
+
+**Zombies (Speed 5)**:
+- Classic slow zombie trope
+- Dangerous in groups despite slow speed
+- Players can outrun easily (tactical choice)
+
+---
+
+### Tactical Implications
+
+**Fast Monsters (15-18 speed)**:
+- Act nearly twice as often as player (player speed ~10)
+- **Can't outrun** - must fight or use corridors tactically
+- **High priority targets** in group fights
+- Examples: Dragon breath weapon hits more frequently
+
+**Slow Monsters (5-7 speed)**:
+- Act less frequently than player
+- **Easy to kite** (hit and retreat)
+- **Dangerous in numbers** (blocking escape routes)
+- Examples: Zombie hordes corner players
+
+**Regenerators + Speed**:
+- Slow regenerators (Troll) give time to burst down
+- Fast regenerators (Griffin, Vampire) require immediate action
+- Extended combat favors regenerators regardless of speed
+
+---
+
+### Implementation
+
+**Data File**: `public/data/monsters.json`
+```json
+{
+  "letter": "D",
+  "name": "Dragon",
+  "speed": 18,
+  ...
+}
+```
+
+**Service**: [MonsterSpawnService](../services/MonsterSpawnService.md) loads speeds from JSON
+
+**Energy System**: [TurnService](../services/TurnService.md) grants energy based on speed
+
+**See**: [Monster Spawn Refactor Plan](../plans/monster_spawn_refactor_plan.md) for implementation details
 
 ---
 
