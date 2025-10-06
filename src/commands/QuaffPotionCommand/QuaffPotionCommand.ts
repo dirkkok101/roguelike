@@ -50,26 +50,29 @@ export class QuaffPotionCommand implements ICommand {
       state
     )
 
-    // 4. Remove potion from inventory
+    // 4. Use updated state if potion modified it (detection potions)
+    const baseState = result.state || state
+
+    // 5. Remove potion from inventory
     const updatedPlayer = this.inventoryService.removeItem(
       result.player,
       this.itemId
     )
 
-    // 5. Add message and increment turn
+    // 6. Add message and increment turn
     const messages = this.messageService.addMessage(
-      state.messages,
+      baseState.messages,
       result.message,
       'info',
-      state.turnCount
+      baseState.turnCount
     )
 
     return this.turnService.incrementTurn({
-      ...state,
+      ...baseState,
       player: updatedPlayer,
       messages,
       isGameOver: result.death || state.isGameOver,
-      itemsUsed: state.itemsUsed + 1, // Track potion use for death screen
+      itemsUsed: baseState.itemsUsed + 1, // Track potion use for death screen
     })
   }
 }

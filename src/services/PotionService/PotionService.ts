@@ -17,6 +17,7 @@ export interface PotionEffectResult {
   message: string
   identified: boolean
   death?: boolean
+  state?: GameState // Updated state for detection potions
 }
 
 // ============================================================================
@@ -95,6 +96,19 @@ export class PotionService {
           message = `You feel more experienced! (Level ${updatedPlayer.level})`
         }
         break
+
+      case PotionType.DETECT_MONSTERS:
+        {
+          const result = this.applyDetectMonsters(state)
+          message = result.message
+          return {
+            player,
+            message,
+            identified,
+            death: false,
+            state: result.state,
+          }
+        }
 
       default:
         message = `You quaff ${displayName}. (Effect not yet implemented)`
@@ -194,5 +208,46 @@ export class PotionService {
     // Use LevelingService to level up the player
     // This grants +1 level, rolls 1d8 for max HP increase, and fully heals
     return this.levelingService.levelUp(player)
+  }
+
+  private applyDetectMonsters(
+    state: GameState
+  ): { state: GameState; message: string } {
+    // Get current level
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return {
+        state,
+        message: 'You feel a strange sensation.',
+      }
+    }
+
+    // Get all monster IDs on current level
+    const monsterIds = new Set(level.monsters.map((m) => m.id))
+    const monsterCount = monsterIds.size
+
+    // Update state with detected monsters
+    const updatedState: GameState = {
+      ...state,
+      detectedMonsters: monsterIds,
+    }
+
+    // Generate message based on count
+    if (monsterCount === 0) {
+      return {
+        state: updatedState,
+        message: 'You have a strange feeling for a moment, then it passes.',
+      }
+    } else if (monsterCount === 1) {
+      return {
+        state: updatedState,
+        message: 'You sense a monster nearby!',
+      }
+    } else {
+      return {
+        state: updatedState,
+        message: `You sense ${monsterCount} monsters nearby!`,
+      }
+    }
   }
 }
