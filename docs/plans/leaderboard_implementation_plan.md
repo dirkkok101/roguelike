@@ -146,7 +146,7 @@
 
 ---
 
-### Phase 4: Entry Details & Filtering 🔄
+### Phase 4: Entry Details & Filtering ✅ COMPLETE
 
 #### Task 4.1: EntryDetailsModal Component ✅
 - [x] Create `src/ui/EntryDetailsModal.ts`
@@ -169,13 +169,15 @@
 - **Files**: `src/ui/LeaderboardScreen.ts`, `src/ui/LeaderboardScreen.test.ts`
 - **Commit**: "feat: add filter controls with date range and pagination settings" ✅
 
-#### Task 4.3: Seed-Based View ⬜
-- [ ] Add "Group by Seed" toggle
-- [ ] Show seed leaderboards
-- [ ] Click to view runs
-- [ ] Highlight current seed
-- **Files**: `src/ui/LeaderboardScreen.ts`
-- **Commit**: "feat: add seed-based leaderboard view"
+#### Task 4.3: Seed-Based View ✅
+- [x] Add view mode toggle (All Runs / By Seed)
+- [x] Group entries by seed with statistics
+- [x] Show best score, run count, win/loss ratio per seed
+- [x] Click seed row to view best run details
+- [x] Persist view mode preference
+- [x] Add comprehensive tests (6 new tests, all passing)
+- **Files**: `src/ui/LeaderboardScreen.ts`, `src/ui/LeaderboardScreen.test.ts`
+- **Commit**: "feat: add seed-based leaderboard view with grouping" ✅
 
 ---
 
@@ -241,12 +243,12 @@
 
 ## Progress Tracking
 
-**Overall Progress**: 15/18 tasks complete (83%)
+**Overall Progress**: 16/18 tasks complete (89%)
 
 **Phase 1 (Core Infrastructure)**: 5/5 tasks ✅ COMPLETE
 **Phase 2 (Integration)**: 4/4 tasks ✅ COMPLETE
 **Phase 3 (UI Simple)**: 4/4 tasks ✅ COMPLETE
-**Phase 4 (UI Advanced)**: 2/3 tasks 🔄 IN PROGRESS
+**Phase 4 (UI Advanced)**: 3/3 tasks ✅ COMPLETE
 **Phase 5 (Statistics)**: 0/3 tasks ⬜
 **Phase 6 (Polish)**: 0/3 tasks ⬜
 

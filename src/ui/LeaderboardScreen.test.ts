@@ -520,4 +520,117 @@ describe('LeaderboardScreen', () => {
       newScreen.hide()
     })
   })
+
+  describe('seed-based view', () => {
+    test('displays view mode toggle buttons', () => {
+      screen.show(jest.fn())
+
+      const allRunsButton = document.querySelector('[data-mode="entries"]')
+      const bySeedButton = document.querySelector('[data-mode="seeds"]')
+
+      expect(allRunsButton).not.toBeNull()
+      expect(bySeedButton).not.toBeNull()
+      expect(allRunsButton?.textContent).toContain('All Runs')
+      expect(bySeedButton?.textContent).toContain('By Seed')
+    })
+
+    test('switches to seed-based view when toggle clicked', () => {
+      // Add entries with different seeds
+      const seeds = ['seed-1', 'seed-1', 'seed-2', 'seed-2', 'seed-3']
+      seeds.forEach((seed, i) => {
+        const state = createTestState({ gameId: `game-${i}`, seed })
+        const entry = leaderboardService.createEntry(state, true, 1000 * (i + 1))
+        leaderboardStorageService.addEntry(entry)
+      })
+
+      screen.show(jest.fn())
+
+      const bySeedButton = document.querySelector('[data-mode="seeds"]') as HTMLButtonElement
+      bySeedButton.click()
+
+      // Should show 3 unique seeds
+      expect(document.body.textContent).toContain('3 unique seeds')
+    })
+
+    test('groups entries by seed correctly', () => {
+      // Add multiple entries for same seeds
+      const entries = [
+        { seed: 'seed-alpha', score: 5000 },
+        { seed: 'seed-alpha', score: 3000 },
+        { seed: 'seed-beta', score: 4000 },
+      ]
+
+      entries.forEach((data, i) => {
+        const state = createTestState({ gameId: `game-${i}`, seed: data.seed })
+        const entry = leaderboardService.createEntry(state, true, data.score)
+        leaderboardStorageService.addEntry(entry)
+      })
+
+      screen.show(jest.fn())
+
+      const bySeedButton = document.querySelector('[data-mode="seeds"]') as HTMLButtonElement
+      bySeedButton.click()
+
+      // Should show seed-alpha with best score 5,000 (2 runs)
+      // Should show seed-beta with best score 4,000 (1 run)
+      expect(document.body.textContent).toContain('5,000')
+      expect(document.body.textContent).toContain('4,000')
+      expect(document.body.textContent).toContain('seed-alpha')
+      expect(document.body.textContent).toContain('seed-beta')
+    })
+
+    test('displays seed statistics (runs, victories, defeats)', () => {
+      // Add mixed results for same seed
+      const victoryState = createTestState({ gameId: 'game-1', seed: 'test-seed' })
+      const victoryEntry = leaderboardService.createEntry(victoryState, true, 5000)
+      leaderboardStorageService.addEntry(victoryEntry)
+
+      const deathState = createTestState({ gameId: 'game-2', seed: 'test-seed' })
+      const deathEntry = leaderboardService.createEntry(deathState, false, 3000)
+      leaderboardStorageService.addEntry(deathEntry)
+
+      screen.show(jest.fn())
+
+      const bySeedButton = document.querySelector('[data-mode="seeds"]') as HTMLButtonElement
+      bySeedButton.click()
+
+      // Should show 2 runs, 1 victory (50%), 1 in defeats column
+      expect(document.body.textContent).toMatch(/2/i) // 2 runs
+      expect(document.body.textContent).toMatch(/1.*\(50%\)/i) // 1 victory at 50%
+      expect(document.body.textContent).toContain('Defeats') // Defeats column header
+    })
+
+    test('saves view mode preference to localStorage', () => {
+      screen.show(jest.fn())
+
+      const bySeedButton = document.querySelector('[data-mode="seeds"]') as HTMLButtonElement
+      bySeedButton.click()
+
+      const saved = localStorage.getItem('leaderboard_preferences')
+      const preferences = JSON.parse(saved!)
+
+      expect(preferences.viewMode).toBe('seeds')
+    })
+
+    test('loads view mode preference from localStorage', () => {
+      localStorage.setItem(
+        'leaderboard_preferences',
+        JSON.stringify({ dateRange: 'all', entriesPerPage: 25, viewMode: 'seeds' })
+      )
+
+      const newScreen = new LeaderboardScreen(leaderboardService, leaderboardStorageService)
+
+      // Add some entries
+      const state = createTestState({ gameId: 'game-1', seed: 'test-seed' })
+      const entry = leaderboardService.createEntry(state, true, 5000)
+      leaderboardStorageService.addEntry(entry)
+
+      newScreen.show(jest.fn())
+
+      // Should load in seed view mode
+      expect(document.body.textContent).toContain('unique seeds')
+
+      newScreen.hide()
+    })
+  })
 })

@@ -10,15 +10,27 @@ import { EntryDetailsModal } from './EntryDetailsModal'
 type TabType = 'all' | 'victories' | 'deaths'
 type SortColumn = 'rank' | 'score' | 'level' | 'turns' | 'date'
 type DateRange = 'all' | '7days' | '30days' | '90days'
+type ViewMode = 'entries' | 'seeds'
 
 interface LeaderboardPreferences {
   entriesPerPage: number
   dateRange: DateRange
+  viewMode: ViewMode
+}
+
+interface SeedGroup {
+  seed: string
+  entries: LeaderboardEntry[]
+  bestScore: number
+  totalRuns: number
+  victories: number
+  defeats: number
 }
 
 const DEFAULT_PREFERENCES: LeaderboardPreferences = {
   entriesPerPage: 25,
   dateRange: 'all',
+  viewMode: 'entries',
 }
 
 const PREFERENCES_KEY = 'leaderboard_preferences'
@@ -34,6 +46,8 @@ export class LeaderboardScreen {
   private sortAscending = false
   private entriesPerPage = 25
   private dateRange: DateRange = 'all'
+  private viewMode: ViewMode = 'entries'
+  private expandedSeed: string | null = null
 
   constructor(
     leaderboardService: LeaderboardService,
@@ -54,6 +68,7 @@ export class LeaderboardScreen {
         const preferences: LeaderboardPreferences = JSON.parse(saved)
         this.entriesPerPage = preferences.entriesPerPage || DEFAULT_PREFERENCES.entriesPerPage
         this.dateRange = preferences.dateRange || DEFAULT_PREFERENCES.dateRange
+        this.viewMode = preferences.viewMode || DEFAULT_PREFERENCES.viewMode
       }
     } catch (error) {
       console.error('Failed to load leaderboard preferences:', error)
@@ -65,6 +80,7 @@ export class LeaderboardScreen {
       const preferences: LeaderboardPreferences = {
         entriesPerPage: this.entriesPerPage,
         dateRange: this.dateRange,
+        viewMode: this.viewMode,
       }
       localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences))
     } catch (error) {
@@ -168,13 +184,30 @@ export class LeaderboardScreen {
     // Get filtered entries based on current tab and date range
     const allEntries = this.leaderboardStorageService.getAllEntries()
     const filteredEntries = this.filterEntriesByTab(allEntries)
-    const sortedEntries = this.sortEntries(filteredEntries)
 
-    // Pagination
-    const totalPages = Math.ceil(sortedEntries.length / this.entriesPerPage)
-    const startIndex = this.currentPage * this.entriesPerPage
-    const endIndex = startIndex + this.entriesPerPage
-    const pageEntries = sortedEntries.slice(startIndex, endIndex)
+    let content: string
+    let totalPages: number
+    let itemCount: number
+
+    if (this.viewMode === 'seeds') {
+      // Seed-based view
+      const seedGroups = this.groupEntriesBySeed(filteredEntries)
+      totalPages = Math.ceil(seedGroups.length / this.entriesPerPage)
+      const startIndex = this.currentPage * this.entriesPerPage
+      const endIndex = startIndex + this.entriesPerPage
+      const pageSeedGroups = seedGroups.slice(startIndex, endIndex)
+      content = this.renderSeedGroupsTable(pageSeedGroups)
+      itemCount = seedGroups.length
+    } else {
+      // Normal entries view
+      const sortedEntries = this.sortEntries(filteredEntries)
+      totalPages = Math.ceil(sortedEntries.length / this.entriesPerPage)
+      const startIndex = this.currentPage * this.entriesPerPage
+      const endIndex = startIndex + this.entriesPerPage
+      const pageEntries = sortedEntries.slice(startIndex, endIndex)
+      content = this.renderTable(pageEntries)
+      itemCount = sortedEntries.length
+    }
 
     modal.innerHTML = `
       <div class="leaderboard-title" style="margin-bottom: 20px;">
@@ -182,14 +215,14 @@ export class LeaderboardScreen {
           🏆 LEADERBOARD 🏆
         </div>
         <div style="font-size: 14px; color: #888; margin-top: 5px;">
-          ${sortedEntries.length} total runs${sortedEntries.length !== allEntries.length ? ` (${allEntries.length} all-time)` : ''}
+          ${itemCount} ${this.viewMode === 'seeds' ? 'unique seeds' : 'total runs'}${itemCount !== allEntries.length ? ` (${allEntries.length} all-time runs)` : ''}
         </div>
       </div>
 
       ${this.renderTabs()}
       ${this.renderFilterControls()}
-      ${this.renderTable(pageEntries)}
-      ${this.renderPagination(this.currentPage, totalPages, sortedEntries.length)}
+      ${content}
+      ${this.renderPagination(this.currentPage, totalPages, itemCount)}
 
       <div class="leaderboard-footer" style="margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
         <div style="color: #888; font-size: 14px; margin-bottom: 10px;">
@@ -250,6 +283,36 @@ export class LeaderboardScreen {
     return `
       <div style="display: flex; gap: 20px; margin-bottom: 20px; justify-content: center; align-items: center; padding: 15px; background: rgba(255, 255, 255, 0.02); border: 1px solid #333; border-radius: 4px;">
         <div style="display: flex; align-items: center; gap: 10px;">
+          <label style="color: #888; font-size: 13px;">View:</label>
+          <button class="view-mode-toggle" style="
+            background: ${this.viewMode === 'entries' ? '#FFD700' : '#2a2a2a'};
+            color: ${this.viewMode === 'entries' ? '#000000' : '#FFFFFF'};
+            border: 1px solid ${this.viewMode === 'entries' ? '#FFD700' : '#555'};
+            padding: 6px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+            transition: all 0.2s;
+          " data-mode="entries">All Runs</button>
+          <button class="view-mode-toggle" style="
+            background: ${this.viewMode === 'seeds' ? '#FFD700' : '#2a2a2a'};
+            color: ${this.viewMode === 'seeds' ? '#000000' : '#FFFFFF'};
+            border: 1px solid ${this.viewMode === 'seeds' ? '#FFD700' : '#555'};
+            padding: 6px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+            transition: all 0.2s;
+          " data-mode="seeds">By Seed</button>
+        </div>
+
+        <div style="width: 1px; height: 30px; background: #444;"></div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
           <label style="color: #888; font-size: 13px;">Time Period:</label>
           <select class="date-range-filter" style="
             background: #2a2a2a;
@@ -287,6 +350,56 @@ export class LeaderboardScreen {
             <option value="100" ${this.entriesPerPage === 100 ? 'selected' : ''}>100</option>
           </select>
         </div>
+      </div>
+    `
+  }
+
+  private renderSeedGroupsTable(seedGroups: SeedGroup[]): string {
+    if (seedGroups.length === 0) {
+      return `
+        <div style="padding: 60px; color: #888; font-size: 18px;">
+          <div style="font-size: 48px; margin-bottom: 20px;">🎲</div>
+          <div>No seeds found</div>
+          <div style="font-size: 14px; margin-top: 10px;">Play some games to see seed statistics!</div>
+        </div>
+      `
+    }
+
+    return `
+      <pre style="color: #CCCCCC; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px;">┌─────┬──────────┬───────┬─────────┬─────────┬──────────────────┐</pre>
+      <div style="display: grid; grid-template-columns: 60px 140px 80px 120px 120px 240px; gap: 5px; margin: 0 10px; font-size: 13px; font-weight: bold; color: #FFD700; padding: 5px 0; border-bottom: 1px solid #444;">
+        <div style="text-align: center;">Rank</div>
+        <div style="text-align: right;">Best Score</div>
+        <div style="text-align: center;">Runs</div>
+        <div style="text-align: center;">Victories</div>
+        <div style="text-align: center;">Defeats</div>
+        <div style="text-align: left;">Seed</div>
+      </div>
+      ${seedGroups.map((group, index) => this.renderSeedGroupRow(group, index)).join('')}
+      <pre style="color: #CCCCCC; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px;">└─────┴──────────┴───────┴─────────┴─────────┴──────────────────┘</pre>
+    `
+  }
+
+  private renderSeedGroupRow(group: SeedGroup, index: number): string {
+    const rank = (this.currentPage * this.entriesPerPage) + index + 1
+    const rankBadge = this.getRankBadge(rank)
+    const rowBg = index % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
+    const winRate = ((group.victories / group.totalRuns) * 100).toFixed(0)
+
+    return `
+      <div
+        class="seed-row"
+        data-seed="${group.seed}"
+        style="display: grid; grid-template-columns: 60px 140px 80px 120px 120px 240px; gap: 5px; margin: 0 10px; padding: 8px 0; background: ${rowBg}; font-size: 13px; border-bottom: 1px solid #222; cursor: pointer; transition: background 0.2s;"
+        onmouseover="this.style.background='rgba(255, 215, 0, 0.1)'"
+        onmouseout="this.style.background='${rowBg}'"
+      >
+        <div style="text-align: center;">${rankBadge} ${rank}</div>
+        <div style="text-align: right; color: #FFD700; font-weight: bold;">${group.bestScore.toLocaleString()}</div>
+        <div style="text-align: center; color: #00FFFF;">${group.totalRuns}</div>
+        <div style="text-align: center; color: #00FF00;">${group.victories} (${winRate}%)</div>
+        <div style="text-align: center; color: #FF6666;">${group.defeats}</div>
+        <div style="text-align: left; color: #FFAA00; font-size: 11px;">${group.seed}</div>
       </div>
     `
   }
@@ -410,7 +523,7 @@ export class LeaderboardScreen {
     if (this.dateRange === 'all') return entries
 
     const now = Date.now()
-    const ranges: { [key in DateRange]: number } = {
+    const ranges: { [key in DateRange]: number} = {
       'all': 0,
       '7days': 7 * 24 * 60 * 60 * 1000,
       '30days': 30 * 24 * 60 * 60 * 1000,
@@ -419,6 +532,37 @@ export class LeaderboardScreen {
 
     const cutoff = now - ranges[this.dateRange]
     return entries.filter(e => e.timestamp >= cutoff)
+  }
+
+  private groupEntriesBySeed(entries: LeaderboardEntry[]): SeedGroup[] {
+    const seedMap = new Map<string, LeaderboardEntry[]>()
+
+    // Group entries by seed
+    entries.forEach(entry => {
+      const existing = seedMap.get(entry.seed) || []
+      existing.push(entry)
+      seedMap.set(entry.seed, existing)
+    })
+
+    // Convert to SeedGroup array
+    const groups: SeedGroup[] = []
+    seedMap.forEach((seedEntries, seed) => {
+      const bestScore = Math.max(...seedEntries.map(e => e.score))
+      const victories = seedEntries.filter(e => e.isVictory).length
+      const defeats = seedEntries.length - victories
+
+      groups.push({
+        seed,
+        entries: seedEntries,
+        bestScore,
+        totalRuns: seedEntries.length,
+        victories,
+        defeats,
+      })
+    })
+
+    // Sort by best score descending
+    return groups.sort((a, b) => b.bestScore - a.bestScore)
   }
 
   private sortEntries(entries: LeaderboardEntry[]): LeaderboardEntry[] {
@@ -514,6 +658,20 @@ export class LeaderboardScreen {
       }
     })
 
+    // View mode toggle handlers
+    const viewModeToggles = modal.querySelectorAll('.view-mode-toggle')
+    viewModeToggles.forEach(button => {
+      button.addEventListener('click', () => {
+        const mode = button.getAttribute('data-mode') as ViewMode
+        if (mode && mode !== this.viewMode) {
+          this.viewMode = mode
+          this.currentPage = 0 // Reset to first page
+          this.savePreferences()
+          this.renderModalContent(modal, onClose)
+        }
+      })
+    })
+
     // Filter control handlers
     const dateRangeFilter = modal.querySelector('.date-range-filter') as HTMLSelectElement
     if (dateRangeFilter) {
@@ -534,6 +692,27 @@ export class LeaderboardScreen {
         this.renderModalContent(modal, onClose)
       })
     }
+
+    // Seed row click handlers - show best run for that seed
+    const seedRows = modal.querySelectorAll('.seed-row')
+    seedRows.forEach(row => {
+      row.addEventListener('click', () => {
+        const seed = row.getAttribute('data-seed')
+        if (seed) {
+          // Get all entries for this seed
+          const allEntries = this.leaderboardStorageService.getAllEntries()
+          const seedEntries = allEntries.filter(e => e.seed === seed)
+
+          // Find best entry (highest score)
+          const bestEntry = seedEntries.reduce((best, current) =>
+            current.score > best.score ? current : best
+          )
+
+          // Show details of best run
+          this.showEntryDetails(bestEntry, modal, onClose)
+        }
+      })
+    })
 
     // Entry row click handlers - open details modal
     const entryRows = modal.querySelectorAll('.entry-row')
