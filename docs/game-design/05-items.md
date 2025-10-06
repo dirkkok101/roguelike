@@ -380,6 +380,19 @@
 
 **Note**: Targeting system (Phase 5+ implementation)
 
+#### Known Limitations
+
+**Wand of Polymorph (v1)**:
+- **Current Implementation**: Simplified transformation
+  - Renames monster to "Polymorphed [name]"
+  - Resets HP to maximum
+  - Maintains original monster position
+- **Limitation**: Does NOT change monster type/depth/stats
+- **Future Enhancement (v2)**: Full transformation using MonsterSpawnService
+  - Will spawn new monster of same depth
+  - Will preserve position but update all stats (attack, defense, speed, AI behavior)
+  - Technical challenges: Monster data migration, state preservation
+
 ### Gold (`$`)
 **Purpose**: Score component, collected throughout dungeon
 
