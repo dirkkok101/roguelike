@@ -191,6 +191,21 @@ export interface GameState {
   itemNameMap: ItemNameMap // Random descriptive names for this game
   identifiedItems: Set<string> // Item types that have been identified
   debug?: DebugState // Debug state (optional for production builds)
+
+  // Run statistics (for death screen and achievements)
+  monstersKilled: number // Total monsters killed this run
+  itemsFound: number // Total items picked up this run
+  itemsUsed: number // Total consumable items used (potions, scrolls, wands)
+  levelsExplored: number // Count of unique dungeon levels visited
+
+  // Death details (populated only on death)
+  deathDetails?: {
+    finalBlow: {
+      damage: number
+      attacker: string
+      playerHPRemaining: number
+    }
+  }
 }
 
 export interface ItemNameMap {

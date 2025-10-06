@@ -192,6 +192,11 @@ async function initializeGame() {
     itemNameMap,
     identifiedItems: new Set(),
     debug: debugService.initializeDebugState(),
+    // Run statistics (initialized to 0)
+    monstersKilled: 0,
+    itemsFound: 0,
+    itemsUsed: 0,
+    levelsExplored: 1, // Starting level counts as explored
   }
   }
 
