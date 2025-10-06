@@ -1,7 +1,8 @@
-import { Player, Monster, Weapon, Ring, RingType, GameState, Level } from '@game/core/core'
+import { Player, Monster, Weapon, GameState, Level } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { HungerService } from '@services/HungerService'
 import { DebugService } from '@services/DebugService'
+import { RingService } from '@services/RingService'
 
 // ============================================================================
 // COMBAT SERVICE - Original Rogue combat formulas
@@ -18,6 +19,7 @@ export interface CombatResult {
 export class CombatService {
   constructor(
     private random: IRandomService,
+    private ringService: RingService,
     private hungerService?: HungerService,
     private debugService?: DebugService
   ) {}
@@ -26,7 +28,7 @@ export class CombatService {
    * Player attacks monster
    */
   playerAttack(player: Player, monster: Monster): CombatResult {
-    const strengthBonus = this.getStrengthBonus(player)
+    const strengthBonus = this.ringService.getStrengthBonus(player)
     const effectiveStrength = player.strength + strengthBonus
 
     // Apply hunger penalties if service available
@@ -83,7 +85,7 @@ export class CombatService {
       }
     }
 
-    const acBonus = this.getACBonus(player)
+    const acBonus = this.ringService.getACBonus(player)
     const effectiveAC = player.ac - acBonus // Lower AC is better
     const hit = this.calculateHit(monster.level, effectiveAC)
 
@@ -163,47 +165,5 @@ export class CombatService {
 
     // Unarmed: 1d4
     return this.random.roll('1d4')
-  }
-
-  /**
-   * Get total strength bonus from equipped rings
-   */
-  private getStrengthBonus(player: Player): number {
-    let bonus = 0
-
-    if (player.equipment.leftRing?.ringType === RingType.ADD_STRENGTH) {
-      bonus += player.equipment.leftRing.bonus
-    }
-
-    if (player.equipment.rightRing?.ringType === RingType.ADD_STRENGTH) {
-      bonus += player.equipment.rightRing.bonus
-    }
-
-    return bonus
-  }
-
-  /**
-   * Get total AC bonus from equipped rings (lower is better, so bonus reduces AC)
-   */
-  private getACBonus(player: Player): number {
-    let bonus = 0
-
-    if (player.equipment.leftRing?.ringType === RingType.PROTECTION) {
-      bonus += player.equipment.leftRing.bonus
-    }
-
-    if (player.equipment.rightRing?.ringType === RingType.PROTECTION) {
-      bonus += player.equipment.rightRing.bonus
-    }
-
-    if (player.equipment.leftRing?.ringType === RingType.DEXTERITY) {
-      bonus += player.equipment.leftRing.bonus
-    }
-
-    if (player.equipment.rightRing?.ringType === RingType.DEXTERITY) {
-      bonus += player.equipment.rightRing.bonus
-    }
-
-    return bonus
   }
 }
