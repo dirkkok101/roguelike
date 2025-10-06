@@ -1,14 +1,17 @@
 import { TrapService } from './TrapService'
 import { MockRandom } from '@services/RandomService'
-import { Player, Trap, TrapType, GameState } from '@game/core/core'
+import { StatusEffectService } from '@services/StatusEffectService'
+import { Player, Trap, TrapType, GameState, StatusEffectType } from '@game/core/core'
 
 describe('TrapService - Trap Effects', () => {
   let service: TrapService
   let mockRandom: MockRandom
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    service = new TrapService(mockRandom)
+    statusEffectService = new StatusEffectService()
+    service = new TrapService(mockRandom, statusEffectService)
   })
 
   function createTestPlayer(): Player {
@@ -31,6 +34,8 @@ describe('TrapService - Trap Effects', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
     }
   }
 
@@ -313,6 +318,64 @@ describe('TrapService - Trap Effects', () => {
         expect(result.damage).toBeGreaterThanOrEqual(0)
         expect(result.message).toBeDefined()
         expect(result.message.length).toBeGreaterThan(0)
+      }
+    })
+  })
+
+  describe('Levitation', () => {
+    test('player floats over trap when levitating', () => {
+      const trap = createTestTrap(TrapType.BEAR)
+      const player = createTestPlayer()
+
+      // Add LEVITATING status effect
+      player.statusEffects.push({
+        type: StatusEffectType.LEVITATING,
+        duration: 30,
+      })
+
+      const state = createTestState()
+      const result = service.triggerTrap(trap, player, state)
+
+      expect(result.damage).toBe(0)
+      expect(result.message).toBe('You float over the trap.')
+      expect(trap.discovered).toBe(true)
+      expect(trap.triggered).toBe(false) // Not triggered, just discovered
+    })
+
+    test('trap triggers normally when not levitating', () => {
+      const trap = createTestTrap(TrapType.BEAR)
+      const player = createTestPlayer() // No status effects
+      const state = createTestState()
+
+      mockRandom.setValues([3]) // 1d4 = 3 for bear trap
+
+      const result = service.triggerTrap(trap, player, state)
+
+      expect(result.damage).toBe(3)
+      expect(result.message).toContain('bear trap')
+      expect(trap.triggered).toBe(true)
+      expect(trap.discovered).toBe(true)
+    })
+
+    test('levitation works on all trap types', () => {
+      const trapTypes = [TrapType.BEAR, TrapType.DART, TrapType.TELEPORT, TrapType.SLEEP, TrapType.PIT]
+      const state = createTestState()
+
+      for (const type of trapTypes) {
+        const trap = createTestTrap(type)
+        const player = createTestPlayer()
+
+        player.statusEffects.push({
+          type: StatusEffectType.LEVITATING,
+          duration: 30,
+        })
+
+        const result = service.triggerTrap(trap, player, state)
+
+        expect(result.damage).toBe(0)
+        expect(result.message).toBe('You float over the trap.')
+        expect(trap.discovered).toBe(true)
+        expect(trap.triggered).toBe(false)
       }
     })
   })

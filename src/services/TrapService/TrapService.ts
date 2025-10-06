@@ -1,5 +1,6 @@
-import { Player, Trap, TrapType, GameState } from '@game/core/core'
+import { Player, Trap, TrapType, GameState, StatusEffectType } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
+import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // TRAP SERVICE - Trap effects and triggering
@@ -12,12 +13,29 @@ export interface TrapEffect {
 }
 
 export class TrapService {
-  constructor(private random: IRandomService) {}
+  constructor(
+    private random: IRandomService,
+    private statusEffectService: StatusEffectService
+  ) {}
 
   /**
    * Trigger a trap and apply its effects
    */
   triggerTrap(trap: Trap, player: Player, state: GameState): TrapEffect {
+    // Check if player is levitating (floats over traps)
+    const isLevitating = player.statusEffects.some(
+      (effect) => effect.type === StatusEffectType.LEVITATING
+    )
+
+    if (isLevitating) {
+      // Mark trap as discovered but not triggered
+      trap.discovered = true
+      return {
+        damage: 0,
+        message: 'You float over the trap.',
+      }
+    }
+
     // Mark trap as triggered and discovered
     trap.triggered = true
     trap.discovered = true

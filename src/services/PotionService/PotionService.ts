@@ -158,6 +158,13 @@ export class PotionService {
         }
         break
 
+      case PotionType.LEVITATION:
+        {
+          updatedPlayer = this.applyLevitationPotion(player)
+          message = `You begin to float above the ground!`
+        }
+        break
+
       default:
         message = `You quaff ${displayName}. (Effect not yet implemented)`
     }
@@ -319,6 +326,20 @@ export class PotionService {
     const updatedPlayer = this.statusEffectService.addStatusEffect(
       player,
       StatusEffectType.SEE_INVISIBLE,
+      duration
+    )
+
+    return updatedPlayer
+  }
+
+  private applyLevitationPotion(player: Player): Player {
+    // Original Rogue: Lasts 29-32 turns
+    // Player floats over traps without triggering them
+    const duration = this.random.nextInt(29, 32)
+
+    const updatedPlayer = this.statusEffectService.addStatusEffect(
+      player,
+      StatusEffectType.LEVITATING,
       duration
     )
 

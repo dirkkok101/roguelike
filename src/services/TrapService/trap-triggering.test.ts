@@ -1,14 +1,17 @@
 import { TrapService } from './TrapService'
 import { MockRandom } from '@services/RandomService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { Trap, TrapType } from '@game/core/core'
 
 describe('TrapService - Trap Triggering', () => {
   let service: TrapService
   let mockRandom: MockRandom
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    service = new TrapService(mockRandom)
+    statusEffectService = new StatusEffectService()
+    service = new TrapService(mockRandom, statusEffectService)
   })
 
   function createTestTrap(type: TrapType, discovered = false, triggered = false): Trap {

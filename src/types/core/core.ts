@@ -326,6 +326,8 @@ export enum PotionType {
   DETECT_MONSTERS = 'DETECT_MONSTERS',
   DETECT_MAGIC = 'DETECT_MAGIC',
   RAISE_LEVEL = 'RAISE_LEVEL',
+  SEE_INVISIBLE = 'SEE_INVISIBLE',
+  LEVITATION = 'LEVITATION',
 }
 
 export interface Scroll extends Item {
