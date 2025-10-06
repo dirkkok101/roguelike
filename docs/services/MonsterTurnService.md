@@ -19,17 +19,21 @@
 #### `processMonsterTurns(state: GameState): GameState`
 Processes turns for all monsters on current level.
 
+**IMPORTANT**: Monsters receive energy in Phase 1 of the game loop (`grantEnergyToAllActors`), NOT in this method. This ensures fair energy distribution between player and monsters.
+
 **Processing Order** (per monster):
 1. Skip dead monsters (`hp <= 0`)
-2. Check wake-up (`checkWakeUp`)
-3. Compute monster FOV (`computeMonsterFOV`)
-4. Update player memory (`updateMonsterMemory`)
-5. Update state transitions (`updateMonsterState`)
-6. Apply regeneration (if monster has ability)
-7. **Save updated monster** to level (preserves state changes)
-8. Decide action (`decideAction`)
-9. Execute action (move, attack, wait)
-10. Stop if player died
+2. **Process while monster has enough energy** (≥100):
+   - Check wake-up (`checkWakeUp`)
+   - Compute monster FOV (`computeMonsterFOV`)
+   - Update player memory (`updateMonsterMemory`)
+   - Update state transitions (`updateMonsterState`)
+   - Apply regeneration (if monster has ability)
+   - **Save updated monster** to level (preserves state changes)
+   - Decide action (`decideAction`)
+   - Execute action (move, attack, wait)
+   - **Consume 100 energy** after action
+   - Stop if player died
 
 **Returns**: Updated game state with all monster turns processed
 

@@ -197,7 +197,10 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 90) // Start with 90 energy
     const level = createTestLevel([monster])
     const player = createTestPlayer()
-    const state = createTestState(player, level)
+    let state = createTestState(player, level)
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     const result = service.processMonsterTurns(state)
 
@@ -212,7 +215,10 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const monster = createTestMonster('m1', 5, 5, 20, 90) // Start with 90 energy
     const level = createTestLevel([monster])
     const player = createTestPlayer()
-    const state = createTestState(player, level)
+    let state = createTestState(player, level)
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     const result = service.processMonsterTurns(state)
 
@@ -229,7 +235,10 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const monster = createTestMonster('m1', 5, 5, 5, 94) // Start with 94 energy
     const level = createTestLevel([monster])
     const player = createTestPlayer()
-    const state = createTestState(player, level)
+    let state = createTestState(player, level)
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     const result = service.processMonsterTurns(state)
 
@@ -245,7 +254,10 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 95) // Start with 95 energy
     const level = createTestLevel([monster])
     const player = createTestPlayer()
-    const state = createTestState(player, level)
+    let state = createTestState(player, level)
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     const result = service.processMonsterTurns(state)
 
@@ -263,7 +275,10 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const m3 = createTestMonster('m3', 7, 7, 20, 85) // Fast
     const level = createTestLevel([m1, m2, m3])
     const player = createTestPlayer()
-    const state = createTestState(player, level)
+    let state = createTestState(player, level)
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     const result = service.processMonsterTurns(state)
 
@@ -286,7 +301,10 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 140) // Start with 140 energy
     const level = createTestLevel([monster])
     const player = createTestPlayer()
-    const state = createTestState(player, level)
+    let state = createTestState(player, level)
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     const result = service.processMonsterTurns(state)
 
@@ -302,7 +320,10 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 89) // Start with 89 energy
     const level = createTestLevel([monster])
     const player = createTestPlayer()
-    const state = createTestState(player, level)
+    let state = createTestState(player, level)
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     const result = service.processMonsterTurns(state)
 

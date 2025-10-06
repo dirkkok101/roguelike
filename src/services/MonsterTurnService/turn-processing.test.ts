@@ -166,7 +166,10 @@ describe('MonsterTurnService - Turn Processing', () => {
 
   test('monster moves toward player', () => {
     const monster = createTestMonster({ position: { x: 5, y: 10 } })
-    const state = createTestState([monster])
+    let state = createTestState([monster])
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     mockRandom.setValues([0]) // Not random, move toward player
 
@@ -191,7 +194,10 @@ describe('MonsterTurnService - Turn Processing', () => {
         special: ['regenerates'],
       },
     })
-    const state = createTestState([monster])
+    let state = createTestState([monster])
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     mockRandom.setValues([0])
 
@@ -230,7 +236,10 @@ describe('MonsterTurnService - Turn Processing', () => {
         special: [],
       },
     })
-    const state = createTestState([sleepingMonster])
+    let state = createTestState([sleepingMonster])
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     const result = service.processMonsterTurns(state)
 
@@ -254,7 +263,10 @@ describe('MonsterTurnService - Turn Processing', () => {
         special: [],
       },
     })
-    const state = createTestState([cowardMonster])
+    let state = createTestState([cowardMonster])
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     mockRandom.setValues([0])
 
@@ -268,7 +280,10 @@ describe('MonsterTurnService - Turn Processing', () => {
 
   test('returns immutable state', () => {
     const monster = createTestMonster()
-    const state = createTestState([monster])
+    let state = createTestState([monster])
+
+    // Grant energy to all actors (simulating Phase 1 of game loop)
+    state = turnService.grantEnergyToAllActors(state)
 
     mockRandom.setValues([0])
 
