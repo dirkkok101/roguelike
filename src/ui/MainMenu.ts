@@ -1,9 +1,14 @@
+import { LeaderboardService } from '@services/LeaderboardService'
+import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
+import { LeaderboardScreen } from './LeaderboardScreen'
+
 /**
- * MainMenu - Main menu screen with Continue/New Game/Help options
+ * MainMenu - Main menu screen with Continue/New Game/Help/Leaderboard options
  */
 export class MainMenu {
   private container: HTMLDivElement | null = null
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null
+  private leaderboardScreen: LeaderboardScreen
 
   // Store show() parameters for re-showing after seed input cancel
   private lastShowParams: {
@@ -12,6 +17,13 @@ export class MainMenu {
     onContinue: () => void
     onCustomSeed: (seed: string) => void
   } | null = null
+
+  constructor(
+    leaderboardService: LeaderboardService,
+    leaderboardStorageService: LeaderboardStorageService
+  ) {
+    this.leaderboardScreen = new LeaderboardScreen(leaderboardService, leaderboardStorageService)
+  }
 
   /**
    * Show main menu
@@ -117,6 +129,7 @@ export class MainMenu {
         <div style="color: #FFFFFF; margin: 10px 0; font-size: 16px;">[N] New Game</div>
         ${continueOption}
         <div style="color: #FFAA00; margin: 10px 0; font-size: 16px;">[S] Play Custom Seed</div>
+        <div style="color: #FFD700; margin: 10px 0; font-size: 16px;">[L] Leaderboard</div>
         <div style="color: #888; margin: 10px 0; font-size: 16px;">[?] Help</div>
       </div>
 
@@ -143,6 +156,9 @@ export class MainMenu {
       } else if (key === 's') {
         e.preventDefault()
         this.showSeedInput(onCustomSeed)
+      } else if (key === 'l') {
+        e.preventDefault()
+        this.showLeaderboard()
       } else if (key === '?') {
         e.preventDefault()
         // Help will be handled in future task
@@ -154,6 +170,24 @@ export class MainMenu {
 
     overlay.appendChild(modal)
     return overlay
+  }
+
+  private showLeaderboard(): void {
+    // Hide main menu temporarily
+    this.hide()
+
+    // Show leaderboard
+    this.leaderboardScreen.show(() => {
+      // When leaderboard closes, re-show main menu
+      if (this.lastShowParams) {
+        this.show(
+          this.lastShowParams.hasSave,
+          this.lastShowParams.onNewGame,
+          this.lastShowParams.onContinue,
+          this.lastShowParams.onCustomSeed
+        )
+      }
+    })
   }
 
   private showSeedInput(onCustomSeed: (seed: string) => void): void {

@@ -412,7 +412,7 @@ async function initializeGame() {
   }
 
   // Create main menu instance
-  const mainMenu = new MainMenu()
+  const mainMenu = new MainMenu(leaderboardService, leaderboardStorageService)
 
   // Track active event listeners for cleanup
   let currentKeydownHandler: ((e: KeyboardEvent) => void) | null = null
