@@ -3,6 +3,7 @@ import {
   Potion,
   PotionType,
   GameState,
+  ItemType,
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
@@ -100,6 +101,19 @@ export class PotionService {
       case PotionType.DETECT_MONSTERS:
         {
           const result = this.applyDetectMonsters(state)
+          message = result.message
+          return {
+            player,
+            message,
+            identified,
+            death: false,
+            state: result.state,
+          }
+        }
+
+      case PotionType.DETECT_MAGIC:
+        {
+          const result = this.applyDetectMagic(state)
           message = result.message
           return {
             player,
@@ -247,6 +261,58 @@ export class PotionService {
       return {
         state: updatedState,
         message: `You sense ${monsterCount} monsters nearby!`,
+      }
+    }
+  }
+
+  private applyDetectMagic(
+    state: GameState
+  ): { state: GameState; message: string } {
+    // Get current level
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return {
+        state,
+        message: 'You feel a strange sensation.',
+      }
+    }
+
+    // Get all magic item IDs on current level
+    // Magic items: potions, scrolls, rings, wands
+    const magicItemIds = new Set(
+      level.items
+        .filter(
+          (item) =>
+            item.type === ItemType.POTION ||
+            item.type === ItemType.SCROLL ||
+            item.type === ItemType.RING ||
+            item.type === ItemType.WAND
+        )
+        .map((item) => item.id)
+    )
+    const itemCount = magicItemIds.size
+
+    // Update state with detected magic items
+    const updatedState: GameState = {
+      ...state,
+      detectedMagicItems: magicItemIds,
+    }
+
+    // Generate message based on count
+    if (itemCount === 0) {
+      return {
+        state: updatedState,
+        message: 'You have a strange feeling for a moment, then it passes.',
+      }
+    } else if (itemCount === 1) {
+      return {
+        state: updatedState,
+        message: 'You sense magic nearby!',
+      }
+    } else {
+      return {
+        state: updatedState,
+        message: `You sense ${itemCount} magic items nearby!`,
       }
     }
   }

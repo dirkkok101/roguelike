@@ -390,4 +390,290 @@ describe('PotionService - Detection Potions', () => {
       expect(result.message).toBe('You sense 10 monsters nearby!')
     })
   })
+
+  describe('applyPotion - DETECT_MAGIC', () => {
+    beforeEach(() => {
+      // Add magic items to test level
+      testLevel.items = [
+        {
+          id: 'potion-heal',
+          name: 'Potion of Healing',
+          type: ItemType.POTION,
+          identified: false,
+          position: { x: 10, y: 10 },
+          potionType: PotionType.HEAL,
+          effect: 'restore_hp',
+          power: '1d8',
+          descriptorName: 'red potion',
+        } as Potion,
+        {
+          id: 'scroll-identify',
+          name: 'Scroll of Identify',
+          type: ItemType.SCROLL,
+          identified: false,
+          position: { x: 15, y: 15 },
+          scrollType: ScrollType.IDENTIFY,
+          effect: 'identify_item',
+          labelName: 'scroll labeled XYZZY',
+        },
+        {
+          id: 'ring-protection',
+          name: 'Ring of Protection',
+          type: ItemType.RING,
+          identified: false,
+          position: { x: 20, y: 20 },
+          ringType: RingType.PROTECTION,
+          effect: 'improve_ac',
+          bonus: 1,
+          materialName: 'ruby ring',
+          hungerModifier: 1.2,
+        },
+        {
+          id: 'wand-lightning',
+          name: 'Wand of Lightning',
+          type: ItemType.WAND,
+          identified: false,
+          position: { x: 25, y: 5 },
+          wandType: WandType.LIGHTNING,
+          damage: '3d6',
+          charges: 5,
+          currentCharges: 5,
+          woodName: 'oak wand',
+        },
+        // Non-magic item (should not be detected)
+        {
+          id: 'weapon-sword',
+          name: 'Long Sword',
+          type: ItemType.WEAPON,
+          identified: true,
+          position: { x: 30, y: 10 },
+          damage: '1d12',
+          bonus: 0,
+        },
+      ]
+    })
+
+    test('detects all magic items on current level', () => {
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      expect(result.state).toBeDefined()
+      expect(result.state!.detectedMagicItems.size).toBe(4) // potion, scroll, ring, wand
+      expect(result.state!.detectedMagicItems.has('potion-heal')).toBe(true)
+      expect(result.state!.detectedMagicItems.has('scroll-identify')).toBe(true)
+      expect(result.state!.detectedMagicItems.has('ring-protection')).toBe(true)
+      expect(result.state!.detectedMagicItems.has('wand-lightning')).toBe(true)
+      // Weapon should NOT be detected
+      expect(result.state!.detectedMagicItems.has('weapon-sword')).toBe(false)
+    })
+
+    test('returns correct message for multiple magic items', () => {
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      expect(result.message).toBe('You sense 4 magic items nearby!')
+    })
+
+    test('returns correct message for single magic item', () => {
+      // Keep only one magic item
+      testLevel.items = [testLevel.items[0]]
+
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      expect(result.message).toBe('You sense magic nearby!')
+      expect(result.state!.detectedMagicItems.size).toBe(1)
+    })
+
+    test('returns "strange feeling" message when no magic items present', () => {
+      // Remove all items
+      testLevel.items = []
+
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      expect(result.message).toBe(
+        'You have a strange feeling for a moment, then it passes.'
+      )
+      expect(result.state!.detectedMagicItems.size).toBe(0)
+    })
+
+    test('does not detect non-magic items', () => {
+      // Only non-magic items
+      testLevel.items = [
+        {
+          id: 'weapon-sword',
+          name: 'Long Sword',
+          type: ItemType.WEAPON,
+          identified: true,
+          position: { x: 10, y: 10 },
+          damage: '1d12',
+          bonus: 0,
+        },
+        {
+          id: 'armor-plate',
+          name: 'Plate Mail',
+          type: ItemType.ARMOR,
+          identified: true,
+          position: { x: 15, y: 15 },
+          ac: 3,
+          bonus: 0,
+        },
+        {
+          id: 'food-ration',
+          name: 'Food Ration',
+          type: ItemType.FOOD,
+          identified: true,
+          position: { x: 20, y: 20 },
+          nutrition: 1300,
+        },
+      ]
+
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      expect(result.state!.detectedMagicItems.size).toBe(0)
+      expect(result.message).toBe(
+        'You have a strange feeling for a moment, then it passes.'
+      )
+    })
+
+    test('auto-identifies potion when consumed', () => {
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      expect(result.identified).toBe(true)
+    })
+
+    test('does not kill player', () => {
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      expect(result.death).toBe(false)
+    })
+
+    test('does not modify player stats', () => {
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      expect(result.player.hp).toBe(testPlayer.hp)
+      expect(result.player.maxHp).toBe(testPlayer.maxHp)
+      expect(result.player.level).toBe(testPlayer.level)
+      expect(result.player.strength).toBe(testPlayer.strength)
+    })
+
+    test('detects all four magic item types', () => {
+      const potion: Potion = {
+        id: 'potion-detect',
+        name: 'Potion of Detect Magic',
+        type: ItemType.POTION,
+        identified: false,
+        position: { x: 5, y: 5 },
+        potionType: PotionType.DETECT_MAGIC,
+        effect: 'detect_magic',
+        power: '0',
+        descriptorName: 'shimmering potion',
+      }
+
+      const result = potionService.applyPotion(testPlayer, potion, testState)
+
+      // Verify all magic types detected
+      const types = testLevel.items
+        .filter((item) => result.state!.detectedMagicItems.has(item.id))
+        .map((item) => item.type)
+
+      expect(types).toContain(ItemType.POTION)
+      expect(types).toContain(ItemType.SCROLL)
+      expect(types).toContain(ItemType.RING)
+      expect(types).toContain(ItemType.WAND)
+    })
+  })
 })
