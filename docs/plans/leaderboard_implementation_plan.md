@@ -55,11 +55,11 @@
 - **Files**: `src/services/LeaderboardStorageService/`
 - **Commit**: "feat: implement LeaderboardStorageService with quota management"
 
-#### Task 1.5: LeaderboardStorageService Tests ⬜
-- [ ] Create `storage-operations.test.ts`
-- [ ] Create `serialization.test.ts`
-- [ ] Create `quota-management.test.ts`
-- [ ] Create `export-import.test.ts`
+#### Task 1.5: LeaderboardStorageService Tests ✅
+- [x] Create `storage-operations.test.ts`
+- [x] Create `serialization.test.ts`
+- [x] Create `quota-management.test.ts`
+- [x] Create `export-import.test.ts`
 - **Files**: `src/services/LeaderboardStorageService/*.test.ts`
 - **Commit**: "test: add LeaderboardStorageService test suite"
 
@@ -235,9 +235,9 @@
 
 ## Progress Tracking
 
-**Overall Progress**: 0/18 tasks complete (0%)
+**Overall Progress**: 5/18 tasks complete (28%)
 
-**Phase 1 (Core Infrastructure)**: 0/5 tasks ⬜
+**Phase 1 (Core Infrastructure)**: 5/5 tasks ✅ COMPLETE
 **Phase 2 (Integration)**: 0/4 tasks ⬜
 **Phase 3 (UI Simple)**: 0/4 tasks ⬜
 **Phase 4 (UI Advanced)**: 0/3 tasks ⬜
