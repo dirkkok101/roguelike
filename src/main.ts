@@ -255,12 +255,30 @@ async function initializeGame() {
 
   // Callback to start completely new game with random seed
   function startNewGame(characterName: string) {
+    // Clean up previous game's event listeners
+    if (currentKeydownHandler) {
+      document.removeEventListener('keydown', currentKeydownHandler)
+      currentKeydownHandler = null
+    }
+
+    // Clear state stack
+    stateManager.clearStack()
+
     const newState = createInitialState(characterName)
     startGame(newState)
   }
 
   // Callback to replay game with specific seed
   function replaySeed(seed: string, characterName: string) {
+    // Clean up previous game's event listeners
+    if (currentKeydownHandler) {
+      document.removeEventListener('keydown', currentKeydownHandler)
+      currentKeydownHandler = null
+    }
+
+    // Clear state stack
+    stateManager.clearStack()
+
     // Create new game with specified seed
     const gameRandom = new SeededRandom(seed)
     const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
