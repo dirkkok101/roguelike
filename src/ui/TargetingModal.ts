@@ -202,21 +202,25 @@ export class TargetingModal {
     switch (event.key) {
       case 'Tab':
         event.preventDefault()
+        event.stopPropagation() // Prevent event from bubbling to InputHandler
         this.cycleTarget(event.shiftKey ? 'prev' : 'next')
         break
 
       case '*':
         event.preventDefault()
+        event.stopPropagation() // Prevent event from bubbling to InputHandler
         this.cycleTarget('nearest')
         break
 
       case 'Enter':
         event.preventDefault()
+        event.stopPropagation() // Prevent event from bubbling to InputHandler
         this.confirmTarget()
         break
 
       case 'Escape':
         event.preventDefault()
+        event.stopPropagation() // Prevent event from bubbling to InputHandler
         this.cancelTargeting()
         break
     }
