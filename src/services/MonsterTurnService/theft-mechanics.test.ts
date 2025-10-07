@@ -12,7 +12,13 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { GoldService } from '@services/GoldService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Monster, MonsterBehavior, Item } from '@game/core/core'
+import {
+  GameState,
+  Monster,
+  MonsterBehavior,
+  Item,
+  SpecialAbilityFlag,
+} from '@game/core/core'
 
 describe('MonsterTurnService - Theft Mechanics', () => {
   let service: MonsterTurnService
@@ -112,7 +118,7 @@ describe('MonsterTurnService - Theft Mechanics', () => {
         intelligence: 5,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['steals'],
+        special: [SpecialAbilityFlag.STEALS],
       },
       isAsleep: false,
       isAwake: true,
@@ -154,7 +160,7 @@ describe('MonsterTurnService - Theft Mechanics', () => {
         intelligence: 7,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['steals'],
+        special: [SpecialAbilityFlag.STEALS],
       },
       isAsleep: false,
       isAwake: true,
@@ -196,7 +202,7 @@ describe('MonsterTurnService - Theft Mechanics', () => {
         intelligence: 5,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['steals'],
+        special: [SpecialAbilityFlag.STEALS],
       },
       isAsleep: false,
       isAwake: true,
@@ -239,7 +245,7 @@ describe('MonsterTurnService - Theft Mechanics', () => {
         intelligence: 5,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['steals'],
+        special: [SpecialAbilityFlag.STEALS],
       },
       isAsleep: false,
       isAwake: true,
@@ -282,7 +288,7 @@ describe('MonsterTurnService - Theft Mechanics', () => {
         intelligence: 7,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['steals'],
+        special: [SpecialAbilityFlag.STEALS],
       },
       isAsleep: false,
       isAwake: true,

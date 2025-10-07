@@ -9,7 +9,13 @@ import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Monster, MonsterBehavior, Player } from '@game/core/core'
+import {
+  GameState,
+  Monster,
+  MonsterBehavior,
+  Player,
+  SpecialAbilityFlag,
+} from '@game/core/core'
 
 describe('MonsterTurnService - Turn Processing', () => {
   let service: MonsterTurnService
@@ -193,7 +199,7 @@ describe('MonsterTurnService - Turn Processing', () => {
         intelligence: 1,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['regenerates'],
+        special: [SpecialAbilityFlag.REGENERATION],
       },
     })
     let state = createTestState([monster])

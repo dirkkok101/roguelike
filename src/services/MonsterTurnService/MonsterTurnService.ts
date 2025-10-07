@@ -1,4 +1,10 @@
-import { GameState, Monster, MonsterState, Position } from '@game/core/core'
+import {
+  GameState,
+  Monster,
+  MonsterState,
+  Position,
+  SpecialAbilityFlag,
+} from '@game/core/core'
 import { MonsterAIService, MonsterAction } from '@services/MonsterAIService'
 import { CombatService } from '@services/CombatService'
 import { SpecialAbilityService } from '@services/SpecialAbilityService'
@@ -52,7 +58,9 @@ export class MonsterTurnService {
         updatedMonster = this.aiService.updateMonsterState(updatedMonster, currentState)
 
         // Apply regeneration if monster has it
-        if (this.abilityService.hasSpecial(updatedMonster, 'regenerates')) {
+        if (
+          this.abilityService.hasSpecial(updatedMonster, SpecialAbilityFlag.REGENERATION)
+        ) {
           const regenResult = this.abilityService.regenerate(updatedMonster)
           if (regenResult.monster) {
             updatedMonster = regenResult.monster
@@ -207,7 +215,7 @@ export class MonsterTurnService {
 
     // Check for THIEF behavior - steal instead of attack
     if (
-      this.abilityService.hasSpecial(monster, 'steals') &&
+      this.abilityService.hasSpecial(monster, SpecialAbilityFlag.STEALS) &&
       !monster.hasStolen
     ) {
       return this.handleTheft(monster, state)

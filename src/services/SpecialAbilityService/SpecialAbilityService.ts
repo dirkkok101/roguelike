@@ -1,4 +1,4 @@
-import { Player, Monster, Armor } from '@game/core/core'
+import { Player, Monster, Armor, SpecialAbilityFlag } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
@@ -257,7 +257,7 @@ export class SpecialAbilityService {
   /**
    * Check if monster has special ability flag
    */
-  hasSpecial(monster: Monster, special: string): boolean {
+  hasSpecial(monster: Monster, special: SpecialAbilityFlag): boolean {
     return monster.aiProfile.special?.includes(special) || false
   }
 
@@ -270,43 +270,43 @@ export class SpecialAbilityService {
     const allMessages: string[] = []
 
     // Check for each special ability
-    if (this.hasSpecial(monster, 'rusts_armor')) {
+    if (this.hasSpecial(monster, SpecialAbilityFlag.RUSTS_ARMOR)) {
       const result = this.rustArmor(currentPlayer, monster)
       if (result.player) currentPlayer = result.player
       allMessages.push(...result.messages)
     }
 
-    if (this.hasSpecial(monster, 'freezes')) {
+    if (this.hasSpecial(monster, SpecialAbilityFlag.FREEZES)) {
       const result = this.freezePlayer(currentPlayer)
       if (result.player) currentPlayer = result.player
       allMessages.push(...result.messages)
     }
 
-    if (this.hasSpecial(monster, 'confuses')) {
+    if (this.hasSpecial(monster, SpecialAbilityFlag.CONFUSES)) {
       const result = this.confusePlayer(currentPlayer)
       if (result.player) currentPlayer = result.player
       allMessages.push(...result.messages)
     }
 
-    if (this.hasSpecial(monster, 'drains_strength')) {
+    if (this.hasSpecial(monster, SpecialAbilityFlag.DRAINS_STRENGTH)) {
       const result = this.drainStrength(currentPlayer)
       if (result.player) currentPlayer = result.player
       allMessages.push(...result.messages)
     }
 
-    if (this.hasSpecial(monster, 'drains_xp')) {
+    if (this.hasSpecial(monster, SpecialAbilityFlag.DRAINS_XP)) {
       const result = this.drainXP(currentPlayer)
       if (result.player) currentPlayer = result.player
       allMessages.push(...result.messages)
     }
 
-    if (this.hasSpecial(monster, 'drains_max_hp')) {
+    if (this.hasSpecial(monster, SpecialAbilityFlag.DRAINS_MAX_HP)) {
       const result = this.drainMaxHP(currentPlayer)
       if (result.player) currentPlayer = result.player
       allMessages.push(...result.messages)
     }
 
-    if (this.hasSpecial(monster, 'holds')) {
+    if (this.hasSpecial(monster, SpecialAbilityFlag.HOLDS)) {
       const result = this.holdPlayer(currentPlayer)
       if (result.player) currentPlayer = result.player
       allMessages.push(...result.messages)

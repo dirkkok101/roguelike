@@ -1,4 +1,4 @@
-import { MonsterBehavior } from '@game/core/core'
+import { MonsterBehavior, SpecialAbilityFlag } from '@game/core/core'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -8,23 +8,8 @@ const monstersData = fs.readFileSync(monstersPath, 'utf-8')
 const monsters = JSON.parse(monstersData) as any[]
 
 describe('MonsterSpawnService - Data Validation', () => {
-  // All valid special ability flags that are implemented in the codebase
-  const validSpecialFlags = [
-    'rusts_armor',      // Aquator - SpecialAbilityService line 273
-    'freezes',          // Ice Monster - SpecialAbilityService line 279
-    'confuses',         // Medusa - SpecialAbilityService line 285
-    'drains_strength',  // Rattlesnake - SpecialAbilityService line 291
-    'drains_xp',        // Wraith - SpecialAbilityService line 297
-    'drains_max_hp',    // Vampire - SpecialAbilityService line 303
-    'holds',            // Venus Flytrap - SpecialAbilityService line 309
-    'steals',           // Leprechaun, Nymph - MonsterTurnService line 210
-    'regeneration',     // Troll, Griffin, Vampire - SpecialAbilityService line 183
-    'breath_weapon',    // Dragon - SpecialAbilityService line 229
-    'flying',           // Bat, Kestrel, Griffin - Passive ability
-    'invisible',        // Phantom - Passive ability
-    'mean',             // Various - Spawn state flag
-    'teleport',         // Nymph - Behavior flag (not implemented as on-hit ability)
-  ]
+  // All valid special ability flags from the enum
+  const validSpecialFlags = Object.values(SpecialAbilityFlag)
 
   const validBehaviors = [
     'SMART',

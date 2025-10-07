@@ -1,6 +1,6 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
 import { MockRandom } from '@services/RandomService'
-import { Monster, MonsterBehavior } from '@game/core/core'
+import { Monster, MonsterBehavior, SpecialAbilityFlag } from '@game/core/core'
 
 describe('SpecialAbilityService - Breath Weapon', () => {
   let service: SpecialAbilityService
@@ -27,7 +27,7 @@ describe('SpecialAbilityService - Breath Weapon', () => {
         intelligence: 10,
         aggroRange: 15,
         fleeThreshold: 0,
-        special: ['breathes_fire'],
+        special: [SpecialAbilityFlag.BREATH_WEAPON],
       },
       isAsleep: false,
       isAwake: true,

@@ -22,22 +22,22 @@ const colors = {
   cyan: '\x1b[36m',
 };
 
-// Valid special ability flags (must match test file)
+// Valid special ability flags (must match SpecialAbilityFlag enum in src/types/core/core.ts)
 const validSpecialFlags = [
-  'rusts_armor',
-  'freezes',
-  'confuses',
-  'drains_strength',
-  'drains_xp',
-  'drains_max_hp',
-  'holds',
-  'steals',
-  'regeneration',
-  'breath_weapon',
-  'flying',
-  'invisible',
-  'mean',
-  'teleport',
+  'rusts_armor',      // SpecialAbilityFlag.RUSTS_ARMOR
+  'freezes',          // SpecialAbilityFlag.FREEZES
+  'confuses',         // SpecialAbilityFlag.CONFUSES
+  'drains_strength',  // SpecialAbilityFlag.DRAINS_STRENGTH
+  'drains_xp',        // SpecialAbilityFlag.DRAINS_XP
+  'drains_max_hp',    // SpecialAbilityFlag.DRAINS_MAX_HP
+  'holds',            // SpecialAbilityFlag.HOLDS
+  'steals',           // SpecialAbilityFlag.STEALS
+  'regeneration',     // SpecialAbilityFlag.REGENERATION
+  'breath_weapon',    // SpecialAbilityFlag.BREATH_WEAPON
+  'flying',           // SpecialAbilityFlag.FLYING
+  'invisible',        // SpecialAbilityFlag.INVISIBLE
+  'mean',             // SpecialAbilityFlag.MEAN
+  'teleport',         // SpecialAbilityFlag.TELEPORT
 ];
 
 const validBehaviors = [

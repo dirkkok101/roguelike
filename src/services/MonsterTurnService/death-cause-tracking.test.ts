@@ -11,7 +11,14 @@ import { RingService } from '@services/RingService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Monster, Player, Level, TileType } from '@game/core/core'
+import {
+  GameState,
+  Monster,
+  Player,
+  Level,
+  TileType,
+  SpecialAbilityFlag,
+} from '@game/core/core'
 
 describe('MonsterTurnService - Death Cause Tracking', () => {
   let service: MonsterTurnService
@@ -181,7 +188,7 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
         intelligence: 1,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['breathes-fire'],
+        special: [SpecialAbilityFlag.BREATH_WEAPON],
       },
     })
     const state = createTestState(player, [dragon])

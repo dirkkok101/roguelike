@@ -38,7 +38,7 @@ describe('MonsterAIService - GREEDY Behavior', () => {
         intelligence: 3,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['greedy'],
+        special: [],
       },
       isAsleep: false,
       isAwake: true,

@@ -186,12 +186,38 @@ export enum MonsterState {
   FLEEING = 'FLEEING',
 }
 
+/**
+ * SpecialAbilityFlag - Type-safe special ability identifiers
+ *
+ * These flags control monster special abilities and passive traits.
+ * Used in monsters.json and checked by SpecialAbilityService.
+ */
+export enum SpecialAbilityFlag {
+  // On-hit effects
+  RUSTS_ARMOR = 'rusts_armor',
+  FREEZES = 'freezes',
+  CONFUSES = 'confuses',
+  DRAINS_STRENGTH = 'drains_strength',
+  DRAINS_XP = 'drains_xp',
+  DRAINS_MAX_HP = 'drains_max_hp',
+  HOLDS = 'holds',
+  STEALS = 'steals',
+
+  // Passive abilities
+  REGENERATION = 'regeneration',
+  BREATH_WEAPON = 'breath_weapon',
+  FLYING = 'flying',
+  INVISIBLE = 'invisible',
+  MEAN = 'mean',
+  TELEPORT = 'teleport',
+}
+
 export interface MonsterAIProfile {
   behavior: MonsterBehavior | MonsterBehavior[]
   intelligence: number
   aggroRange: number
   fleeThreshold: number
-  special: string[]
+  special: SpecialAbilityFlag[]
 }
 
 /**

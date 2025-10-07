@@ -4,7 +4,12 @@ import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import { FOVService } from '@services/FOVService'
 import { StatusEffectService } from '@services/StatusEffectService'
-import { GameState, Monster, MonsterBehavior } from '@game/core/core'
+import {
+  GameState,
+  Monster,
+  MonsterBehavior,
+  SpecialAbilityFlag,
+} from '@game/core/core'
 
 describe('MonsterAIService - THIEF Behavior', () => {
   let service: MonsterAIService
@@ -38,7 +43,7 @@ describe('MonsterAIService - THIEF Behavior', () => {
         intelligence: 5,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['steals'],
+        special: [SpecialAbilityFlag.STEALS],
       },
       isAsleep: false,
       isAwake: true,

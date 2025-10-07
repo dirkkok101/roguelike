@@ -1,6 +1,6 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
 import { MockRandom } from '@services/RandomService'
-import { Monster, MonsterBehavior } from '@game/core/core'
+import { Monster, MonsterBehavior, SpecialAbilityFlag } from '@game/core/core'
 
 describe('SpecialAbilityService - Regeneration', () => {
   let service: SpecialAbilityService
@@ -27,7 +27,7 @@ describe('SpecialAbilityService - Regeneration', () => {
         intelligence: 3,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['regenerates'],
+        special: [SpecialAbilityFlag.REGENERATION],
       },
       isAsleep: false,
       isAwake: true,
