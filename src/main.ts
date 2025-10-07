@@ -1,4 +1,5 @@
 import { GameState, Position, Torch, ItemType } from '@game/core/core'
+import { GameServices } from '@game/../types/Services'
 import { SeededRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
@@ -371,36 +372,41 @@ async function initializeGame() {
       replaySeed
     )
 
+    // Create services container for InputHandler
+    const gameServices: GameServices = {
+      movement: movementService,
+      lighting: lightingService,
+      fov: fovService,
+      message: messageService,
+      random: random,
+      turn: turnService,
+      level: levelService,
+      dungeon: dungeonService,
+      dungeonConfig: dungeonConfig,
+      combat: combatService,
+      gold: goldService,
+      hunger: hungerService,
+      regeneration: regenerationService,
+      leveling: levelingService,
+      statusEffect: statusEffectService,
+      inventory: inventoryService,
+      identification: identificationService,
+      curse: curseService,
+      ring: ringService,
+      potion: potionService,
+      scroll: scrollService,
+      wand: wandService,
+      door: doorService,
+      targeting: targetingService,
+      localStorage: localStorageService,
+      notification: notificationService,
+      victory: victoryService,
+      debug: debugService,
+    }
+
     inputHandler = new InputHandler(
-      movementService,
-      lightingService,
-      fovService,
-      messageService,
-      random,
-      dungeonService,
-      dungeonConfig,
-      combatService,
-      inventoryService,
-      identificationService,
-      hungerService,
-      regenerationService,
-      levelingService,
+      gameServices,
       modalController,
-      debugService,
-      notificationService,
-      victoryService,
-      localStorageService,
-      doorService,
-      potionService,
-      scrollService,
-      wandService,
-      turnService,
-      levelService,
-      statusEffectService,
-      curseService,
-      goldService,
-      targetingService,
-      ringService,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
       returnToMenu

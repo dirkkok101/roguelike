@@ -26,36 +26,10 @@ import { KillAllMonstersCommand } from '@commands/KillAllMonstersCommand'
 import { ToggleFOVDebugCommand } from '@commands/ToggleFOVDebugCommand'
 import { TogglePathDebugCommand } from '@commands/TogglePathDebugCommand'
 import { ToggleAIDebugCommand } from '@commands/ToggleAIDebugCommand'
-import { MovementService } from '@services/MovementService'
-import { DebugService } from '@services/DebugService'
-import { LightingService } from '@services/LightingService'
-import { FOVService } from '@services/FOVService'
-import { MessageService } from '@services/MessageService'
-import { IRandomService } from '@services/RandomService'
-import { DungeonService, DungeonConfig } from '@services/DungeonService'
-import { CombatService } from '@services/CombatService'
-import { InventoryService } from '@services/InventoryService'
-import { CurseService } from '@services/CurseService'
-import { IdentificationService } from '@services/IdentificationService'
-import { HungerService } from '@services/HungerService'
-import { RegenerationService } from '@services/RegenerationService'
 import { RestService } from '@services/RestService'
-import { LevelingService } from '@services/LevelingService'
-import { NotificationService } from '@services/NotificationService'
-import { VictoryService } from '@services/VictoryService'
-import { LocalStorageService } from '@services/LocalStorageService'
-import { DoorService } from '@services/DoorService'
-import { PotionService } from '@services/PotionService'
-import { ScrollService } from '@services/ScrollService'
-import { WandService } from '@services/WandService'
-import { TurnService } from '@services/TurnService'
 import { SearchService } from '@services/SearchService'
-import { LevelService } from '@services/LevelService'
-import { StatusEffectService } from '@services/StatusEffectService'
-import { GoldService } from '@services/GoldService'
-import { TargetingService } from '@services/TargetingService'
-import { RingService } from '@services/RingService'
 import { GameState, Scroll, ScrollType, TargetingMode } from '@game/core/core'
+import { GameServices } from '@game/../types/Services'
 import { ModalController } from './ModalController'
 
 // ============================================================================
@@ -68,41 +42,71 @@ export class InputHandler {
   private mode: InputMode = 'normal'
   private pendingCommand: ICommand | null = null
 
+  // Services (destructured from container for easy access)
+  private readonly movementService
+  private readonly lightingService
+  private readonly fovService
+  private readonly messageService
+  private readonly random
+  private readonly dungeonService
+  private readonly dungeonConfig
+  private readonly combatService
+  private readonly inventoryService
+  private readonly identificationService
+  private readonly hungerService
+  private readonly regenerationService
+  private readonly levelingService
+  private readonly debugService
+  private readonly notificationService
+  private readonly victoryService
+  private readonly localStorageService
+  private readonly doorService
+  private readonly potionService
+  private readonly scrollService
+  private readonly wandService
+  private readonly turnService
+  private readonly levelService
+  private readonly statusEffectService
+  private readonly curseService
+  private readonly goldService
+  private readonly targetingService
+
   constructor(
-    private movementService: MovementService,
-    private lightingService: LightingService,
-    private fovService: FOVService,
-    private messageService: MessageService,
-    private random: IRandomService,
-    private dungeonService: DungeonService,
-    private dungeonConfig: DungeonConfig,
-    private combatService: CombatService,
-    private inventoryService: InventoryService,
-    private identificationService: IdentificationService,
-    private hungerService: HungerService,
-    private regenerationService: RegenerationService,
-    private levelingService: LevelingService,
+    services: GameServices,
     private modalController: ModalController,
-    private debugService: DebugService,
-    private notificationService: NotificationService,
-    private victoryService: VictoryService,
-    private localStorageService: LocalStorageService,
-    private doorService: DoorService,
-    private potionService: PotionService,
-    private scrollService: ScrollService,
-    private wandService: WandService,
-    private turnService: TurnService,
-    private levelService: LevelService,
-    private statusEffectService: StatusEffectService,
-    private curseService: CurseService,
-    private goldService: GoldService,
-    private targetingService: TargetingService,
-    /** Injected into TurnService for passive ring abilities (teleportation, searching) */
-    _ringService: RingService,
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal
     private onReturnToMenu: () => void
-  ) {}
+  ) {
+    // Destructure services for convenient access
+    this.movementService = services.movement
+    this.lightingService = services.lighting
+    this.fovService = services.fov
+    this.messageService = services.message
+    this.random = services.random
+    this.dungeonService = services.dungeon
+    this.dungeonConfig = services.dungeonConfig
+    this.combatService = services.combat
+    this.inventoryService = services.inventory
+    this.identificationService = services.identification
+    this.hungerService = services.hunger
+    this.regenerationService = services.regeneration
+    this.levelingService = services.leveling
+    this.debugService = services.debug
+    this.notificationService = services.notification
+    this.victoryService = services.victory
+    this.localStorageService = services.localStorage
+    this.doorService = services.door
+    this.potionService = services.potion
+    this.scrollService = services.scroll
+    this.wandService = services.wand
+    this.turnService = services.turn
+    this.levelService = services.level
+    this.statusEffectService = services.statusEffect
+    this.curseService = services.curse
+    this.goldService = services.gold
+    this.targetingService = services.targeting
+  }
 
   /**
    * Handle keyboard event and return command (if any)
