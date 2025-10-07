@@ -10,6 +10,7 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { HungerService } from '@services/HungerService'
 import { RegenerationService } from '@services/RegenerationService'
+import { RingService } from '@services/RingService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { NotificationService } from '@services/NotificationService'
@@ -29,6 +30,7 @@ describe('MoveCommand - Gold Pickup', () => {
   let turnService: TurnService
   let hungerService: HungerService
   let regenerationService: RegenerationService
+  let ringService: RingService
   let statusEffectService: StatusEffectService
   let identificationService: IdentificationService
   let notificationService: NotificationService
@@ -39,17 +41,18 @@ describe('MoveCommand - Gold Pickup', () => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    hungerService = new HungerService(mockRandom)
+    ringService = new RingService(mockRandom)
+    hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
     fovService = new FOVService(statusEffectService)
     messageService = new MessageService()
-    combatService = new CombatService(mockRandom, hungerService)
+    combatService = new CombatService(mockRandom, ringService, hungerService)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
-    regenerationService = new RegenerationService()
+    regenerationService = new RegenerationService(ringService)
     notificationService = new NotificationService(identificationService)
     goldService = new GoldService(mockRandom)
   })
