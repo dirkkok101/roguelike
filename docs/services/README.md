@@ -23,11 +23,11 @@ See [Architecture Guide](../architecture.md) for details.
 |---------|----------------|-------------|--------------|
 | **Core Game Logic** ||||
 | [MovementService](./MovementService.md) | Position validation, collision detection | `isWalkable`, `detectObstacle`, `movePlayer` | None |
-| [CombatService](./CombatService.md) | Combat formulas, hit/damage calculation | `playerAttack`, `monsterAttack` | RandomService |
+| [CombatService](./CombatService.md) | Combat formulas, hit/damage calculation | `playerAttack`, `monsterAttack` | RandomService, RingService, HungerService |
 | [FOVService](./FOVService.md) | Field of view, shadowcasting | `computeFOV`, `updateFOVAndExploration` | None |
 | [LightingService](./LightingService.md) | Light sources, fuel management | `tickFuel`, `getLightRadius`, `refillLantern` | RandomService |
-| [HungerService](./HungerService.md) | Hunger tracking, starvation | `tickHunger`, `consumeFood` | None |
-| [RegenerationService](./RegenerationService.md) | Health regeneration (1 HP/10 turns) | `tickRegeneration`, `hasRegenerationRing` | None |
+| [HungerService](./HungerService.md) | Hunger tracking, starvation | `tickHunger`, `consumeFood` | RandomService, RingService |
+| [RegenerationService](./RegenerationService.md) | Health regeneration (1 HP/10 turns) | `tickRegeneration`, `hasRegenerationRing` | RingService |
 | [LevelingService](./LevelingService.md) | XP, level-up, stat progression | `addExperience`, `levelUp` | None |
 | [InventoryService](./InventoryService.md) | Item management, equipping | `addItem`, `equipWeapon`, `canCarry` | None |
 | [DoorService](./DoorService.md) | Door state management | `openDoor`, `closeDoor`, `canOpenDoor` | None |
@@ -50,6 +50,7 @@ See [Architecture Guide](../architecture.md) for details.
 | [StatusEffectService](./StatusEffectService.md) | Status effects, durations | `addStatusEffect`, `tickStatusEffects` | None |
 | [ScrollService](./ScrollService.md) | Scroll effects | `applyScroll` | None |
 | [WandService](./WandService.md) | Wand effects, charges | `applyWand`, `decrementCharge` | RandomService |
+| [RingService](./RingService.md) | Ring bonuses, passive abilities | `getRingBonus`, `calculateHungerModifier`, `triggerTeleportation` | RandomService |
 | [IdentificationService](./IdentificationService.md) | Item identification | `identifyItem`, `getDisplayName` | None |
 | [TrapService](./TrapService.md) | Trap detection, triggering | `detectTrap`, `triggerTrap` | RandomService, StatusEffectService |
 | **UI & Support** ||||
@@ -100,12 +101,13 @@ Algorithms and visualization:
 - [PathfindingService](./PathfindingService.md) - A* pathfinding
 - [RenderingService](./RenderingService.md) - Visual rendering
 
-### Item Systems (6 services)
+### Item Systems (7 services)
 Consumables, status effects, and identification:
 - [PotionService](./PotionService.md) - Potion effects
 - [StatusEffectService](./StatusEffectService.md) - Status effects and durations
 - [ScrollService](./ScrollService.md) - Scroll effects
 - [WandService](./WandService.md) - Wand effects
+- [RingService](./RingService.md) - Ring bonuses and passive abilities
 - [IdentificationService](./IdentificationService.md) - Item identification
 - [TrapService](./TrapService.md) - Traps
 
