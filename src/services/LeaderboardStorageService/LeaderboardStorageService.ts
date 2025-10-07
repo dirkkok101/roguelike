@@ -18,7 +18,6 @@ import { LeaderboardEntry } from '@game/core/core'
  */
 export class LeaderboardStorageService {
   private readonly STORAGE_KEY = 'roguelike_leaderboard'
-  private readonly MAX_ENTRIES = 500 // Soft limit
   private readonly CLEANUP_THRESHOLD = 400 // Trigger cleanup at this count
 
   /**

@@ -1,4 +1,4 @@
-import { GameState, ItemType } from '@game/core/core'
+import { GameState } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'

@@ -1,4 +1,4 @@
-import { GameState, Player, StatusEffectType, Scroll, Level, Position } from '@game/core/core'
+import { GameState, Player, StatusEffectType, Level, Position } from '@game/core/core'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { LevelService } from '@services/LevelService'
 import { RingService } from '@services/RingService'
@@ -45,7 +45,7 @@ export class TurnService {
     const newTurnCount = state.turnCount + 1
 
     // Tick status effects (decrement durations, remove expired)
-    const { player, expired } = this.statusEffectService.tickStatusEffects(state.player)
+    const { player } = this.statusEffectService.tickStatusEffects(state.player)
 
     // TODO: Add messages for expired effects in Phase 2.6 UI work
     // For now, just silently remove expired effects
@@ -142,17 +142,20 @@ export class TurnService {
     // Note: Searching uses the final position (after potential teleportation)
     const searchResult = this.ringService.applySearchingRing(updatedPlayer, updatedLevel)
 
-    if (searchResult.detected) {
-      // Update level with discovered traps/doors
-      updatedLevel = searchResult.level
-
+    if (searchResult.trapsFound.length > 0 || searchResult.secretDoorsFound.length > 0) {
       // Add detection messages
-      searchResult.messages.forEach((msg) => {
+      if (searchResult.trapsFound.length > 0) {
         messages.push({
-          text: msg,
+          text: `Your ring of searching detects ${searchResult.trapsFound.length} trap(s)!`,
           type: 'info',
         })
-      })
+      }
+      if (searchResult.secretDoorsFound.length > 0) {
+        messages.push({
+          text: `Your ring of searching detects ${searchResult.secretDoorsFound.length} secret door(s)!`,
+          type: 'info',
+        })
+      }
     }
 
     return {

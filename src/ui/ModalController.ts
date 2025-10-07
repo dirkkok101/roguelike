@@ -44,7 +44,7 @@ export class ModalController {
   constructor(
     private identificationService: IdentificationService,
     private curseService: CurseService,
-    private targetingService?: TargetingService
+    targetingService?: TargetingService
   ) {
     if (targetingService) {
       this.targetingModal = new TargetingModal(targetingService)

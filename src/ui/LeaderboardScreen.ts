@@ -1,4 +1,4 @@
-import { LeaderboardEntry, LeaderboardFilters, DEFAULT_LEADERBOARD_FILTERS } from '@game/core/core'
+import { LeaderboardEntry } from '@game/core/core'
 import { LeaderboardService, SeedGroup } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { PreferencesService } from '@services/PreferencesService'
@@ -40,7 +40,6 @@ export class LeaderboardScreen {
   private entriesPerPage = 25
   private dateRange: DateRange = 'all'
   private viewMode: ViewMode = 'entries'
-  private expandedSeed: string | null = null
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null
 
   constructor(
@@ -664,7 +663,7 @@ export class LeaderboardScreen {
     })
   }
 
-  private showEntryDetails(entry: LeaderboardEntry, modal: HTMLDivElement, onClose: () => void): void {
+  private showEntryDetails(entry: LeaderboardEntry, _modal: HTMLDivElement, _onClose: () => void): void {
     // Hide leaderboard temporarily
     if (this.container) {
       this.container.style.display = 'none'

@@ -216,7 +216,7 @@ export class MonsterTurnService {
     // Handle multiple attacks if monster has them
     const attacks = this.abilityService.parseMultipleAttacks(monster.damage)
 
-    for (const attackDamage of attacks) {
+    for (const _attackDamage of attacks) {
       // Check breath weapon for Dragon
       if (
         this.abilityService.shouldUseBreathWeapon(monster) &&

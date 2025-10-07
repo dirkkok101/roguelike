@@ -1,4 +1,4 @@
-import { Player, Ring, RingType, Position, Level, Door, Trap, DoorState } from '@game/core/core'
+import { Player, Ring, RingType, Position, Level, DoorState } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================

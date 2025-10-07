@@ -40,7 +40,7 @@ export class PotionService {
    */
   applyPotion(player: Player, potion: Potion, state: GameState): PotionEffectResult {
     // Identify potion by use
-    const identified = !this.identificationService.isIdentified(potion, state)
+    const identified = !this.identificationService.isIdentified(potion.id, state)
     const displayName = this.identificationService.getDisplayName(potion, state)
 
     let updatedPlayer = player

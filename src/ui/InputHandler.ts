@@ -53,8 +53,9 @@ import { SearchService } from '@services/SearchService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { GoldService } from '@services/GoldService'
+import { TargetingService } from '@services/TargetingService'
 import { RingService } from '@services/RingService'
-import { GameState, Scroll, ScrollType } from '@game/core/core'
+import { GameState, Scroll, ScrollType, TargetingMode } from '@game/core/core'
 import { ModalController } from './ModalController'
 
 // ============================================================================
@@ -95,8 +96,9 @@ export class InputHandler {
     private statusEffectService: StatusEffectService,
     private curseService: CurseService,
     private goldService: GoldService,
+    private targetingService: TargetingService,
     /** Injected into TurnService for passive ring abilities (teleportation, searching) */
-    private ringService: RingService,
+    _ringService: RingService,
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal
     private onReturnToMenu: () => void
@@ -308,7 +310,8 @@ export class InputHandler {
               this.inventoryService,
               this.potionService,
               this.messageService,
-              this.turnService
+              this.turnService,
+              this.statusEffectService
             )
           }
         })
@@ -340,6 +343,7 @@ export class InputHandler {
                     this.scrollService,
                     this.messageService,
                     this.turnService,
+                    this.statusEffectService,
                     targetItem.id
                   )
                 }
@@ -363,6 +367,7 @@ export class InputHandler {
                     this.scrollService,
                     this.messageService,
                     this.turnService,
+                    this.statusEffectService,
                     targetItem.id
                   )
                 }
@@ -385,6 +390,7 @@ export class InputHandler {
                     this.scrollService,
                     this.messageService,
                     this.turnService,
+                    this.statusEffectService,
                     targetItem.id
                   )
                 }
@@ -397,7 +403,8 @@ export class InputHandler {
               this.inventoryService,
               this.scrollService,
               this.messageService,
-              this.turnService
+              this.turnService,
+              this.statusEffectService
             )
           }
         })
@@ -413,7 +420,7 @@ export class InputHandler {
             const wandRange = wand.range || 5 // Default range if not set yet
 
             const targetingRequest = {
-              mode: 'MONSTER' as const,
+              mode: TargetingMode.MONSTER,
               maxRange: wandRange,
               requiresLOS: true,
             }
@@ -463,8 +470,7 @@ export class InputHandler {
           this.regenerationService,
           this.hungerService,
           this.lightingService,
-          this.fovService,
-          this.turnService
+          this.fovService
         )
         return new RestCommand(
           restService,
@@ -572,7 +578,7 @@ export class InputHandler {
         } else if (state.player.equipment.armor) {
           return new TakeOffCommand('armor', this.inventoryService, this.messageService, this.turnService)
         } else {
-          const messages = this.messageService.addMessage(
+          this.messageService.addMessage(
             state.messages,
             'You have nothing equipped to take off.',
             'info',

@@ -1,4 +1,4 @@
-import { Player, Ring, RingType } from '@game/core/core'
+import { Player } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 
