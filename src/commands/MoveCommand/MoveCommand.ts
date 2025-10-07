@@ -41,10 +41,11 @@ export class MoveCommand implements ICommand {
     const level = state.levels.get(state.currentLevel)
     if (!level) return state
 
-    // Calculate target position
+    // Calculate target position (confusion handled in MovementService)
     const newPosition = this.movementService.applyDirection(
       state.player.position,
-      this.direction
+      this.direction,
+      state.player
     )
 
     // Detect obstacle
@@ -198,7 +199,8 @@ export class MoveCommand implements ICommand {
     const fovResult: FOVUpdateResult = this.fovService.updateFOVAndExploration(
       position,
       lightRadius,
-      level
+      level,
+      updatedPlayer
     )
 
     // 5. Update levels map

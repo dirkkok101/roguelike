@@ -1,13 +1,16 @@
 import { RenderingService } from './RenderingService'
 import { FOVService } from '@services/FOVService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { Tile, TileType, Monster, Item, GoldPile } from '@game/core/core'
 
 describe('RenderingService - Colors', () => {
   let service: RenderingService
   let fovService: FOVService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
-    fovService = new FOVService()
+    statusEffectService = new StatusEffectService()
+    fovService = new FOVService(statusEffectService)
     service = new RenderingService(fovService)
   })
 

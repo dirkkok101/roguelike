@@ -2,6 +2,7 @@ import { PotionService } from './PotionService'
 import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import {
   Player,
   Potion,
@@ -19,6 +20,7 @@ describe('PotionService - Raise Level Potion', () => {
   let mockRandom: MockRandom
   let identificationService: IdentificationService
   let levelingService: LevelingService
+  let statusEffectService: StatusEffectService
   let testPlayer: Player
   let testState: GameState
 

@@ -1,9 +1,10 @@
-import { GameState, ItemType, Scroll } from '@game/core/core'
+import { GameState, ItemType, Scroll, StatusEffectType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { ScrollService } from '@services/ScrollService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // READ SCROLL COMMAND - Read a scroll from inventory
@@ -16,10 +17,32 @@ export class ReadScrollCommand implements ICommand {
     private scrollService: ScrollService,
     private messageService: MessageService,
     private turnService: TurnService,
+    private statusEffectService: StatusEffectService,
     private targetItemId?: string
   ) {}
 
   execute(state: GameState): GameState {
+    // 0. Check if player can read (not blind or confused)
+    if (this.statusEffectService.hasStatusEffect(state.player, StatusEffectType.BLIND)) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'You cannot read while blind!',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    if (this.statusEffectService.hasStatusEffect(state.player, StatusEffectType.CONFUSED)) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'You are too confused to read!',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
     // 1. Find item in inventory
     const item = this.inventoryService.findItem(state.player, this.itemId)
 

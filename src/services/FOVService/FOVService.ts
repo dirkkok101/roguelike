@@ -59,9 +59,10 @@ export class FOVService {
   updateFOVAndExploration(
     position: Position,
     lightRadius: number,
-    level: Level
+    level: Level,
+    player?: Player
   ): FOVUpdateResult {
-    const visibleCells = this.computeFOV(position, lightRadius, level)
+    const visibleCells = this.computeFOV(position, lightRadius, level, player)
     const updatedLevel = this.updateExploredTiles(level, visibleCells)
     return { visibleCells, level: updatedLevel }
   }
