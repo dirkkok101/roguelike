@@ -88,7 +88,7 @@ async function initializeGame() {
   const hungerService = new HungerService(random, ringService)
   const regenerationService = new RegenerationService(ringService)
   const levelingService = new LevelingService(random)
-  const debugService = new DebugService(messageService)
+  const debugService = new DebugService(messageService, import.meta.env.DEV)
   const inventoryService = new InventoryService()
   const identificationService = new IdentificationService(random)
   const contextService = new ContextService(identificationService)
