@@ -4,6 +4,7 @@ import { CombatService } from '@services/CombatService'
 import { MessageService } from '@services/MessageService'
 import { LevelingService } from '@services/LevelingService'
 import { TurnService } from '@services/TurnService'
+import { GoldService } from '@services/GoldService'
 
 // ============================================================================
 // ATTACK COMMAND - Player attacks monster
@@ -15,7 +16,8 @@ export class AttackCommand implements ICommand {
     private combatService: CombatService,
     private messageService: MessageService,
     private levelingService: LevelingService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private goldService: GoldService
   ) {}
 
   execute(state: GameState): GameState {
@@ -46,8 +48,28 @@ export class AttackCommand implements ICommand {
           state.turnCount
         )
 
-        // Remove monster and award XP
+        // Remove monster
         const updatedMonsters = level.monsters.filter((m) => m.id !== this.monsterId)
+
+        // Leprechaun drops gold on death (Rogue 1980 formula with inverted saving throw)
+        let updatedGold = level.gold
+        if (monster.name === 'Leprechaun') {
+          const goldDrop = this.goldService.calculateLeprechaunDrop(
+            state.player.level,
+            state.player.strength,
+            level.depth
+          )
+          const goldPile = this.goldService.dropGold(monster.position, goldDrop)
+          updatedGold = [...level.gold, goldPile]
+
+          messages = this.messageService.addMessage(
+            messages,
+            `The Leprechaun dropped ${goldDrop} gold pieces!`,
+            'success',
+            state.turnCount
+          )
+        }
+
         const xpReward = this.levelingService.calculateXPReward(monster)
 
         // Add XP and check for level-up
@@ -79,7 +101,7 @@ export class AttackCommand implements ICommand {
           )
         }
 
-        const updatedLevel = { ...level, monsters: updatedMonsters }
+        const updatedLevel = { ...level, monsters: updatedMonsters, gold: updatedGold }
         const updatedLevels = new Map(state.levels)
         updatedLevels.set(state.currentLevel, updatedLevel)
 

@@ -4,6 +4,7 @@ import { CombatService } from '@services/CombatService'
 import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { GoldService } from '@services/GoldService'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
@@ -17,7 +18,8 @@ export class MonsterTurnService {
     private combatService: CombatService,
     private abilityService: SpecialAbilityService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private goldService: GoldService
   ) {}
 
   /**
@@ -318,10 +320,20 @@ export class MonsterTurnService {
     let messages = state.messages
     let player = state.player
 
-    // Leprechaun steals gold
+    // Leprechaun steals gold (Rogue 1980 formula with saving throw)
     if (monster.name === 'Leprechaun' && player.gold > 0) {
-      const stolenGold = Math.min(player.gold, this.random.nextInt(10, 50))
-      player = { ...player, gold: player.gold - stolenGold }
+      const level = state.levels.get(state.currentLevel)
+      const depth = level?.depth || 1
+
+      // Use GoldService formula: saving throw determines 1x or 5x GOLDCALC
+      const stolenGold = this.goldService.calculateLeprechaunSteal(
+        player.gold,
+        player.level,
+        player.strength,
+        depth
+      )
+
+      player = { ...player, gold: Math.max(0, player.gold - stolenGold) }
       messages = this.messageService.addMessage(
         messages,
         `The Leprechaun steals ${stolenGold} gold and flees!`,

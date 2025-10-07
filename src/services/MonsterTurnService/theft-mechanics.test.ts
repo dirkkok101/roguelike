@@ -9,6 +9,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { HungerService } from '@services/HungerService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
+import { GoldService } from '@services/GoldService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Monster, MonsterBehavior, Item } from '@game/core/core'
 
@@ -25,12 +26,13 @@ describe('MonsterTurnService - Theft Mechanics', () => {
     const messageService = new MessageService()
     const hungerService = new HungerService(mockRandom)
     const turnService = new TurnService(statusEffectService, levelService)
+    const goldService = new GoldService(mockRandom)
 
     const aiService = new MonsterAIService(pathfinding, mockRandom, fovService, levelService)
     const combatService = new CombatService(mockRandom, hungerService)
     const abilityService = new SpecialAbilityService(mockRandom)
 
-    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService, turnService)
+    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService, turnService, goldService)
   })
 
   function createTestState(monsters: Monster[] = []): GameState {

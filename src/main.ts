@@ -101,16 +101,17 @@ async function initializeGame() {
   const monsterAIService = new MonsterAIService(pathfindingService, random, fovService, levelService)
   const specialAbilityService = new SpecialAbilityService(random)
   const turnService = new TurnService(statusEffectService, levelService)
+  const goldService = new GoldService(random)
   const monsterTurnService = new MonsterTurnService(
     random,
     monsterAIService,
     combatService,
     specialAbilityService,
     messageService,
-    turnService
+    turnService,
+    goldService
   )
   const doorService = new DoorService()
-  const goldService = new GoldService(random)
   const potionService = new PotionService(random, identificationService, levelingService, statusEffectService)
   const curseService = new CurseService()
   const scrollService = new ScrollService(
