@@ -223,6 +223,7 @@ describe('Targeting System Integration', () => {
         wandService,
         messageService,
         turnService,
+        statusEffectService,
         monster.id
       )
       const result = command.execute(state)
@@ -308,6 +309,7 @@ describe('Targeting System Integration', () => {
         wandService,
         messageService,
         turnService,
+        statusEffectService,
         monster.id
       )
       const result = command.execute(state)
@@ -393,6 +395,7 @@ describe('Targeting System Integration', () => {
         wandService,
         messageService,
         turnService,
+        statusEffectService,
         monster.id
       )
       const result = command.execute(state)
@@ -475,6 +478,7 @@ describe('Targeting System Integration', () => {
         wandService,
         messageService,
         turnService,
+        statusEffectService,
         monster.id
       )
       const shortResult = shortCommand.execute(state)
@@ -493,6 +497,7 @@ describe('Targeting System Integration', () => {
         wandService,
         messageService,
         turnService,
+        statusEffectService,
         monster.id
       )
       const longResult = longCommand.execute(state)
@@ -579,6 +584,7 @@ describe('Targeting System Integration', () => {
         wandService,
         messageService,
         turnService,
+        statusEffectService,
         monster.id
       )
       const result = command.execute(state)
@@ -659,6 +665,7 @@ describe('Targeting System Integration', () => {
         wandService,
         messageService,
         turnService,
+        statusEffectService,
         undefined // No target
       )
       const result = command.execute(state)
@@ -735,6 +742,7 @@ describe('Targeting System Integration', () => {
         wandService,
         messageService,
         turnService,
+        statusEffectService,
         'nonexistent-monster'
       )
       const result = command.execute(state)

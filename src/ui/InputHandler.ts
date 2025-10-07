@@ -420,6 +420,7 @@ export class InputHandler {
                     this.wandService,
                     this.messageService,
                     this.turnService,
+                    this.statusEffectService,
                     result.targetMonsterId
                   )
                 }

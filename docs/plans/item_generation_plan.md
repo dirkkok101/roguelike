@@ -701,6 +701,16 @@ MAGIC_MISSILE: 2d6 = 2-12 damage (never misses)
 - [ ] Manual playtesting: Zap all 10 wand types
 
 ### Follow-Up Tasks
+- [ ] Implement full POLYMORPH transformation using MonsterSpawnService
+  - **Current limitation**: v1 only renames monster and resets HP
+  - **Future enhancement**: Full transformation to different monster type of same depth
+  - **Technical requirements**:
+    - Inject MonsterSpawnService dependency into WandService
+    - Get random monster template from MonsterSpawnService for current depth
+    - Replace all monster stats (hp, maxHp, damage, ac, speed, aiProfile, behavior)
+    - Preserve monster ID and position
+    - Handle monster data migration cleanly
+  - **Challenges**: State preservation, AI profile transitions, pathfinding data reset
 - [ ] Directional wand targeting (Phase 5+)
 - [ ] Cursed artifact generation (if needed)
 - [ ] Additional visual polish for cursed items (color coding, icons)

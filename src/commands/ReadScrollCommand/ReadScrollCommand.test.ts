@@ -121,6 +121,7 @@ describe('ReadScrollCommand', () => {
       scrollService,
       messageService,
       turnService,
+      statusEffectService,
       'potion-1'
     )
     const result = command.execute(state)
@@ -140,7 +141,8 @@ describe('ReadScrollCommand', () => {
       inventoryService,
       scrollService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -165,7 +167,8 @@ describe('ReadScrollCommand', () => {
       inventoryService,
       scrollService,
       messageService,
-      turnService
+      turnService,
+      statusEffectService
     )
     const result = command.execute(state)
 
@@ -196,6 +199,7 @@ describe('ReadScrollCommand', () => {
       scrollService,
       messageService,
       turnService,
+      statusEffectService,
       'armor-1'
     )
     const result = command.execute(state)
@@ -227,6 +231,7 @@ describe('ReadScrollCommand', () => {
       scrollService,
       messageService,
       turnService,
+      statusEffectService,
       'potion-1'
     )
     const result = command.execute(state)
