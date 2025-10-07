@@ -166,6 +166,7 @@ export class ScrollService {
 
     return {
       player,
+      state: newState,
       message: `You read ${scrollName}. This is ${targetName}!`,
       identified,
       consumed: true

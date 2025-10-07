@@ -57,15 +57,20 @@ export class ModalController {
    * @param title - Modal title (e.g., "Quaff which potion?")
    * @param state - Current game state
    * @param callback - Called with selected item (or null if cancelled)
+   * @param excludeItemId - Optional item ID to exclude from list (e.g., the scroll being read)
    */
   showItemSelection(
     filter: ItemFilter,
     title: string,
     state: GameState,
-    callback: SelectionCallback
+    callback: SelectionCallback,
+    excludeItemId?: string
   ): void {
-    // Filter items
-    const items = this.filterItems(state.player.inventory, filter, state)
+    // Filter items and exclude specific item if provided
+    let items = this.filterItems(state.player.inventory, filter, state)
+    if (excludeItemId) {
+      items = items.filter(item => item.id !== excludeItemId)
+    }
 
     // Create modal DOM
     const modalContainer = this.createSelectionModal(title, items, state)
@@ -302,13 +307,16 @@ export class ModalController {
           )
         case 'unidentified':
           // Filter items that are not yet identified
-          return (
-            !this.identificationService.isIdentified(item, state) &&
-            (item.type === ItemType.POTION ||
-              item.type === ItemType.SCROLL ||
-              item.type === ItemType.RING ||
-              item.type === ItemType.WAND)
-          )
+          if (
+            item.type !== ItemType.POTION &&
+            item.type !== ItemType.SCROLL &&
+            item.type !== ItemType.RING &&
+            item.type !== ItemType.WAND
+          ) {
+            return false
+          }
+          const typeKey = this.identificationService.getItemTypeKey(item)
+          return typeKey ? !this.identificationService.isIdentified(typeKey, state) : false
         default:
           return false
       }
