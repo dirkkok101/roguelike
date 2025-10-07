@@ -160,7 +160,7 @@ export class TargetingModal {
     }
 
     // Calculate distance
-    const distance = this.calculateDistance(
+    const distance = this.targetingService.distance(
       this.state.player.position,
       currentMonster.position
     )
@@ -300,9 +300,5 @@ export class TargetingModal {
 
   private getCurrentTargetIndex(): number {
     return this.visibleMonsters.findIndex((m) => m.id === this.currentTargetId)
-  }
-
-  private calculateDistance(a: { x: number; y: number }, b: { x: number; y: number }): number {
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
   }
 }
