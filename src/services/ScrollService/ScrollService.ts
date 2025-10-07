@@ -68,7 +68,7 @@ export class ScrollService {
     targetItemId?: string
   ): ScrollEffectResult {
     // Identify scroll by use
-    const identified = !this.identificationService.isIdentified(scroll.id, state)
+    const identified = !this.identificationService.isIdentified(scroll.scrollType, state)
     const displayName = this.identificationService.getDisplayName(scroll, state)
 
     // Apply scroll effect based on type
@@ -166,6 +166,7 @@ export class ScrollService {
 
     return {
       player,
+      state: newState,
       message: `You read ${scrollName}. This is ${targetName}!`,
       identified,
       consumed: true

@@ -330,7 +330,7 @@ export class InputHandler {
             // Close scroll selection modal before opening target selection
             this.modalController.hide()
 
-            // Show unidentified items
+            // Show unidentified items (exclude the scroll being read)
             this.modalController.showItemSelection(
               'unidentified',
               'Identify which item?',
@@ -347,7 +347,8 @@ export class InputHandler {
                     targetItem.id
                   )
                 }
-              }
+              },
+              scroll.id // Exclude the identify scroll itself
             )
           } else if (scrollItem.scrollType === ScrollType.ENCHANT_WEAPON) {
             // Close scroll selection modal before opening target selection
