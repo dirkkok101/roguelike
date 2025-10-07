@@ -1,4 +1,4 @@
-import { GameState, Message } from '@game/core/core'
+import { GameState } from '@game/core/core'
 
 // ============================================================================
 // MESSAGE HISTORY MODAL - Full message log viewer
@@ -56,7 +56,7 @@ export class MessageHistoryModal {
     `
 
     const messages = state.messages
-      .map((msg, i) => {
+      .map((msg) => {
         const color = this.getColorForType(msg.type)
         const countText = msg.count && msg.count > 1 ? ` (x${msg.count})` : ''
         return `

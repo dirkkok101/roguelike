@@ -1,4 +1,4 @@
-import { GameState } from '@game/core/core'
+import { GameState, Level } from '@game/core/core'
 
 // ============================================================================
 // LOCAL STORAGE SERVICE - Game save/load persistence
@@ -240,9 +240,9 @@ export class LocalStorageService {
             ...m,
             visibleCells: Array.from(m.visibleCells),
             currentPath: m.currentPath,
-          })),
-        },
-      ]
+          } as any)),
+        } as any as Level,
+      ] as [number, Level]
     })
 
     return JSON.stringify(serializable)

@@ -91,8 +91,6 @@ export class ZapWandCommand implements ICommand {
       return { ...state, messages }
     }
 
-    const targetMonster = validation.monster!
-
     // 8. Apply wand effect (decrements charges)
     const result = this.wandService.applyWand(
       state.player,

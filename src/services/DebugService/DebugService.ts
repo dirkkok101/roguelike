@@ -26,7 +26,7 @@ import { MessageService } from '@services/MessageService'
 export class DebugService {
   constructor(
     private messageService: MessageService,
-    private isDevMode: boolean = process.env.NODE_ENV === 'development'
+    private isDevMode: boolean = typeof window !== 'undefined' && (window as any).__DEV_MODE__ === true
   ) {}
 
   /**
@@ -64,7 +64,7 @@ export class DebugService {
       ? 'God mode ENABLED (invincible, infinite hunger/light)'
       : 'God mode DISABLED'
 
-    const messages = this.messageService.addMessage(state.messages, message, 'debug', state.turnCount)
+    const messages = this.messageService.addMessage(state.messages, message, 'info', state.turnCount)
 
     return {
       ...state,
@@ -104,7 +104,7 @@ export class DebugService {
       ? 'Map REVEALED (all tiles visible)'
       : 'Map reveal DISABLED'
 
-    const messages = this.messageService.addMessage(state.messages, message, 'debug', state.turnCount)
+    const messages = this.messageService.addMessage(state.messages, message, 'info', state.turnCount)
 
     return {
       ...state,
@@ -218,6 +218,7 @@ export class DebugService {
       },
       isAsleep: false,
       isAwake: true,
+      isInvisible: false,
       state: MonsterState.HUNTING,
       visibleCells: new Set(),
       currentPath: null,
@@ -227,6 +228,7 @@ export class DebugService {
       turnsWithoutSight: 0,
       energy: 100, // Debug monsters start with full energy
       speed: 10, // Normal speed
+      statusEffects: []
     }
 
     const updatedLevel: Level = {

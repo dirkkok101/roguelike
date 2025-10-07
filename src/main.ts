@@ -1,4 +1,4 @@
-import { GameState, Level, TileType, Position, Torch, ItemType } from '@game/core/core'
+import { GameState, Position, Torch, ItemType } from '@game/core/core'
 import { SeededRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
@@ -126,7 +126,7 @@ async function initializeGame() {
     dungeonService,
     curseService
   )
-  const wandService = new WandService(identificationService, random, combatService, levelService)
+  const wandService = new WandService(identificationService, random, combatService)
   const targetingService = new TargetingService(fovService, movementService)
   const modalController = new ModalController(identificationService, curseService, targetingService)
 
@@ -398,6 +398,7 @@ async function initializeGame() {
       statusEffectService,
       curseService,
       goldService,
+      targetingService,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
       returnToMenu

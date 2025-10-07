@@ -1,4 +1,4 @@
-import { GameState, Player, StatusEffectType, Scroll } from '@game/core/core'
+import { GameState, Player, StatusEffectType } from '@game/core/core'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { LevelService } from '@services/LevelService'
 import { ENERGY_THRESHOLD, NORMAL_SPEED, HASTED_SPEED } from '../../constants/energy'
@@ -33,7 +33,7 @@ export class TurnService {
     const newTurnCount = state.turnCount + 1
 
     // Tick status effects (decrement durations, remove expired)
-    const { player, expired } = this.statusEffectService.tickStatusEffects(state.player)
+    const { player } = this.statusEffectService.tickStatusEffects(state.player)
 
     // TODO: Add messages for expired effects in Phase 2.6 UI work
     // For now, just silently remove expired effects

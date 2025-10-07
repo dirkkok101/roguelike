@@ -12,7 +12,6 @@ import {
 import { IdentificationService } from '@services/IdentificationService'
 import { IRandomService } from '@services/RandomService'
 import { CombatService } from '@services/CombatService'
-import { LevelService } from '@services/LevelService'
 
 // ============================================================================
 // RESULT TYPE
@@ -34,8 +33,7 @@ export class WandService {
   constructor(
     private identificationService: IdentificationService,
     private random: IRandomService,
-    private combatService: CombatService,
-    private levelService: LevelService
+    private combatService: CombatService
   ) {}
 
   /**
@@ -295,7 +293,10 @@ export class WandService {
     }
 
     if (walkableTiles.length === 0) {
-      return { message: `You zap ${displayName}. Nothing happens.` }
+      return {
+        state: state,
+        message: `You zap ${displayName}. Nothing happens.`,
+      }
     }
 
     const newPosition = this.random.pickRandom(walkableTiles)

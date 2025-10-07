@@ -13,14 +13,13 @@ import {
   MonsterState,
   Item,
   ItemType,
+  GoldPile,
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { RoomGenerationService, RoomGenerationConfig } from '@services/RoomGenerationService'
 import {
   CorridorGenerationService,
   Corridor,
-  GraphNode,
-  Edge,
 } from '@services/CorridorGenerationService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
@@ -52,7 +51,7 @@ export class DungeonService {
   constructor(
     private random: IRandomService,
     monsterSpawnService: MonsterSpawnService,
-    private itemData?: ItemData
+    itemData?: ItemData
   ) {
     this.roomGenerationService = new RoomGenerationService(random)
     this.corridorGenerationService = new CorridorGenerationService(random)
@@ -216,7 +215,7 @@ export class DungeonService {
   /**
    * Place doors at room/corridor junctions
    */
-  placeDoors(rooms: Room[], corridors: Corridor[], tiles: Tile[][]): Door[] {
+  placeDoors(rooms: Room[], _corridors: Corridor[], tiles: Tile[][]): Door[] {
     const doors: Door[] = []
     const doorPositions = new Set<string>()
 
@@ -293,7 +292,7 @@ export class DungeonService {
    * Randomly select door type based on probabilities
    */
   private randomDoorType(): DoorState {
-    const roll = this.random.next()
+    const roll = this.random.chance(1.0) ? this.random.nextInt(0, 100) / 100.0 : 0
 
     if (roll < 0.5) return DoorState.OPEN // 50%
     if (roll < 0.8) return DoorState.CLOSED // 30%

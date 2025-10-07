@@ -1,4 +1,4 @@
-import { GameState, DoorState, Position, Level, Monster } from '@game/core/core'
+import { GameState, DoorState, Position, Level } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MovementService } from '@services/MovementService'
 import { LightingService } from '@services/LightingService'
@@ -54,9 +54,10 @@ export class MoveCommand implements ICommand {
     const obstacle = this.movementService.detectObstacle(newPosition, level)
 
     // ROUTE 1: Monster → Delegate to AttackCommand (early return)
-    if (obstacle.type === 'monster') {
+    if (obstacle.type === 'monster' && obstacle.data && 'id' in obstacle.data) {
+      const monster = obstacle.data
       const attackCommand = new AttackCommand(
-        obstacle.data.id,
+        monster.id,
         this.combatService,
         this.messageService,
         this.levelingService,
@@ -69,7 +70,7 @@ export class MoveCommand implements ICommand {
     }
 
     // ROUTE 2: Door → Handle based on state
-    if (obstacle.type === 'door') {
+    if (obstacle.type === 'door' && obstacle.data && 'state' in obstacle.data) {
       const door = obstacle.data
 
       // Locked door - blocked (no turn)
@@ -84,7 +85,7 @@ export class MoveCommand implements ICommand {
       }
 
       // Undiscovered secret door - blocked (no turn)
-      if (door.state === DoorState.SECRET && !door.discovered) {
+      if (door.state === DoorState.SECRET && door.discovered !== undefined && !door.discovered) {
         const messages = this.messageService.addMessage(
           state.messages,
           "You can't go that way.",

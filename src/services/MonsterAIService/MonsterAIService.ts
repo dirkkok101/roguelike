@@ -357,7 +357,7 @@ export class MonsterAIService {
     monster: Monster,
     playerPos: Position,
     level: any,
-    state: GameState
+    _state: GameState
   ): MonsterAction {
     // Find nearest gold pile
     const nearestGold = this.findNearestGold(monster.position, level)
@@ -404,8 +404,8 @@ export class MonsterAIService {
    * Used by Venus Flytrap
    */
   private stationaryBehavior(
-    monster: Monster,
-    playerPos: Position
+    _monster: Monster,
+    _playerPos: Position
   ): MonsterAction {
     // Venus Flytrap never moves, just waits for player to come adjacent
     // When adjacent, attack action is triggered automatically

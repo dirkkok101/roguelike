@@ -1,4 +1,4 @@
-import { GameState, Position, DoorState } from '@game/core/core'
+import { GameState, Position } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
 import { DoorService } from '@services/DoorService'

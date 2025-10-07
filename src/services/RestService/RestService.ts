@@ -1,9 +1,8 @@
-import { GameState, Player } from '@game/core/core'
+import { GameState } from '@game/core/core'
 import { RegenerationService } from '@services/RegenerationService'
 import { HungerService } from '@services/HungerService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
-import { TurnService } from '@services/TurnService'
 
 // ============================================================================
 // REST SERVICE - Rest logic (hunger, regen, fuel, interrupts)
@@ -24,8 +23,7 @@ export class RestService {
     private regenerationService: RegenerationService,
     private hungerService: HungerService,
     private lightingService: LightingService,
-    private fovService: FOVService,
-    private turnService: TurnService
+    private fovService: FOVService
   ) {}
 
   /**

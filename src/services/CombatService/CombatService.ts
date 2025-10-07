@@ -1,4 +1,4 @@
-import { Player, Monster, Weapon, GameState, Level } from '@game/core/core'
+import { Player, Monster, Weapon, GameState } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { HungerService } from '@services/HungerService'
 import { DebugService } from '@services/DebugService'
@@ -157,7 +157,7 @@ export class CombatService {
   /**
    * Calculate player damage with weapon
    */
-  private calculatePlayerDamage(player: Player, weapon: Weapon | null): number {
+  private calculatePlayerDamage(_player: Player, weapon: Weapon | null): number {
     if (weapon) {
       const baseDamage = this.random.roll(weapon.damage)
       return baseDamage + weapon.bonus
