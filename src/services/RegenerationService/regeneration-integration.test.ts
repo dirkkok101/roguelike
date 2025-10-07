@@ -4,6 +4,7 @@ import { RestService } from '@services/RestService'
 import { MoveCommand } from '@commands/MoveCommand'
 import { RestCommand } from '@commands/RestCommand'
 import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { MovementService } from '@services/MovementService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
@@ -48,13 +49,14 @@ describe('RegenerationService - Integration Tests', () => {
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    regenerationService = new RegenerationService()
-    hungerService = new HungerService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    regenerationService = new RegenerationService(ringService)
+    hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService()
     lightingService = new LightingService(mockRandom)
     fovService = new FOVService()
     messageService = new MessageService()
-    combatService = new CombatService(mockRandom)
+    combatService = new CombatService(mockRandom, ringService)
     levelingService = new LevelingService()
     doorService = new DoorService(mockRandom)
     notificationService = new NotificationService()

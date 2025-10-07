@@ -1,11 +1,17 @@
 import { RegenerationService } from './RegenerationService'
+import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { Player, Equipment, Ring, RingType, ItemType } from '@game/core/core'
 
 describe('RegenerationService - Combat Blocking', () => {
   let service: RegenerationService
+  let mockRandom: MockRandom
+  let ringService: RingService
 
   beforeEach(() => {
-    service = new RegenerationService()
+    mockRandom = new MockRandom([])
+    ringService = new RingService(mockRandom)
+    service = new RegenerationService(ringService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {
