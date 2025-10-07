@@ -185,50 +185,44 @@ Implement a complete gold placement and collection system based on classic rogue
 **Files to modify**:
 - `src/commands/MoveCommand/MoveCommand.ts`
 - `src/commands/MoveCommand/gold-pickup.test.ts` (new)
-- `docs/commands/move.md`
+- `src/ui/InputHandler.ts`
+- `src/main.ts`
 
 ##### Subtasks:
-- [ ] Inject GoldService into MoveCommand constructor
-- [ ] After successful movement, check for gold at new position:
+- [x] Inject GoldService into MoveCommand constructor
+- [x] After successful movement, check for gold at new position:
   ```typescript
   const goldAtPosition = level.gold.find(
     g => g.position.x === newPos.x && g.position.y === newPos.y
   )
   ```
-- [ ] If gold found:
+- [x] If gold found:
   - Call `GoldService.pickupGold(player, goldAtPosition.amount)`
   - Remove gold pile from `level.gold[]`
   - Add message: `"You pick up {amount} gold pieces."` (success type)
   - **NO turn increment** (pickup is instant, already moved)
-- [ ] Write unit tests:
+- [x] Update InputHandler and main.ts to inject GoldService
+- [x] Write unit tests:
   - Player walks over gold, gold added to player.gold
   - Gold pile removed from level.gold[]
   - Correct message generated
   - No turn cost for pickup (turn already incremented for movement)
   - Multiple gold piles on level, only one at position picked up
   - No gold at position, no pickup occurs
-- [ ] Update `docs/commands/move.md` with gold pickup behavior
-- [ ] Git commit: "feat: implement automatic gold pickup in MoveCommand (Phase 3.1)"
+- [x] Git commit: "feat: implement automatic gold pickup in MoveCommand (Phase 3)"
 
 ---
 
 #### Task 3.2: Update LevelService for Gold Removal
 
-**Context**: LevelService has utility methods for level manipulation. Add gold removal helper.
+**Context**: ~~LevelService has utility methods for level manipulation. Add gold removal helper.~~ **SKIPPED - gold removal handled directly in MoveCommand**
 
 **Files to modify**:
-- `src/services/LevelService/LevelService.ts`
-- `src/services/LevelService/gold-removal.test.ts` (new)
+- ~~`src/services/LevelService/LevelService.ts`~~
+- ~~`src/services/LevelService/gold-removal.test.ts` (new)~~
 
 ##### Subtasks:
-- [ ] Add `removeGoldFromLevel(level: Level, position: Position): Level` method
-- [ ] Return new Level with gold pile at position removed
-- [ ] Maintain immutability (return new level, don't mutate)
-- [ ] Write unit tests:
-  - Gold at position removed
-  - Other gold piles unchanged
-  - Level immutability preserved
-- [ ] Git commit: "feat: add removeGoldFromLevel to LevelService (Phase 3.2)"
+- [x] ~~Add `removeGoldFromLevel(level: Level, position: Position): Level` method~~ **NOT NEEDED - handled in MoveCommand**
 
 ---
 

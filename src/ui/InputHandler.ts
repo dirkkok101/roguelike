@@ -52,6 +52,7 @@ import { TurnService } from '@services/TurnService'
 import { SearchService } from '@services/SearchService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { GoldService } from '@services/GoldService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -92,6 +93,7 @@ export class InputHandler {
     private levelService: LevelService,
     private statusEffectService: StatusEffectService,
     private curseService: CurseService,
+    private goldService: GoldService,
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal
     private onReturnToMenu: () => void
@@ -148,7 +150,8 @@ export class InputHandler {
           this.hungerService,
           this.regenerationService,
           this.notificationService,
-          this.turnService
+          this.turnService,
+          this.goldService
         )
 
       case 'ArrowDown':
@@ -165,7 +168,8 @@ export class InputHandler {
           this.hungerService,
           this.regenerationService,
           this.notificationService,
-          this.turnService
+          this.turnService,
+          this.goldService
         )
 
       case 'ArrowLeft':
@@ -182,7 +186,8 @@ export class InputHandler {
           this.hungerService,
           this.regenerationService,
           this.notificationService,
-          this.turnService
+          this.turnService,
+          this.goldService
         )
 
       case 'ArrowRight':
@@ -199,7 +204,8 @@ export class InputHandler {
           this.hungerService,
           this.regenerationService,
           this.notificationService,
-          this.turnService
+          this.turnService,
+          this.goldService
         )
 
       case 'o':
