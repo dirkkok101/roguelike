@@ -3,6 +3,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { InventoryService } from '@services/InventoryService'
 import { LevelService } from '@services/LevelService'
 import { FOVService } from '@services/FOVService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { DungeonService } from '@services/DungeonService'
 import { CurseService } from '@services/CurseService'
 import { MockRandom } from '@services/RandomService'
@@ -28,6 +29,7 @@ describe('ScrollService - CREATE_MONSTER Scroll', () => {
   let inventoryService: InventoryService
   let levelService: LevelService
   let fovService: FOVService
+  let statusEffectService: StatusEffectService
   let dungeonService: DungeonService
   let testPlayer: Player
   let testState: GameState
@@ -144,7 +146,8 @@ describe('ScrollService - CREATE_MONSTER Scroll', () => {
     identificationService = new IdentificationService(mockRandom)
     inventoryService = new InventoryService()
     levelService = new LevelService()
-    fovService = new FOVService()
+    statusEffectService = new StatusEffectService()
+      fovService = new FOVService(statusEffectService)
     dungeonService = new DungeonService(mockRandom)
     const curseService = new CurseService()
     scrollService = new ScrollService(

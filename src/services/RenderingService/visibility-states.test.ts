@@ -1,13 +1,16 @@
 import { RenderingService } from './RenderingService'
 import { FOVService } from '@services/FOVService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { Level, Position, TileType } from '@game/core/core'
 
 describe('RenderingService - Visibility States', () => {
   let service: RenderingService
   let fovService: FOVService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
-    fovService = new FOVService()
+    statusEffectService = new StatusEffectService()
+    fovService = new FOVService(statusEffectService)
     service = new RenderingService(fovService)
   })
 

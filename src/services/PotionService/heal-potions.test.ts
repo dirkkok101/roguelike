@@ -2,13 +2,15 @@ import { PotionService } from './PotionService'
 import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
-import { Player, Potion, PotionType, ItemType, GameState, ItemNameMap, ScrollType, RingType, WandType } from '@game/core/core'
+import { StatusEffectService } from '@services/StatusEffectService'
+import { Player, Potion, PotionType, ItemType, GameState, ItemNameMap, ScrollType, RingType, WandType, StatusEffectType } from '@game/core/core'
 
 describe('PotionService - Heal Potions', () => {
   let potionService: PotionService
   let mockRandom: MockRandom
   let identificationService: IdentificationService
   let levelingService: LevelingService
+  let statusEffectService: StatusEffectService
   let testPlayer: Player
   let testState: GameState
 
@@ -16,7 +18,8 @@ describe('PotionService - Heal Potions', () => {
     mockRandom = new MockRandom([])
     identificationService = new IdentificationService(mockRandom)
     levelingService = new LevelingService(mockRandom)
-    potionService = new PotionService(mockRandom, identificationService, levelingService)
+    statusEffectService = new StatusEffectService()
+    potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
     testPlayer = {
       position: { x: 5, y: 5 },
@@ -37,6 +40,8 @@ describe('PotionService - Heal Potions', () => {
         lightSource: null,
       },
       hunger: 1000,
+      statusEffects: [],
+      energy: 100,
     } as Player
 
     // Create itemNameMap for identification
@@ -62,7 +67,7 @@ describe('PotionService - Heal Potions', () => {
   describe('HEAL potion', () => {
     test('heals player by rolled amount (within max HP)', () => {
       mockRandom = new MockRandom([8]) // Roll 8 HP
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const healPotion: Potion = {
         id: 'potion-1',
@@ -84,7 +89,7 @@ describe('PotionService - Heal Potions', () => {
 
     test('caps healing at max HP', () => {
       mockRandom = new MockRandom([100]) // Roll 100 HP (way over max)
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const healPotion: Potion = {
         id: 'potion-1',
@@ -105,7 +110,7 @@ describe('PotionService - Heal Potions', () => {
 
     test('marks potion as identified', () => {
       mockRandom = new MockRandom([5])
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const healPotion: Potion = {
         id: 'potion-1',
@@ -127,7 +132,7 @@ describe('PotionService - Heal Potions', () => {
   describe('EXTRA_HEAL potion', () => {
     test('heals player by rolled amount with better message', () => {
       mockRandom = new MockRandom([15]) // Roll 15 HP
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const extraHealPotion: Potion = {
         id: 'potion-2',
@@ -149,7 +154,7 @@ describe('PotionService - Heal Potions', () => {
 
     test('caps healing at max HP', () => {
       mockRandom = new MockRandom([100])
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const extraHealPotion: Potion = {
         id: 'potion-2',
@@ -172,7 +177,7 @@ describe('PotionService - Heal Potions', () => {
   describe('Overheal - Max HP Increase', () => {
     test('HEAL potion: no max HP increase when not at full HP', () => {
       mockRandom = new MockRandom([10]) // Roll 10 HP
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const healPotion: Potion = {
         id: 'potion-1',
@@ -196,7 +201,7 @@ describe('PotionService - Heal Potions', () => {
 
     test('HEAL potion: +1 max HP when healing at full HP', () => {
       mockRandom = new MockRandom([5]) // Roll 5 HP (overheal)
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const playerAtFullHp = {
         ...testPlayer,
@@ -225,7 +230,7 @@ describe('PotionService - Heal Potions', () => {
 
     test('HEAL potion: heals correctly to new maximum', () => {
       mockRandom = new MockRandom([8]) // Roll 8 HP (overheal)
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const playerAtFullHp = {
         ...testPlayer,
@@ -253,7 +258,7 @@ describe('PotionService - Heal Potions', () => {
 
     test('EXTRA_HEAL potion: +1 max HP when healing at full HP', () => {
       mockRandom = new MockRandom([12]) // Roll 12 HP (overheal)
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const playerAtFullHp = {
         ...testPlayer,
@@ -282,7 +287,7 @@ describe('PotionService - Heal Potions', () => {
 
     test('EXTRA_HEAL potion: no max HP increase when not at full HP', () => {
       mockRandom = new MockRandom([15])
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const extraHealPotion: Potion = {
         id: 'potion-2',
@@ -306,7 +311,7 @@ describe('PotionService - Heal Potions', () => {
 
     test('overheal only triggers when already at full HP', () => {
       mockRandom = new MockRandom([100]) // Massive overheal
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const playerAlmostFull = {
         ...testPlayer,
@@ -330,6 +335,131 @@ describe('PotionService - Heal Potions', () => {
       expect(result.player.hp).toBe(100) // Healed to max
       expect(result.player.maxHp).toBe(100) // NO increase (wasn't at full HP)
       expect(result.message).not.toContain('permanently stronger')
+    })
+  })
+
+  describe('Status Effect Cure', () => {
+    test('HEAL potion cures confusion', () => {
+      mockRandom = new MockRandom([5])
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
+
+      let player = testPlayer
+      player = statusEffectService.addStatusEffect(player, StatusEffectType.CONFUSED, 10)
+
+      const healPotion: Potion = {
+        id: 'potion-1',
+        type: ItemType.POTION,
+        name: 'Potion of Healing',
+        potionType: PotionType.HEAL,
+        effect: 'Heals 1d8 HP',
+        power: '1d8',
+        descriptorName: 'blue potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(player, healPotion, testState)
+
+      expect(statusEffectService.hasStatusEffect(result.player, StatusEffectType.CONFUSED)).toBe(false)
+      expect(result.message).toContain('Your head clears!')
+    })
+
+    test('HEAL potion cures blindness', () => {
+      mockRandom = new MockRandom([5])
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
+
+      let player = testPlayer
+      player = statusEffectService.addStatusEffect(player, StatusEffectType.BLIND, 40)
+
+      const healPotion: Potion = {
+        id: 'potion-1',
+        type: ItemType.POTION,
+        name: 'Potion of Healing',
+        potionType: PotionType.HEAL,
+        effect: 'Heals 1d8 HP',
+        power: '1d8',
+        descriptorName: 'blue potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(player, healPotion, testState)
+
+      expect(statusEffectService.hasStatusEffect(result.player, StatusEffectType.BLIND)).toBe(false)
+      expect(result.message).toContain('You can see again!')
+    })
+
+    test('HEAL potion cures both confusion and blindness', () => {
+      mockRandom = new MockRandom([5])
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
+
+      let player = testPlayer
+      player = statusEffectService.addStatusEffect(player, StatusEffectType.CONFUSED, 10)
+      player = statusEffectService.addStatusEffect(player, StatusEffectType.BLIND, 40)
+
+      const healPotion: Potion = {
+        id: 'potion-1',
+        type: ItemType.POTION,
+        name: 'Potion of Healing',
+        potionType: PotionType.HEAL,
+        effect: 'Heals 1d8 HP',
+        power: '1d8',
+        descriptorName: 'blue potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(player, healPotion, testState)
+
+      expect(statusEffectService.hasStatusEffect(result.player, StatusEffectType.CONFUSED)).toBe(false)
+      expect(statusEffectService.hasStatusEffect(result.player, StatusEffectType.BLIND)).toBe(false)
+      expect(result.message).toContain('Your head clears!')
+      expect(result.message).toContain('You can see again!')
+    })
+
+    test('EXTRA_HEAL potion cures confusion and blindness', () => {
+      mockRandom = new MockRandom([12])
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
+
+      let player = testPlayer
+      player = statusEffectService.addStatusEffect(player, StatusEffectType.CONFUSED, 10)
+      player = statusEffectService.addStatusEffect(player, StatusEffectType.BLIND, 40)
+
+      const extraHealPotion: Potion = {
+        id: 'potion-2',
+        type: ItemType.POTION,
+        name: 'Potion of Extra Healing',
+        potionType: PotionType.EXTRA_HEAL,
+        effect: 'Heals 2d8 HP',
+        power: '2d8',
+        descriptorName: 'red potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(player, extraHealPotion, testState)
+
+      expect(statusEffectService.hasStatusEffect(result.player, StatusEffectType.CONFUSED)).toBe(false)
+      expect(statusEffectService.hasStatusEffect(result.player, StatusEffectType.BLIND)).toBe(false)
+      expect(result.message).toContain('Your head clears!')
+      expect(result.message).toContain('You can see again!')
+    })
+
+    test('HEAL potion does not add cure messages when no status effects present', () => {
+      mockRandom = new MockRandom([5])
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
+
+      const healPotion: Potion = {
+        id: 'potion-1',
+        type: ItemType.POTION,
+        name: 'Potion of Healing',
+        potionType: PotionType.HEAL,
+        effect: 'Heals 1d8 HP',
+        power: '1d8',
+        descriptorName: 'blue potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(testPlayer, healPotion, testState)
+
+      expect(result.message).not.toContain('Your head clears!')
+      expect(result.message).not.toContain('You can see again!')
     })
   })
 })

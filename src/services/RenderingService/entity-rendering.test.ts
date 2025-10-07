@@ -1,13 +1,16 @@
 import { RenderingService, RenderConfig } from './RenderingService'
 import { FOVService } from '@services/FOVService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { Position } from '@game/core/core'
 
 describe('RenderingService - Entity Rendering', () => {
   let service: RenderingService
   let fovService: FOVService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
-    fovService = new FOVService()
+    statusEffectService = new StatusEffectService()
+    fovService = new FOVService(statusEffectService)
     service = new RenderingService(fovService)
   })
 

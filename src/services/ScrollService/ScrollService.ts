@@ -379,7 +379,8 @@ export class ScrollService {
     const fovResult = this.fovService.updateFOVAndExploration(
       targetPos,
       lightRadius,
-      level
+      level,
+      updatedPlayer
     )
 
     // 6. Update level in levels map

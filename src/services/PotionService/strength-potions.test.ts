@@ -2,6 +2,7 @@ import { PotionService } from './PotionService'
 import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { Player, Potion, PotionType, ItemType, GameState, ItemNameMap, ScrollType, RingType, WandType } from '@game/core/core'
 
 describe('PotionService - Strength Potions', () => {
@@ -9,6 +10,7 @@ describe('PotionService - Strength Potions', () => {
   let mockRandom: MockRandom
   let identificationService: IdentificationService
   let levelingService: LevelingService
+  let statusEffectService: StatusEffectService
   let testPlayer: Player
   let testState: GameState
 
@@ -16,7 +18,8 @@ describe('PotionService - Strength Potions', () => {
     mockRandom = new MockRandom([])
     identificationService = new IdentificationService(mockRandom)
     levelingService = new LevelingService(mockRandom)
-    potionService = new PotionService(mockRandom, identificationService, levelingService)
+    statusEffectService = new StatusEffectService()
+    potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
     testPlayer = {
       position: { x: 5, y: 5 },
