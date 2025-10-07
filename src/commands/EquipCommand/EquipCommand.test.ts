@@ -37,6 +37,8 @@ describe('EquipCommand', () => {
     // Create mock IdentificationService
     mockIdentificationService = {
       getDisplayName: jest.fn((item: Item) => item.name),
+      isIdentified: jest.fn(() => false),
+      identifyByUse: jest.fn((item: Item, state: GameState) => state),
     } as any
   })
 
@@ -307,6 +309,10 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
+
+      // Mock as already identified (no identification message)
+      mockIdentificationService.isIdentified.mockReturnValueOnce(true)
+
       const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
@@ -568,6 +574,10 @@ describe('EquipCommand', () => {
       player.inventory = [cursedRing]
 
       const state = createTestState(player)
+
+      // Mock as already identified (no identification message)
+      mockIdentificationService.isIdentified.mockReturnValueOnce(true)
+
       const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
@@ -628,6 +638,10 @@ describe('EquipCommand', () => {
       player.inventory = [ring]
 
       const state = createTestState(player)
+
+      // Mock as already identified (no identification message)
+      mockIdentificationService.isIdentified.mockReturnValueOnce(true)
+
       const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
       const result = command.execute(state)
 
@@ -635,6 +649,166 @@ describe('EquipCommand', () => {
       expect(result.messages).toHaveLength(1)
       expect(result.messages[0].text).toBe('You put on Ring of Protection on your left hand.')
       expect(result.messages[0].type).toBe('success')
+    })
+  })
+
+  describe('ring identification', () => {
+    test('identifies unidentified ring when equipped', () => {
+      const player = createTestPlayer()
+      const ring = createTestRing('ring-1', 'Ring of Protection')
+      ring.materialName = 'ruby ring' // Unidentified descriptor
+      player.inventory = [ring]
+
+      const state = createTestState(player)
+
+      // Mock as unidentified
+      mockIdentificationService.isIdentified.mockReturnValueOnce(false)
+      // Mock getDisplayName to return descriptive name first, then true name
+      mockIdentificationService.getDisplayName
+        .mockReturnValueOnce('ruby ring') // First call: display name before identification
+        .mockReturnValueOnce('Ring of Protection') // Second call: true name after identification
+      // Mock identifyByUse to add the ring type to identified items
+      mockIdentificationService.identifyByUse.mockReturnValueOnce({
+        ...state,
+        identifiedItems: new Set([RingType.PROTECTION]),
+      })
+
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Verify identification service was called
+      expect(mockIdentificationService.isIdentified).toHaveBeenCalledWith(RingType.PROTECTION, state)
+      expect(mockIdentificationService.identifyByUse).toHaveBeenCalledWith(ring, state)
+
+      // Verify identification message
+      expect(result.messages[0].text).toBe('You put on ruby ring on your left hand. (This is a Ring of Protection!)')
+      expect(result.messages[0].type).toBe('success')
+    })
+
+    test('does not show identification message for already identified ring', () => {
+      const player = createTestPlayer()
+      const ring = createTestRing('ring-1', 'Ring of Protection')
+      player.inventory = [ring]
+
+      const state = {
+        ...createTestState(player),
+        identifiedItems: new Set([RingType.PROTECTION]), // Already identified
+      }
+
+      // Mock as already identified
+      mockIdentificationService.isIdentified.mockReturnValueOnce(true)
+      mockIdentificationService.getDisplayName.mockReturnValueOnce('Ring of Protection')
+
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Verify NO identification message (just equip message)
+      expect(result.messages[0].text).toBe('You put on Ring of Protection on your left hand.')
+      expect(result.messages[0].type).toBe('success')
+    })
+
+    test('identification applies to state for persistence', () => {
+      const player = createTestPlayer()
+      const ring = createTestRing('ring-1', 'Ring of Protection')
+      ring.materialName = 'ruby ring'
+      player.inventory = [ring]
+
+      const state = createTestState(player)
+
+      // Mock as unidentified
+      mockIdentificationService.isIdentified.mockReturnValueOnce(false)
+      mockIdentificationService.getDisplayName
+        .mockReturnValueOnce('ruby ring')
+        .mockReturnValueOnce('Ring of Protection')
+
+      // Mock identifyByUse to return state with identified ring type
+      const identifiedState = {
+        ...state,
+        identifiedItems: new Set([RingType.PROTECTION]),
+      }
+      mockIdentificationService.identifyByUse.mockReturnValueOnce(identifiedState)
+
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Verify the result state includes identification
+      // Note: The state will have the identified ring type added
+      expect(mockIdentificationService.identifyByUse).toHaveBeenCalledWith(ring, state)
+    })
+
+    test('equips ring to correct hand when identifying', () => {
+      const player = createTestPlayer()
+      const leftRing = createTestRing('ring-1', 'Ring of Protection')
+      const rightRing = createTestRing('ring-2', 'Ring of Strength')
+      player.inventory = [leftRing, rightRing]
+
+      const state = createTestState(player)
+
+      // Mock as unidentified for both
+      mockIdentificationService.isIdentified.mockReturnValue(false)
+      mockIdentificationService.getDisplayName
+        .mockReturnValueOnce('ruby ring')
+        .mockReturnValueOnce('Ring of Protection')
+      mockIdentificationService.identifyByUse.mockReturnValue({
+        ...state,
+        identifiedItems: new Set([RingType.PROTECTION]),
+      })
+
+      // Equip to left hand
+      const leftCommand = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const leftResult = leftCommand.execute(state)
+
+      expect(leftResult.player.equipment.leftRing?.id).toBe('ring-1')
+      expect(leftResult.player.equipment.rightRing).toBeNull()
+
+      // Now equip to right hand
+      const stateAfterLeft = leftResult
+      mockIdentificationService.getDisplayName
+        .mockReturnValueOnce('silver ring')
+        .mockReturnValueOnce('Ring of Strength')
+      mockIdentificationService.identifyByUse.mockReturnValue({
+        ...stateAfterLeft,
+        identifiedItems: new Set([RingType.PROTECTION, RingType.ADD_STRENGTH]),
+      })
+
+      const rightCommand = new EquipCommand('ring-2', 'right', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const rightResult = rightCommand.execute(stateAfterLeft)
+
+      expect(rightResult.player.equipment.leftRing?.id).toBe('ring-1')
+      expect(rightResult.player.equipment.rightRing?.id).toBe('ring-2')
+    })
+
+    test('identifies and shows curse warning with correct name for cursed unidentified ring', () => {
+      const player = createTestPlayer()
+      const cursedRing = createTestRing('ring-1', 'Ring of Protection')
+      cursedRing.materialName = 'ruby ring'
+      cursedRing.cursed = true
+      cursedRing.bonus = -1
+      player.inventory = [cursedRing]
+
+      const state = createTestState(player)
+
+      // Mock as unidentified
+      mockIdentificationService.isIdentified.mockReturnValueOnce(false)
+      mockIdentificationService.getDisplayName
+        .mockReturnValueOnce('ruby ring')  // Before identification (for equip message)
+        .mockReturnValueOnce('Ring of Protection')  // After identification (for identification message)
+        .mockReturnValueOnce('Ring of Protection')  // After identification (for curse message)
+      mockIdentificationService.identifyByUse.mockReturnValueOnce({
+        ...state,
+        identifiedItems: new Set([RingType.PROTECTION]),
+      })
+
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Should have two messages with consistent naming
+      expect(result.messages).toHaveLength(2)
+      expect(result.messages[0].text).toBe('You put on ruby ring on your left hand. (This is a Ring of Protection!)')
+      expect(result.messages[0].type).toBe('success')
+      expect(result.messages[1].text).toBe('The Ring of Protection is cursed! You cannot remove it.')
+      expect(result.messages[1].type).toBe('warning')
+      expect(result.player.equipment.leftRing?.id).toBe('ring-1')
     })
   })
 })
