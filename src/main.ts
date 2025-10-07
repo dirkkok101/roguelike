@@ -438,6 +438,15 @@ async function initializeGame() {
     stateManager.clearStack()
     stateManager.pushState(playingState)
 
+    // Render all visible states (for transparent state support)
+    // This ensures transparent states show dimmed backgrounds correctly
+    const renderAllVisibleStates = () => {
+      const visibleStates = stateManager.getVisibleStates()
+      visibleStates.forEach((state) => {
+        state.render()
+      })
+    }
+
     // Input handling - delegate to current state
     // The state manager will call handleInput() on the top state
     currentKeydownHandler = (event: KeyboardEvent) => {
