@@ -140,7 +140,14 @@ export class InputHandler {
    * @param state Current game state (needed for modal item selection)
    */
   handleKeyPress(event: KeyboardEvent, state: GameState): ICommand | null {
-    // 1. Check if modal is handling input first
+    // 1. Check for pending command first (defensive: catches commands even if event handling races)
+    if (this.pendingCommand) {
+      const cmd = this.pendingCommand
+      this.pendingCommand = null
+      return cmd
+    }
+
+    // 2. Check if modal is handling input
     if (this.modalController.handleInput(event)) {
       // Modal handled the input, check if we have a pending command
       const cmd = this.pendingCommand
@@ -148,7 +155,7 @@ export class InputHandler {
       return cmd
     }
 
-    // 2. Handle modal input (waiting for direction)
+    // 3. Handle modal input (waiting for direction)
     if (this.mode === 'open_door' || this.mode === 'close_door') {
       const direction = this.getDirectionFromKey(event.key)
       if (direction) {
