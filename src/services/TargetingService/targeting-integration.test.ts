@@ -337,7 +337,7 @@ describe('TargetingService - Integration Tests', () => {
 
       // Step 4: Validate target
       const validation = targetingService.isValidMonsterTarget(target2!, player, level, 5, true, fovCells)
-      expect(validation.valid).toBe(true)
+      expect(validation.isValid).toBe(true)
     })
 
     it('should support auto-targeting for quick selection', () => {

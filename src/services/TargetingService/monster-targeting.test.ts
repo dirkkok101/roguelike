@@ -270,7 +270,7 @@ describe('TargetingService - Monster Targeting', () => {
         fovCells
       )
 
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should reject monster out of FOV when LOS required', () => {
@@ -288,7 +288,7 @@ describe('TargetingService - Monster Targeting', () => {
         fovCells
       )
 
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.reason).toBe('You cannot see that monster.')
     })
 
@@ -307,7 +307,7 @@ describe('TargetingService - Monster Targeting', () => {
         fovCells
       )
 
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should reject monster beyond max range', () => {
@@ -325,7 +325,7 @@ describe('TargetingService - Monster Targeting', () => {
         fovCells
       )
 
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.reason).toBe('That monster is too far away. (Range: 3)')
     })
 
@@ -344,7 +344,7 @@ describe('TargetingService - Monster Targeting', () => {
         fovCells
       )
 
-      expect(result.valid).toBe(true)
+      expect(result.isValid).toBe(true)
     })
 
     it('should use Manhattan distance for range check', () => {
@@ -362,7 +362,7 @@ describe('TargetingService - Monster Targeting', () => {
         fovCells
       )
 
-      expect(result.valid).toBe(false)
+      expect(result.isValid).toBe(false)
       expect(result.reason).toContain('too far away')
     })
   })

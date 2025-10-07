@@ -115,7 +115,7 @@ export class TargetingService {
         state.visibleCells
       )
 
-      if (validation.valid) {
+      if (validation.isValid) {
         return {
           success: true,
           targetMonsterId: monster.id,
@@ -212,7 +212,7 @@ export class TargetingService {
     // Check if monster is in FOV (if LOS required)
     if (requiresLOS && !this.fovService.isInFOV(monster.position, fovCells)) {
       return {
-        valid: false,
+        isValid: false,
         reason: 'You cannot see that monster.',
       }
     }
@@ -221,14 +221,14 @@ export class TargetingService {
     const dist = this.distance(player.position, monster.position)
     if (dist > maxRange) {
       return {
-        valid: false,
+        isValid: false,
         reason: `That monster is too far away. (Range: ${maxRange})`,
       }
     }
 
     // All checks passed
     return {
-      valid: true,
+      isValid: true,
     }
   }
 
