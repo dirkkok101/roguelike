@@ -253,9 +253,9 @@ private spawnGold(rooms: Room[], count: number, tiles: Tile[][], depth: number):
 GOLDCALC = random(50 + 10 * depth) + 2
 
 Examples:
-- Level 1: 2-62 gold per pile
-- Level 5: 2-102 gold per pile
-- Level 10: 2-152 gold per pile
+- Level 1: 2-61 gold per pile
+- Level 5: 2-101 gold per pile
+- Level 10: 2-151 gold per pile
 ```
 
 **Placement Algorithm**:

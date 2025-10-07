@@ -28,9 +28,9 @@ GOLDCALC = random(50 + 10 * depth) + 2
 ```
 
 **Examples**:
-- **Level 1**: 2-62 gold per pile
-- **Level 5**: 2-102 gold per pile
-- **Level 10**: 2-152 gold per pile
+- **Level 1**: 2-61 gold per pile
+- **Level 5**: 2-101 gold per pile
+- **Level 10**: 2-151 gold per pile
 
 ### Saving Throw
 
@@ -68,7 +68,7 @@ Calculate gold pile amount using Rogue 1980 formula.
 **Example**:
 ```typescript
 const amount = goldService.calculateGoldAmount(5)
-// Returns 2-102 gold
+// Returns 2-101 gold
 ```
 
 ---
@@ -227,7 +227,7 @@ const goldService = new GoldService(random)
 
 // Generate gold for level 5
 const amount = goldService.calculateGoldAmount(5)
-console.log(amount) // 2-102 gold
+console.log(amount) // 2-101 gold
 
 // Player picks up gold
 let player = { ...basePlayer, gold: 100 }

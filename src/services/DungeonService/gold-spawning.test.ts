@@ -93,30 +93,30 @@ describe('DungeonService - Gold Spawning', () => {
   })
 
   describe('Gold amount calculation', () => {
-    test('Level 1: all gold amounts in valid range (2-62)', () => {
+    test('Level 1: all gold amounts in valid range (2-61)', () => {
       const level = service.generateLevel(1, defaultConfig)
 
       level.gold.forEach(pile => {
         expect(pile.amount).toBeGreaterThanOrEqual(2)
-        expect(pile.amount).toBeLessThanOrEqual(62)
+        expect(pile.amount).toBeLessThanOrEqual(61)
       })
     })
 
-    test('Level 5: all gold amounts in valid range (2-102)', () => {
+    test('Level 5: all gold amounts in valid range (2-101)', () => {
       const level = service.generateLevel(5, defaultConfig)
 
       level.gold.forEach(pile => {
         expect(pile.amount).toBeGreaterThanOrEqual(2)
-        expect(pile.amount).toBeLessThanOrEqual(102)
+        expect(pile.amount).toBeLessThanOrEqual(101)
       })
     })
 
-    test('Level 10: all gold amounts in valid range (2-152)', () => {
+    test('Level 10: all gold amounts in valid range (2-151)', () => {
       const level = service.generateLevel(10, defaultConfig)
 
       level.gold.forEach(pile => {
         expect(pile.amount).toBeGreaterThanOrEqual(2)
-        expect(pile.amount).toBeLessThanOrEqual(152)
+        expect(pile.amount).toBeLessThanOrEqual(151)
       })
     })
 
