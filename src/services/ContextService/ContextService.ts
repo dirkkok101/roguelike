@@ -74,11 +74,10 @@ export class ContextService {
       }
     }
 
-    // Check for gold
+    // Check for gold (automatic pickup, just notify)
     const goldAtPosition = this.getGoldAtPosition(level, state.player.position)
     if (goldAtPosition) {
-      primaryHint = `${goldAtPosition.amount} gold pieces here`
-      actions.push({ key: ',', label: 'pickup gold', priority: 100, category: 'primary' })
+      primaryHint = `${goldAtPosition.amount} gold pieces here (auto-pickup)`
     }
 
     // Check for nearby doors

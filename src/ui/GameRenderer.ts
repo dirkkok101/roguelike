@@ -216,7 +216,7 @@ export class GameRenderer {
           if (visState === 'visible') {
             const gold = level.gold.find((g) => g.position.x === x && g.position.y === y)
             if (gold) {
-              char = '*'
+              char = '$'
               color = '#FFD700' // Gold
             }
           }

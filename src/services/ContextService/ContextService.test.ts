@@ -209,7 +209,7 @@ describe('ContextService - Context Detection', () => {
   })
 
   describe('Gold Context', () => {
-    test('shows gold message with correct amount', () => {
+    test('shows gold message with correct amount (automatic pickup)', () => {
       // Arrange: gold at position
       mockLevel.gold = [{ position: { x: 10, y: 10 }, amount: 47 }]
 
@@ -217,9 +217,10 @@ describe('ContextService - Context Detection', () => {
       const context = service.analyzeContext(mockState)
 
       // Assert
-      expect(context.primaryHint).toBe('47 gold pieces here')
-      expect(context.actions).toContainEqual(
-        expect.objectContaining({ key: ',', label: 'pickup gold' })
+      expect(context.primaryHint).toBe('47 gold pieces here (auto-pickup)')
+      // No pickup action since gold is automatically picked up on movement
+      expect(context.actions).not.toContainEqual(
+        expect.objectContaining({ label: 'pickup gold' })
       )
     })
   })
