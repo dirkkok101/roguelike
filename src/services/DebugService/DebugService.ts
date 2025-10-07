@@ -30,11 +30,11 @@ export class DebugService {
     private messageService: MessageService,
     isDevMode?: boolean
   ) {
-    // Priority: explicit parameter > import.meta.env.DEV > false (production default)
-    // Use type assertion for import.meta.env as it's added by Vite
+    // Priority: explicit parameter > NODE_ENV check > false (production default)
+    // Use process.env for compatibility with both Vite and Jest
     this.isDevMode = isDevMode ?? (
-      typeof import.meta !== 'undefined' &&
-      (import.meta as any).env?.DEV === true
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
     )
   }
 
