@@ -36,8 +36,9 @@ describe('RestCommand', () => {
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    regenerationService = new RegenerationService()
-    hungerService = new HungerService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    regenerationService = new RegenerationService(ringService)
+    hungerService = new HungerService(mockRandom, ringService)
     lightingService = new LightingService(mockRandom)
     fovService = new FOVService()
     messageService = new MessageService()

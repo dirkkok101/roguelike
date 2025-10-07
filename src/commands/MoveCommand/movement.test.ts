@@ -38,7 +38,8 @@ describe('MoveCommand - Basic Movement', () => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    hungerService = new HungerService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
     fovService = new FOVService(statusEffectService)
@@ -48,7 +49,7 @@ describe('MoveCommand - Basic Movement', () => {
     doorService = new DoorService()
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
-    regenerationService = new RegenerationService()
+    regenerationService = new RegenerationService(ringService)
     notificationService = new NotificationService(identificationService)
   })
 
