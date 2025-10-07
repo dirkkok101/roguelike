@@ -31,7 +31,8 @@ export class DebugService {
     isDevMode?: boolean
   ) {
     // Priority: explicit parameter > NODE_ENV check > false (production default)
-    // Use process.env for compatibility with both Vite and Jest
+    // Note: In browser (Vite), pass import.meta.env.DEV explicitly from main.ts
+    // In Jest, process.env.NODE_ENV is automatically set to 'test'/'development'
     this.isDevMode = isDevMode ?? (
       typeof process !== 'undefined' &&
       process.env.NODE_ENV === 'development'
