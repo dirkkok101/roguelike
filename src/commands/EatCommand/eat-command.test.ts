@@ -1,6 +1,7 @@
 import { EatCommand } from './EatCommand'
 import { InventoryService } from '@services/InventoryService'
 import { HungerService, HungerState } from '@services/HungerService'
+import { RingService } from '@services/RingService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'

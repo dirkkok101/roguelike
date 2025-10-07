@@ -7,6 +7,7 @@ import { PathfindingService } from '@services/PathfindingService'
 import { FOVService } from '@services/FOVService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { HungerService } from '@services/HungerService'
+import { RingService } from '@services/RingService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
@@ -24,10 +25,11 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
     const levelService = new LevelService()
     const pathfindingService = new PathfindingService(levelService)
     const fovService = new FOVService(statusEffectService)
-    const hungerService = new HungerService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    const hungerService = new HungerService(mockRandom, ringService)
     const turnService = new TurnService(statusEffectService, levelService)
     const aiService = new MonsterAIService(pathfindingService, mockRandom, fovService, levelService)
-    combatService = new CombatService(mockRandom, hungerService)
+    combatService = new CombatService(mockRandom, ringService, hungerService)
     const abilityService = new SpecialAbilityService(mockRandom)
 
     service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService, turnService)

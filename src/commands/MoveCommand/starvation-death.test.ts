@@ -4,6 +4,7 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { HungerService } from '@services/HungerService'
+import { RingService } from '@services/RingService'
 import { NotificationService } from '@services/NotificationService'
 import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -44,7 +45,7 @@ describe('MoveCommand - Starvation Death', () => {
     // hungerService created earlier
     notificationService = new NotificationService(identificationService)
     regenerationService = new RegenerationService()
-    combatService = new CombatService(mockRandom, hungerService)
+    combatService = new CombatService(mockRandom, ringService, hungerService)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
     const levelService = new LevelService()
