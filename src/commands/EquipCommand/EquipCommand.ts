@@ -51,6 +51,7 @@ export class EquipCommand implements ICommand {
 
     // Equip based on item type
     let updatedPlayer = state.player
+    let updatedState = state
     let equipMessage = ''
     const displayName = this.identificationService.getDisplayName(item, state)
 
@@ -85,7 +86,7 @@ export class EquipCommand implements ICommand {
         equipMessage = `You put on ${displayName}.`
         break
 
-      case ItemType.RING:
+      case ItemType.RING: {
         if (!this.ringSlot) {
           const messages = this.messageService.addMessage(
             state.messages,
@@ -95,13 +96,28 @@ export class EquipCommand implements ICommand {
           )
           return { ...state, messages }
         }
+
+        const ring = item as Ring
+        const wasIdentified = this.identificationService.isIdentified(ring.ringType, state)
+
         updatedPlayer = this.inventoryService.equipRing(
           state.player,
-          item as Ring,
+          ring,
           this.ringSlot
         )
-        equipMessage = `You put on ${displayName} on your ${this.ringSlot} hand.`
+
+        // Identify ring by equipping it
+        updatedState = this.identificationService.identifyByUse(ring, state)
+
+        // Craft equip message with identification info
+        if (wasIdentified) {
+          equipMessage = `You put on ${displayName} on your ${this.ringSlot} hand.`
+        } else {
+          const trueName = this.identificationService.getDisplayName(ring, updatedState)
+          equipMessage = `You put on ${displayName} on your ${this.ringSlot} hand. (This is a ${trueName}!)`
+        }
         break
+      }
 
       case ItemType.TORCH:
       case ItemType.LANTERN:
@@ -123,10 +139,10 @@ export class EquipCommand implements ICommand {
     }
 
     let messages = this.messageService.addMessage(
-      state.messages,
+      updatedState.messages,
       equipMessage,
       'success',
-      state.turnCount
+      updatedState.turnCount
     )
 
     // Check if newly equipped item is cursed (curse discovery)
@@ -135,12 +151,12 @@ export class EquipCommand implements ICommand {
         messages,
         `The ${displayName} is cursed! You cannot remove it.`,
         'warning',
-        state.turnCount
+        updatedState.turnCount
       )
     }
 
     return this.turnService.incrementTurn({
-      ...state,
+      ...updatedState,
       player: updatedPlayer,
       messages,
     })

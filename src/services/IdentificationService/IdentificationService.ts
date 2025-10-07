@@ -175,8 +175,11 @@ export class IdentificationService {
       case ItemType.WAND: {
         const wand = item as Wand
         if (this.isIdentified(wand.wandType, state)) {
-          return wand.name
+          // Show true name with charge count when identified
+          const chargeText = wand.currentCharges === 1 ? 'charge' : 'charges'
+          return `${wand.name} (${wand.currentCharges} ${chargeText})`
         }
+        // Show only descriptive name when unidentified (no charges)
         return state.itemNameMap.wands.get(wand.wandType) || 'unknown wand'
       }
 

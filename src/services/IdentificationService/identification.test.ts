@@ -229,7 +229,7 @@ describe('IdentificationService - Identification', () => {
       const identifiedState = service.identifyItem(WandType.LIGHTNING, gameState)
       const displayName = service.getDisplayName(wand, identifiedState)
 
-      expect(displayName).toBe('Wand of Lightning')
+      expect(displayName).toBe('Wand of Lightning (10 charges)')
     })
 
     test('always returns real name for weapons (no identification needed)', () => {
@@ -329,6 +329,144 @@ describe('IdentificationService - Identification', () => {
       const result = service.identifyByUse(weapon, gameState)
 
       expect(result).toEqual(gameState)
+    })
+  })
+
+  describe('wand charge visibility', () => {
+    test('hides charge count for unidentified wands', () => {
+      const wand: Wand = {
+        id: 'wand-1',
+        name: 'Wand of Fire',
+        type: ItemType.WAND,
+        identified: false,
+        position: { x: 0, y: 0 },
+        wandType: WandType.FIRE,
+        damage: '6d6',
+        charges: 10,
+        currentCharges: 7,
+        woodName: 'oak',
+      }
+
+      const displayName = service.getDisplayName(wand, gameState)
+
+      // Should show only descriptive name (no charges)
+      expect(displayName).not.toContain('charges')
+      expect(displayName).not.toContain('7')
+    })
+
+    test('shows charge count for identified wands', () => {
+      const wand: Wand = {
+        id: 'wand-1',
+        name: 'Wand of Fire',
+        type: ItemType.WAND,
+        identified: false,
+        position: { x: 0, y: 0 },
+        wandType: WandType.FIRE,
+        damage: '6d6',
+        charges: 10,
+        currentCharges: 7,
+        woodName: 'oak',
+      }
+
+      const identifiedState = service.identifyItem(WandType.FIRE, gameState)
+      const displayName = service.getDisplayName(wand, identifiedState)
+
+      // Should show true name with charge count
+      expect(displayName).toBe('Wand of Fire (7 charges)')
+    })
+
+    test('uses singular "charge" for wand with 1 charge', () => {
+      const wand: Wand = {
+        id: 'wand-1',
+        name: 'Wand of Cold',
+        type: ItemType.WAND,
+        identified: false,
+        position: { x: 0, y: 0 },
+        wandType: WandType.COLD,
+        damage: '6d6',
+        charges: 10,
+        currentCharges: 1,
+        woodName: 'pine',
+      }
+
+      const identifiedState = service.identifyItem(WandType.COLD, gameState)
+      const displayName = service.getDisplayName(wand, identifiedState)
+
+      // Should use singular "charge"
+      expect(displayName).toBe('Wand of Cold (1 charge)')
+    })
+
+    test('updates charge count as wand is used', () => {
+      const wand: Wand = {
+        id: 'wand-1',
+        name: 'Wand of Lightning',
+        type: ItemType.WAND,
+        identified: false,
+        position: { x: 0, y: 0 },
+        wandType: WandType.LIGHTNING,
+        damage: '6d6',
+        charges: 5,
+        currentCharges: 5,
+        woodName: 'crystal',
+      }
+
+      const identifiedState = service.identifyItem(WandType.LIGHTNING, gameState)
+
+      // Full charges
+      let displayName = service.getDisplayName(wand, identifiedState)
+      expect(displayName).toBe('Wand of Lightning (5 charges)')
+
+      // After one use
+      wand.currentCharges = 4
+      displayName = service.getDisplayName(wand, identifiedState)
+      expect(displayName).toBe('Wand of Lightning (4 charges)')
+
+      // After more uses
+      wand.currentCharges = 2
+      displayName = service.getDisplayName(wand, identifiedState)
+      expect(displayName).toBe('Wand of Lightning (2 charges)')
+
+      // Last charge
+      wand.currentCharges = 1
+      displayName = service.getDisplayName(wand, identifiedState)
+      expect(displayName).toBe('Wand of Lightning (1 charge)')
+
+      // No charges
+      wand.currentCharges = 0
+      displayName = service.getDisplayName(wand, identifiedState)
+      expect(displayName).toBe('Wand of Lightning (0 charges)')
+    })
+
+    test('hides charges for different wand types when unidentified', () => {
+      const wandTypes = [
+        { type: WandType.FIRE, name: 'Wand of Fire' },
+        { type: WandType.COLD, name: 'Wand of Cold' },
+        { type: WandType.LIGHTNING, name: 'Wand of Lightning' },
+        { type: WandType.MAGIC_MISSILE, name: 'Wand of Magic Missile' },
+        { type: WandType.SLEEP, name: 'Wand of Sleep' },
+      ]
+
+      wandTypes.forEach(({ type, name }) => {
+        const wand: Wand = {
+          id: `wand-${type}`,
+          name,
+          type: ItemType.WAND,
+          identified: false,
+          position: { x: 0, y: 0 },
+          wandType: type,
+          damage: '6d6',
+          charges: 10,
+          currentCharges: 7,
+          woodName: 'oak',
+        }
+
+        const displayName = service.getDisplayName(wand, gameState)
+
+        // All unidentified wands should hide charges
+        expect(displayName).not.toContain('charges')
+        expect(displayName).not.toContain('charge')
+        expect(displayName).not.toContain('7')
+      })
     })
   })
 })
