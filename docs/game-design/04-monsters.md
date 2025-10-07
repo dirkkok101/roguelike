@@ -150,6 +150,44 @@
 
 ---
 
+## 3.1 Special Ability Flags Reference
+
+**Technical**: Special abilities are configured in `public/data/monsters.json` using the `special` array in each monster's `aiProfile`.
+
+**Flag Naming Convention**: All special ability flags use present-tense verb forms with underscores for compound names.
+
+| Flag Name | Monster(s) | Trigger | Effect |
+|-----------|------------|---------|--------|
+| `rusts_armor` | Aquator | On hit (50%) | Reduces armor bonus by 1 |
+| `freezes` | Ice Monster | On hit (40%) | Player skips next turn |
+| `confuses` | Medusa | On hit (30%) | Player movement randomized 3-5 turns |
+| `drains_strength` | Rattlesnake | On hit (50%) | Strength -1 (min 3) |
+| `drains_xp` | Wraith | On hit (40%) | XP -10 to -50 |
+| `drains_max_hp` | Vampire | On hit (30%) | Max HP -1 (min 1) |
+| `holds` | Venus Flytrap | On hit (60%) | Player held 1-2 turns |
+| `steals` | Leprechaun, Nymph | Adjacent | Steals gold/item, then flees |
+| `regeneration` | Troll, Griffin, Vampire | Per turn | Heal 1 HP when below max |
+| `breath_weapon` | Dragon | Combat (40%) | 6d6 fire damage ranged |
+| `flying` | Bat, Kestrel, Griffin | Passive | Erratic movement, can cross terrain |
+| `invisible` | Phantom | Passive | Hidden until revealed |
+| `mean` | Various | Spawn | Always start awake and aggressive |
+
+**Example Configuration**:
+```json
+{
+  "letter": "A",
+  "name": "Aquator",
+  "aiProfile": {
+    "behavior": "SIMPLE",
+    "special": ["rusts_armor"]
+  }
+}
+```
+
+**Implementation**: See `src/services/SpecialAbilityService/SpecialAbilityService.ts` for ability logic.
+
+---
+
 ## 4. Monster Behavior
 
 ### Sleep & Waking
