@@ -264,6 +264,112 @@ Three states:
 
 ---
 
+## State Management (Quick Reference)
+
+**Pattern**: Pushdown Automaton (State Stack)
+
+### State Stack Basics
+
+The game uses a **state stack** to manage screens, dialogs, and modals:
+
+```
+Stack (top = active):
+┌─────────────────┐
+│ Item Selection  │ ← Handles input
+├─────────────────┤
+│ Inventory       │ ← Paused, visible (transparent)
+├─────────────────┤
+│ Playing         │ ← Paused, not visible
+└─────────────────┘
+```
+
+**Operations**:
+- **Push** = Open new state (menu, dialog)
+- **Pop** = Close current, restore previous
+- **Replace** = Transition between major states
+
+### Quick Examples
+
+**Open Modal**:
+```typescript
+stateManager.pushState(new InventoryState(...))
+```
+
+**Close Modal (ESC)**:
+```typescript
+stateManager.popState()
+```
+
+**Start New Game**:
+```typescript
+stateManager.replaceState(new PlayingState(...))
+```
+
+**Return to Main Menu**:
+```typescript
+stateManager.clearStack()
+stateManager.pushState(new MainMenuState(...))
+```
+
+### Creating New States
+
+**Extend BaseState**:
+```typescript
+export class MyState extends BaseState {
+  // Must implement
+  update(deltaTime: number) { }
+  render() { }
+  handleInput(input: Input) { }
+
+  // Optional overrides
+  isPaused() { return true }      // Pause lower states?
+  isTransparent() { return true }  // Show background?
+  enter() { /* Setup */ }
+  exit() { /* Cleanup */ }
+}
+```
+
+**State Types**:
+- **PlayingState**: Main gameplay (opaque, not paused)
+- **MainMenuState**: Title screen (opaque, paused)
+- **DeathScreenState**: Game over (opaque, paused)
+- **InventoryState**: Inventory display (transparent, paused)
+- **ItemSelectionState**: Item prompts (transparent, paused)
+- **TargetSelectionState**: Cursor targeting (transparent, paused)
+
+### Common Patterns
+
+**Modal Dialog**:
+```typescript
+stateManager.pushState(new ModalState(() => {
+  stateManager.popState() // Close on ESC
+}))
+```
+
+**Two-Step Selection** (Item → Target):
+```typescript
+stateManager.pushState(new ItemSelectionState(
+  "Zap which wand?",
+  filter,
+  (wand) => {
+    stateManager.pushState(new TargetSelectionState(
+      range,
+      (pos) => {
+        wandService.zap(gameState, wand, pos)
+        stateManager.popState() // Close targeting
+        stateManager.popState() // Close item selection
+      },
+      () => stateManager.popState() // Cancel
+    ))
+  },
+  () => stateManager.popState() // Cancel
+))
+```
+
+**Details**: [GameStateManager Service](./docs/services/GameStateManager.md)
+
+---
+
 ## Common Pitfalls (Quick Reference)
 
 ### 1. Logic in UI Layer
