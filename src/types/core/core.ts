@@ -635,3 +635,58 @@ export const DEFAULT_LEADERBOARD_FILTERS: LeaderboardFilters = {
   limit: 25,
   offset: 0,
 }
+
+// ============================================================================
+// GAME STATE MANAGEMENT
+// ============================================================================
+
+/**
+ * Input structure for state input handling
+ */
+export interface Input {
+  key: string
+  shift: boolean
+  ctrl: boolean
+  alt: boolean
+}
+
+/**
+ * Game state types for the state stack
+ */
+export enum GameStateType {
+  MAIN_MENU = 'MAIN_MENU',
+  NEW_GAME_DIALOG = 'NEW_GAME_DIALOG',
+  PLAYING = 'PLAYING',
+  INVENTORY = 'INVENTORY',
+  ITEM_SELECTION = 'ITEM_SELECTION',
+  TARGET_SELECTION = 'TARGET_SELECTION',
+  DEATH_SCREEN = 'DEATH_SCREEN',
+  VICTORY_SCREEN = 'VICTORY_SCREEN',
+  LEADERBOARD = 'LEADERBOARD',
+}
+
+/**
+ * Core game state interface - represents a screen or dialog in the state stack
+ */
+export interface IGameState {
+  /** Called when state becomes active (pushed onto stack or previous state popped) */
+  enter(): void
+
+  /** Called when state is removed from stack or new state pushed on top */
+  exit(): void
+
+  /** Game tick logic - only called if state is not paused */
+  update(deltaTime: number): void
+
+  /** Drawing logic - called for all visible states in stack */
+  render(): void
+
+  /** Input processing - only called for top state */
+  handleInput(input: Input): void
+
+  /** Should lower states in stack continue updating? */
+  isPaused(): boolean
+
+  /** Should lower states in stack be visible (dimmed)? */
+  isTransparent(): boolean
+}
