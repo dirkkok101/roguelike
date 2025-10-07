@@ -10,6 +10,7 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { HungerService } from '@services/HungerService'
 import { RingService } from '@services/RingService'
+import { GoldService } from '@services/GoldService'
 import { NotificationService } from '@services/NotificationService'
 import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -32,13 +33,16 @@ describe('MoveCommand - FOV Updates', () => {
   let regenerationService: RegenerationService
   let statusEffectService: StatusEffectService
   let identificationService: IdentificationService
+  let goldService: GoldService
+  let ringService: RingService
   let mockRandom: MockRandom
 
   beforeEach(() => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    const ringService = new RingService(mockRandom)
+    ringService = new RingService(mockRandom)
+    goldService = new GoldService(mockRandom)
     hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
@@ -48,7 +52,7 @@ describe('MoveCommand - FOV Updates', () => {
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
     const levelService = new LevelService()
-    turnService = new TurnService(statusEffectService, levelService)
+    turnService = new TurnService(statusEffectService, levelService, ringService)
     notificationService = new NotificationService(identificationService)
     regenerationService = new RegenerationService(ringService)
   })
@@ -134,7 +138,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -156,7 +162,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -180,7 +188,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       state = right.execute(state)
@@ -209,7 +219,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -234,7 +246,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -257,7 +271,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -285,7 +301,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
       const left = new MoveCommand(
         'left',
@@ -299,7 +317,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       state = right.execute(state)
@@ -321,9 +341,9 @@ describe('MoveCommand - FOV Updates', () => {
       expect(exploredCount).toBe(0)
 
       const commands = [
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
+        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
       ]
 
       for (const command of commands) {
@@ -356,7 +376,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -381,7 +403,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -407,7 +431,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -431,7 +457,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -455,7 +483,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -481,7 +511,9 @@ describe('MoveCommand - FOV Updates', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       command.execute(state)

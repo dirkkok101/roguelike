@@ -172,6 +172,17 @@ export class MoveCommand implements ICommand {
       })
     }
 
+    // 1.6. Process passive ring abilities (teleportation, searching)
+    const ringPassiveResult = this.turnService.processPassiveRingAbilities(
+      player,
+      position,
+      updatedLevel
+    )
+    player = ringPassiveResult.player
+    updatedLevel = ringPassiveResult.level
+    const finalPosition = ringPassiveResult.finalPosition
+    messages.push(...ringPassiveResult.messages)
+
     // 2. Tick hunger
     const hungerResult: HungerTickResult = this.hungerService.tickHunger(player)
     player = hungerResult.player
@@ -224,7 +235,7 @@ export class MoveCommand implements ICommand {
       updatedPlayer.equipment.lightSource
     )
     const fovResult: FOVUpdateResult = this.fovService.updateFOVAndExploration(
-      position,
+      finalPosition, // Use final position (may be teleported)
       lightRadius,
       updatedLevel,
       updatedPlayer

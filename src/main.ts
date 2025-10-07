@@ -103,7 +103,7 @@ async function initializeGame() {
   const pathfindingService = new PathfindingService(levelService)
   const monsterAIService = new MonsterAIService(pathfindingService, random, fovService, levelService)
   const specialAbilityService = new SpecialAbilityService(random)
-  const turnService = new TurnService(statusEffectService, levelService)
+  const turnService = new TurnService(statusEffectService, levelService, ringService)
   const goldService = new GoldService(random)
   const monsterTurnService = new MonsterTurnService(
     random,
@@ -365,6 +365,7 @@ async function initializeGame() {
       leaderboardStorageService,
       scoreCalculationService,
       preferencesService,
+      ringService,
       returnToMenu,
       startNewGame,
       replaySeed
@@ -399,6 +400,7 @@ async function initializeGame() {
       curseService,
       goldService,
       targetingService,
+      ringService,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
       returnToMenu

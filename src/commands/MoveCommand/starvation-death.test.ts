@@ -5,6 +5,7 @@ import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { HungerService } from '@services/HungerService'
 import { RingService } from '@services/RingService'
+import { GoldService } from '@services/GoldService'
 import { NotificationService } from '@services/NotificationService'
 import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -31,13 +32,16 @@ describe('MoveCommand - Starvation Death', () => {
   let levelingService: LevelingService
   let doorService: DoorService
   let turnService: TurnService
+  let goldService: GoldService
+  let ringService: RingService
   let mockRandom: MockRandom
 
   beforeEach(() => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    const ringService = new RingService(mockRandom)
+    ringService = new RingService(mockRandom)
+    goldService = new GoldService(mockRandom)
     hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
@@ -49,7 +53,7 @@ describe('MoveCommand - Starvation Death', () => {
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
     const levelService = new LevelService()
-    turnService = new TurnService(statusEffectService, levelService)
+    turnService = new TurnService(statusEffectService, levelService, ringService)
   })
 
   function createTestPlayer(overrides: Partial<Player> = {}): Player {
@@ -146,7 +150,9 @@ describe('MoveCommand - Starvation Death', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
     const state = createTestState()
@@ -171,7 +177,9 @@ describe('MoveCommand - Starvation Death', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
     const state = createTestState()
@@ -198,7 +206,9 @@ describe('MoveCommand - Starvation Death', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
     const state = createTestState({
@@ -225,7 +235,9 @@ describe('MoveCommand - Starvation Death', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
     const state = createTestState({
@@ -252,7 +264,9 @@ describe('MoveCommand - Starvation Death', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
     const state = createTestState({ turnCount: 50 })

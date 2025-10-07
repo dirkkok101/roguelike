@@ -1,6 +1,7 @@
-import { GameState, Player, StatusEffectType } from '@game/core/core'
+import { GameState, Player, StatusEffectType, Level, Position } from '@game/core/core'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { LevelService } from '@services/LevelService'
+import { RingService } from '@services/RingService'
 import { ENERGY_THRESHOLD, NORMAL_SPEED, HASTED_SPEED } from '../../constants/energy'
 
 // ============================================================================
@@ -13,6 +14,16 @@ import { ENERGY_THRESHOLD, NORMAL_SPEED, HASTED_SPEED } from '../../constants/en
  */
 type Actor = { energy: number }
 
+/**
+ * Result of processing passive ring abilities
+ */
+export interface RingPassiveResult {
+  player: Player
+  level: Level
+  finalPosition: Position
+  messages: Array<{ text: string; type: 'info' | 'warning' }>
+}
+
 // ============================================================================
 // TURN SERVICE - Turn counter and energy management
 // ============================================================================
@@ -20,7 +31,8 @@ type Actor = { energy: number }
 export class TurnService {
   constructor(
     private statusEffectService: StatusEffectService,
-    private levelService: LevelService
+    private levelService: LevelService,
+    private ringService?: RingService // Optional for backward compatibility
   ) {}
 
   /**
@@ -77,6 +89,81 @@ export class TurnService {
    */
   getCurrentTurn(state: GameState): number {
     return state.turnCount
+  }
+
+  /**
+   * Process passive ring abilities (teleportation, searching)
+   * Centralizes ring passive ability logic from MoveCommand
+   *
+   * @param player - Current player state
+   * @param position - Current player position (may be updated by teleportation)
+   * @param level - Current level
+   * @returns Result with updated player, level, position, and messages
+   */
+  processPassiveRingAbilities(
+    player: Player,
+    position: Position,
+    level: Level
+  ): RingPassiveResult {
+    if (!this.ringService) {
+      // No ring service injected - return unchanged
+      return {
+        player,
+        level,
+        finalPosition: position,
+        messages: [],
+      }
+    }
+
+    const messages: Array<{ text: string; type: 'info' | 'warning' }> = []
+    let updatedPlayer = player
+    let updatedLevel = level
+    let finalPosition = position
+
+    // 1. Trigger Ring of Teleportation (15% chance, passive ability)
+    const teleportResult = this.ringService.triggerTeleportation(updatedPlayer, updatedLevel)
+
+    if (teleportResult.triggered && teleportResult.newPosition) {
+      // Update player position to teleported location
+      updatedPlayer = { ...updatedPlayer, position: teleportResult.newPosition }
+      // Update final position for FOV calculation
+      finalPosition = teleportResult.newPosition
+
+      // Add teleportation message
+      if (teleportResult.message) {
+        messages.push({
+          text: teleportResult.message,
+          type: 'warning',
+        })
+      }
+    }
+
+    // 2. Trigger Ring of Searching (10% chance, passive ability)
+    // Note: Searching uses the final position (after potential teleportation)
+    const searchResult = this.ringService.applySearchingRing(updatedPlayer, updatedLevel)
+
+    if (searchResult.trapsFound.length > 0 || searchResult.secretDoorsFound.length > 0) {
+      // Add detection messages
+      if (searchResult.trapsFound.length > 0) {
+        messages.push({
+          text: `Your ring of searching detects ${searchResult.trapsFound.length} trap(s)!`,
+          type: 'info',
+        })
+      }
+      if (searchResult.secretDoorsFound.length > 0) {
+        messages.push({
+          text: `Your ring of searching detects ${searchResult.secretDoorsFound.length} secret door(s)!`,
+          type: 'info',
+        })
+      }
+    }
+
+    return {
+      player: updatedPlayer,
+      level: updatedLevel,
+      finalPosition,
+      messages,
+    }
   }
 
   // ============================================================================
