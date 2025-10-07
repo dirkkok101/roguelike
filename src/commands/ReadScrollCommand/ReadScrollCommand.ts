@@ -97,11 +97,9 @@ export class ReadScrollCommand implements ICommand {
     if (result.consumed) {
       // Normal: Remove scroll from inventory
       finalPlayer = this.inventoryService.removeItem(updatedPlayer, this.itemId)
-    } else {
-      // SCARE_MONSTER: Drop scroll at player position instead of consuming
-      // TODO: Implement scroll dropping when SCARE_MONSTER is added
-      finalPlayer = this.inventoryService.removeItem(updatedPlayer, this.itemId)
     }
+    // If not consumed (SCARE_MONSTER), scroll stays in inventory
+    // Player must manually drop it to activate the scare effect
 
     // 8. Add message and increment turn
     const messages = this.messageService.addMessage(
