@@ -188,6 +188,51 @@
 
 ---
 
+## 3.2 Validating Special Ability Flags
+
+**When adding a new special ability**:
+
+1. **Add flag to valid list**: Update `validSpecialFlags` array in:
+   - `src/services/MonsterSpawnService/monster-data-validation.test.ts` (line 12)
+   - `scripts/validate-monster-data.cjs` (line 26)
+
+2. **Implement logic**: Add check in `SpecialAbilityService.applyOnHitAbilities()` or relevant service
+
+3. **Add tests**: Create test file in `src/services/SpecialAbilityService/`
+
+4. **Update documentation**: Add row to table above (section 3.1)
+
+5. **Validate**: Run `npm run validate:data` to check all monsters
+
+**How to verify a special ability works**:
+
+1. **Unit Test**: `npm test SpecialAbilityService` should pass
+2. **Integration Test**: `npm test monster-data-validation` should pass
+3. **Data Validation**: `npm run validate:data` should pass with no errors
+4. **Manual Test**: Follow `docs/MANUAL_MONSTER_TESTING.md` for the specific monster
+
+**Common Mistakes**:
+- ❌ Using past tense: `"drained_strength"` (wrong)
+- ✅ Using present tense: `"drains_strength"` (correct)
+- ❌ Using spaces: `"drains strength"` (wrong)
+- ✅ Using underscores: `"drains_strength"` (correct)
+- ❌ Typos in flags: `"rusts_armour"` instead of `"rusts_armor"` (wrong)
+
+**Automated Validation**:
+- ✅ Validation runs automatically before tests (`npm test`)
+- ✅ Validation script: `npm run validate:data`
+- ✅ Integration test: `npm test monster-data-validation`
+
+**Validation Catches**:
+- Invalid flag names (typos)
+- Missing required fields
+- Invalid behavior types
+- Out-of-range stats (HP, speed, level, etc.)
+- Duplicate letters or flags
+- Past-tense verb naming (common error)
+
+---
+
 ## 4. Monster Behavior
 
 ### Sleep & Waking
