@@ -30,7 +30,7 @@ export class GoldService {
    */
   calculateGoldAmount(depth: number): number {
     const max = 50 + 10 * depth
-    return this.random.nextInt(0, max) + 2
+    return this.random.nextInt(0, max - 1) + 2
   }
 
   /**

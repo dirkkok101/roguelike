@@ -16,37 +16,37 @@ describe('GoldService - Gold Calculation', () => {
       mockRandom.setValues([0])
       expect(service.calculateGoldAmount(1)).toBe(2)
 
-      // Test maximum: rnd(60) returns 60 → 60 + 2 = 62
-      mockRandom.setValues([60])
-      expect(service.calculateGoldAmount(1)).toBe(62)
+      // Test maximum: rnd(60) returns 59 → 59 + 2 = 61
+      mockRandom.setValues([59])
+      expect(service.calculateGoldAmount(1)).toBe(61)
 
       // Test mid-range: rnd(60) returns 30 → 30 + 2 = 32
       mockRandom.setValues([30])
       expect(service.calculateGoldAmount(1)).toBe(32)
     })
 
-    test('Level 5: returns 2-102 gold (formula: rnd(50 + 10*5) + 2)', () => {
+    test('Level 5: returns 2-101 gold (formula: rnd(50 + 10*5) + 2)', () => {
       // Test minimum: rnd(100) returns 0 → 0 + 2 = 2
       mockRandom.setValues([0])
       expect(service.calculateGoldAmount(5)).toBe(2)
 
-      // Test maximum: rnd(100) returns 100 → 100 + 2 = 102
-      mockRandom.setValues([100])
-      expect(service.calculateGoldAmount(5)).toBe(102)
+      // Test maximum: rnd(100) returns 99 → 99 + 2 = 101
+      mockRandom.setValues([99])
+      expect(service.calculateGoldAmount(5)).toBe(101)
 
       // Test mid-range: rnd(100) returns 50 → 50 + 2 = 52
       mockRandom.setValues([50])
       expect(service.calculateGoldAmount(5)).toBe(52)
     })
 
-    test('Level 10: returns 2-152 gold (formula: rnd(50 + 10*10) + 2)', () => {
+    test('Level 10: returns 2-151 gold (formula: rnd(50 + 10*10) + 2)', () => {
       // Test minimum: rnd(150) returns 0 → 0 + 2 = 2
       mockRandom.setValues([0])
       expect(service.calculateGoldAmount(10)).toBe(2)
 
-      // Test maximum: rnd(150) returns 150 → 150 + 2 = 152
-      mockRandom.setValues([150])
-      expect(service.calculateGoldAmount(10)).toBe(152)
+      // Test maximum: rnd(150) returns 149 → 149 + 2 = 151
+      mockRandom.setValues([149])
+      expect(service.calculateGoldAmount(10)).toBe(151)
 
       // Test mid-range: rnd(150) returns 75 → 75 + 2 = 77
       mockRandom.setValues([75])
@@ -59,8 +59,8 @@ describe('GoldService - Gold Calculation', () => {
       expect(service.calculateGoldAmount(0)).toBe(2)
 
       // Maximum
-      mockRandom.setValues([50])
-      expect(service.calculateGoldAmount(0)).toBe(52)
+      mockRandom.setValues([49])
+      expect(service.calculateGoldAmount(0)).toBe(51)
     })
 
     test('Gold amount scales correctly with depth', () => {
