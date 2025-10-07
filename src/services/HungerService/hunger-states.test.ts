@@ -1,13 +1,16 @@
 import { HungerService, HungerState } from './HungerService'
 import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 
 describe('HungerService - Hunger States', () => {
   let service: HungerService
   let mockRandom: MockRandom
+  let ringService: RingService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    service = new HungerService(mockRandom)
+    ringService = new RingService(mockRandom)
+    service = new HungerService(mockRandom, ringService)
   })
 
   describe('getHungerState()', () => {

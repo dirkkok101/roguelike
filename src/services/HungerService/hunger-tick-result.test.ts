@@ -1,15 +1,18 @@
 import { HungerService, HungerState, HungerTickResult } from './HungerService'
 import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { Player } from '@game/core/core'
 
 describe('HungerService - Tick Result Complete', () => {
   let service: HungerService
   let mockRandom: MockRandom
+  let ringService: RingService
   let basePlayer: Player
 
   beforeEach(() => {
     mockRandom = new MockRandom([])
-    service = new HungerService(mockRandom)
+    ringService = new RingService(mockRandom)
+    service = new HungerService(mockRandom, ringService)
     basePlayer = {
       position: { x: 5, y: 5 },
       hp: 20,

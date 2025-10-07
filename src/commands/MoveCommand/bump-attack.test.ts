@@ -7,6 +7,7 @@ import { CombatService } from '@services/CombatService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { HungerService } from '@services/HungerService'
+import { RingService } from '@services/RingService'
 import { NotificationService } from '@services/NotificationService'
 import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -44,17 +45,17 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    hungerService = new HungerService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
     fovService = new FOVService(statusEffectService)
     messageService = new MessageService()
-    combatService = new CombatService(mockRandom, hungerService)
+    combatService = new CombatService(mockRandom, ringService, hungerService)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
-    // hungerService created earlier
     notificationService = new NotificationService(identificationService)
-    regenerationService = new RegenerationService()
+    regenerationService = new RegenerationService(ringService)
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
   })

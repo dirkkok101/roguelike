@@ -1,5 +1,7 @@
 import { AttackCommand } from './AttackCommand'
 import { CombatService } from '@services/CombatService'
+import { RingService } from '@services/RingService'
+import { HungerService } from '@services/HungerService'
 import { MessageService } from '@services/MessageService'
 import { LevelingService } from '@services/LevelingService'
 import { TurnService } from '@services/TurnService'
@@ -19,7 +21,9 @@ describe('AttackCommand', () => {
   beforeEach(() => {
     mockRandom = new MockRandom()
     messageService = new MessageService()
-    combatService = new CombatService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    const hungerService = new HungerService(mockRandom, ringService)
+    combatService = new CombatService(mockRandom, ringService, hungerService)
     levelingService = new LevelingService(mockRandom)
     statusEffectService = new StatusEffectService()
     const levelService = new LevelService()

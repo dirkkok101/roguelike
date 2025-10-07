@@ -1,14 +1,17 @@
 import { HungerService, HungerState } from './HungerService'
 import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { Player, ItemType } from '@game/core/core'
 
 describe('HungerService - Hunger Effects', () => {
   let service: HungerService
   let mockRandom: MockRandom
+  let ringService: RingService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    service = new HungerService(mockRandom)
+    ringService = new RingService(mockRandom)
+    service = new HungerService(mockRandom, ringService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {

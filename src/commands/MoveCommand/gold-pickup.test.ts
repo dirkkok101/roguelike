@@ -9,16 +9,17 @@ import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { HungerService } from '@services/HungerService'
-import { RingService } from '@services/RingService'
 import { RegenerationService } from '@services/RegenerationService'
+import { RingService } from '@services/RingService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { NotificationService } from '@services/NotificationService'
+import { GoldService } from '@services/GoldService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Level, TileType } from '@game/core/core'
+import { GameState, Level, TileType, GoldPile } from '@game/core/core'
 import { createTestTorch } from '../../test-utils'
 
-describe('MoveCommand - Basic Movement', () => {
+describe('MoveCommand - Gold Pickup', () => {
   let movementService: MovementService
   let lightingService: LightingService
   let fovService: FOVService
@@ -29,16 +30,18 @@ describe('MoveCommand - Basic Movement', () => {
   let turnService: TurnService
   let hungerService: HungerService
   let regenerationService: RegenerationService
+  let ringService: RingService
   let statusEffectService: StatusEffectService
   let identificationService: IdentificationService
   let notificationService: NotificationService
+  let goldService: GoldService
   let mockRandom: MockRandom
 
   beforeEach(() => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    const ringService = new RingService(mockRandom)
+    ringService = new RingService(mockRandom)
     hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
@@ -51,9 +54,10 @@ describe('MoveCommand - Basic Movement', () => {
     turnService = new TurnService(statusEffectService, levelService)
     regenerationService = new RegenerationService(ringService)
     notificationService = new NotificationService(identificationService)
+    goldService = new GoldService(mockRandom)
   })
 
-  function createTestState(): GameState {
+  function createTestState(gold: GoldPile[] = []): GameState {
     const level: Level = {
       depth: 1,
       width: 10,
@@ -74,9 +78,10 @@ describe('MoveCommand - Basic Movement', () => {
         ),
       rooms: [],
       doors: [],
+      traps: [],
       monsters: [],
       items: [],
-      gold: [],
+      gold,
       stairsUp: null,
       stairsDown: null,
       explored: Array(10)
@@ -101,7 +106,7 @@ describe('MoveCommand - Basic Movement', () => {
           armor: null,
           leftRing: null,
           rightRing: null,
-          lightSource: createTestTorch(),
+          lightSource: createTestTorch({ fuel: 100 }),
         },
         inventory: [],
         statusEffects: [],
@@ -119,9 +124,13 @@ describe('MoveCommand - Basic Movement', () => {
     }
   }
 
-  describe('directional movement', () => {
-    test('moves player up', () => {
-      const state = createTestState()
+  describe('Automatic gold pickup', () => {
+    test('picks up gold when moving to position with gold', () => {
+      const goldPile: GoldPile = { position: { x: 5, y: 4 }, amount: 50 }
+      const state = createTestState([goldPile])
+
+      mockRandom.setValues([10, 10, 10]) // Hunger tick, fuel tick values
+
       const command = new MoveCommand(
         'up',
         movementService,
@@ -134,201 +143,23 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService
       )
 
-      const newState = command.execute(state)
+      const result = command.execute(state)
 
-      expect(newState.player.position).toEqual({ x: 5, y: 4 })
+      expect(result.player.gold).toBe(50)
+      expect(result.player.position).toEqual({ x: 5, y: 4 })
     })
 
-    test('moves player down', () => {
-      const state = createTestState()
-      const command = new MoveCommand(
-        'down',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
-      )
+    test('removes gold pile from level after pickup', () => {
+      const goldPile: GoldPile = { position: { x: 5, y: 4 }, amount: 100 }
+      const state = createTestState([goldPile])
 
-      const newState = command.execute(state)
-
-      expect(newState.player.position).toEqual({ x: 5, y: 6 })
-    })
-
-    test('moves player left', () => {
-      const state = createTestState()
-      const command = new MoveCommand(
-        'left',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
-      )
-
-      const newState = command.execute(state)
-
-      expect(newState.player.position).toEqual({ x: 4, y: 5 })
-    })
-
-    test('moves player right', () => {
-      const state = createTestState()
-      const command = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
-      )
-
-      const newState = command.execute(state)
-
-      expect(newState.player.position).toEqual({ x: 6, y: 5 })
-    })
-  })
-
-  describe('turn tracking', () => {
-    test('increments turn count', () => {
-      const state = createTestState()
-      const command = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
-      )
-
-      const newState = command.execute(state)
-
-      expect(newState.turnCount).toBe(1)
-    })
-
-    test('increments turn count for multiple moves', () => {
-      let state = createTestState()
-
-      const right = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
-      )
-      const down = new MoveCommand(
-        'down',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
-      )
-
-      state = right.execute(state)
-      expect(state.turnCount).toBe(1)
-
-      state = down.execute(state)
-      expect(state.turnCount).toBe(2)
-    })
-  })
-
-  describe('immutability', () => {
-    test('does not mutate original state', () => {
-      const state = createTestState()
-      const originalPosition = { ...state.player.position }
-      const originalTurnCount = state.turnCount
+      mockRandom.setValues([10, 10, 10])
 
       const command = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
-      )
-
-      command.execute(state)
-
-      expect(state.player.position).toEqual(originalPosition)
-      expect(state.turnCount).toBe(originalTurnCount)
-    })
-
-    test('returns new state object', () => {
-      const state = createTestState()
-      const command = new MoveCommand(
-        'right',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
-      )
-
-      const newState = command.execute(state)
-
-      expect(newState).not.toBe(state)
-      expect(newState.player).not.toBe(state.player)
-    })
-  })
-
-  describe('level boundaries', () => {
-    test('handles movement near edges', () => {
-      const state = createTestState()
-      state.player.position = { x: 1, y: 1 }
-
-      const up = new MoveCommand(
         'up',
         movementService,
         lightingService,
@@ -340,35 +171,23 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
-      )
-      const left = new MoveCommand(
-        'left',
-        movementService,
-        lightingService,
-        fovService,
-        messageService,
-        combatService,
-        levelingService,
-        doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService
+        turnService,
+        goldService
       )
 
-      const newState1 = up.execute(state)
-      expect(newState1.player.position).toEqual({ x: 1, y: 0 })
+      const result = command.execute(state)
 
-      const newState2 = left.execute(state)
-      expect(newState2.player.position).toEqual({ x: 0, y: 1 })
+      const level = result.levels.get(1)
+      expect(level?.gold.length).toBe(0)
     })
 
-    test('does not move when hitting boundary', () => {
-      const state = createTestState()
-      state.player.position = { x: 0, y: 0 }
+    test('adds pickup message to message log', () => {
+      const goldPile: GoldPile = { position: { x: 5, y: 4 }, amount: 75 }
+      const state = createTestState([goldPile])
 
-      const up = new MoveCommand(
+      mockRandom.setValues([10, 10, 10])
+
+      const command = new MoveCommand(
         'up',
         movementService,
         lightingService,
@@ -380,32 +199,162 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService
       )
 
-      const newState = up.execute(state)
+      const result = command.execute(state)
 
-      expect(newState.player.position).toEqual({ x: 0, y: 0 })
+      const pickupMessage = result.messages.find(m => m.text.includes('pick up') && m.text.includes('75'))
+      expect(pickupMessage).toBeDefined()
+      expect(pickupMessage?.type).toBe('success')
+    })
+
+    test('accumulates gold with existing player gold', () => {
+      const goldPile: GoldPile = { position: { x: 5, y: 4 }, amount: 50 }
+      const state = createTestState([goldPile])
+      state.player.gold = 100
+
+      mockRandom.setValues([10, 10, 10])
+
+      const command = new MoveCommand(
+        'up',
+        movementService,
+        lightingService,
+        fovService,
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService,
+        regenerationService,
+        notificationService,
+        turnService,
+        goldService
+      )
+
+      const result = command.execute(state)
+
+      expect(result.player.gold).toBe(150)
+    })
+
+    test('no pickup when moving to position without gold', () => {
+      const goldPile: GoldPile = { position: { x: 7, y: 7 }, amount: 50 }
+      const state = createTestState([goldPile])
+
+      mockRandom.setValues([10, 10, 10])
+
+      const command = new MoveCommand(
+        'up',
+        movementService,
+        lightingService,
+        fovService,
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService,
+        regenerationService,
+        notificationService,
+        turnService,
+        goldService
+      )
+
+      const result = command.execute(state)
+
+      expect(result.player.gold).toBe(0)
+      const level = result.levels.get(1)
+      expect(level?.gold.length).toBe(1) // Gold still there
+    })
+
+    test('picks up correct gold pile when multiple exist', () => {
+      const gold1: GoldPile = { position: { x: 5, y: 4 }, amount: 100 }
+      const gold2: GoldPile = { position: { x: 7, y: 7 }, amount: 200 }
+      const state = createTestState([gold1, gold2])
+
+      mockRandom.setValues([10, 10, 10])
+
+      const command = new MoveCommand(
+        'up',
+        movementService,
+        lightingService,
+        fovService,
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService,
+        regenerationService,
+        notificationService,
+        turnService,
+        goldService
+      )
+
+      const result = command.execute(state)
+
+      expect(result.player.gold).toBe(100) // Only picked up gold1
+      const level = result.levels.get(1)
+      expect(level?.gold.length).toBe(1)
+      expect(level?.gold[0]).toEqual(gold2) // gold2 still there
     })
   })
 
-  describe('sequential movement', () => {
-    test('supports chained movements', () => {
-      let state = createTestState()
+  describe('Gold pickup timing', () => {
+    test('gold pickup happens during movement (no extra turn)', () => {
+      const goldPile: GoldPile = { position: { x: 5, y: 4 }, amount: 50 }
+      const state = createTestState([goldPile])
 
-      const commands = [
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-        new MoveCommand('left', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-      ]
+      mockRandom.setValues([10, 10, 10])
 
-      for (const command of commands) {
-        state = command.execute(state)
-      }
+      const command = new MoveCommand(
+        'up',
+        movementService,
+        lightingService,
+        fovService,
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService,
+        regenerationService,
+        notificationService,
+        turnService,
+        goldService
+      )
 
-      expect(state.player.position).toEqual({ x: 6, y: 6 })
-      expect(state.turnCount).toBe(4)
+      const result = command.execute(state)
+
+      expect(result.turnCount).toBe(1) // Only 1 turn consumed (for movement)
+    })
+
+    test('gold pickup is immutable (returns new player object)', () => {
+      const goldPile: GoldPile = { position: { x: 5, y: 4 }, amount: 50 }
+      const state = createTestState([goldPile])
+      const originalPlayer = state.player
+
+      mockRandom.setValues([10, 10, 10])
+
+      const command = new MoveCommand(
+        'up',
+        movementService,
+        lightingService,
+        fovService,
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService,
+        regenerationService,
+        notificationService,
+        turnService,
+        goldService
+      )
+
+      const result = command.execute(state)
+
+      expect(originalPlayer.gold).toBe(0) // Original unchanged
+      expect(result.player.gold).toBe(50) // New player has gold
+      expect(result.player).not.toBe(originalPlayer) // Different objects
     })
   })
 })

@@ -1,5 +1,6 @@
 import { Player, Ring, RingType } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 
 // ============================================================================
 // HUNGER STATE ENUM
@@ -40,7 +41,10 @@ export interface FoodConsumptionResult {
 // ============================================================================
 
 export class HungerService {
-  constructor(private random: IRandomService) {}
+  constructor(
+    private random: IRandomService,
+    private ringService: RingService
+  ) {}
 
   /**
    * Tick hunger depletion (call each turn)
@@ -53,12 +57,8 @@ export class HungerService {
     // 1. Calculate old state
     const oldState = this.getHungerState(player.hunger)
 
-    // 2. Get equipped rings and calculate rate
-    const rings: Ring[] = [
-      player.equipment.leftRing,
-      player.equipment.rightRing,
-    ].filter(Boolean) as Ring[]
-    const rate = this.calculateHungerRate(rings)
+    // 2. Calculate hunger depletion rate
+    const rate = this.ringService.calculateHungerModifier(player)
 
     // 3. Apply depletion (don't go below 0)
     const newHunger = Math.max(0, player.hunger - rate)
@@ -199,29 +199,6 @@ export class HungerService {
     }
 
     return { toHitPenalty: 0, damagePenalty: 0 }
-  }
-
-  /**
-   * Calculate hunger depletion rate based on equipped rings
-   * Base: 1
-   * Each ring: +0.5 (except SLOW_DIGESTION: -0.5, REGENERATION: +0.3)
-   */
-  calculateHungerRate(rings: Ring[]): number {
-    let rate = 1.0 // Base rate
-
-    rings.forEach((ring) => {
-      if (!ring) return
-
-      if (ring.ringType === RingType.SLOW_DIGESTION) {
-        rate -= 0.5 // Reduces hunger
-      } else if (ring.ringType === RingType.REGENERATION) {
-        rate += 0.3 // Ring of Regeneration: +30% hunger
-      } else {
-        rate += 0.5 // Most rings increase hunger
-      }
-    })
-
-    return Math.max(0, rate) // Never negative
   }
 
   /**

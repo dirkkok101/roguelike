@@ -1,11 +1,17 @@
 import { RegenerationService, REGEN_CONFIG } from './RegenerationService'
+import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { Player, Equipment, RingType } from '@game/core/core'
 
 describe('RegenerationService - Natural Regeneration', () => {
   let service: RegenerationService
+  let mockRandom: MockRandom
+  let ringService: RingService
 
   beforeEach(() => {
-    service = new RegenerationService()
+    mockRandom = new MockRandom([])
+    ringService = new RingService(mockRandom)
+    service = new RegenerationService(ringService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {

@@ -1,5 +1,6 @@
 import { GameState, Level, TileType, Position, Torch, ItemType } from '@game/core/core'
 import { SeededRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { RenderingService } from '@services/RenderingService'
@@ -24,6 +25,7 @@ import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { DoorService } from '@services/DoorService'
+import { GoldService } from '@services/GoldService'
 import { PotionService } from '@services/PotionService'
 import { ScrollService } from '@services/ScrollService'
 import { WandService } from '@services/WandService'
@@ -79,8 +81,9 @@ async function initializeGame() {
   }
 
   const dungeonService = new DungeonService(random, monsterSpawnService, itemData)
-  const hungerService = new HungerService(random)
-  const regenerationService = new RegenerationService()
+  const ringService = new RingService(random)
+  const hungerService = new HungerService(random, ringService)
+  const regenerationService = new RegenerationService(ringService)
   const levelingService = new LevelingService(random)
   const debugService = new DebugService(messageService)
   const inventoryService = new InventoryService()
@@ -96,18 +99,20 @@ async function initializeGame() {
   const preferencesService = new PreferencesService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const levelService = new LevelService()
-  const combatService = new CombatService(random, hungerService, debugService)
+  const combatService = new CombatService(random, ringService, hungerService, debugService)
   const pathfindingService = new PathfindingService(levelService)
   const monsterAIService = new MonsterAIService(pathfindingService, random, fovService, levelService)
   const specialAbilityService = new SpecialAbilityService(random)
   const turnService = new TurnService(statusEffectService, levelService)
+  const goldService = new GoldService(random)
   const monsterTurnService = new MonsterTurnService(
     random,
     monsterAIService,
     combatService,
     specialAbilityService,
     messageService,
-    turnService
+    turnService,
+    goldService
   )
   const doorService = new DoorService()
   const potionService = new PotionService(random, identificationService, levelingService, statusEffectService)
@@ -392,6 +397,7 @@ async function initializeGame() {
       levelService,
       statusEffectService,
       curseService,
+      goldService,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
       returnToMenu
