@@ -323,10 +323,23 @@ export class TargetingService {
   // ============================================================================
 
   /**
-   * Calculate Manhattan distance between two positions
-   * Classic roguelike distance metric (L1 norm)
+   * Calculate Manhattan distance (L1 norm) between two positions
+   *
+   * Used for range checks and target sorting. Manhattan distance is the
+   * sum of absolute differences in x and y coordinates, representing the
+   * minimum number of orthogonal moves needed to reach from a to b.
+   *
+   * This is the classic roguelike distance metric.
+   *
+   * @param a Starting position
+   * @param b Target position
+   * @returns Manhattan distance in tiles
+   *
+   * @example
+   * const dist = targetingService.distance({ x: 5, y: 5 }, { x: 8, y: 7 })
+   * // Returns 5 (3 horizontal + 2 vertical)
    */
-  private distance(a: Position, b: Position): number {
+  public distance(a: Position, b: Position): number {
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
   }
 
