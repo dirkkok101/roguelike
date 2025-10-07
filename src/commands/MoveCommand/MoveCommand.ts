@@ -15,6 +15,7 @@ import { NotificationService } from '@services/NotificationService'
 import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
+import { GoldService } from '@services/GoldService'
 import { AttackCommand } from '../AttackCommand'
 
 // ============================================================================
@@ -34,7 +35,8 @@ export class MoveCommand implements ICommand {
     private hungerService: HungerService,
     private regenerationService: RegenerationService,
     private notificationService: NotificationService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private goldService: GoldService
   ) {}
 
   execute(state: GameState): GameState {
@@ -58,7 +60,8 @@ export class MoveCommand implements ICommand {
         this.combatService,
         this.messageService,
         this.levelingService,
-        this.turnService
+        this.turnService,
+        this.goldService
       )
       return attackCommand.execute(state)
       // AttackCommand handles: combat, XP, level-up, messages, turn increment
@@ -144,6 +147,29 @@ export class MoveCommand implements ICommand {
     // 1. Move player
     let player = this.movementService.movePlayer(state.player, position)
     let messages: (HungerMessage | LightMessage | RegenMessage)[] = []
+    let updatedLevel = level
+
+    // 1.5. Check for gold pickup at new position (automatic, no turn cost)
+    const goldAtPosition = level.gold.find(
+      g => g.position.x === position.x && g.position.y === position.y
+    )
+
+    if (goldAtPosition) {
+      // Pickup gold (immutable player update)
+      player = this.goldService.pickupGold(player, goldAtPosition.amount)
+
+      // Remove gold from level
+      const updatedGold = level.gold.filter(
+        g => !(g.position.x === position.x && g.position.y === position.y)
+      )
+      updatedLevel = { ...level, gold: updatedGold }
+
+      // Add pickup message (will be added to message log later)
+      messages.push({
+        text: `You pick up ${goldAtPosition.amount} gold pieces.`,
+        type: 'success' as const,
+      })
+    }
 
     // 2. Tick hunger
     const hungerResult: HungerTickResult = this.hungerService.tickHunger(player)
@@ -199,7 +225,7 @@ export class MoveCommand implements ICommand {
     const fovResult: FOVUpdateResult = this.fovService.updateFOVAndExploration(
       position,
       lightRadius,
-      level,
+      updatedLevel,
       updatedPlayer
     )
 

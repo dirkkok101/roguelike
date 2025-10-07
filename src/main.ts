@@ -25,6 +25,7 @@ import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { DoorService } from '@services/DoorService'
+import { GoldService } from '@services/GoldService'
 import { PotionService } from '@services/PotionService'
 import { ScrollService } from '@services/ScrollService'
 import { WandService } from '@services/WandService'
@@ -102,13 +103,15 @@ async function initializeGame() {
   const monsterAIService = new MonsterAIService(pathfindingService, random, fovService, levelService)
   const specialAbilityService = new SpecialAbilityService(random)
   const turnService = new TurnService(statusEffectService, levelService)
+  const goldService = new GoldService(random)
   const monsterTurnService = new MonsterTurnService(
     random,
     monsterAIService,
     combatService,
     specialAbilityService,
     messageService,
-    turnService
+    turnService,
+    goldService
   )
   const doorService = new DoorService()
   const potionService = new PotionService(random, identificationService, levelingService, statusEffectService)
@@ -392,6 +395,7 @@ async function initializeGame() {
       levelService,
       statusEffectService,
       curseService,
+      goldService,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
       returnToMenu
