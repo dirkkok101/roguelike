@@ -457,10 +457,4 @@ export class TargetingService {
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
   }
 
-  /**
-   * Convert position to string key for Set lookups
-   */
-  private posToKey(pos: Position): string {
-    return `${pos.x},${pos.y}`
-  }
 }
