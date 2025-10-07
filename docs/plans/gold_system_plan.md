@@ -156,21 +156,21 @@ Implement a complete gold placement and collection system based on classic rogue
 - `docs/services/DungeonService.md`
 
 ##### Subtasks:
-- [ ] Add `private spawnGold(rooms: Room[], depth: number, tiles: Tile[][]): GoldPile[]` method
-- [ ] Generate 3-9 gold piles per level (randomized)
+- [x] Add `private spawnGold(rooms: Room[], depth: number, tiles: Tile[][]): GoldPile[]` method
+- [x] Generate 3-9 gold piles per level (randomized)
   - Use `this.random.nextInt(3, 9)` for pile count
-- [ ] Place gold in random room positions (not on walls/doors)
-- [ ] Use GoldService.calculateGoldAmount(depth) for each pile amount
-- [ ] Call `spawnGold()` in `generateLevel()` after item spawning
-- [ ] Inject GoldService into DungeonService constructor
-- [ ] Write unit tests:
+- [x] Place gold in random room positions (not on walls/doors)
+- [x] Use GoldService.calculateGoldAmount(depth) for each pile amount
+- [x] Call `spawnGold()` in `generateLevel()` after item spawning
+- [x] Inject GoldService into DungeonService constructor
+- [x] Write unit tests:
   - Correct number of gold piles spawned (3-9)
   - Gold amounts scale with depth
   - Gold placed in valid room positions only
   - No gold on walls, doors, stairs, or occupied tiles
-  - MockRandom for deterministic tests
-- [ ] Update `docs/services/DungeonService.md` with gold spawning step
-- [ ] Git commit: "feat: add gold pile generation to DungeonService (Phase 2.1)"
+  - SeededRandom for consistent tests
+- [x] Update `docs/services/DungeonService.md` with gold spawning step
+- [x] Git commit: "feat: add gold pile generation to DungeonService (Phase 2.1)"
 
 ---
 

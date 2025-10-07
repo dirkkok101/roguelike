@@ -24,6 +24,7 @@ import {
 } from '@services/CorridorGenerationService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
+import { GoldService } from '@services/GoldService'
 import { ItemData } from '../../data/ItemDataLoader'
 
 // ============================================================================
@@ -46,6 +47,7 @@ export class DungeonService {
   private corridorGenerationService: CorridorGenerationService
   private monsterSpawnService: MonsterSpawnService
   private itemSpawnService: ItemSpawnService
+  private goldService: GoldService
 
   constructor(
     private random: IRandomService,
@@ -56,6 +58,7 @@ export class DungeonService {
     this.corridorGenerationService = new CorridorGenerationService(random)
     this.monsterSpawnService = monsterSpawnService
     this.itemSpawnService = new ItemSpawnService(random, itemData)
+    this.goldService = new GoldService(random)
   }
 
   /**
@@ -112,6 +115,10 @@ export class DungeonService {
     const itemCount = this.random.nextInt(5, 8) // 5-8 items per level
     const items = this.itemSpawnService.spawnItems(spawnRooms, itemCount, tiles, monsters, depth)
 
+    // Spawn gold (3-9 piles per level)
+    const goldCount = this.random.nextInt(3, 9)
+    const gold = this.spawnGold(rooms, goldCount, tiles, depth)
+
     // Create initial level
     const level: Level = {
       depth,
@@ -123,7 +130,7 @@ export class DungeonService {
       traps,
       monsters,
       items,
-      gold: [],
+      gold,
       stairsUp: stairsUpPos,
       stairsDown: stairsDownPos,
       explored: Array(config.height)
@@ -513,6 +520,62 @@ export class DungeonService {
     }
   }
 
+
+  // ============================================================================
+  // GOLD SPAWNING
+  // ============================================================================
+
+  /**
+   * Spawn gold piles randomly in rooms
+   * Uses original Rogue 1980 GOLDCALC formula for amounts
+   *
+   * @param rooms All rooms in level
+   * @param count Number of gold piles to spawn (3-9)
+   * @param tiles Tile grid for validation
+   * @param depth Dungeon depth for gold amount calculation
+   * @returns Array of GoldPile objects
+   */
+  private spawnGold(rooms: Room[], count: number, tiles: Tile[][], depth: number): GoldPile[] {
+    const gold: GoldPile[] = []
+    const goldPositions = new Set<string>()
+
+    let attempts = 0
+    const maxAttempts = count * 20 // Allow more attempts to ensure placement
+
+    while (gold.length < count && attempts < maxAttempts) {
+      attempts++
+
+      // Pick random room
+      const room = rooms[this.random.nextInt(0, rooms.length - 1)]
+
+      // Pick random position in room (avoid edges to prevent door placement)
+      const x = this.random.nextInt(room.x + 1, room.x + room.width - 2)
+      const y = this.random.nextInt(room.y + 1, room.y + room.height - 2)
+
+      const key = `${x},${y}`
+
+      // Check if position is valid:
+      // - Not already occupied by gold
+      // - Walkable floor tile
+      // - Not a door
+      if (
+        !goldPositions.has(key) &&
+        tiles[y]?.[x] &&
+        tiles[y][x].walkable &&
+        tiles[y][x].type === TileType.FLOOR
+      ) {
+        goldPositions.add(key)
+
+        // Calculate gold amount using Rogue 1980 formula
+        const amount = this.goldService.calculateGoldAmount(depth)
+        const goldPile = this.goldService.dropGold({ x, y }, amount)
+
+        gold.push(goldPile)
+      }
+    }
+
+    return gold
+  }
 
   // ============================================================================
   // AMULET OF YENDOR SPAWNING

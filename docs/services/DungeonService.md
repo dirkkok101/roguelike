@@ -43,8 +43,9 @@ interface DungeonConfig {
 7. Place traps (2-4 per level)
 8. Determine stairs positions
 9. Spawn monsters (depth + 1, max 8)
-10. Spawn items (3-6 per level)
-11. Spawn Amulet of Yendor (Level 10 only)
+10. Spawn items (5-8 per level)
+11. **Spawn gold (3-9 piles per level)** ← NEW
+12. Spawn Amulet of Yendor (Level 10 only)
 
 **Returns**: Complete Level object
 
@@ -236,6 +237,44 @@ placeTraps(rooms: Room[], count: number, tiles: Tile[][]): Trap[]
 - Only on walkable tiles
 - No duplicate positions
 - `discovered: false` (hidden until found)
+
+---
+
+## Gold Spawning
+
+```typescript
+private spawnGold(rooms: Room[], count: number, tiles: Tile[][], depth: number): GoldPile[]
+```
+
+**Gold Count**: 3-9 piles per level (randomized)
+
+**Gold Amount**: Uses authentic **Rogue 1980 GOLDCALC** formula:
+```
+GOLDCALC = random(50 + 10 * depth) + 2
+
+Examples:
+- Level 1: 2-62 gold per pile
+- Level 5: 2-102 gold per pile
+- Level 10: 2-152 gold per pile
+```
+
+**Placement Algorithm**:
+1. Pick random room
+2. Pick random floor position in room (avoid edges)
+3. Validate position:
+   - Not already occupied by gold
+   - Walkable floor tile (not wall or door)
+   - Type is FLOOR
+4. Calculate gold amount using GoldService
+5. Create GoldPile at position
+6. Repeat until count reached (max 20 attempts per pile)
+
+**Integration**:
+- Uses **GoldService** for amount calculation
+- Gold spawned after items, before Amulet
+- All rooms eligible (including starting room)
+
+**Dependencies**: GoldService
 
 ---
 
