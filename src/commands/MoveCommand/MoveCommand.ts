@@ -54,10 +54,10 @@ export class MoveCommand implements ICommand {
     const obstacle = this.movementService.detectObstacle(newPosition, level)
 
     // ROUTE 1: Monster → Delegate to AttackCommand (early return)
-    if (obstacle.type === 'monster' && obstacle.data && 'id' in obstacle.data) {
-      const monster = obstacle.data
+    if (obstacle.type === 'monster') {
+      // TypeScript now knows obstacle.data is Monster
       const attackCommand = new AttackCommand(
-        monster.id,
+        obstacle.data.id,
         this.combatService,
         this.messageService,
         this.levelingService,
@@ -70,7 +70,8 @@ export class MoveCommand implements ICommand {
     }
 
     // ROUTE 2: Door → Handle based on state
-    if (obstacle.type === 'door' && obstacle.data && 'state' in obstacle.data) {
+    if (obstacle.type === 'door') {
+      // TypeScript now knows obstacle.data is Door
       const door = obstacle.data
 
       // Locked door - blocked (no turn)
@@ -85,7 +86,7 @@ export class MoveCommand implements ICommand {
       }
 
       // Undiscovered secret door - blocked (no turn)
-      if (door.state === DoorState.SECRET && door.discovered !== undefined && !door.discovered) {
+      if (door.state === DoorState.SECRET && !door.discovered) {
         const messages = this.messageService.addMessage(
           state.messages,
           "You can't go that way.",

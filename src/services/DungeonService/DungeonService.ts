@@ -292,7 +292,7 @@ export class DungeonService {
    * Randomly select door type based on probabilities
    */
   private randomDoorType(): DoorState {
-    const roll = this.random.chance(1.0) ? this.random.nextInt(0, 100) / 100.0 : 0
+    const roll = this.random.nextInt(0, 99) / 100.0 // Generates 0.00 to 0.99
 
     if (roll < 0.5) return DoorState.OPEN // 50%
     if (roll < 0.8) return DoorState.CLOSED // 30%

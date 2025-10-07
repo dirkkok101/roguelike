@@ -1,4 +1,22 @@
-import { GameState, Level } from '@game/core/core'
+import { GameState, Level, Monster } from '@game/core/core'
+
+// ============================================================================
+// SERIALIZATION TYPES
+// ============================================================================
+
+/**
+ * Serialized monster with Set converted to Array
+ */
+type SerializedMonster = Omit<Monster, 'visibleCells'> & {
+  visibleCells: string[] // Array instead of Set<string>
+}
+
+/**
+ * Serialized level with monsters converted to serialized form
+ */
+type SerializedLevel = Omit<Level, 'monsters'> & {
+  monsters: SerializedMonster[]
+}
 
 // ============================================================================
 // LOCAL STORAGE SERVICE - Game save/load persistence
@@ -212,9 +230,24 @@ export class LocalStorageService {
    * Handle special types: Map, Set
    */
   private serializeGameState(state: GameState): string {
+    // Convert levels Map to array with serialized monsters
+    const serializedLevels: Array<[number, SerializedLevel]> = Array.from(state.levels.entries()).map(
+      ([depth, level]) => {
+        const serializedLevel: SerializedLevel = {
+          ...level,
+          monsters: level.monsters.map((m): SerializedMonster => ({
+            ...m,
+            visibleCells: Array.from(m.visibleCells),
+            currentPath: m.currentPath,
+          })),
+        }
+        return [depth, serializedLevel]
+      }
+    )
+
     const serializable = {
       ...state,
-      levels: Array.from(state.levels.entries()), // Map → Array
+      levels: serializedLevels,
       visibleCells: Array.from(state.visibleCells), // Set → Array
       identifiedItems: Array.from(state.identifiedItems), // Set → Array
       detectedMonsters: Array.from(state.detectedMonsters || []), // Set → Array
@@ -226,24 +259,7 @@ export class LocalStorageService {
         rings: Array.from(state.itemNameMap.rings.entries()),
         wands: Array.from(state.itemNameMap.wands.entries()),
       },
-      // Note: Monster visibleCells and currentPath also need conversion
-      // This is done per-level
     }
-
-    // Deep clone levels to convert monster Sets
-    serializable.levels = serializable.levels.map(([depth, level]) => {
-      return [
-        depth,
-        {
-          ...level,
-          monsters: level.monsters.map((m) => ({
-            ...m,
-            visibleCells: Array.from(m.visibleCells),
-            currentPath: m.currentPath,
-          } as any)),
-        } as any as Level,
-      ] as [number, Level]
-    })
 
     return JSON.stringify(serializable)
   }

@@ -24,10 +24,19 @@ import { MessageService } from '@services/MessageService'
  * - Only enabled in development mode
  */
 export class DebugService {
+  private isDevMode: boolean
+
   constructor(
     private messageService: MessageService,
-    private isDevMode: boolean = typeof window !== 'undefined' && (window as any).__DEV_MODE__ === true
-  ) {}
+    isDevMode?: boolean
+  ) {
+    // Priority: explicit parameter > import.meta.env.DEV > false (production default)
+    // Use type assertion for import.meta.env as it's added by Vite
+    this.isDevMode = isDevMode ?? (
+      typeof import.meta !== 'undefined' &&
+      (import.meta as any).env?.DEV === true
+    )
+  }
 
   /**
    * Check if debug mode is available
