@@ -51,7 +51,7 @@ describe('MoveCommand - Gold Pickup', () => {
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
     const levelService = new LevelService()
-    turnService = new TurnService(statusEffectService, levelService)
+    turnService = new TurnService(statusEffectService, levelService, ringService)
     regenerationService = new RegenerationService(ringService)
     notificationService = new NotificationService(identificationService)
     goldService = new GoldService(mockRandom)
@@ -144,7 +144,8 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        ringService
       )
 
       const result = command.execute(state)
@@ -172,7 +173,8 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        ringService
       )
 
       const result = command.execute(state)
@@ -200,7 +202,8 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        ringService
       )
 
       const result = command.execute(state)
@@ -230,7 +233,8 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        ringService
       )
 
       const result = command.execute(state)
@@ -257,7 +261,8 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        ringService
       )
 
       const result = command.execute(state)
@@ -287,7 +292,8 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        ringService
       )
 
       const result = command.execute(state)
@@ -319,7 +325,8 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        ringService
       )
 
       const result = command.execute(state)
@@ -347,7 +354,8 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        ringService
       )
 
       const result = command.execute(state)

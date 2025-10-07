@@ -1,4 +1,4 @@
-import { GameState, Item, ItemType, TargetingRequest, TargetingResult } from '@game/core/core'
+import { GameState, Item, ItemType, Ring, TargetingRequest, TargetingResult } from '@game/core/core'
 import { IdentificationService } from '@services/IdentificationService'
 import { CurseService } from '@services/CurseService'
 import { TargetingService } from '@services/TargetingService'
@@ -21,13 +21,24 @@ type ItemFilter =
   | 'equipment' // weapons + light sources (torches, lanterns)
   | 'unidentified'
 type SelectionCallback = (item: Item | null) => void
+type RingSelectionCallback = (result: { ring: Ring; slot: 'left' | 'right' } | null) => void
 type TargetingCallback = (result: TargetingResult) => void
 
+/**
+ * Internal state for each modal in the stack
+ * Unified object prevents stack desynchronization issues
+ */
+interface ModalState {
+  modal: HTMLElement
+  callback?: SelectionCallback
+  ringCallback?: RingSelectionCallback
+  ringData?: Array<{ ring: Ring; slot: 'left' | 'right' }>
+  state?: GameState
+  filter: ItemFilter
+}
+
 export class ModalController {
-  private modalStack: HTMLElement[] = []
-  private callbackStack: (SelectionCallback | null)[] = []
-  private stateStack: (GameState | null)[] = []
-  private filterStack: ItemFilter[] = []
+  private modalStack: ModalState[] = []
   private targetingModal: TargetingModal | null = null
 
   constructor(
@@ -59,11 +70,13 @@ export class ModalController {
     // Create modal DOM
     const modalContainer = this.createSelectionModal(title, items, state)
 
-    // Push to stacks
-    this.modalStack.push(modalContainer)
-    this.callbackStack.push(callback)
-    this.stateStack.push(state)
-    this.filterStack.push(filter)
+    // Push unified state to stack
+    this.modalStack.push({
+      modal: modalContainer,
+      callback,
+      state,
+      filter,
+    })
 
     document.body.appendChild(modalContainer)
   }
@@ -74,11 +87,12 @@ export class ModalController {
   showInventory(state: GameState): void {
     const modalContainer = this.createInventoryModal(state)
 
-    // Push to stacks (null callback = read-only modal)
-    this.modalStack.push(modalContainer)
-    this.callbackStack.push(null)
-    this.stateStack.push(state)
-    this.filterStack.push('all')
+    // Push unified state to stack (no callback = read-only modal)
+    this.modalStack.push({
+      modal: modalContainer,
+      state,
+      filter: 'all',
+    })
 
     document.body.appendChild(modalContainer)
   }
@@ -106,19 +120,48 @@ export class ModalController {
   }
 
   /**
+   * Show equipped ring selection modal (for removal)
+   * @param state - Current game state
+   * @param callback - Called with selected ring and slot (or null if cancelled)
+   */
+  showEquippedRingSelection(
+    state: GameState,
+    callback: RingSelectionCallback
+  ): void {
+    const rings = this.getEquippedRingsWithSlots(state)
+
+    // Handle case with no equipped rings
+    if (rings.length === 0) {
+      callback(null)
+      return
+    }
+
+    // Create modal DOM
+    const modalContainer = this.createRingSelectionModal(rings, state)
+
+    // Push unified state to stack
+    this.modalStack.push({
+      modal: modalContainer,
+      ringCallback: callback,
+      ringData: rings,
+      state,
+      filter: 'ring',
+    })
+
+    document.body.appendChild(modalContainer)
+  }
+
+  /**
    * Hide and cleanup top modal
    */
   hide(): void {
     if (this.modalStack.length === 0) return
 
     // Pop top modal and remove from DOM
-    const topModal = this.modalStack.pop()
-    this.callbackStack.pop()
-    this.stateStack.pop()
-    this.filterStack.pop()
+    const topModalState = this.modalStack.pop()
 
-    if (topModal) {
-      topModal.remove()
+    if (topModalState) {
+      topModalState.modal.remove()
     }
   }
 
@@ -141,29 +184,43 @@ export class ModalController {
 
     if (this.modalStack.length === 0) return false
 
-    const topCallback = this.callbackStack[this.callbackStack.length - 1]
-    const topState = this.stateStack[this.stateStack.length - 1]
+    const topModalState = this.modalStack[this.modalStack.length - 1]
 
     // ESC to cancel
     if (event.key === 'Escape') {
       event.preventDefault()
-      if (topCallback) {
-        topCallback(null)
+      if (topModalState.callback) {
+        topModalState.callback(null)
+      } else if (topModalState.ringCallback) {
+        topModalState.ringCallback(null)
       }
       this.hide()
       return true
     }
 
-    // Letter selection (a-z) - only if we have a callback (selection mode)
-    if (topCallback) {
+    // Ring selection modal
+    if (topModalState.ringCallback && topModalState.ringData) {
       const index = this.getItemIndexFromLetter(event.key)
-      if (index !== null && topState) {
+      if (index !== null && index < topModalState.ringData.length) {
+        event.preventDefault()
+        const selection = topModalState.ringData[index]
+        topModalState.ringCallback(selection)
+        this.hide()
+        return true
+      }
+      return false
+    }
+
+    // Letter selection (a-z) - only if we have a callback (selection mode)
+    if (topModalState.callback) {
+      const index = this.getItemIndexFromLetter(event.key)
+      if (index !== null && topModalState.state) {
         const filteredItems = this.getFilteredItemsForCurrentModal()
         if (index < filteredItems.length) {
           event.preventDefault()
           const item = filteredItems[index]
           const topModalBefore = this.modalStack[this.modalStack.length - 1]
-          topCallback(item)
+          topModalState.callback(item)
           const topModalAfter = this.modalStack[this.modalStack.length - 1]
 
           // Only hide if the top modal is still the same one
@@ -184,14 +241,35 @@ export class ModalController {
   // PRIVATE METHODS
   // ============================================================================
 
+  /**
+   * Get equipped rings with their slot information
+   * @param state - Current game state
+   * @returns Array of rings with slot labels (empty if no rings equipped)
+   */
+  private getEquippedRingsWithSlots(
+    state: GameState
+  ): Array<{ ring: Ring; slot: 'left' | 'right' }> {
+    const rings: Array<{ ring: Ring; slot: 'left' | 'right' }> = []
+    if (state.player.equipment.leftRing) {
+      rings.push({ ring: state.player.equipment.leftRing, slot: 'left' })
+    }
+    if (state.player.equipment.rightRing) {
+      rings.push({ ring: state.player.equipment.rightRing, slot: 'right' })
+    }
+    return rings
+  }
+
   private getFilteredItemsForCurrentModal(): Item[] {
-    if (this.stateStack.length === 0) return []
+    if (this.modalStack.length === 0) return []
 
-    const topState = this.stateStack[this.stateStack.length - 1]
-    const topFilter = this.filterStack[this.filterStack.length - 1]
+    const topModalState = this.modalStack[this.modalStack.length - 1]
 
-    if (!topState) return []
-    return this.filterItems(topState.player.inventory, topFilter, topState)
+    if (!topModalState.state) return []
+    return this.filterItems(
+      topModalState.state.player.inventory,
+      topModalState.filter,
+      topModalState.state
+    )
   }
 
   private filterItems(inventory: Item[], filter: ItemFilter, state: GameState): Item[] {
@@ -400,6 +478,50 @@ export class ModalController {
     const footer = document.createElement('div')
     footer.className = 'modal-footer'
     footer.textContent = '[ESC to close]'
+    content.appendChild(footer)
+
+    modal.appendChild(content)
+    return modal
+  }
+
+  private createRingSelectionModal(
+    rings: Array<{ ring: Ring; slot: 'left' | 'right' }>,
+    state: GameState
+  ): HTMLElement {
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+
+    const content = document.createElement('div')
+    content.className = 'modal-content'
+
+    // Title
+    const titleEl = document.createElement('div')
+    titleEl.className = 'modal-title'
+    titleEl.textContent = 'Remove which ring?'
+    content.appendChild(titleEl)
+
+    // Rings list
+    const list = document.createElement('div')
+    list.className = 'modal-items'
+
+    rings.forEach((entry, index) => {
+      const itemEl = document.createElement('div')
+      itemEl.className = 'modal-item'
+      const letter = String.fromCharCode(97 + index) // a-z
+      const displayName = this.identificationService.getDisplayName(entry.ring, state)
+      const slotLabel = entry.slot === 'left' ? 'Left' : 'Right'
+      const cursedLabel =
+        this.curseService.isCursed(entry.ring) && entry.ring.identified ? ' (cursed)' : ''
+      itemEl.textContent = `${letter}) ${slotLabel}: ${displayName}${cursedLabel}`
+      list.appendChild(itemEl)
+    })
+
+    content.appendChild(list)
+
+    // Footer
+    const footer = document.createElement('div')
+    footer.className = 'modal-footer'
+    footer.textContent = '[ESC to cancel]'
     content.appendChild(footer)
 
     modal.appendChild(content)

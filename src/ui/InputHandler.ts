@@ -53,6 +53,7 @@ import { SearchService } from '@services/SearchService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { GoldService } from '@services/GoldService'
+import { RingService } from '@services/RingService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { ModalController } from './ModalController'
 
@@ -94,6 +95,8 @@ export class InputHandler {
     private statusEffectService: StatusEffectService,
     private curseService: CurseService,
     private goldService: GoldService,
+    /** Injected into TurnService for passive ring abilities (teleportation, searching) */
+    private ringService: RingService,
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal
     private onReturnToMenu: () => void
@@ -543,9 +546,18 @@ export class InputHandler {
       case 'R':
         // Remove ring
         event.preventDefault()
-        // Remove from left if present, else right
-        const ringSlot = state.player.equipment.leftRing ? 'left' : 'right'
-        return new UnequipCommand(ringSlot, this.inventoryService, this.messageService, this.turnService)
+        this.modalController.showEquippedRingSelection(state, (result) => {
+          if (result) {
+            this.pendingCommand = new UnequipCommand(
+              result.slot,
+              this.inventoryService,
+              this.messageService,
+              this.turnService,
+              this.curseService
+            )
+          }
+        })
+        return null
 
       case 't':
         // Take off equipment (Angband-style)

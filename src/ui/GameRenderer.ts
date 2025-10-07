@@ -11,6 +11,7 @@ import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
+import { RingService } from '@services/RingService'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -49,6 +50,7 @@ export class GameRenderer {
     private leaderboardStorageService: LeaderboardStorageService,
     private scoreCalculationService: ScoreCalculationService,
     private preferencesService: PreferencesService,
+    private ringService: RingService,
     private onReturnToMenu: () => void,
     private onStartNewGame: (characterName: string) => void,
     private onReplaySeed: (seed: string, characterName: string) => void,
@@ -363,6 +365,12 @@ export class GameRenderer {
     const xpDisplay = xpNeeded === Infinity ? `${player.xp} (MAX)` : `${player.xp}/${xpNeeded}`
     const xpPercentage = xpNeeded === Infinity ? 100 : Math.min(100, (player.xp / xpNeeded) * 100)
 
+    // Ring bonuses
+    const strBonus = this.ringService.getStrengthBonus(player)
+    const acBonus = this.ringService.getACBonus(player)
+    const strDisplay = strBonus !== 0 ? `${player.strength}(${strBonus > 0 ? '+' : ''}${strBonus})/${player.maxStrength}` : `${player.strength}/${player.maxStrength}`
+    const acDisplay = acBonus !== 0 ? `${player.ac}(${acBonus > 0 ? '+' : ''}${acBonus})` : `${player.ac}`
+
     // Status effects display
     let statusEffectsHTML = ''
     if (player.statusEffects.length > 0) {
@@ -390,8 +398,8 @@ export class GameRenderer {
       </style>
       <div class="stats">
         <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
-        <div>Str: ${player.strength}/${player.maxStrength}</div>
-        <div>AC: ${player.ac}</div>
+        <div>Str: ${strDisplay}</div>
+        <div>AC: ${acDisplay}</div>
         <div>Level: ${player.level}</div>
         <div>XP: ${xpDisplay}</div>
         <div style="font-size: 0.8em; color: #666;">

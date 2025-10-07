@@ -10,6 +10,7 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { HungerService } from '@services/HungerService'
 import { RingService } from '@services/RingService'
+import { GoldService } from '@services/GoldService'
 import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
@@ -32,13 +33,16 @@ describe('MoveCommand - Basic Movement', () => {
   let statusEffectService: StatusEffectService
   let identificationService: IdentificationService
   let notificationService: NotificationService
+  let goldService: GoldService
+  let ringService: RingService
   let mockRandom: MockRandom
 
   beforeEach(() => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    const ringService = new RingService(mockRandom)
+    ringService = new RingService(mockRandom)
+    goldService = new GoldService(mockRandom)
     hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
@@ -48,7 +52,7 @@ describe('MoveCommand - Basic Movement', () => {
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
     const levelService = new LevelService()
-    turnService = new TurnService(statusEffectService, levelService)
+    turnService = new TurnService(statusEffectService, levelService, ringService)
     regenerationService = new RegenerationService(ringService)
     notificationService = new NotificationService(identificationService)
   })
@@ -134,7 +138,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -156,7 +162,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -178,7 +186,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -200,7 +210,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -224,7 +236,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -247,7 +261,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
       const down = new MoveCommand(
         'down',
@@ -261,7 +277,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       state = right.execute(state)
@@ -290,7 +308,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       command.execute(state)
@@ -313,7 +333,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -340,7 +362,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
       const left = new MoveCommand(
         'left',
@@ -354,7 +378,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState1 = up.execute(state)
@@ -380,7 +406,9 @@ describe('MoveCommand - Basic Movement', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = up.execute(state)
@@ -394,10 +422,10 @@ describe('MoveCommand - Basic Movement', () => {
       let state = createTestState()
 
       const commands = [
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
-        new MoveCommand('left', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
+        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
+        new MoveCommand('left', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
       ]
 
       for (const command of commands) {

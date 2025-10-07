@@ -10,6 +10,7 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { HungerService } from '@services/HungerService'
 import { RingService } from '@services/RingService'
+import { GoldService } from '@services/GoldService'
 import { NotificationService } from '@services/NotificationService'
 import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -32,13 +33,16 @@ describe('MoveCommand - Door Interaction', () => {
   let regenerationService: RegenerationService
   let statusEffectService: StatusEffectService
   let identificationService: IdentificationService
+  let goldService: GoldService
+  let ringService: RingService
   let mockRandom: MockRandom
 
   beforeEach(() => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    const ringService = new RingService(mockRandom)
+    ringService = new RingService(mockRandom)
+    goldService = new GoldService(mockRandom)
     hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
@@ -48,7 +52,7 @@ describe('MoveCommand - Door Interaction', () => {
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
     const levelService = new LevelService()
-    turnService = new TurnService(statusEffectService, levelService)
+    turnService = new TurnService(statusEffectService, levelService, ringService)
     notificationService = new NotificationService(identificationService)
     regenerationService = new RegenerationService(ringService)
   })
@@ -154,7 +158,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -196,7 +202,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -241,7 +249,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -286,7 +296,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -328,7 +340,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -369,7 +383,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -413,7 +429,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -456,7 +474,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -498,7 +518,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -541,7 +563,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -582,7 +606,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -628,7 +654,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -670,7 +698,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -715,7 +745,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -757,7 +789,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -804,7 +838,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
@@ -866,7 +902,9 @@ describe('MoveCommand - Door Interaction', () => {
         hungerService,
         regenerationService,
         notificationService,
-        turnService
+        turnService,
+        goldService,
+        ringService
       )
 
       const newState = command.execute(state)
