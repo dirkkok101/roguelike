@@ -266,6 +266,86 @@ export class TargetingService {
     }
   }
 
+  /**
+   * Comprehensive validation for wand targeting
+   *
+   * Combines all checks: target existence, FOV visibility, and range.
+   * This method is designed for commands to call directly, encapsulating
+   * all targeting validation logic in the service layer.
+   *
+   * Validation checks performed (in order):
+   * 1. Level state validity
+   * 2. Monster existence
+   * 3. FOV/line-of-sight (if target is visible)
+   * 4. Range validation (Manhattan distance)
+   *
+   * @param targetId Monster ID to validate
+   * @param wandRange Maximum range of the wand
+   * @param state Current game state
+   * @returns Validation result with monster reference if valid
+   *
+   * @example
+   * const validation = targetingService.validateWandTarget(
+   *   'monster-123',
+   *   wand.range,
+   *   state
+   * )
+   *
+   * if (!validation.isValid) {
+   *   return showError(validation.error!)
+   * }
+   *
+   * const monster = validation.monster!
+   * // Proceed with wand effect
+   */
+  public validateWandTarget(
+    targetId: string,
+    wandRange: number,
+    state: GameState
+  ): { isValid: boolean; error?: string; monster?: Monster } {
+    // 1. Validate level exists
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return {
+        isValid: false,
+        error: 'Invalid level state.',
+      }
+    }
+
+    // 2. Validate monster exists
+    const monster = level.monsters.find((m) => m.id === targetId)
+    if (!monster) {
+      return {
+        isValid: false,
+        error: 'Target no longer exists.',
+      }
+    }
+
+    // 3. Validate monster is in FOV (line of sight)
+    const targetKey = `${monster.position.x},${monster.position.y}`
+    if (!state.visibleCells.has(targetKey)) {
+      return {
+        isValid: false,
+        error: 'Target no longer visible.',
+      }
+    }
+
+    // 4. Validate monster is in range
+    const rangeCheck = this.isTargetInRange(state.player.position, monster.position, wandRange)
+    if (!rangeCheck.inRange) {
+      return {
+        isValid: false,
+        error: `Target out of range. (Range: ${wandRange})`,
+      }
+    }
+
+    // All checks passed
+    return {
+      isValid: true,
+      monster,
+    }
+  }
+
   // ============================================================================
   // DIRECTION TARGETING LOGIC (Phase 1.3)
   // ============================================================================
