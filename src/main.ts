@@ -1,4 +1,4 @@
-import { GameState, Position, Torch, ItemType } from '@game/core/core'
+import { GameState, Position, Torch, ItemType, Input } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { SeededRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
@@ -45,6 +45,8 @@ import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
 import { MainMenu } from '@ui/MainMenu'
 import { loadItemData, ItemData } from './data/ItemDataLoader'
+import { GameStateManager } from '@services/GameStateManager'
+import { PlayingState } from '@states/PlayingState'
 
 // ============================================================================
 // MAIN - Game initialization and loop
@@ -146,6 +148,9 @@ async function initializeGame() {
   // Create UI with return to menu callback (will be set in startGame)
   let renderer: GameRenderer
   let inputHandler: InputHandler
+
+  // Create GameStateManager for state stack management
+  const stateManager = new GameStateManager()
 
   // Create initial game state
   function createInitialState(characterName: string): GameState {
@@ -417,48 +422,36 @@ async function initializeGame() {
     if (app) {
       app.innerHTML = ''
       app.appendChild(renderer.getContainer())
-      renderer.render(gameState)
     }
 
-    // Input handling - store handler for cleanup
-    // Energy-based game loop (3 phases):
-    // 1. Grant energy to ALL actors until player can act (minimum 1 tick)
-    // 2. Player acts and consumes energy
-    // 3. Process monsters if player exhausted energy, then increment turn
+    // Create PlayingState and push onto state manager
+    const playingState = new PlayingState(
+      gameState,
+      renderer,
+      inputHandler,
+      monsterTurnService,
+      turnService,
+      autoSaveMiddleware
+    )
+
+    // Clear any existing states and push PlayingState
+    stateManager.clearStack()
+    stateManager.pushState(playingState)
+
+    // Input handling - delegate to current state
+    // The state manager will call handleInput() on the top state
     currentKeydownHandler = (event: KeyboardEvent) => {
-      // Don't process game input if death or victory screen is visible
-      if (renderer.isDeathScreenVisible() || renderer.isVictoryScreenVisible()) {
-        return
-      }
-
-      // PHASE 1: Grant energy to ALL actors (player + monsters) until player can act
-      // Always grant at least one tick to ensure monsters don't fall behind
-      do {
-        gameState = turnService.grantEnergyToAllActors(gameState)
-      } while (!turnService.canPlayerAct(gameState.player))
-
-      // PHASE 2: Player acts
-      const command = inputHandler.handleKeyPress(event, gameState)
-      if (command) {
-        gameState = command.execute(gameState)
-
-        // Consume player energy after action
-        gameState = {
-          ...gameState,
-          player: turnService.consumePlayerEnergy(gameState.player),
+      const currentState = stateManager.getCurrentState()
+      if (currentState) {
+        // Convert KeyboardEvent to Input
+        const input: Input = {
+          key: event.key,
+          shift: event.shiftKey,
+          ctrl: event.ctrlKey,
+          alt: event.altKey,
         }
-
-        // PHASE 3: Process monsters only if player exhausted energy
-        if (!turnService.canPlayerAct(gameState.player)) {
-          gameState = monsterTurnService.processMonsterTurns(gameState)
-          gameState = turnService.incrementTurn(gameState)
-        }
-
-        autoSaveMiddleware.afterTurn(gameState)
+        currentState.handleInput(input)
       }
-
-      // Always re-render (handles modal closes, inventory updates, etc.)
-      renderer.render(gameState)
     }
     document.addEventListener('keydown', currentKeydownHandler)
 
@@ -484,6 +477,9 @@ async function initializeGame() {
       document.removeEventListener('keydown', currentKeydownHandler)
       currentKeydownHandler = null
     }
+
+    // Clear state stack (removes all game states)
+    stateManager.clearStack()
 
     // Clear game container
     const app = document.getElementById('app')
