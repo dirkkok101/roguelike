@@ -232,6 +232,40 @@ export class TargetingService {
     }
   }
 
+  /**
+   * Check if target position is within range of player
+   *
+   * Uses Manhattan distance (L1 norm) for range calculation, which is the
+   * classic roguelike distance metric. This helper method encapsulates range
+   * validation logic that was previously scattered in command classes.
+   *
+   * @param playerPos Player's current position
+   * @param targetPos Target position to check
+   * @param maxRange Maximum range in tiles (Manhattan distance)
+   * @returns Object with inRange boolean and calculated distance
+   *
+   * @example
+   * const check = targetingService.isTargetInRange(
+   *   player.position,
+   *   monster.position,
+   *   wand.range
+   * )
+   * if (!check.inRange) {
+   *   console.log(`Too far! (${check.distance} > ${wand.range})`)
+   * }
+   */
+  public isTargetInRange(
+    playerPos: Position,
+    targetPos: Position,
+    maxRange: number
+  ): { inRange: boolean; distance: number } {
+    const distance = this.distance(playerPos, targetPos)
+    return {
+      inRange: distance <= maxRange,
+      distance,
+    }
+  }
+
   // ============================================================================
   // DIRECTION TARGETING LOGIC (Phase 1.3)
   // ============================================================================
