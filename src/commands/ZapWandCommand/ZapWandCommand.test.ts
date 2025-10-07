@@ -7,6 +7,9 @@ import { LevelService } from '@services/LevelService'
 import { CombatService } from '@services/CombatService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
+import { TargetingService } from '@services/TargetingService'
+import { FOVService } from '@services/FOVService'
+import { MovementService } from '@services/MovementService'
 import { MockRandom } from '@services/RandomService'
 import {
   GameState,
@@ -27,6 +30,7 @@ describe('ZapWandCommand', () => {
   let messageService: MessageService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
+  let targetingService: TargetingService
   let mockRandom: MockRandom
   let combatService: CombatService
   let levelService: LevelService
@@ -35,12 +39,15 @@ describe('ZapWandCommand', () => {
     inventoryService = new InventoryService()
     const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
+    statusEffectService = new StatusEffectService()
     combatService = new CombatService(mockRandom)
     levelService = new LevelService()
     wandService = new WandService(identificationService, mockRandom, combatService, levelService)
     messageService = new MessageService()
-    statusEffectService = new StatusEffectService()
     turnService = new TurnService(statusEffectService, levelService)
+    const fovService = new FOVService(statusEffectService)
+    const movementService = new MovementService(mockRandom, statusEffectService)
+    targetingService = new TargetingService(fovService, movementService)
   })
 
   function createTestPlayer(): Player {
@@ -180,6 +187,7 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
+      targetingService,
       'monster-1' // Target monster
     )
     const result = command.execute(state)
@@ -200,7 +208,8 @@ describe('ZapWandCommand', () => {
       wandService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      targetingService
     )
     const result = command.execute(state)
 
@@ -226,7 +235,8 @@ describe('ZapWandCommand', () => {
       wandService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      targetingService
     )
     const result = command.execute(state)
 
@@ -248,6 +258,7 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
+      targetingService,
       'monster-1' // Target monster
     )
     const result = command.execute(state)
@@ -272,6 +283,7 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
+      targetingService,
       'monster-1'
     )
     const result = command.execute(state)

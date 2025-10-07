@@ -421,6 +421,7 @@ export class InputHandler {
                     this.messageService,
                     this.turnService,
                     this.statusEffectService,
+                    this.targetingService,
                     result.targetMonsterId
                   )
                 }

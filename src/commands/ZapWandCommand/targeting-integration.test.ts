@@ -224,6 +224,7 @@ describe('Targeting System Integration', () => {
         messageService,
         turnService,
         statusEffectService,
+        targetingService,
         monster.id
       )
       const result = command.execute(state)
@@ -310,6 +311,7 @@ describe('Targeting System Integration', () => {
         messageService,
         turnService,
         statusEffectService,
+        targetingService,
         monster.id
       )
       const result = command.execute(state)
@@ -396,6 +398,7 @@ describe('Targeting System Integration', () => {
         messageService,
         turnService,
         statusEffectService,
+        targetingService,
         monster.id
       )
       const result = command.execute(state)
@@ -479,6 +482,7 @@ describe('Targeting System Integration', () => {
         messageService,
         turnService,
         statusEffectService,
+        targetingService,
         monster.id
       )
       const shortResult = shortCommand.execute(state)
@@ -498,6 +502,7 @@ describe('Targeting System Integration', () => {
         messageService,
         turnService,
         statusEffectService,
+        targetingService,
         monster.id
       )
       const longResult = longCommand.execute(state)
@@ -585,6 +590,7 @@ describe('Targeting System Integration', () => {
         messageService,
         turnService,
         statusEffectService,
+        targetingService,
         monster.id
       )
       const result = command.execute(state)
@@ -666,6 +672,7 @@ describe('Targeting System Integration', () => {
         messageService,
         turnService,
         statusEffectService,
+        targetingService,
         undefined // No target
       )
       const result = command.execute(state)
@@ -743,6 +750,7 @@ describe('Targeting System Integration', () => {
         messageService,
         turnService,
         statusEffectService,
+        targetingService,
         'nonexistent-monster'
       )
       const result = command.execute(state)
@@ -848,7 +856,7 @@ describe('Targeting System Integration', () => {
       )
 
       // Assert: Should be valid
-      expect(validation.valid).toBe(true)
+      expect(validation.isValid).toBe(true)
       expect(validation.reason).toBeUndefined()
     })
   })
