@@ -183,8 +183,8 @@ getDisplayName(item: Item, state: GameState): string
 ```
 
 **Returns**:
-- **Identified**: True name (`"Potion of Healing"`)
-- **Unidentified**: Descriptive name (`"blue potion"`)
+- **Identified**: True name with details (e.g., `"Potion of Healing"`, `"Wand of Fire (5 charges)"`)
+- **Unidentified**: Descriptive name only (e.g., `"blue potion"`, `"oak wand"`)
 - **Always Identified**: Items that don't need identification (`"Long Sword"`)
 
 **Implementation**:
@@ -198,12 +198,28 @@ switch (item.type) {
     return state.itemNameMap.potions.get(potion.potionType) || 'unknown potion'
   }
 
-  // Similar for scrolls, rings, wands...
+  case ItemType.WAND: {
+    const wand = item as Wand
+    if (this.isIdentified(wand.wandType, state)) {
+      // Show true name WITH charge count when identified
+      const chargeText = wand.currentCharges === 1 ? 'charge' : 'charges'
+      return `${wand.name} (${wand.currentCharges} ${chargeText})`
+    }
+    // Show only descriptive name when unidentified (no charges)
+    return state.itemNameMap.wands.get(wand.wandType) || 'unknown wand'
+  }
+
+  // Similar for scrolls, rings...
 
   default:
     return item.name  // Weapons, armor, food always show true name
 }
 ```
+
+**Wand Charge Display**:
+- **Identified**: `"Wand of Fire (7 charges)"` - True name + current charge count
+- **Unidentified**: `"oak wand"` - Descriptive name only (charges hidden)
+- **Purpose**: Hides strategic information (remaining charges) until wand is identified
 
 ---
 
@@ -256,10 +272,10 @@ if (result.identified) {
 
 ### Require Identification
 
-- **Potions**: Need to learn which color = which effect
-- **Scrolls**: Need to learn which label = which effect
-- **Rings**: Need to learn which material = which effect
-- **Wands**: Need to learn which wood = which effect
+- **Potions**: Need to learn which color = which effect (identified on use/quaff)
+- **Scrolls**: Need to learn which label = which effect (identified on use/read)
+- **Rings**: Need to learn which material = which effect (identified on equip)
+- **Wands**: Need to learn which wood = which effect (identified on use/zap)
 
 ### Always Identified
 
@@ -267,6 +283,40 @@ if (result.identified) {
 - **Armor**: Name shows immediately (`"Chain Mail"`)
 - **Food**: Always identifiable (`"Food Ration"`)
 - **Torches/Lanterns**: Always identifiable (`"Torch"`)
+
+---
+
+## Identification Methods
+
+### By Use (Automatic)
+
+**Trigger**: Player uses item
+
+**Mechanics**:
+1. **Potions**: Quaff potion → Identify type (handled by PotionService)
+2. **Scrolls**: Read scroll → Identify type (handled by ScrollService)
+3. **Wands**: Zap wand → Identify type (handled by WandService)
+4. **Rings**: Equip ring → Identify type (handled by EquipCommand)
+
+**Example - Ring Identification**:
+```typescript
+// Player equips unidentified "ruby ring" (Ring of Protection)
+// EquipCommand.execute():
+const wasIdentified = identificationService.isIdentified(ring.ringType, state)
+updatedState = identificationService.identifyByUse(ring, state)
+
+if (!wasIdentified) {
+  message = `You put on ruby ring on your left hand. (This is a Ring of Protection!)`
+} else {
+  message = `You put on Ring of Protection on your left hand.`
+}
+```
+
+### By Scroll of Identify
+
+**Trigger**: Player reads Scroll of Identify and selects item
+
+**Mechanics**: ScrollService directly identifies item type
 
 ---
 
@@ -355,9 +405,10 @@ describe('IdentificationService - Display Names', () => {
 
 ## Related Services
 
-- **PotionService** - Uses `getDisplayName()` for messages, calls `identifyByUse()`
-- **ScrollService** - Uses `getDisplayName()` for messages, calls `identifyByUse()`
-- **WandService** - Uses `getDisplayName()` for messages, calls `identifyByUse()`
+- **PotionService** - Uses `getDisplayName()` for messages, calls `identifyByUse()` after quaffing
+- **ScrollService** - Uses `getDisplayName()` for messages, calls `identifyByUse()` after reading
+- **WandService** - Uses `getDisplayName()` for messages (with charge count), calls `identifyByUse()` after zapping
+- **EquipCommand** - Calls `identifyByUse()` when ring is equipped, shows identification message
 - **RandomService** - Shuffles name pools (seeded)
 
 ---
@@ -424,9 +475,21 @@ All items of that type now show true name
 
 ---
 
+## Recent Enhancements (v1.1)
+
+- ✅ **Ring Identification on Equip**: Rings now identify when equipped (Phase 2)
+- ✅ **Wand Charge Hiding**: Wand charges hidden until identified (Phase 4)
+- ✅ **Comprehensive Testing**: 40+ tests covering all identification scenarios
+
 ## Future Enhancements
 
 - **Item Properties**: Cursed items show false properties until identified
 - **Shopkeeper Identification**: Pay to identify items in shops
 - **Scroll of Identify**: Already implemented via ScrollService
 - **Partial Identification**: Know item category but not specific type
+- **Pseudo-Identification**: Show hints like "good", "average", "cursed" (Angband-style)
+
+---
+
+**Last Updated**: 2025-10-06
+**Version**: 1.1 (Ring Identification + Wand Charge Hiding)
