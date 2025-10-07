@@ -1,8 +1,12 @@
 # Identification System
 
-**Version**: 2.0
-**Last Updated**: 2025-10-05
-**Related Docs**: [Items](./05-items.md)
+**Version**: 2.1
+**Last Updated**: 2025-10-06
+**Related Docs**: [Items](./05-items.md) | [IdentificationService](../services/IdentificationService.md)
+
+**Changelog**:
+- **v2.1** (2025-10-06): Ring identification on equip, wand charge hiding
+- **v2.0** (2025-10-05): Complete identification system with scrolls, potions, rings, wands
 
 ---
 
@@ -110,15 +114,29 @@
 
 **How**: Drink potion, read scroll, wear ring, zap wand
 
+**Identification Triggers**:
+- **Potions**: Quaff → Immediately identified
+- **Scrolls**: Read → Immediately identified
+- **Rings**: Equip → Immediately identified
+- **Wands**: Zap → Immediately identified
+
 **Risk**: Unknown effects could be harmful
 - **Potion of Poison**: Reduces strength
 - **Scroll of Teleportation**: Random relocation (dangerous in combat)
-- **Cursed Ring**: Cannot remove without Remove Curse scroll
+- **Cursed Ring**: Cannot remove without Remove Curse scroll (but you learn what it does!)
 - **Wand of Haste Monster**: Makes enemy faster (very bad!)
 
 **Reward**: Learn effect immediately, item identified
 
 **Strategy**: Use in safe situations (full HP, no monsters nearby)
+
+**Example - Ring Identification**:
+```
+Player finds "ruby ring" (unidentified)
+Player equips it on left hand
+Message: "You put on ruby ring on your left hand. (This is a Ring of Protection!)"
+All other "ruby rings" in this game now show as "Ring of Protection"
+```
 
 ---
 
@@ -188,7 +206,51 @@
 
 ---
 
-## 8. Mystery & Discovery
+## 8. Hidden Information
+
+### Wand Charge Visibility
+
+**Unidentified Wands**: Hide charge count
+- Display: `"oak wand"` (no charge information)
+- **Purpose**: Strategic uncertainty - is this wand worth carrying?
+
+**Identified Wands**: Show charge count
+- Display: `"Wand of Fire (7 charges)"`
+- **Singular**: `"Wand of Lightning (1 charge)"`
+- **Empty**: `"Wand of Cold (0 charges)"`
+
+**Gameplay Impact**:
+- **Risk**: Can't tell if wand is nearly empty before identifying
+- **Reward**: After identification, can manage inventory based on remaining charges
+- **Strategy**: Zap unknown wands when safe to learn both effect AND remaining uses
+
+**Example**:
+```
+Player finds "crystal wand" (Wand of Lightning, 5 charges)
+Inventory shows: "crystal wand" (no charge count)
+
+Player zaps wand at monster
+Message: "You zap the crystal wand. A bolt of lightning strikes the Orc!"
+Wand identified → Inventory now shows: "Wand of Lightning (4 charges)"
+```
+
+---
+
+### Curse Discovery
+
+**Current Behavior**: Curses discovered immediately on equip
+
+**Message on Equip**:
+- Non-cursed: `"You put on Ring of Protection on your left hand."`
+- Cursed: `"You put on Ring of Protection on your left hand."` followed by `"The Ring of Protection is cursed! You cannot remove it."`
+
+**Design Decision**: Immediate curse discovery (simple UX, clear feedback)
+- **Alternative** (rejected): Hide curse until unequip attempt (more authentic, but confusing)
+- **Current** (implemented): Show curse warning immediately (clearer, less frustrating)
+
+---
+
+## 9. Mystery & Discovery
 
 **Design Goal**: Create "aha!" moments of discovery
 
