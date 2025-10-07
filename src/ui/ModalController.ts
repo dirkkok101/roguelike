@@ -1,6 +1,8 @@
-import { GameState, Item, ItemType } from '@game/core/core'
+import { GameState, Item, ItemType, TargetingRequest, TargetingResult } from '@game/core/core'
 import { IdentificationService } from '@services/IdentificationService'
 import { CurseService } from '@services/CurseService'
+import { TargetingService } from '@services/TargetingService'
+import { TargetingModal } from './TargetingModal'
 
 // ============================================================================
 // MODAL CONTROLLER - Item selection and inventory display
@@ -19,17 +21,24 @@ type ItemFilter =
   | 'equipment' // weapons + light sources (torches, lanterns)
   | 'unidentified'
 type SelectionCallback = (item: Item | null) => void
+type TargetingCallback = (result: TargetingResult) => void
 
 export class ModalController {
   private modalStack: HTMLElement[] = []
   private callbackStack: (SelectionCallback | null)[] = []
   private stateStack: (GameState | null)[] = []
   private filterStack: ItemFilter[] = []
+  private targetingModal: TargetingModal | null = null
 
   constructor(
     private identificationService: IdentificationService,
-    private curseService: CurseService
-  ) {}
+    private curseService: CurseService,
+    private targetingService?: TargetingService
+  ) {
+    if (targetingService) {
+      this.targetingModal = new TargetingModal(targetingService)
+    }
+  }
 
   /**
    * Show item selection modal
@@ -75,6 +84,28 @@ export class ModalController {
   }
 
   /**
+   * Show targeting modal
+   * @param request - Targeting parameters (mode, range, LOS)
+   * @param state - Current game state
+   * @param onConfirm - Called with TargetingResult when user confirms
+   * @param onCancel - Called when user cancels (ESC)
+   */
+  showTargeting(
+    request: TargetingRequest,
+    state: GameState,
+    onConfirm: TargetingCallback,
+    onCancel: () => void
+  ): void {
+    if (!this.targetingModal) {
+      console.error('TargetingModal not initialized (TargetingService required)')
+      onCancel()
+      return
+    }
+
+    this.targetingModal.show(request, state, onConfirm, onCancel)
+  }
+
+  /**
    * Hide and cleanup top modal
    */
   hide(): void {
@@ -95,7 +126,7 @@ export class ModalController {
    * Check if any modal is currently open
    */
   isOpen(): boolean {
-    return this.modalStack.length > 0
+    return this.modalStack.length > 0 || (this.targetingModal?.isVisible() ?? false)
   }
 
   /**
@@ -103,6 +134,11 @@ export class ModalController {
    * Returns true if input was handled
    */
   handleInput(event: KeyboardEvent): boolean {
+    // Targeting modal handles its own input
+    if (this.targetingModal?.isVisible()) {
+      return true
+    }
+
     if (this.modalStack.length === 0) return false
 
     const topCallback = this.callbackStack[this.callbackStack.length - 1]

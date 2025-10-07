@@ -57,6 +57,32 @@ export class ItemSpawnService {
   }
 
   /**
+   * Determine wand range based on wand type
+   * Beam wands (lightning, fire, cold) have longest range
+   * Standard attack wands have moderate range
+   * Utility wands have shorter range
+   *
+   * @param wandType - Type of wand
+   * @returns Maximum range in tiles (5-8)
+   */
+  private getWandRange(wandType: WandType): number {
+    const wandRanges: Record<WandType, number> = {
+      [WandType.LIGHTNING]: 8,        // Long range beam
+      [WandType.FIRE]: 8,              // Long range beam
+      [WandType.COLD]: 8,              // Long range beam
+      [WandType.MAGIC_MISSILE]: 7,     // Standard ranged attack
+      [WandType.SLEEP]: 6,             // Moderate range
+      [WandType.HASTE_MONSTER]: 5,     // Close range
+      [WandType.SLOW_MONSTER]: 6,      // Moderate range
+      [WandType.POLYMORPH]: 5,         // Close range
+      [WandType.TELEPORT_AWAY]: 7,     // Good range
+      [WandType.CANCELLATION]: 6,      // Moderate range
+    }
+
+    return wandRanges[wandType] || 5  // Default to 5 if unknown type
+  }
+
+  /**
    * Generate enchantment bonus for an item
    * Cursed items get negative bonuses (-1 to -3)
    * Rare items get positive bonuses (+1 to +2)
@@ -424,6 +450,9 @@ export class ItemSpawnService {
               const maxCharges = this.random.roll(template.charges)
               const currentCharges = maxCharges
 
+              // Determine range based on wand type (5-8 tiles)
+              const range = this.getWandRange(template.type)
+
               item = {
                 id: itemId,
                 name: `Wand of ${template.type}`,
@@ -435,6 +464,7 @@ export class ItemSpawnService {
                 charges: maxCharges,
                 currentCharges,
                 woodName: 'unknown', // Set by IdentificationService
+                range,
               } as Wand
             }
             break

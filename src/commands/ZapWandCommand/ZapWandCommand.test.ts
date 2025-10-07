@@ -7,6 +7,9 @@ import { LevelService } from '@services/LevelService'
 import { CombatService } from '@services/CombatService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
+import { TargetingService } from '@services/TargetingService'
+import { FOVService } from '@services/FOVService'
+import { MovementService } from '@services/MovementService'
 import { MockRandom } from '@services/RandomService'
 import {
   GameState,
@@ -27,6 +30,7 @@ describe('ZapWandCommand', () => {
   let messageService: MessageService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
+  let targetingService: TargetingService
   let mockRandom: MockRandom
   let combatService: CombatService
   let levelService: LevelService
@@ -35,12 +39,15 @@ describe('ZapWandCommand', () => {
     inventoryService = new InventoryService()
     const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
+    statusEffectService = new StatusEffectService()
     combatService = new CombatService(mockRandom)
     levelService = new LevelService()
     wandService = new WandService(identificationService, mockRandom, combatService, levelService)
     messageService = new MessageService()
-    statusEffectService = new StatusEffectService()
     turnService = new TurnService(statusEffectService, levelService)
+    const fovService = new FOVService(statusEffectService)
+    const movementService = new MovementService(mockRandom, statusEffectService)
+    targetingService = new TargetingService(fovService, movementService)
   })
 
   function createTestPlayer(): Player {
@@ -83,6 +90,7 @@ describe('ZapWandCommand', () => {
       identified: false,
       damage: '2d6',
       woodName: 'oak wand',
+      range: 8, // Add range property
     }
   }
 
@@ -142,6 +150,11 @@ describe('ZapWandCommand', () => {
     const levels = new Map<number, Level>()
     levels.set(1, testLevel)
 
+    // Add monster position to visible cells for targeting validation
+    const visibleCells = new Set<string>()
+    visibleCells.add('6,5') // Monster at (6, 5)
+    visibleCells.add('5,5') // Player at (5, 5)
+
     return {
       player,
       levels,
@@ -149,7 +162,7 @@ describe('ZapWandCommand', () => {
       messages: [],
       turnCount: 0,
       isGameOver: false,
-      visibleCells: new Set(),
+      visibleCells,
       seed: 'test-seed',
       gameId: 'test-game',
       hasWon: false,
@@ -165,7 +178,7 @@ describe('ZapWandCommand', () => {
     player.inventory = [wand]
     const state = createTestState(player)
 
-    mockRandom.setValues([10]) // Lightning damage
+    mockRandom.setValues([3, 4, 2, 5, 6, 3]) // Lightning damage (6d6 = 6 dice)
 
     const command = new ZapWandCommand(
       'wand-1',
@@ -174,6 +187,7 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
+      targetingService,
       'monster-1' // Target monster
     )
     const result = command.execute(state)
@@ -194,7 +208,8 @@ describe('ZapWandCommand', () => {
       wandService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      targetingService
     )
     const result = command.execute(state)
 
@@ -220,7 +235,8 @@ describe('ZapWandCommand', () => {
       wandService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      targetingService
     )
     const result = command.execute(state)
 
@@ -241,7 +257,9 @@ describe('ZapWandCommand', () => {
       wandService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      targetingService,
+      'monster-1' // Target monster
     )
     const result = command.execute(state)
 
@@ -256,7 +274,7 @@ describe('ZapWandCommand', () => {
     player.inventory = [wand]
     const state = createTestState(player)
 
-    mockRandom.setValues([10])
+    mockRandom.setValues([3, 4, 2, 5, 6, 3]) // Lightning damage (6d6)
 
     const command = new ZapWandCommand(
       'wand-1',
@@ -265,6 +283,7 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
+      targetingService,
       'monster-1'
     )
     const result = command.execute(state)

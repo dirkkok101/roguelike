@@ -251,6 +251,9 @@ export interface GameState {
   itemsUsed: number // Total consumable items used (potions, scrolls, wands)
   levelsExplored: number // Count of unique dungeon levels visited
 
+  // Targeting state (active during target selection)
+  targeting?: TargetingState // Active targeting state (optional)
+
   // Death details (populated only on death)
   deathDetails?: {
     finalBlow: {
@@ -384,6 +387,7 @@ export interface Wand extends Item {
   charges: number // max charges
   currentCharges: number
   woodName: string // e.g., "oak wand", "pine staff"
+  range: number // maximum targeting range (5-8 tiles)
 }
 
 export enum WandType {
@@ -433,6 +437,68 @@ export interface Artifact extends Item {
 export interface GoldPile {
   position: Position
   amount: number
+}
+
+// ============================================================================
+// TARGETING TYPES
+// ============================================================================
+
+/**
+ * Targeting mode for ranged interactions (wands, bows, spells)
+ */
+export enum TargetingMode {
+  MONSTER = 'MONSTER',       // Target specific monster (wands, spells)
+  DIRECTION = 'DIRECTION',   // Target direction for ray (fire, lightning, cold)
+  POSITION = 'POSITION',     // Target ground position (teleport, area spells)
+}
+
+/**
+ * Direction vector for directional targeting
+ */
+export type Direction = 'up' | 'down' | 'left' | 'right' | 'up-left' | 'up-right' | 'down-left' | 'down-right'
+
+/**
+ * Request for targeting (passed from command to UI)
+ */
+export interface TargetingRequest {
+  mode: TargetingMode
+  maxRange: number                    // Maximum targeting range (from wand/weapon)
+  requiresLOS: boolean                // Must target be in line of sight?
+  allowSelf?: boolean                 // Can target self? (healing potions)
+  validationFn?: (target: any) => TargetValidation  // Custom validation
+}
+
+/**
+ * Result of targeting (returned from UI to command)
+ */
+export interface TargetingResult {
+  success: boolean
+  targetMonsterId?: string            // For MONSTER mode
+  direction?: Direction               // For DIRECTION mode
+  position?: Position                 // For POSITION mode
+  message?: string                    // Error message if !success
+}
+
+/**
+ * Validation result for target
+ */
+export interface TargetValidation {
+  isValid: boolean
+  reason?: string                     // Why invalid? (for error messages)
+}
+
+/**
+ * Active targeting state (added to GameState during targeting)
+ */
+export interface TargetingState {
+  active: boolean
+  mode: TargetingMode
+  currentTargetId?: string            // Currently selected monster
+  currentTargetIndex: number          // Index in visibleMonsters array
+  visibleMonsters: Monster[]          // All visible monsters (sorted by distance)
+  validTargets: Set<string>           // Monster IDs that are valid targets
+  maxRange: number
+  cursorPosition?: Position           // For DIRECTION/POSITION modes
 }
 
 // ============================================================================

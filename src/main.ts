@@ -38,6 +38,7 @@ import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
+import { TargetingService } from '@services/TargetingService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -126,7 +127,8 @@ async function initializeGame() {
     curseService
   )
   const wandService = new WandService(identificationService, random, combatService, levelService)
-  const modalController = new ModalController(identificationService, curseService)
+  const targetingService = new TargetingService(fovService, movementService)
+  const modalController = new ModalController(identificationService, curseService, targetingService)
 
   // Dungeon configuration
   const dungeonConfig = {

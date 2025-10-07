@@ -5,6 +5,7 @@ import { WandService } from '@services/WandService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { TargetingService } from '@services/TargetingService'
 
 // ============================================================================
 // ZAP WAND COMMAND - Use a wand from inventory
@@ -18,7 +19,8 @@ export class ZapWandCommand implements ICommand {
     private messageService: MessageService,
     private turnService: TurnService,
     private statusEffectService: StatusEffectService,
-    private targetItemId?: string
+    private targetingService: TargetingService,
+    private targetMonsterId?: string
   ) {}
 
   execute(state: GameState): GameState {
@@ -59,19 +61,51 @@ export class ZapWandCommand implements ICommand {
       return { ...state, messages }
     }
 
-    // 3. Apply wand effect (decrements charges)
-    const result = this.wandService.applyWand(
-      state.player,
-      item as Wand,
-      state,
-      this.targetItemId
+    const wand = item as Wand
+
+    // 3. Validate target monster ID is provided
+    if (!this.targetMonsterId) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'No target selected.',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // 4-7. Comprehensive target validation (all checks delegated to service)
+    const validation = this.targetingService.validateWandTarget(
+      this.targetMonsterId,
+      wand.range || 5,
+      state
     )
 
-    // 4. Update wand in inventory (charges changed)
+    if (!validation.isValid) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        validation.error!,
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    const targetMonster = validation.monster!
+
+    // 8. Apply wand effect (decrements charges)
+    const result = this.wandService.applyWand(
+      state.player,
+      wand,
+      state,
+      this.targetMonsterId
+    )
+
+    // 9. Update wand in inventory (charges changed)
     let updatedPlayer = this.inventoryService.removeItem(result.player, item.id)
     updatedPlayer = this.inventoryService.addItem(updatedPlayer, result.wand)
 
-    // 5. Add message and increment turn
+    // 10. Add message and increment turn
     const messages = this.messageService.addMessage(
       state.messages,
       result.message,
@@ -79,7 +113,7 @@ export class ZapWandCommand implements ICommand {
       state.turnCount
     )
 
-    // 6. Use updated state from wand effect if provided, otherwise use original state
+    // 11. Use updated state from wand effect if provided, otherwise use original state
     const baseState = result.state || state
 
     return this.turnService.incrementTurn({
