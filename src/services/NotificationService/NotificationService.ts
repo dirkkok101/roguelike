@@ -1,4 +1,4 @@
-import { GameState, Position, Level, Item, Monster } from '@game/core/core'
+import { GameState, Position, Level, Monster } from '@game/core/core'
 import { IdentificationService } from '@services/IdentificationService'
 
 // ============================================================================

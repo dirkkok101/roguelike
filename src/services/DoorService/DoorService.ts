@@ -1,4 +1,4 @@
-import { Level, Door, Position, DoorState, Monster, Tile } from '@game/core/core'
+import { Level, Door, Position, DoorState } from '@game/core/core'
 
 // ============================================================================
 // DOOR SERVICE - All door manipulation logic

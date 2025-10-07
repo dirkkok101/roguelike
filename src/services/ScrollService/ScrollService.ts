@@ -68,7 +68,7 @@ export class ScrollService {
     targetItemId?: string
   ): ScrollEffectResult {
     // Identify scroll by use
-    const identified = !this.identificationService.isIdentified(scroll, state)
+    const identified = !this.identificationService.isIdentified(scroll.id, state)
     const displayName = this.identificationService.getDisplayName(scroll, state)
 
     // Apply scroll effect based on type
@@ -491,7 +491,7 @@ export class ScrollService {
   // ============================================================================
 
   private applyMagicMapping(
-    player: Player,
+    _player: Player,
     state: GameState,
     scrollName: string,
     identified: boolean
@@ -721,7 +721,7 @@ export class ScrollService {
 
   private applySleep(
     player: Player,
-    state: GameState,
+    _state: GameState,
     scrollName: string,
     identified: boolean
   ): ScrollEffectResult {
@@ -754,7 +754,7 @@ export class ScrollService {
 
   private applyRemoveCurse(
     player: Player,
-    state: GameState,
+    _state: GameState,
     scrollName: string,
     identified: boolean
   ): ScrollEffectResult {
@@ -774,7 +774,6 @@ export class ScrollService {
     const updatedPlayer = this.curseService.removeCursesFromEquipment(player)
 
     // 4. Build message with item names
-    const itemList = cursedItems.join(', ')
     const message = cursedItems.length === 1
       ? `You read ${scrollName}. You feel as if somebody is watching over you. The ${cursedItems[0]} glows briefly.`
       : `You read ${scrollName}. You feel as if somebody is watching over you. Your equipment glows briefly.`
@@ -792,8 +791,8 @@ export class ScrollService {
   // ============================================================================
 
   private applyScareMonster(
-    player: Player,
-    state: GameState,
+    _player: Player,
+    _state: GameState,
     scrollName: string,
     identified: boolean
   ): ScrollEffectResult {

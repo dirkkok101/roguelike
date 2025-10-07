@@ -1,4 +1,4 @@
-import { GameState, DoorState, Position, Level, Monster } from '@game/core/core'
+import { GameState, DoorState, Position, Level } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MovementService } from '@services/MovementService'
 import { LightingService } from '@services/LightingService'
@@ -16,7 +16,6 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
-import { RingService } from '@services/RingService'
 import { AttackCommand } from '../AttackCommand'
 
 // ============================================================================
@@ -56,6 +55,7 @@ export class MoveCommand implements ICommand {
 
     // ROUTE 1: Monster → Delegate to AttackCommand (early return)
     if (obstacle.type === 'monster') {
+      // TypeScript now knows obstacle.data is Monster
       const attackCommand = new AttackCommand(
         obstacle.data.id,
         this.combatService,
@@ -71,6 +71,7 @@ export class MoveCommand implements ICommand {
 
     // ROUTE 2: Door → Handle based on state
     if (obstacle.type === 'door') {
+      // TypeScript now knows obstacle.data is Door
       const door = obstacle.data
 
       // Locked door - blocked (no turn)

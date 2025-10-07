@@ -1,6 +1,5 @@
 import { Player, Trap, TrapType, GameState, StatusEffectType } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
-import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // TRAP SERVICE - Trap effects and triggering
@@ -14,8 +13,7 @@ export interface TrapEffect {
 
 export class TrapService {
   constructor(
-    private random: IRandomService,
-    private statusEffectService: StatusEffectService
+    private random: IRandomService
   ) {}
 
   /**
@@ -62,7 +60,7 @@ export class TrapService {
   /**
    * Bear trap - 1d4 damage, holds player
    */
-  private bearTrap(player: Player): TrapEffect {
+  private bearTrap(_player: Player): TrapEffect {
     const damage = this.random.roll('1d4')
     return {
       damage,
@@ -74,7 +72,7 @@ export class TrapService {
   /**
    * Dart trap - 1d6 damage, poison chance
    */
-  private dartTrap(player: Player): TrapEffect {
+  private dartTrap(_player: Player): TrapEffect {
     const damage = this.random.roll('1d6')
     const poisoned = this.random.chance(0.3) // 30% poison chance
     return {
@@ -89,7 +87,7 @@ export class TrapService {
   /**
    * Teleport trap - random teleport (no damage)
    */
-  private teleportTrap(player: Player, state: GameState): TrapEffect {
+  private teleportTrap(_player: Player, _state: GameState): TrapEffect {
     return {
       damage: 0,
       statusEffect: 'teleport',
@@ -100,7 +98,7 @@ export class TrapService {
   /**
    * Sleep trap - skip turns (no damage)
    */
-  private sleepTrap(player: Player): TrapEffect {
+  private sleepTrap(_player: Player): TrapEffect {
     return {
       damage: 0,
       statusEffect: 'asleep',
@@ -111,7 +109,7 @@ export class TrapService {
   /**
    * Pit trap - fall damage, potentially fall to next level
    */
-  private pitTrap(player: Player): TrapEffect {
+  private pitTrap(_player: Player): TrapEffect {
     const damage = this.random.roll('2d6')
     const fallThroughChance = 0.2 // 20% chance to fall through to next level
 

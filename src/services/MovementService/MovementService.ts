@@ -6,10 +6,11 @@ import { StatusEffectService } from '@services/StatusEffectService'
 // RESULT TYPES
 // ============================================================================
 
-export interface ObstacleResult {
-  type: 'none' | 'monster' | 'door' | 'wall'
-  data?: Monster | Door
-}
+export type ObstacleResult =
+  | { type: 'none' }
+  | { type: 'wall' }
+  | { type: 'monster'; data: Monster }
+  | { type: 'door'; data: Door }
 
 // ============================================================================
 // MOVEMENT SERVICE - Position validation and collision detection

@@ -18,7 +18,7 @@ export class SpecialAbilityService {
    * Rust armor - Aquator ability
    * Reduces armor AC bonus by 1
    */
-  rustArmor(player: Player, monster: Monster): AbilityResult {
+  rustArmor(player: Player, _monster: Monster): AbilityResult {
     const messages: string[] = []
 
     if (!player.equipment.armor) {

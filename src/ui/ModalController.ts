@@ -44,7 +44,7 @@ export class ModalController {
   constructor(
     private identificationService: IdentificationService,
     private curseService: CurseService,
-    private targetingService?: TargetingService
+    targetingService?: TargetingService
   ) {
     if (targetingService) {
       this.targetingModal = new TargetingModal(targetingService)
@@ -303,7 +303,7 @@ export class ModalController {
         case 'unidentified':
           // Filter items that are not yet identified
           return (
-            !this.identificationService.isIdentified(item, state) &&
+            !this.identificationService.isIdentified(item.id, state) &&
             (item.type === ItemType.POTION ||
               item.type === ItemType.SCROLL ||
               item.type === ItemType.RING ||

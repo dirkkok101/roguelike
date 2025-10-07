@@ -204,7 +204,7 @@ export class TargetingService {
   isValidMonsterTarget(
     monster: Monster,
     player: Player,
-    level: Level,
+    _level: Level,
     maxRange: number,
     requiresLOS: boolean,
     fovCells: Set<string>
