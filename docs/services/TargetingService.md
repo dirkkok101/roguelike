@@ -116,7 +116,7 @@ Validates if monster is a valid target.
 **Returns**:
 ```typescript
 interface TargetValidation {
-  valid: boolean
+  isValid: boolean
   reason?: string  // Error message if invalid
 }
 ```
