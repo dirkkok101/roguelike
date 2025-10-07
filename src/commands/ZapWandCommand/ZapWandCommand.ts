@@ -23,6 +23,8 @@ export class ZapWandCommand implements ICommand {
 
   execute(state: GameState): GameState {
     // 0. Check if player can use wands (not confused)
+    // Note: Blind players CAN zap wands (they can point in a direction)
+    // but confused players cannot (too disoriented to aim properly)
     if (this.statusEffectService.hasStatusEffect(state.player, StatusEffectType.CONFUSED)) {
       const messages = this.messageService.addMessage(
         state.messages,

@@ -22,6 +22,8 @@ export class QuaffPotionCommand implements ICommand {
 
   execute(state: GameState): GameState {
     // 0. Check if player can drink (not confused)
+    // Note: Blind players CAN drink potions (they can feel the bottle by touch)
+    // but confused players cannot (too disoriented to complete the action)
     if (this.statusEffectService.hasStatusEffect(state.player, StatusEffectType.CONFUSED)) {
       const messages = this.messageService.addMessage(
         state.messages,

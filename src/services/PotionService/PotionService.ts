@@ -188,7 +188,13 @@ export class PotionService {
   // PRIVATE: Potion effect implementations
   // ============================================================================
 
-  private applyHealPotion(
+  /**
+   * Shared healing logic for HEAL and EXTRA_HEAL potions
+   * - Heals HP based on potion power
+   * - Grants +1 max HP when healing at full HP (overheal mechanic)
+   * - Cures confusion and blindness (Rogue 1980 mechanic)
+   */
+  private applyHealingPotion(
     player: Player,
     potion: Potion
   ): { player: Player; healAmount: number; maxHpIncrease: boolean; curedConfusion: boolean; curedBlindness: boolean } {
@@ -228,44 +234,18 @@ export class PotionService {
     }
   }
 
+  private applyHealPotion(
+    player: Player,
+    potion: Potion
+  ): { player: Player; healAmount: number; maxHpIncrease: boolean; curedConfusion: boolean; curedBlindness: boolean } {
+    return this.applyHealingPotion(player, potion)
+  }
+
   private applyExtraHealPotion(
     player: Player,
     potion: Potion
   ): { player: Player; healAmount: number; maxHpIncrease: boolean; curedConfusion: boolean; curedBlindness: boolean } {
-    const healAmount = this.random.roll(potion.power)
-
-    // Check for overheal (healing at full HP grants +1 max HP)
-    const wasAtFullHp = player.hp >= player.maxHp
-    const overheal = healAmount - (player.maxHp - player.hp)
-    const shouldIncreaseMaxHp = wasAtFullHp && overheal > 0
-
-    let newMaxHp = player.maxHp
-    if (shouldIncreaseMaxHp) {
-      newMaxHp = player.maxHp + 1
-    }
-
-    const newHp = Math.min(player.hp + healAmount, newMaxHp)
-    const actualHeal = newHp - player.hp
-
-    // Rogue mechanic: Healing cures confusion and blindness
-    const hadConfusion = this.statusEffectService.hasStatusEffect(player, StatusEffectType.CONFUSED)
-    const hadBlindness = this.statusEffectService.hasStatusEffect(player, StatusEffectType.BLIND)
-
-    let updatedPlayer: Player = { ...player, hp: newHp, maxHp: newMaxHp }
-    if (hadConfusion) {
-      updatedPlayer = this.statusEffectService.removeStatusEffect(updatedPlayer, StatusEffectType.CONFUSED)
-    }
-    if (hadBlindness) {
-      updatedPlayer = this.statusEffectService.removeStatusEffect(updatedPlayer, StatusEffectType.BLIND)
-    }
-
-    return {
-      player: updatedPlayer,
-      healAmount: actualHeal,
-      maxHpIncrease: shouldIncreaseMaxHp,
-      curedConfusion: hadConfusion,
-      curedBlindness: hadBlindness,
-    }
+    return this.applyHealingPotion(player, potion)
   }
 
   private applyGainStrength(player: Player): Player {
