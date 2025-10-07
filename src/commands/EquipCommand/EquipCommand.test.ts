@@ -777,5 +777,38 @@ describe('EquipCommand', () => {
       expect(rightResult.player.equipment.leftRing?.id).toBe('ring-1')
       expect(rightResult.player.equipment.rightRing?.id).toBe('ring-2')
     })
+
+    test('identifies and shows curse warning with correct name for cursed unidentified ring', () => {
+      const player = createTestPlayer()
+      const cursedRing = createTestRing('ring-1', 'Ring of Protection')
+      cursedRing.materialName = 'ruby ring'
+      cursedRing.cursed = true
+      cursedRing.bonus = -1
+      player.inventory = [cursedRing]
+
+      const state = createTestState(player)
+
+      // Mock as unidentified
+      mockIdentificationService.isIdentified.mockReturnValueOnce(false)
+      mockIdentificationService.getDisplayName
+        .mockReturnValueOnce('ruby ring')  // Before identification (for equip message)
+        .mockReturnValueOnce('Ring of Protection')  // After identification (for identification message)
+        .mockReturnValueOnce('Ring of Protection')  // After identification (for curse message)
+      mockIdentificationService.identifyByUse.mockReturnValueOnce({
+        ...state,
+        identifiedItems: new Set([RingType.PROTECTION]),
+      })
+
+      const command = new EquipCommand('ring-1', 'left', inventoryService, messageService, turnService, mockIdentificationService, curseService)
+      const result = command.execute(state)
+
+      // Should have two messages with consistent naming
+      expect(result.messages).toHaveLength(2)
+      expect(result.messages[0].text).toBe('You put on ruby ring on your left hand. (This is a Ring of Protection!)')
+      expect(result.messages[0].type).toBe('success')
+      expect(result.messages[1].text).toBe('The Ring of Protection is cursed! You cannot remove it.')
+      expect(result.messages[1].type).toBe('warning')
+      expect(result.player.equipment.leftRing?.id).toBe('ring-1')
+    })
   })
 })

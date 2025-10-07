@@ -147,9 +147,11 @@ export class EquipCommand implements ICommand {
 
     // Check if newly equipped item is cursed (curse discovery)
     if (this.curseService.isCursed(item)) {
+      // Use updated display name in case item was just identified (e.g., rings)
+      const curseDisplayName = this.identificationService.getDisplayName(item, updatedState)
       messages = this.messageService.addMessage(
         messages,
-        `The ${displayName} is cursed! You cannot remove it.`,
+        `The ${curseDisplayName} is cursed! You cannot remove it.`,
         'warning',
         updatedState.turnCount
       )
