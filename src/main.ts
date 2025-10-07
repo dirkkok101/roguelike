@@ -467,6 +467,12 @@ async function initializeGame() {
 
   // Return to main menu (used by quit, death, victory)
   function returnToMenu() {
+    // Hide any visible screens first (death/victory screens are on document.body)
+    if (renderer) {
+      renderer.hideDeathScreen()
+      renderer.hideVictoryScreen()
+    }
+
     // Clean up game event listeners
     if (currentKeydownHandler) {
       document.removeEventListener('keydown', currentKeydownHandler)

@@ -3,6 +3,9 @@ import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { FOVService } from '@services/FOVService'
+import type { FOVUpdateResult } from '@services/FOVService'
+import { LightingService } from '@services/LightingService'
 
 // ============================================================================
 // TAKE OFF COMMAND - Generic equipment removal (Angband's 't' command)
@@ -16,7 +19,9 @@ export class TakeOffCommand implements ICommand {
     private equipmentSlot: EquipmentSlot,
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private fovService: FOVService,
+    private lightingService: LightingService
   ) {}
 
   execute(state: GameState): GameState {
@@ -85,10 +90,30 @@ export class TakeOffCommand implements ICommand {
         message = `You remove your ${equipment.name}.`
         break
 
-      case 'lightSource':
+      case 'lightSource': {
         updatedPlayer = this.inventoryService.unequipLightSource(state.player)
         message = `You extinguish and stow your ${equipment.name}.`
-        break
+
+        // Update FOV with no light (radius 0)
+        const currentLevel = state.levels.get(state.currentLevel)!
+        const lightRadius = this.lightingService.getLightRadius(null)
+        const fovResult: FOVUpdateResult = this.fovService.updateFOVAndExploration(
+          updatedPlayer.position,
+          lightRadius,
+          currentLevel,
+          updatedPlayer
+        )
+
+        // Return state with updated FOV before incrementing turn
+        const stateWithFOV = {
+          ...state,
+          player: updatedPlayer,
+          messages: this.messageService.addMessage(state.messages, message, 'info', state.turnCount),
+          visibleCells: fovResult.visibleCells,
+          levels: new Map(state.levels).set(state.currentLevel, fovResult.level)
+        }
+        return this.turnService.incrementTurn(stateWithFOV)
+      }
 
       default:
         const messages = this.messageService.addMessage(

@@ -506,7 +506,9 @@ export class InputHandler {
               this.messageService,
               this.turnService,
               this.identificationService,
-              this.curseService
+              this.curseService,
+              this.fovService,
+              this.lightingService
             )
           }
         })
@@ -524,7 +526,9 @@ export class InputHandler {
               this.messageService,
               this.turnService,
               this.identificationService,
-              this.curseService
+              this.curseService,
+              this.fovService,
+              this.lightingService
             )
           }
         })
@@ -544,7 +548,9 @@ export class InputHandler {
               this.messageService,
               this.turnService,
               this.identificationService,
-              this.curseService
+              this.curseService,
+              this.fovService,
+              this.lightingService
             )
           }
         })
@@ -572,11 +578,11 @@ export class InputHandler {
         // TODO: Show modal to select which equipment to remove
         // For now, prioritize light source removal (most common use case)
         if (state.player.equipment.lightSource) {
-          return new TakeOffCommand('lightSource', this.inventoryService, this.messageService, this.turnService)
+          return new TakeOffCommand('lightSource', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService)
         } else if (state.player.equipment.weapon) {
-          return new TakeOffCommand('weapon', this.inventoryService, this.messageService, this.turnService)
+          return new TakeOffCommand('weapon', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService)
         } else if (state.player.equipment.armor) {
-          return new TakeOffCommand('armor', this.inventoryService, this.messageService, this.turnService)
+          return new TakeOffCommand('armor', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService)
         } else {
           this.messageService.addMessage(
             state.messages,

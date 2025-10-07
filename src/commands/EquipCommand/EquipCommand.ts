@@ -5,6 +5,9 @@ import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { IdentificationService } from '@services/IdentificationService'
 import { CurseService } from '@services/CurseService'
+import { FOVService } from '@services/FOVService'
+import type { FOVUpdateResult } from '@services/FOVService'
+import { LightingService } from '@services/LightingService'
 
 // ============================================================================
 // EQUIP COMMAND - Equip weapons, armor, and rings
@@ -18,7 +21,9 @@ export class EquipCommand implements ICommand {
     private messageService: MessageService,
     private turnService: TurnService,
     private identificationService: IdentificationService,
-    private curseService: CurseService
+    private curseService: CurseService,
+    private fovService: FOVService,
+    private lightingService: LightingService
   ) {}
 
   execute(state: GameState): GameState {
@@ -120,13 +125,31 @@ export class EquipCommand implements ICommand {
       }
 
       case ItemType.TORCH:
-      case ItemType.LANTERN:
+      case ItemType.LANTERN: {
         updatedPlayer = this.inventoryService.equipLightSource(
           state.player,
           item as Torch | Lantern | Artifact
         )
         equipMessage = `You light and wield ${displayName}.`
+
+        // Update FOV with new light radius
+        const lightRadius = this.lightingService.getLightRadius(
+          item as Torch | Lantern | Artifact
+        )
+        const currentLevel = state.levels.get(state.currentLevel)!
+        const fovResult: FOVUpdateResult = this.fovService.updateFOVAndExploration(
+          updatedPlayer.position,
+          lightRadius,
+          currentLevel,
+          updatedPlayer
+        )
+        updatedState = {
+          ...updatedState,
+          visibleCells: fovResult.visibleCells,
+          levels: new Map(updatedState.levels).set(state.currentLevel, fovResult.level)
+        }
         break
+      }
 
       default:
         const messages = this.messageService.addMessage(

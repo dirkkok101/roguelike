@@ -144,6 +144,20 @@ export class GameRenderer {
   }
 
   /**
+   * Hide death screen (cleanup on game restart)
+   */
+  hideDeathScreen(): void {
+    this.deathScreen.hide()
+  }
+
+  /**
+   * Hide victory screen (cleanup on game restart)
+   */
+  hideVictoryScreen(): void {
+    this.victoryScreen.hide()
+  }
+
+  /**
    * Get root container
    */
   getContainer(): HTMLElement {
