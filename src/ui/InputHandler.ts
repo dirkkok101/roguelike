@@ -28,8 +28,34 @@ import { TogglePathDebugCommand } from '@commands/TogglePathDebugCommand'
 import { ToggleAIDebugCommand } from '@commands/ToggleAIDebugCommand'
 import { RestService } from '@services/RestService'
 import { SearchService } from '@services/SearchService'
+import { MovementService } from '@services/MovementService'
+import { LightingService } from '@services/LightingService'
+import { FOVService } from '@services/FOVService'
+import { MessageService } from '@services/MessageService'
+import { IRandomService } from '@services/RandomService'
+import { DungeonService, DungeonConfig } from '@services/DungeonService'
+import { CombatService } from '@services/CombatService'
+import { InventoryService } from '@services/InventoryService'
+import { IdentificationService } from '@services/IdentificationService'
+import { HungerService } from '@services/HungerService'
+import { RegenerationService } from '@services/RegenerationService'
+import { LevelingService } from '@services/LevelingService'
+import { DebugService } from '@services/DebugService'
+import { NotificationService } from '@services/NotificationService'
+import { VictoryService } from '@services/VictoryService'
+import { LocalStorageService } from '@services/LocalStorageService'
+import { DoorService } from '@services/DoorService'
+import { PotionService } from '@services/PotionService'
+import { ScrollService } from '@services/ScrollService'
+import { WandService } from '@services/WandService'
+import { TurnService } from '@services/TurnService'
+import { LevelService } from '@services/LevelService'
+import { StatusEffectService } from '@services/StatusEffectService'
+import { CurseService } from '@services/CurseService'
+import { GoldService } from '@services/GoldService'
+import { TargetingService } from '@services/TargetingService'
 import { GameState, Scroll, ScrollType, TargetingMode } from '@game/core/core'
-import { GameServices } from '@game/../types/Services'
+import { GameDependencies } from '@game/core/Services'
 import { ModalController } from './ModalController'
 
 // ============================================================================
@@ -43,36 +69,36 @@ export class InputHandler {
   private pendingCommand: ICommand | null = null
 
   // Services (destructured from container for easy access)
-  private readonly movementService
-  private readonly lightingService
-  private readonly fovService
-  private readonly messageService
-  private readonly random
-  private readonly dungeonService
-  private readonly dungeonConfig
-  private readonly combatService
-  private readonly inventoryService
-  private readonly identificationService
-  private readonly hungerService
-  private readonly regenerationService
-  private readonly levelingService
-  private readonly debugService
-  private readonly notificationService
-  private readonly victoryService
-  private readonly localStorageService
-  private readonly doorService
-  private readonly potionService
-  private readonly scrollService
-  private readonly wandService
-  private readonly turnService
-  private readonly levelService
-  private readonly statusEffectService
-  private readonly curseService
-  private readonly goldService
-  private readonly targetingService
+  private readonly movementService: MovementService
+  private readonly lightingService: LightingService
+  private readonly fovService: FOVService
+  private readonly messageService: MessageService
+  private readonly random: IRandomService
+  private readonly dungeonService: DungeonService
+  private readonly dungeonConfig: DungeonConfig
+  private readonly combatService: CombatService
+  private readonly inventoryService: InventoryService
+  private readonly identificationService: IdentificationService
+  private readonly hungerService: HungerService
+  private readonly regenerationService: RegenerationService
+  private readonly levelingService: LevelingService
+  private readonly debugService: DebugService
+  private readonly notificationService: NotificationService
+  private readonly victoryService: VictoryService
+  private readonly localStorageService: LocalStorageService
+  private readonly doorService: DoorService
+  private readonly potionService: PotionService
+  private readonly scrollService: ScrollService
+  private readonly wandService: WandService
+  private readonly turnService: TurnService
+  private readonly levelService: LevelService
+  private readonly statusEffectService: StatusEffectService
+  private readonly curseService: CurseService
+  private readonly goldService: GoldService
+  private readonly targetingService: TargetingService
 
   constructor(
-    services: GameServices,
+    services: GameDependencies,
     private modalController: ModalController,
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal

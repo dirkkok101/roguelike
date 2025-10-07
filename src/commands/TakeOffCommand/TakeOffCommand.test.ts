@@ -7,11 +7,10 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
 import { SeededRandom } from '@services/RandomService'
+import { createTestTorch, createTestLantern } from '@test-utils/fixtures'
 import {
   GameState,
   Player,
-  Torch,
-  Lantern,
   ItemType,
   Position,
 } from '@game/core/core'
@@ -57,34 +56,6 @@ describe('TakeOffCommand - FOV Updates', () => {
       inventory: [],
       statusEffects: [],
       energy: 100,
-    }
-  }
-
-  function createTestTorch(id: string, name: string): Torch {
-    return {
-      id,
-      name,
-      type: ItemType.TORCH,
-      identified: true,
-      position: { x: 0, y: 0 },
-      fuel: 500,
-      maxFuel: 500,
-      radius: 2,
-      isPermanent: false,
-    }
-  }
-
-  function createTestLantern(id: string, name: string): Lantern {
-    return {
-      id,
-      name,
-      type: ItemType.LANTERN,
-      identified: true,
-      position: { x: 0, y: 0 },
-      fuel: 500,
-      maxFuel: 500,
-      radius: 2,
-      isPermanent: false,
     }
   }
 

@@ -9,14 +9,13 @@ import { CurseService } from '@services/CurseService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
 import { SeededRandom } from '@services/RandomService'
+import { createTestTorch, createTestLantern } from '@test-utils/fixtures'
 import {
   GameState,
   Player,
   Weapon,
   Armor,
   Ring,
-  Torch,
-  Lantern,
   ItemType,
   Position,
   RingType,
@@ -823,34 +822,6 @@ describe('EquipCommand', () => {
   })
 
   describe('FOV updates for light sources', () => {
-    function createTestTorch(id: string, name: string): Torch {
-      return {
-        id,
-        name,
-        type: ItemType.TORCH,
-        identified: true,
-        position: { x: 0, y: 0 },
-        fuel: 500,
-        maxFuel: 500,
-        radius: 2,
-        isPermanent: false,
-      }
-    }
-
-    function createTestLantern(id: string, name: string): Lantern {
-      return {
-        id,
-        name,
-        type: ItemType.LANTERN,
-        identified: true,
-        position: { x: 0, y: 0 },
-        fuel: 500,
-        maxFuel: 500,
-        radius: 2,
-        isPermanent: false,
-      }
-    }
-
     test('updates FOV when equipping torch', () => {
       const player = createTestPlayer()
       const torch = createTestTorch('torch-1', 'Torch')
@@ -956,6 +927,33 @@ describe('EquipCommand', () => {
       expect(state.player.equipment.lightSource).toBeNull()
       expect(state.visibleCells.size).toBe(originalVisibleCells)
       expect(state.turnCount).toBe(0)
+    })
+
+    test('updates FOV when equipping artifact (permanent torch)', () => {
+      const player = createTestPlayer()
+      // Artifact is a torch with isPermanent: true and no fuel
+      const artifact = createTestTorch('artifact-1', 'Staff of Light', {
+        isPermanent: true,
+        radius: 3,  // Artifacts typically have larger radius
+      })
+      player.inventory = [artifact]
+
+      const state = createTestState(player)
+      const initialVisibleCells = state.visibleCells.size
+
+      const command = new EquipCommand('artifact-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService, fovService, lightingService)
+      const result = command.execute(state)
+
+      // Verify artifact was equipped
+      expect(result.player.equipment.lightSource?.id).toBe('artifact-1')
+      expect(result.player.equipment.lightSource?.isPermanent).toBe(true)
+
+      // Verify FOV was updated (artifacts have larger radius, so more visible cells)
+      expect(result.visibleCells.size).toBeGreaterThan(initialVisibleCells)
+
+      // Verify message
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].text).toBe('You light and wield Staff of Light.')
     })
   })
 })

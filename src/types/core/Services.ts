@@ -31,21 +31,24 @@ import { TargetingService } from '@services/TargetingService'
 import { RingService } from '@services/RingService'
 
 /**
- * Service container for dependency injection
+ * Dependency injection container for game services and configuration
  *
- * Groups all game services to reduce parameter counts in constructors.
- * Organized by functional area for clarity.
+ * Groups all game services and configuration objects to reduce parameter counts
+ * in constructors. Organized by functional area for clarity.
+ *
+ * Note: Contains both services (stateful objects) and configuration (plain objects).
  *
  * @example
- * const services: GameServices = {
+ * const dependencies: GameDependencies = {
  *   movement: movementService,
  *   lighting: lightingService,
+ *   dungeonConfig: dungeonConfig,
  *   // ... etc
  * }
  *
- * const handler = new InputHandler(services, modalController, callbacks)
+ * const handler = new InputHandler(dependencies, modalController, callbacks)
  */
-export interface GameServices {
+export interface GameDependencies {
   // Core gameplay services
   movement: MovementService
   lighting: LightingService
@@ -57,6 +60,8 @@ export interface GameServices {
 
   // World generation
   dungeon: DungeonService
+
+  // Configuration (plain objects, not services)
   dungeonConfig: DungeonConfig
 
   // Combat and entities

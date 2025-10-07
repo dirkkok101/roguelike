@@ -1,5 +1,5 @@
 import { GameState, Position, Torch, ItemType } from '@game/core/core'
-import { GameServices } from '@game/../types/Services'
+import { GameDependencies } from '@game/core/Services'
 import { SeededRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
@@ -372,8 +372,8 @@ async function initializeGame() {
       replaySeed
     )
 
-    // Create services container for InputHandler
-    const gameServices: GameServices = {
+    // Create dependencies container for InputHandler
+    const gameDependencies: GameDependencies = {
       movement: movementService,
       lighting: lightingService,
       fov: fovService,
@@ -405,7 +405,7 @@ async function initializeGame() {
     }
 
     inputHandler = new InputHandler(
-      gameServices,
+      gameDependencies,
       modalController,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
