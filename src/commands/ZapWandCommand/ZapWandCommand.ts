@@ -1,9 +1,10 @@
-import { GameState, ItemType, Wand } from '@game/core/core'
+import { GameState, ItemType, Wand, StatusEffectType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { WandService } from '@services/WandService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { StatusEffectService } from '@services/StatusEffectService'
 
 // ============================================================================
 // ZAP WAND COMMAND - Use a wand from inventory
@@ -16,10 +17,24 @@ export class ZapWandCommand implements ICommand {
     private wandService: WandService,
     private messageService: MessageService,
     private turnService: TurnService,
+    private statusEffectService: StatusEffectService,
     private targetItemId?: string
   ) {}
 
   execute(state: GameState): GameState {
+    // 0. Check if player can use wands (not confused)
+    // Note: Blind players CAN zap wands (they can point in a direction)
+    // but confused players cannot (too disoriented to aim properly)
+    if (this.statusEffectService.hasStatusEffect(state.player, StatusEffectType.CONFUSED)) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'You are too confused to use a wand!',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
     // 1. Find item in inventory
     const item = this.inventoryService.findItem(state.player, this.itemId)
 

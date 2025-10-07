@@ -63,19 +63,24 @@ export class MovementService {
 
   /**
    * Calculate new position from direction
-   * If player is confused, direction is randomized
+   * If player is confused, 80% chance direction is randomized (Rogue mechanic)
    */
   applyDirection(
     position: Position,
     direction: 'up' | 'down' | 'left' | 'right',
     player?: Player
   ): Position {
-    // Randomize direction if player is confused
+    // Rogue confusion mechanic: 80% chance to randomize direction
     let actualDirection = direction
     if (player && this.statusEffectService.hasStatusEffect(player, StatusEffectType.CONFUSED)) {
-      const directions: Array<'up' | 'down' | 'left' | 'right'> = ['up', 'down', 'left', 'right']
-      const randomIndex = this.random.roll('1d4') - 1 // Roll 1-4, convert to 0-3
-      actualDirection = directions[randomIndex]
+      // Roll 1-100, if 1-80 then randomize (80% chance)
+      const confusionRoll = this.random.nextInt(1, 100)
+      if (confusionRoll <= 80) {
+        const directions: Array<'up' | 'down' | 'left' | 'right'> = ['up', 'down', 'left', 'right']
+        const randomIndex = this.random.roll('1d4') - 1 // Roll 1-4, convert to 0-3
+        actualDirection = directions[randomIndex]
+      }
+      // else: 20% chance player moves in intended direction despite confusion
     }
 
     switch (actualDirection) {

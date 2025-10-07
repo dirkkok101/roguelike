@@ -40,9 +40,9 @@ describe('RestCommand', () => {
     regenerationService = new RegenerationService(ringService)
     hungerService = new HungerService(mockRandom, ringService)
     lightingService = new LightingService(mockRandom)
-    fovService = new FOVService()
-    messageService = new MessageService()
     statusEffectService = new StatusEffectService()
+    fovService = new FOVService(statusEffectService)
+    messageService = new MessageService()
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
 

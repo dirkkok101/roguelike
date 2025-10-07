@@ -2,6 +2,7 @@ import { PotionService } from './PotionService'
 import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { Player, Potion, PotionType, ItemType, GameState, ItemNameMap, ScrollType, RingType, WandType } from '@game/core/core'
 
 describe('PotionService - Poison Potion', () => {
@@ -9,6 +10,7 @@ describe('PotionService - Poison Potion', () => {
   let mockRandom: MockRandom
   let identificationService: IdentificationService
   let levelingService: LevelingService
+  let statusEffectService: StatusEffectService
   let testPlayer: Player
   let testState: GameState
 
@@ -16,7 +18,8 @@ describe('PotionService - Poison Potion', () => {
     mockRandom = new MockRandom([])
     identificationService = new IdentificationService(mockRandom)
     levelingService = new LevelingService(mockRandom)
-    potionService = new PotionService(mockRandom, identificationService, levelingService)
+    statusEffectService = new StatusEffectService()
+    potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
     testPlayer = {
       position: { x: 5, y: 5 },
@@ -62,7 +65,7 @@ describe('PotionService - Poison Potion', () => {
   describe('POISON potion', () => {
     test('damages player by rolled amount', () => {
       mockRandom = new MockRandom([6]) // Roll 6 damage
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const poisonPotion: Potion = {
         id: 'potion-5',
@@ -84,7 +87,7 @@ describe('PotionService - Poison Potion', () => {
 
     test('does not reduce HP below 0', () => {
       mockRandom = new MockRandom([100]) // Massive damage
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const poisonPotion: Potion = {
         id: 'potion-5',
@@ -105,7 +108,7 @@ describe('PotionService - Poison Potion', () => {
 
     test('sets death flag when HP reaches 0', () => {
       mockRandom = new MockRandom([50]) // Exactly kills player
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const poisonPotion: Potion = {
         id: 'potion-5',
@@ -127,7 +130,7 @@ describe('PotionService - Poison Potion', () => {
 
     test('does not set death flag when HP is above 0', () => {
       mockRandom = new MockRandom([10]) // Only 10 damage
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const poisonPotion: Potion = {
         id: 'potion-5',
@@ -148,7 +151,7 @@ describe('PotionService - Poison Potion', () => {
 
     test('marks potion as identified', () => {
       mockRandom = new MockRandom([5])
-      potionService = new PotionService(mockRandom, identificationService)
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
 
       const poisonPotion: Potion = {
         id: 'potion-5',

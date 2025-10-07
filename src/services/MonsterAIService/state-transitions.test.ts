@@ -3,6 +3,7 @@ import { PathfindingService } from '@services/PathfindingService'
 import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import { FOVService } from '@services/FOVService'
+import { StatusEffectService } from '@services/StatusEffectService'
 import { GameState, Monster, MonsterBehavior, Player } from '@game/core/core'
 
 describe('MonsterAIService - State Transitions', () => {
@@ -10,12 +11,14 @@ describe('MonsterAIService - State Transitions', () => {
   let pathfinding: PathfindingService
   let mockRandom: MockRandom
   let fovService: FOVService
+  let statusEffectService: StatusEffectService
 
   beforeEach(() => {
     const levelService = new LevelService()
     pathfinding = new PathfindingService(levelService)
     mockRandom = new MockRandom()
-    fovService = new FOVService()
+    statusEffectService = new StatusEffectService()
+    fovService = new FOVService(statusEffectService)
     service = new MonsterAIService(pathfinding, mockRandom, fovService, levelService)
   })
 

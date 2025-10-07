@@ -101,7 +101,8 @@ export class RestService {
       const fovResult = this.fovService.updateFOVAndExploration(
         player.position,
         lightRadius,
-        currentLevel
+        currentLevel,
+        player
       )
 
       // Update levels map
