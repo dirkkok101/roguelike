@@ -1,4 +1,5 @@
 import { Player, RingType } from '@game/core/core'
+import { RingService } from '@services/RingService'
 
 // ============================================================================
 // CONFIGURATION CONSTANTS
@@ -31,6 +32,8 @@ export interface RegenerationTickResult {
 
 export class RegenerationService {
   private turnCounter: Map<string, number> = new Map()
+
+  constructor(private ringService: RingService) {}
 
   /**
    * Tick regeneration for player
@@ -73,7 +76,7 @@ export class RegenerationService {
     const newTurns = currentTurns + 1
 
     // 3. Check if player has regeneration ring
-    const hasRing = this.hasRegenerationRing(player)
+    const hasRing = this.ringService.hasRing(player, RingType.REGENERATION)
     const requiredTurns = hasRing
       ? REGEN_CONFIG.RING_TURNS
       : REGEN_CONFIG.BASE_TURNS
@@ -99,26 +102,6 @@ export class RegenerationService {
       messages,
       healed: true,
     }
-  }
-
-  /**
-   * Check if player has regeneration ring equipped
-   * @param player - Player to check
-   * @returns True if ring equipped on either hand
-   */
-  hasRegenerationRing(player: Player): boolean {
-    const leftRing = player.equipment.leftRing
-    const rightRing = player.equipment.rightRing
-
-    if (leftRing && leftRing.ringType === RingType.REGENERATION) {
-      return true
-    }
-
-    if (rightRing && rightRing.ringType === RingType.REGENERATION) {
-      return true
-    }
-
-    return false
   }
 
   /**

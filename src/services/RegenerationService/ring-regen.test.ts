@@ -1,11 +1,17 @@
 import { RegenerationService, REGEN_CONFIG } from './RegenerationService'
+import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { Player, Equipment, Ring, RingType, ItemType } from '@game/core/core'
 
 describe('RegenerationService - Ring of Regeneration', () => {
   let service: RegenerationService
+  let mockRandom: MockRandom
+  let ringService: RingService
 
   beforeEach(() => {
-    service = new RegenerationService()
+    mockRandom = new MockRandom([])
+    ringService = new RingService(mockRandom)
+    service = new RegenerationService(ringService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {
@@ -69,85 +75,6 @@ describe('RegenerationService - Ring of Regeneration', () => {
       position: { x: 0, y: 0 },
     }
   }
-
-  describe('Ring Detection', () => {
-    test('detects regeneration ring on left hand', () => {
-      const ring = createRegenerationRing()
-      const player = createTestPlayer({
-        equipment: {
-          weapon: null,
-          armor: null,
-          leftRing: ring,
-          rightRing: null,
-          lightSource: null,
-        },
-      })
-
-      const hasRing = service.hasRegenerationRing(player)
-
-      expect(hasRing).toBe(true)
-    })
-
-    test('detects regeneration ring on right hand', () => {
-      const ring = createRegenerationRing()
-      const player = createTestPlayer({
-        equipment: {
-          weapon: null,
-          armor: null,
-          leftRing: null,
-          rightRing: ring,
-          lightSource: null,
-        },
-      })
-
-      const hasRing = service.hasRegenerationRing(player)
-
-      expect(hasRing).toBe(true)
-    })
-
-    test('returns false when no ring equipped', () => {
-      const player = createTestPlayer()
-
-      const hasRing = service.hasRegenerationRing(player)
-
-      expect(hasRing).toBe(false)
-    })
-
-    test('returns false when different ring type equipped', () => {
-      const protectionRing = createProtectionRing()
-      const player = createTestPlayer({
-        equipment: {
-          weapon: null,
-          armor: null,
-          leftRing: protectionRing,
-          rightRing: null,
-          lightSource: null,
-        },
-      })
-
-      const hasRing = service.hasRegenerationRing(player)
-
-      expect(hasRing).toBe(false)
-    })
-
-    test('returns true when regeneration ring on left and different ring on right', () => {
-      const regenRing = createRegenerationRing()
-      const protectionRing = createProtectionRing()
-      const player = createTestPlayer({
-        equipment: {
-          weapon: null,
-          armor: null,
-          leftRing: regenRing,
-          rightRing: protectionRing,
-          lightSource: null,
-        },
-      })
-
-      const hasRing = service.hasRegenerationRing(player)
-
-      expect(hasRing).toBe(true)
-    })
-  })
 
   describe('Ring Rate Doubling (5 turns)', () => {
     test('heals 1 HP after 5 turns with regeneration ring', () => {
@@ -275,7 +202,7 @@ describe('RegenerationService - Ring of Regeneration', () => {
 
       // Create new service instance to simulate equipping ring
       // (in real game, service would check ring on each tick)
-      const newService = new RegenerationService()
+      const newService = new RegenerationService(ringService)
 
       // Tick 5 more times with ring equipped
       for (let i = 0; i < 5; i++) {
@@ -313,9 +240,6 @@ describe('RegenerationService - Ring of Regeneration', () => {
           lightSource: null,
         },
       })
-
-      // hasRegenerationRing should still return true
-      expect(service.hasRegenerationRing(player)).toBe(true)
 
       // Should still use 5-turn rate (not 2.5 or 1)
       let updatedPlayer = player

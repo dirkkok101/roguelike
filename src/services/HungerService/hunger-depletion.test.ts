@@ -1,14 +1,17 @@
 import { HungerService, HungerState } from './HungerService'
 import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { Player, Ring, RingType, ItemType } from '@game/core/core'
 
 describe('HungerService - Hunger Depletion', () => {
   let service: HungerService
   let mockRandom: MockRandom
+  let ringService: RingService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    service = new HungerService(mockRandom)
+    ringService = new RingService(mockRandom)
+    service = new HungerService(mockRandom, ringService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {
@@ -189,83 +192,6 @@ describe('HungerService - Hunger Depletion', () => {
 
       // Assert: Verify 1.0x depletion (they cancel out)
       expect(result.player.hunger).toBe(1299) // 1300 - 1.0
-    })
-  })
-
-  describe('calculateHungerRate()', () => {
-    test('returns 1.0 for no rings', () => {
-      // Arrange
-      const rings: Ring[] = []
-
-      // Act
-      const rate = service.calculateHungerRate(rings)
-
-      // Assert
-      expect(rate).toBe(1.0)
-    })
-
-    test('returns 1.5 for one regular ring', () => {
-      // Arrange
-      const rings = [createTestRing(RingType.PROTECTION)]
-
-      // Act
-      const rate = service.calculateHungerRate(rings)
-
-      // Assert
-      expect(rate).toBe(1.5)
-    })
-
-    test('returns 1.8 for two regular rings (Protection + Regeneration)', () => {
-      // Arrange
-      const rings = [
-        createTestRing(RingType.PROTECTION),
-        createTestRing(RingType.REGENERATION),
-      ]
-
-      // Act
-      const rate = service.calculateHungerRate(rings)
-
-      // Assert
-      expect(rate).toBe(1.8) // Protection +0.5, Regeneration +0.3
-    })
-
-    test('returns 0.5 for Slow Digestion ring', () => {
-      // Arrange
-      const rings = [createTestRing(RingType.SLOW_DIGESTION)]
-
-      // Act
-      const rate = service.calculateHungerRate(rings)
-
-      // Assert
-      expect(rate).toBe(0.5)
-    })
-
-    test('returns 1.0 for mixed rings that cancel out', () => {
-      // Arrange
-      const rings = [
-        createTestRing(RingType.PROTECTION),
-        createTestRing(RingType.SLOW_DIGESTION),
-      ]
-
-      // Act
-      const rate = service.calculateHungerRate(rings)
-
-      // Assert
-      expect(rate).toBe(1.0)
-    })
-
-    test('never returns negative rate', () => {
-      // Arrange: Two Slow Digestion rings
-      const rings = [
-        createTestRing(RingType.SLOW_DIGESTION),
-        { ...createTestRing(RingType.SLOW_DIGESTION), id: 'ring-slow-2' },
-      ]
-
-      // Act
-      const rate = service.calculateHungerRate(rings)
-
-      // Assert: Should be 0, not negative
-      expect(rate).toBe(0)
     })
   })
 })

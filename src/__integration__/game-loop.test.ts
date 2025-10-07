@@ -6,6 +6,7 @@ import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { CombatService } from '@services/CombatService'
 import { HungerService } from '@services/HungerService'
+import { RingService } from '@services/RingService'
 import { LevelingService } from '@services/LevelingService'
 import { MonsterTurnService } from '@services/MonsterTurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -61,13 +62,14 @@ describe('Integration: Game Loop', () => {
     const lighting = new LightingService(random)
     const fov = new FOVService(statusEffectService)
     const message = new MessageService()
-    const hunger = new HungerService(random)
-    const combat = new CombatService(random, hunger)
+    const ringService = new RingService(random)
+    const hunger = new HungerService(random, ringService)
+    const combat = new CombatService(random, ringService, hunger)
     const leveling = new LevelingService(random)
     const door = new DoorService()
     const identificationService = new IdentificationService(random)
     const notification = new NotificationService(identificationService)
-    const regeneration = new RegenerationService()
+    const regeneration = new RegenerationService(ringService)
     const levelService = new LevelService()
     const turn = new TurnService(statusEffectService, levelService)
     const pathfinding = new PathfindingService(levelService)

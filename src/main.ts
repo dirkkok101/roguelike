@@ -1,5 +1,6 @@
 import { GameState, Level, TileType, Position, Torch, ItemType } from '@game/core/core'
 import { SeededRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { RenderingService } from '@services/RenderingService'
@@ -78,8 +79,9 @@ async function initializeGame() {
   }
 
   const dungeonService = new DungeonService(random, monsterSpawnService, itemData)
-  const hungerService = new HungerService(random)
-  const regenerationService = new RegenerationService()
+  const ringService = new RingService(random)
+  const hungerService = new HungerService(random, ringService)
+  const regenerationService = new RegenerationService(ringService)
   const levelingService = new LevelingService(random)
   const debugService = new DebugService(messageService)
   const inventoryService = new InventoryService()
@@ -95,7 +97,7 @@ async function initializeGame() {
   const preferencesService = new PreferencesService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const levelService = new LevelService()
-  const combatService = new CombatService(random, hungerService, debugService)
+  const combatService = new CombatService(random, ringService, hungerService, debugService)
   const pathfindingService = new PathfindingService(levelService)
   const monsterAIService = new MonsterAIService(pathfindingService, random, fovService, levelService)
   const specialAbilityService = new SpecialAbilityService(random)

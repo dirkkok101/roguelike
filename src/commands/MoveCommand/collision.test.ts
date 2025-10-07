@@ -9,6 +9,7 @@ import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { HungerService } from '@services/HungerService'
+import { RingService } from '@services/RingService'
 import { NotificationService } from '@services/NotificationService'
 import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -37,19 +38,19 @@ describe('MoveCommand - Collision Detection', () => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
-    hungerService = new HungerService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
     fovService = new FOVService(statusEffectService)
     messageService = new MessageService()
-    combatService = new CombatService(mockRandom, hungerService)
+    combatService = new CombatService(mockRandom, ringService, hungerService)
     levelingService = new LevelingService(mockRandom)
     doorService = new DoorService()
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
-    // hungerService created earlier
     notificationService = new NotificationService(identificationService)
-    regenerationService = new RegenerationService()
+    regenerationService = new RegenerationService(ringService)
   })
 
   function createTestState(): GameState {

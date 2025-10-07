@@ -1,6 +1,7 @@
 import { EatCommand } from './EatCommand'
 import { InventoryService } from '@services/InventoryService'
 import { HungerService, HungerState } from '@services/HungerService'
+import { RingService } from '@services/RingService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
@@ -27,7 +28,8 @@ describe('EatCommand', () => {
   beforeEach(() => {
     inventoryService = new InventoryService()
     mockRandom = new MockRandom()
-    hungerService = new HungerService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    hungerService = new HungerService(mockRandom, ringService)
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
     const levelService = new LevelService()

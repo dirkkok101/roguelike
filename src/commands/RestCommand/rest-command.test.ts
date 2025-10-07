@@ -2,6 +2,7 @@ import { RestCommand } from './RestCommand'
 import { RestService } from '@services/RestService'
 import { RegenerationService } from '@services/RegenerationService'
 import { HungerService } from '@services/HungerService'
+import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
@@ -35,8 +36,9 @@ describe('RestCommand', () => {
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    regenerationService = new RegenerationService()
-    hungerService = new HungerService(mockRandom)
+    const ringService = new RingService(mockRandom)
+    regenerationService = new RegenerationService(ringService)
+    hungerService = new HungerService(mockRandom, ringService)
     lightingService = new LightingService(mockRandom)
     statusEffectService = new StatusEffectService()
     fovService = new FOVService(statusEffectService)

@@ -1,14 +1,17 @@
 import { HungerService } from './HungerService'
 import { MockRandom } from '@services/RandomService'
+import { RingService } from '@services/RingService'
 import { Player, Equipment, Ring, RingType, ItemType } from '@game/core/core'
 
 describe('HungerService - Ring of Regeneration Hunger Penalty', () => {
   let service: HungerService
   let mockRandom: MockRandom
+  let ringService: RingService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
-    service = new HungerService(mockRandom)
+    ringService = new RingService(mockRandom)
+    service = new HungerService(mockRandom, ringService)
   })
 
   function createTestPlayer(overrides?: Partial<Player>): Player {
@@ -90,73 +93,6 @@ describe('HungerService - Ring of Regeneration Hunger Penalty', () => {
       position: { x: 0, y: 0 },
     }
   }
-
-  describe('Hunger Rate Calculation', () => {
-    test('base rate is 1.0 with no rings', () => {
-      const rings: Ring[] = []
-
-      const rate = service.calculateHungerRate(rings)
-
-      expect(rate).toBe(1.0)
-    })
-
-    test('Ring of Regeneration adds +0.3 (30% increase)', () => {
-      const regenRing = createRegenerationRing()
-      const rings = [regenRing]
-
-      const rate = service.calculateHungerRate(rings)
-
-      expect(rate).toBe(1.3) // 1.0 + 0.3
-    })
-
-    test('other rings add +0.5', () => {
-      const protectionRing = createProtectionRing()
-      const rings = [protectionRing]
-
-      const rate = service.calculateHungerRate(rings)
-
-      expect(rate).toBe(1.5) // 1.0 + 0.5
-    })
-
-    test('Ring of Slow Digestion subtracts -0.5', () => {
-      const slowRing = createSlowDigestionRing()
-      const rings = [slowRing]
-
-      const rate = service.calculateHungerRate(rings)
-
-      expect(rate).toBe(0.5) // 1.0 - 0.5
-    })
-
-    test('Ring of Regeneration + Ring of Slow Digestion = 0.8 rate', () => {
-      const regenRing = createRegenerationRing()
-      const slowRing = createSlowDigestionRing()
-      const rings = [regenRing, slowRing]
-
-      const rate = service.calculateHungerRate(rings)
-
-      expect(rate).toBe(0.8) // 1.0 + 0.3 - 0.5
-    })
-
-    test('Ring of Regeneration + Protection Ring = 1.8 rate', () => {
-      const regenRing = createRegenerationRing()
-      const protectionRing = createProtectionRing()
-      const rings = [regenRing, protectionRing]
-
-      const rate = service.calculateHungerRate(rings)
-
-      expect(rate).toBe(1.8) // 1.0 + 0.3 + 0.5
-    })
-
-    test('two Rings of Regeneration = 1.6 rate (stacks additively)', () => {
-      const regenRing1 = createRegenerationRing()
-      const regenRing2 = { ...createRegenerationRing(), id: 'ring-regen-2' }
-      const rings = [regenRing1, regenRing2]
-
-      const rate = service.calculateHungerRate(rings)
-
-      expect(rate).toBe(1.6) // 1.0 + 0.3 + 0.3
-    })
-  })
 
   describe('Hunger Tick with Regeneration Ring', () => {
     test('depletes 1.3 hunger per turn with Ring of Regeneration', () => {
@@ -311,25 +247,6 @@ describe('HungerService - Ring of Regeneration Hunger Penalty', () => {
   })
 
   describe('Edge Cases', () => {
-    test('rate never goes below 0 with multiple Slow Digestion rings', () => {
-      const slowRing1 = createSlowDigestionRing()
-      const slowRing2 = { ...createSlowDigestionRing(), id: 'ring-slow-2' }
-      const rings = [slowRing1, slowRing2]
-
-      const rate = service.calculateHungerRate(rings)
-
-      // 1.0 - 0.5 - 0.5 = 0.0 (clamped)
-      expect(rate).toBe(0)
-    })
-
-    test('handles empty rings array', () => {
-      const rings: Ring[] = []
-
-      const rate = service.calculateHungerRate(rings)
-
-      expect(rate).toBe(1.0)
-    })
-
     test('hunger does not go below 0 even with regeneration ring', () => {
       const regenRing = createRegenerationRing()
       const player = createTestPlayer({
