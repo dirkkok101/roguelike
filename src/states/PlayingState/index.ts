@@ -1,2 +1,1 @@
-export { BaseState } from './BaseState'
 export { PlayingState } from './PlayingState'
