@@ -12,6 +12,7 @@ import { DungeonService } from '@services/DungeonService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { CurseService } from '@services/CurseService'
 import { GameState, Player, ItemType, Scroll, ScrollType, Armor, Potion, PotionType } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 describe('ReadScrollCommand', () => {
   let inventoryService: InventoryService
@@ -28,7 +29,7 @@ describe('ReadScrollCommand', () => {
     const levelService = new LevelService()
     const fovService = new FOVService(new StatusEffectService())
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
-    const dungeonService = new DungeonService(mockRandom, monsterSpawnService)
+    const dungeonService = new DungeonService(mockRandom, monsterSpawnService, mockItemData)
     const curseService = new CurseService()
     scrollService = new ScrollService(
       identificationService,

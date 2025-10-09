@@ -1,5 +1,6 @@
-import { Player, Torch, Lantern, Artifact, ItemType } from '@game/core/core'
+import { Player, Torch, Lantern, Artifact, ItemType, GameState } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
+import { DebugService } from '@services/DebugService'
 
 // ============================================================================
 // RESULT TYPES
@@ -26,7 +27,10 @@ export interface LanternRefillResult {
 // ============================================================================
 
 export class LightingService {
-  constructor(_random: IRandomService) {
+  constructor(
+    _random: IRandomService,
+    private debugService?: DebugService
+  ) {
     // Random service will be used in future phases for fuel variations
   }
 
@@ -34,8 +38,13 @@ export class LightingService {
    * Tick fuel consumption (call each turn)
    * Returns complete result with player and fuel warning messages
    */
-  tickFuel(player: Player): FuelTickResult {
+  tickFuel(player: Player, state?: GameState): FuelTickResult {
     const messages: Message[] = []
+
+    // God mode check - infinite light fuel
+    if (state && this.debugService?.isGodModeActive(state)) {
+      return { player, messages }
+    }
 
     // No light source equipped
     if (!player.equipment.lightSource) {

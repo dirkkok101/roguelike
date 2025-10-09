@@ -10,6 +10,7 @@ import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { SeededRandom, MockRandom } from '@services/RandomService'
 import { GameState, Player, Position, Level } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 describe('MoveStairsCommand', () => {
   let messageService: MessageService
@@ -34,7 +35,7 @@ describe('MoveStairsCommand', () => {
       getSpawnCount: jest.fn().mockReturnValue(5),
     } as unknown as MonsterSpawnService
 
-    dungeonService = new DungeonService(random, mockMonsterSpawnService)
+    dungeonService = new DungeonService(random, mockMonsterSpawnService, mockItemData)
     statusEffectService = new StatusEffectService()
     fovService = new FOVService(statusEffectService)
     lightingService = new LightingService(mockRandom)

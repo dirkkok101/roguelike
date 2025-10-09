@@ -1,4 +1,4 @@
-import { ToggleFOVDebugCommand } from './ToggleFOVDebugCommand'
+import { IdentifyAllItemsCommand } from './IdentifyAllItemsCommand'
 import { DebugService } from '@services/DebugService'
 import { MessageService } from '@services/MessageService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
@@ -7,10 +7,10 @@ import { MockRandom } from '@services/RandomService'
 import { GameState } from '@game/core/core'
 import { mockItemData } from '@/test-utils'
 
-describe('ToggleFOVDebugCommand', () => {
+describe('IdentifyAllItemsCommand', () => {
   let originalFetch: typeof global.fetch
   let debugService: DebugService
-  let command: ToggleFOVDebugCommand
+  let command: IdentifyAllItemsCommand
 
   const mockMonsterData = [
     {
@@ -53,42 +53,50 @@ describe('ToggleFOVDebugCommand', () => {
       mockRandom,
       true
     )
-    command = new ToggleFOVDebugCommand(debugService)
+    command = new IdentifyAllItemsCommand(debugService)
   })
 
-  test('executes debugService.toggleFOVDebug', () => {
+  test('executes debugService.identifyAll', () => {
     const mockState = {
       messages: [],
+      turnCount: 0,
+      identifiedItems: new Set<string>(),
       debug: debugService.initializeDebugState(),
     } as GameState
 
     const result = command.execute(mockState)
 
-    expect(result.debug?.fovOverlay).toBe(true)
+    expect(result.identifiedItems.size).toBeGreaterThan(0)
   })
 
-  test('toggles FOV overlay on', () => {
+  test('marks all item types as identified', () => {
     const mockState = {
       messages: [],
+      turnCount: 0,
+      identifiedItems: new Set<string>(),
       debug: debugService.initializeDebugState(),
     } as GameState
 
     const result = command.execute(mockState)
 
-    expect(result.debug?.fovOverlay).toBe(true)
+    // Should identify many item types (potions, scrolls, rings, wands)
+    expect(result.identifiedItems.size).toBeGreaterThan(10)
+    expect(result.messages).toHaveLength(1)
+    expect(result.messages[0].text).toContain('Identified all')
+    expect(result.messages[0].text).toContain('item types')
   })
 
-  test('toggles FOV overlay off', () => {
+  test('preserves existing messages', () => {
     const mockState = {
-      messages: [],
-      debug: {
-        ...debugService.initializeDebugState(),
-        fovOverlay: true,
-      },
+      messages: [{ text: 'Previous message', type: 'info' as const, turnCount: 0 }],
+      turnCount: 1,
+      identifiedItems: new Set<string>(),
+      debug: debugService.initializeDebugState(),
     } as GameState
 
     const result = command.execute(mockState)
 
-    expect(result.debug?.fovOverlay).toBe(false)
+    expect(result.messages.length).toBe(2)
+    expect(result.messages[0].text).toBe('Previous message')
   })
 })

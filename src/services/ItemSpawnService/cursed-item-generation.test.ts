@@ -1,6 +1,7 @@
 import { ItemSpawnService } from './ItemSpawnService'
 import { SeededRandom } from '@services/RandomService'
 import { Room, Tile, TileType, RingType, ItemType } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 // ============================================================================
 // ITEM SPAWN SERVICE - Cursed Item Generation Tests
@@ -49,7 +50,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
       // Note: Weapons/armor are ~20% of spawns, curse rate is ~6.6%
       // So need ~1000 items to ensure cursed weapons/armor
       const random = new SeededRandom('test-cursed-items')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items to get cursed ones
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -62,7 +63,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('items can be spawned as non-cursed', () => {
       // Arrange
       const random = new SeededRandom('test-non-cursed')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -75,7 +76,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('cursed items have negative enchantment -1 to -3', () => {
       // Arrange
       const random = new SeededRandom('test-negative-enchantment')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -95,7 +96,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('cursed weapons do not show bonus in name until identified', () => {
       // Arrange
       const random = new SeededRandom('test-cursed-names')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -115,7 +116,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('non-cursed common items have 0 enchantment', () => {
       // Arrange
       const random = new SeededRandom('test-common-items')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items at low depth (more common items)
       const items = service.spawnItems(rooms, 1000, tiles, [], 1)
@@ -141,7 +142,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('curse rate is approximately 5-12% across many spawns', () => {
       // Arrange
       const random = new SeededRandom('test-curse-rate')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn 1000 items
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -168,7 +169,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('Ring of Teleportation is always cursed regardless of roll', () => {
       // Arrange
       const random = new SeededRandom('test-teleport-ring')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items to get Ring of Teleportation
       const items = service.spawnItems(rooms, 500, tiles, [], 5)
@@ -198,7 +199,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('cursed items can have -1 enchantment', () => {
       // Arrange
       const random = new SeededRandom('test-cursed-minus-1')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -213,7 +214,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('cursed items can have -2 enchantment', () => {
       // Arrange
       const random = new SeededRandom('test-cursed-minus-2')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -228,7 +229,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('cursed items can have -3 enchantment', () => {
       // Arrange
       const random = new SeededRandom('test-cursed-minus-3')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -243,7 +244,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('rare non-cursed items can have +1 enchantment', () => {
       // Arrange
       const random = new SeededRandom('test-blessed-items')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items at high depth (more rare items)
       const items = service.spawnItems(rooms, 1000, tiles, [], 10)
@@ -259,7 +260,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('rare non-cursed items can have +2 enchantment', () => {
       // Arrange
       const random = new SeededRandom('test-blessed-items-2')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items at high depth (more rare items)
       const items = service.spawnItems(rooms, 1000, tiles, [], 10)
@@ -281,7 +282,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('blessed items (weapons/armor) show positive bonus in name', () => {
       // Arrange
       const random = new SeededRandom('blessed-weapon-test')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items at high depth to get blessed items
       const items = service.spawnItems(rooms, 1000, tiles, [], 10)
@@ -302,7 +303,7 @@ describe('ItemSpawnService - Cursed Item Generation', () => {
     test('normal weapon has no bonus in name', () => {
       // Arrange
       const random = new SeededRandom('normal-weapon-test')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items at low depth (more common items)
       const items = service.spawnItems(rooms, 1000, tiles, [], 1)

@@ -43,7 +43,7 @@ export class RestService {
     // Rest loop - continue until HP full or interrupted
     while (currentState.player.hp < currentState.player.maxHp && !interrupted) {
       // 1. Tick hunger
-      const hungerResult = this.hungerService.tickHunger(currentState.player)
+      const hungerResult = this.hungerService.tickHunger(currentState.player, currentState)
       let player = hungerResult.player
 
       // Check for starvation death
@@ -89,7 +89,7 @@ export class RestService {
       player = regenResult.player
 
       // 3. Tick light fuel
-      const fuelResult = this.lightingService.tickFuel(player)
+      const fuelResult = this.lightingService.tickFuel(player, currentState)
       player = fuelResult.player
 
       // 4. Update FOV and exploration

@@ -67,13 +67,9 @@ async function initializeGame() {
   const newGameSeed = `seed-${Date.now()}`
   const random = new SeededRandom(newGameSeed)
   const statusEffectService = new StatusEffectService()
-  const lightingService = new LightingService(random)
-  const fovService = new FOVService(statusEffectService)
-  const renderingService = new RenderingService(fovService)
-  const movementService = new MovementService(random, statusEffectService)
   const messageService = new MessageService()
 
-  // Load monster data
+  // Load monster data early (needed by DebugService)
   const monsterSpawnService = new MonsterSpawnService(random)
   try {
     await monsterSpawnService.loadMonsterData()
@@ -83,12 +79,19 @@ async function initializeGame() {
     throw error // Fatal error - game cannot proceed without monster data
   }
 
+  // Create debug service early (needed by HungerService and LightingService)
+  const debugService = new DebugService(messageService, monsterSpawnService, random, import.meta.env.DEV)
+
+  const lightingService = new LightingService(random, debugService)
+  const fovService = new FOVService(statusEffectService)
+  const renderingService = new RenderingService(fovService)
+  const movementService = new MovementService(random, statusEffectService)
+
   const dungeonService = new DungeonService(random, monsterSpawnService, itemData)
   const ringService = new RingService(random)
-  const hungerService = new HungerService(random, ringService)
+  const hungerService = new HungerService(random, ringService, debugService)
   const regenerationService = new RegenerationService(ringService)
   const levelingService = new LevelingService(random)
-  const debugService = new DebugService(messageService, import.meta.env.DEV)
   const inventoryService = new InventoryService()
   const identificationService = new IdentificationService(random)
   const contextService = new ContextService(identificationService)

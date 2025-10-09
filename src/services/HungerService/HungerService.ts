@@ -1,6 +1,7 @@
-import { Player } from '@game/core/core'
+import { Player, GameState } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { RingService } from '@services/RingService'
+import { DebugService } from '@services/DebugService'
 
 // ============================================================================
 // HUNGER STATE ENUM
@@ -43,7 +44,8 @@ export interface FoodConsumptionResult {
 export class HungerService {
   constructor(
     private random: IRandomService,
-    private ringService: RingService
+    private ringService: RingService,
+    private debugService?: DebugService
   ) {}
 
   /**
@@ -53,7 +55,12 @@ export class HungerService {
    * Base rate: -1/turn
    * Ring modifier: +0.5 per equipped ring (except SLOW_DIGESTION which is -0.5)
    */
-  tickHunger(player: Player): HungerTickResult {
+  tickHunger(player: Player, state?: GameState): HungerTickResult {
+    // God mode check - infinite hunger
+    if (state && this.debugService?.isGodModeActive(state)) {
+      return { player, messages: [] }
+    }
+
     // 1. Calculate old state
     const oldState = this.getHungerState(player.hunger)
 
@@ -83,7 +90,7 @@ export class HungerService {
     // 6. Apply starvation damage if starving
     let death = undefined
     if (newState === HungerState.STARVING) {
-      updatedPlayer = this.applyStarvationDamage(updatedPlayer)
+      updatedPlayer = this.applyStarvationDamage(updatedPlayer, state)
       messages.push({
         text: 'You are fainting from hunger!',
         type: 'critical'
@@ -204,9 +211,14 @@ export class HungerService {
   /**
    * Apply starvation damage (1 HP per turn at 0 hunger)
    */
-  applyStarvationDamage(player: Player): Player {
+  applyStarvationDamage(player: Player, state?: GameState): Player {
     if (player.hunger > 0) {
       return player // Not starving, no damage
+    }
+
+    // God mode check - no starvation damage
+    if (state && this.debugService?.isGodModeActive(state)) {
+      return player
     }
 
     // Reduce HP by 1, but don't go below 0

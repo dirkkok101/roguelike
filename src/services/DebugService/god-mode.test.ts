@@ -1,14 +1,61 @@
 import { DebugService } from './DebugService'
 import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { GameState } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 describe('DebugService - God Mode', () => {
+  let originalFetch: typeof global.fetch
+
+  // Mock monster data
+  const mockMonsterData = [
+    {
+      letter: 'D',
+      name: 'Dragon',
+      hp: '10d8',
+      ac: -1,
+      damage: '1d8+3d10',
+      xpValue: 5000,
+      level: 10,
+      speed: 18,
+      rarity: 'rare',
+      mean: true,
+      aiProfile: { behavior: 'SMART', intelligence: 8, aggroRange: 15, fleeThreshold: 0.15, special: [] },
+    },
+  ]
+
+  beforeAll(() => {
+    originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockMonsterData,
+    } as Response)
+  })
+
+  afterAll(() => {
+    global.fetch = originalFetch
+  })
+
+  async function createDebugService(isDevMode: boolean = true) {
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
+    return new DebugService(new MessageService(), monsterSpawnService, itemSpawnService, mockRandom, isDevMode)
+  }
+
   let debugService: DebugService
   let mockState: GameState
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const messageService = new MessageService()
-    debugService = new DebugService(messageService, true)
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
+    debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom, true)
 
     mockState = {
       messages: [],
@@ -21,7 +68,7 @@ describe('DebugService - God Mode', () => {
     } as GameState
   })
 
-  test('toggleGodMode enables god mode when disabled', () => {
+  test('toggleGodMode enables god mode when disabled', async () => {
     const result = debugService.toggleGodMode(mockState)
 
     expect(result.debug?.godMode).toBe(true)
@@ -29,7 +76,7 @@ describe('DebugService - God Mode', () => {
     expect(result.messages[0].text).toContain('God mode ENABLED')
   })
 
-  test('toggleGodMode disables god mode when enabled', () => {
+  test('toggleGodMode disables god mode when enabled', async () => {
     const enabledState = debugService.toggleGodMode(mockState)
     const result = debugService.toggleGodMode(enabledState)
 
@@ -37,57 +84,25 @@ describe('DebugService - God Mode', () => {
     expect(result.messages[result.messages.length - 1].text).toContain('DISABLED')
   })
 
-  test('isGodModeActive returns correct status', () => {
+  test('isGodModeActive returns correct status', async () => {
     expect(debugService.isGodModeActive(mockState)).toBe(false)
 
     const enabled = debugService.toggleGodMode(mockState)
     expect(debugService.isGodModeActive(enabled)).toBe(true)
   })
 
-  test('toggleGodMode does nothing in production mode', () => {
-    const prodService = new DebugService(new MessageService(), false)
+  test('toggleGodMode does nothing in production mode', async () => {
+    const prodService = await createDebugService(false)
     const result = prodService.toggleGodMode(mockState)
 
     expect(result).toBe(mockState) // Returns unchanged
   })
 
-  test('toggleGodMode preserves immutability', () => {
+  test('toggleGodMode preserves immutability', async () => {
     const result = debugService.toggleGodMode(mockState)
 
     expect(result).not.toBe(mockState)
     expect(result.debug).not.toBe(mockState.debug)
     expect(mockState.debug?.godMode).toBe(false) // Original unchanged
-  })
-
-  test('applyGodModeEffects restores HP when below max', () => {
-    const enabledState = debugService.toggleGodMode(mockState)
-    const result = debugService.applyGodModeEffects(enabledState)
-
-    expect(result.player.hp).toBe(result.player.maxHp)
-  })
-
-  test('applyGodModeEffects does nothing when god mode disabled', () => {
-    const result = debugService.applyGodModeEffects(mockState)
-
-    expect(result).toBe(mockState)
-    expect(result.player.hp).toBe(8)
-  })
-
-  test('applyGodModeEffects does nothing when HP already full', () => {
-    const fullHpState = {
-      ...mockState,
-      player: {
-        ...mockState.player,
-        hp: 12,
-      },
-      debug: {
-        ...mockState.debug!,
-        godMode: true,
-      },
-    }
-
-    const result = debugService.applyGodModeEffects(fullHpState)
-
-    expect(result).toBe(fullHpState)
   })
 })

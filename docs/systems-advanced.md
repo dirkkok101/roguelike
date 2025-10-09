@@ -716,24 +716,28 @@ class DebugService {
   isEnabled: boolean;
 
   // Command handlers
-  toggleGodMode(): void
-  teleportTo(level: number): GameState
+  toggleGodMode(state: GameState): GameState
   spawnMonster(letter: string, position: Position): GameState
-  spawnItem(type: ItemType, position: Position): GameState
   revealMap(state: GameState): GameState
   identifyAll(state: GameState): GameState
+  wakeAllMonsters(state: GameState): GameState
+  killAllMonsters(state: GameState): GameState
   showSeed(state: GameState): string
-  toggleFOVDebug(): void
-  toggleAIDebug(): void
-  togglePathDebug(): void
-  giveInfiniteLight(): GameState
+  toggleFOVDebug(state: GameState): GameState
+  toggleAIDebug(state: GameState): GameState
+  togglePathDebug(state: GameState): GameState
+  toggleDebugConsole(state: GameState): GameState
 
-  // Overlay rendering
-  renderFOVOverlay(state: GameState): void
-  renderPathOverlay(monsters: Monster[]): void
-  renderAIStateOverlay(monsters: Monster[]): void
+  // God mode checks (used by other services)
+  isGodModeActive(state: GameState): boolean
 }
 ```
+
+**God Mode Integration**:
+- God mode prevents combat damage (via CombatService)
+- God mode prevents hunger consumption (via HungerService)
+- God mode prevents light fuel consumption (via LightingService)
+- Services check `debugService.isGodModeActive(state)` before consuming resources
 
 ---
 
@@ -743,12 +747,11 @@ class DebugService {
 |-----|---------|--------|
 | `~` | Toggle Debug Console | Show/hide debug panel |
 | `g` | God Mode | Invincible, infinite hunger/light |
-| `t` | Teleport | Jump to any level |
-| `m` | Spawn Monster | Create monster at cursor |
-| `i` | Spawn Item | Create item at cursor |
 | `v` | Reveal Map | Show entire level |
+| `m` | Spawn Monster | Create test monster |
+| `M` | Wake All Monsters | Wake all sleeping monsters |
+| `K` | Kill All Monsters | Remove all monsters |
 | `a` | Identify All | Reveal all item identities |
-| `l` | Infinite Light | Permanent radius 3 light |
 | `f` | Toggle FOV Debug | Highlight visible tiles |
 | `p` | Toggle Path Debug | Show A* paths |
 | `n` | Toggle AI Debug | Display monster states |
@@ -767,13 +770,12 @@ class DebugService {
 │ God Mode: [OFF]                           │
 │                                           │
 │ COMMANDS:                                 │
-│  g - Toggle god mode (invincible)         │
-│  t - Teleport to level (1-10)             │
-│  m - Spawn monster (letter A-Z)           │
-│  i - Spawn item (type)                    │
+│  g - Toggle god mode (infinite resources) │
 │  v - Reveal entire map                    │
+│  m - Spawn test monster                   │
+│  M - Wake all monsters                    │
+│  K - Kill all monsters                    │
 │  a - Identify all items                   │
-│  l - Infinite light (radius 3)            │
 │  f - Toggle FOV overlay                   │
 │  p - Toggle path overlay                  │
 │  n - Toggle AI state overlay              │

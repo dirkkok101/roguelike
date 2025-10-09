@@ -1,6 +1,7 @@
 import { DungeonService } from '@services/DungeonService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { SeededRandom } from '@services/RandomService'
+import { mockItemData } from '@/test-utils'
 
 // Mock fetch globally for these tests
 global.fetch = jest.fn(() =>
@@ -41,7 +42,7 @@ describe('Integration: Monster Spawning', () => {
     random = new SeededRandom('integration-test-seed')
     monsterSpawnService = new MonsterSpawnService(random)
     await monsterSpawnService.loadMonsterData()
-    dungeonService = new DungeonService(random, monsterSpawnService)
+    dungeonService = new DungeonService(random, monsterSpawnService, mockItemData)
   })
 
   describe('Monster Count Scaling', () => {

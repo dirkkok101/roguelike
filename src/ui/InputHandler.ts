@@ -26,6 +26,7 @@ import { KillAllMonstersCommand } from '@commands/KillAllMonstersCommand'
 import { ToggleFOVDebugCommand } from '@commands/ToggleFOVDebugCommand'
 import { TogglePathDebugCommand } from '@commands/TogglePathDebugCommand'
 import { ToggleAIDebugCommand } from '@commands/ToggleAIDebugCommand'
+import { IdentifyAllItemsCommand } from '@commands/IdentifyAllItemsCommand'
 import { RestService } from '@services/RestService'
 import { SearchService } from '@services/SearchService'
 import { MovementService } from '@services/MovementService'
@@ -711,6 +712,14 @@ export class InputHandler {
         if (this.debugService.isEnabled()) {
           event.preventDefault()
           return new ToggleAIDebugCommand(this.debugService)
+        }
+        return null
+
+      case 'a':
+        // Identify all items
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new IdentifyAllItemsCommand(this.debugService)
         }
         return null
 
