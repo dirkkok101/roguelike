@@ -26,6 +26,22 @@ import { DeathScreen } from './DeathScreen'
 // ============================================================================
 
 export class GameRenderer {
+  // Display thresholds for color-coded warnings
+  private static readonly HP_THRESHOLDS = {
+    HEALTHY: 75,
+    WOUNDED: 50,
+    CRITICAL: 25,
+    BLINKING: 10,
+  }
+
+  private static readonly INVENTORY_THRESHOLDS = {
+    NORMAL: 20,
+    WARNING: 24,
+    CRITICAL: 26,
+  }
+
+  private static readonly HUNGER_MAX = 1300
+
   private dungeonContainer: HTMLElement
   private statsContainer: HTMLElement
   private messagesContainer: HTMLElement
@@ -339,15 +355,15 @@ export class GameRenderer {
     // HP color (green > yellow > red > blinking red)
     const hpPercent = (player.hp / player.maxHp) * 100
     const hpColor =
-      hpPercent >= 75
+      hpPercent >= GameRenderer.HP_THRESHOLDS.HEALTHY
         ? '#00FF00'
-        : hpPercent >= 50
+        : hpPercent >= GameRenderer.HP_THRESHOLDS.WOUNDED
         ? '#FFDD00'
-        : hpPercent >= 25
+        : hpPercent >= GameRenderer.HP_THRESHOLDS.CRITICAL
         ? '#FF8800'
         : '#FF0000'
-    const hpBlink = hpPercent < 10 ? 'animation: blink 1s infinite;' : ''
-    const hpWarning = hpPercent < 25 ? ' ⚠️' : ''
+    const hpBlinkClass = hpPercent < GameRenderer.HP_THRESHOLDS.BLINKING ? ' hp-critical-blink' : ''
+    const hpWarning = hpPercent < GameRenderer.HP_THRESHOLDS.CRITICAL ? ' ⚠️' : ''
 
     // Get XP progress for display
     const xpNeeded = this.levelingService.getXPForNextLevel(player.level)
@@ -363,10 +379,16 @@ export class GameRenderer {
     // Inventory color
     const invCount = player.inventory.length
     const invColor =
-      invCount < 20 ? '#00FF00' : invCount < 24 ? '#FFDD00' : invCount < 26 ? '#FF8800' : '#FF0000'
+      invCount < GameRenderer.INVENTORY_THRESHOLDS.NORMAL
+        ? '#00FF00'
+        : invCount < GameRenderer.INVENTORY_THRESHOLDS.WARNING
+        ? '#FFDD00'
+        : invCount < GameRenderer.INVENTORY_THRESHOLDS.CRITICAL
+        ? '#FF8800'
+        : '#FF0000'
 
     // Hunger bar
-    const hungerPercent = Math.min(100, (player.hunger / 1300) * 100)
+    const hungerPercent = Math.min(100, (player.hunger / GameRenderer.HUNGER_MAX) * 100)
     const hungerBarClass = hungerPercent >= 50 ? 'hunger' : hungerPercent >= 25 ? 'hunger warning' : 'hunger critical'
     const hungerLabel = hungerPercent === 0 ? 'STARVING!' : hungerPercent < 10 ? 'Fainting' : hungerPercent < 25 ? 'Hungry' : 'Fed'
     const hungerWarning = hungerPercent < 25 ? ' 🍖' : ''
@@ -392,18 +414,12 @@ export class GameRenderer {
     const lightBarClass = lightPercent >= 50 ? 'light' : lightPercent >= 20 ? 'light warning' : 'light critical'
 
     this.statsContainer.innerHTML = `
-      <style>
-        @keyframes blink {
-          0%, 50% { opacity: 1; }
-          51%, 100% { opacity: 0.3; }
-        }
-      </style>
       <!-- Single Row: 4 Panels Side-by-Side -->
       <div class="stats-row">
         <div class="stats-panel">
           <div class="stats-panel-header">Combat</div>
           <div class="stats-panel-content">
-            <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
+            <div class="${hpBlinkClass}" style="color: ${hpColor}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
             <div>Str: ${strDisplay}</div>
             <div>AC: ${acDisplay}</div>
             <div>Lvl: ${player.level}</div>
@@ -451,9 +467,9 @@ export class GameRenderer {
   private dimColor(color: string): string {
     // Convert hex to RGB, reduce brightness by 50%, return hex
     const hex = color.replace('#', '')
-    const r = parseInt(hex.substr(0, 2), 16)
-    const g = parseInt(hex.substr(2, 2), 16)
-    const b = parseInt(hex.substr(4, 2), 16)
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
 
     const dimmedR = Math.floor(r * 0.5)
     const dimmedG = Math.floor(g * 0.5)

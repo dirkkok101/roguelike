@@ -399,7 +399,7 @@ The original UI design (section 5 in 11-ui-design.md) was optimized for vertical
 
 ---
 
-### Phase 4: Documentation Updates (Priority: HIGH)
+### Phase 4: Documentation Updates (Priority: HIGH) 🚧 IN PROGRESS
 
 **Objective**: Update all documentation to reflect new UI layout
 
@@ -450,6 +450,103 @@ The original UI design (section 5 in 11-ui-design.md) was optimized for vertical
 - [ ] Document lessons learned
 - [ ] Note future enhancements
 - [ ] Git commit: "docs: add UI refactor decision record (Phase 4.3)"
+
+---
+
+### Phase 5: PR Review Fixes (Priority: HIGH)
+
+**Objective**: Address code review feedback from PR #14
+
+**Context**: Code review identified minor improvements for code quality and maintainability
+
+#### Task 5.1: Fix Test Assertions for Number Formatting
+
+**Context**: 8 tests failing due to number formatting differences (comma vs space as thousands separator)
+
+**Priority**: HIGH - Blocking PR merge
+
+**Files to modify**:
+- `src/ui/EntryDetailsModal/EntryDetailsModal.test.ts`
+- `src/ui/VictoryScreen/VictoryScreen.test.ts`
+
+##### Subtasks:
+- [ ] Update EntryDetailsModal tests to use regex for number formatting
+- [ ] Update VictoryScreen tests to use regex for number formatting
+- [ ] Test with `npm test` to verify fixes
+- [ ] Git commit: "test: fix number formatting assertions in UI tests (Phase 5.1)"
+
+---
+
+#### Task 5.2: Extract Magic Numbers to Constants
+
+**Context**: Hardcoded thresholds for HP, hunger, and inventory make code harder to maintain
+
+**Priority**: MEDIUM - Code quality improvement
+
+**Files to modify**:
+- `src/ui/GameRenderer.ts`
+
+##### Subtasks:
+- [ ] Create private static constants for HP thresholds (75, 50, 25, 10)
+- [ ] Create private static constant for max hunger value (1300)
+- [ ] Create private static constants for inventory thresholds (20, 24, 26)
+- [ ] Replace hardcoded values with constants in renderStats()
+- [ ] Test rendering to ensure no visual changes
+- [ ] Git commit: "refactor: extract magic numbers to constants in GameRenderer (Phase 5.2)"
+
+---
+
+#### Task 5.3: Replace Deprecated substr() Method
+
+**Context**: `substr()` is deprecated in ECMAScript, should use `substring()` or `slice()`
+
+**Priority**: LOW - Future-proofing
+
+**Files to modify**:
+- `src/ui/GameRenderer.ts` (line 422 in dimColor method)
+
+##### Subtasks:
+- [ ] Replace `hex.substr(0, 2)` with `hex.substring(0, 2)`
+- [ ] Replace `hex.substr(2, 2)` with `hex.substring(2, 4)`
+- [ ] Replace `hex.substr(4, 2)` with `hex.substring(4, 6)`
+- [ ] Test color dimming to ensure no visual changes
+- [ ] Git commit: "refactor: replace deprecated substr() with substring() (Phase 5.3)"
+
+---
+
+#### Task 5.4: Move Inline Animations to CSS
+
+**Context**: @keyframes animations and inline styles should be in CSS for better separation of concerns
+
+**Priority**: LOW - Code organization improvement
+
+**Files to modify**:
+- `src/ui/GameRenderer.ts` (lines 363-367)
+- `public/styles.css`
+
+##### Subtasks:
+- [ ] Move `@keyframes blink` to styles.css as `hp-blink`
+- [ ] Create `.hp-critical-blink` CSS class
+- [ ] Update GameRenderer to apply class instead of inline animation
+- [ ] Test HP blinking animation at critical health
+- [ ] Git commit: "refactor: move HP blink animation to CSS file (Phase 5.4)"
+
+---
+
+#### Task 5.5: Update Plan Status
+
+**Context**: Mark Phase 5 complete and update overall plan status
+
+**Priority**: LOW - Documentation
+
+**Files to modify**:
+- `docs/plans/ui_refactor_plan.md`
+
+##### Subtasks:
+- [ ] Mark Phase 5 tasks as completed
+- [ ] Update plan status to "✅ Complete" or "Ready for Merge"
+- [ ] Update timeline section with Phase 5 completion
+- [ ] Git commit: "docs: mark Phase 5 complete in plan (Phase 5.5)"
 
 ---
 
@@ -709,7 +806,13 @@ Key: Dungeon map gets majority of vertical space on small screens
   - Compact 2-column panel layout (Task 3.6): 1 hour
 - Phase 4: Documentation Updates - 🚧 IN PROGRESS (1-2 hours remaining)
   - Task 4.1 (UI Design Doc): ✅ COMPLETED (~30 mins)
-- **Total**: 16-19 hours (~1-1.5 hours remaining)
+- Phase 5: PR Review Fixes - 🚧 IN PROGRESS (~2-3 hours)
+  - Task 5.1 (Test assertions): HIGH priority (~30 mins)
+  - Task 5.2 (Extract constants): MEDIUM priority (~30 mins)
+  - Task 5.3 (Replace substr): LOW priority (~15 mins)
+  - Task 5.4 (Move animations): LOW priority (~30 mins)
+  - Task 5.5 (Update plan): LOW priority (~15 mins)
+- **Total**: 18-22 hours (~3-5 hours remaining)
 
 ---
 

@@ -202,12 +202,12 @@ describe('LeaderboardScreen', () => {
 
       const text = document.body.textContent || ''
 
-      // Highest score (7,000) should appear before lowest score (3,000) in text
-      const index7000 = text.indexOf('7,000')
-      const index3000 = text.indexOf('3,000')
+      // Highest score (7,000 or 7 000) should appear before lowest score (3,000 or 3 000) in text
+      const index7000 = text.search(/7[,\s]+000/)
+      const index3000 = text.search(/3[,\s]+000/)
 
-      expect(index7000).toBeGreaterThan(0)
-      expect(index3000).toBeGreaterThan(0)
+      expect(index7000).toBeGreaterThanOrEqual(0)
+      expect(index3000).toBeGreaterThanOrEqual(0)
       expect(index7000).toBeLessThan(index3000)
     })
 
@@ -576,8 +576,9 @@ describe('LeaderboardScreen', () => {
 
       // Should show seed-alpha with best score 5,000 (2 runs)
       // Should show seed-beta with best score 4,000 (1 run)
-      expect(document.body.textContent).toContain('5,000')
-      expect(document.body.textContent).toContain('4,000')
+      // Accept comma or whitespace(s) as thousands separator
+      expect(document.body.textContent).toMatch(/5[,\s]+000/)
+      expect(document.body.textContent).toMatch(/4[,\s]+000/)
       expect(document.body.textContent).toContain('seed-alpha')
       expect(document.body.textContent).toContain('seed-beta')
     })
