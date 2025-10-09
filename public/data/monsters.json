@@ -501,6 +501,7 @@
       "intelligence": 1,
       "aggroRange": 6,
       "fleeThreshold": 0.0,
+      "chaseChance": 0.67,
       "special": []
     }
   }
