@@ -189,13 +189,13 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 - `docs/wandering-monsters-design.md` (design doc)
 
 ##### Subtasks:
-- [ ] Research authentic Rogue wandering spawn rates (turns between spawns)
-- [ ] Design spawn chance formula: `baseChance + (turnsSinceLastSpawn * multiplier)`
-- [ ] Determine spawn location rules: any walkable tile NOT in player's room
-- [ ] Define monster selection: same level-appropriate spawn table as initial generation
-- [ ] Decide max wandering monsters per level (prevent overcrowding)
-- [ ] Document design rationale
-- [ ] Git commit: "docs: design wandering monster spawn system (Phase 3.1)"
+- [x] Research authentic Rogue wandering spawn rates (~1% per turn in original)
+- [x] Design spawn chance formula: 0.5% base + 0.01% per turn, cap at 5%
+- [x] Determine spawn location rules: walkable tiles NOT in player's room, unoccupied
+- [x] Define monster selection: reuse MonsterSpawnService level-appropriate spawns
+- [x] Decide max wandering monsters per level: 5 wanderers (prevents overcrowding)
+- [x] Document design rationale in comprehensive design doc
+- [x] Git commit: "docs: design wandering monster spawn system (Phase 3.1)"
 
 ---
 
