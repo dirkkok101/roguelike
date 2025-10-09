@@ -366,17 +366,27 @@ export class GameRenderer {
           51%, 100% { opacity: 0.3; }
         }
       </style>
-      <!-- Row 1: Core Stats -->
+      <!-- Row 1: Core Stats + Resources Panels -->
       <div class="stats-row-1">
-        <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
-        <div>Str: ${strDisplay}</div>
-        <div>AC: ${acDisplay}</div>
-        <div>Lvl: ${player.level}</div>
-        <div>XP: ${xpDisplay}</div>
-        <div>Gold: ${player.gold}</div>
-        <div>Turn: ${state.turnCount}</div>
-        <div>Depth: ${state.currentLevel}</div>
-        <div style="color: ${invColor};">Inv: ${invCount}/26</div>
+        <div class="stats-panel">
+          <div class="stats-panel-header">Combat Stats</div>
+          <div class="stats-panel-content">
+            <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
+            <div>Str: ${strDisplay}</div>
+            <div>AC: ${acDisplay}</div>
+            <div>Lvl: ${player.level}</div>
+          </div>
+        </div>
+        <div class="stats-panel">
+          <div class="stats-panel-header">Resources</div>
+          <div class="stats-panel-content">
+            <div>XP: ${xpDisplay}</div>
+            <div>Gold: ${player.gold}</div>
+            <div>Turn: ${state.turnCount}</div>
+            <div>Depth: ${state.currentLevel}</div>
+            <div style="color: ${invColor};">Inv: ${invCount}/26</div>
+          </div>
+        </div>
       </div>
 
       <!-- Row 2: Equipment + Status Effects -->

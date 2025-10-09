@@ -24,39 +24,29 @@ body {
 /* Make game container fill the screen */
 .game-container {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 320px;
   grid-template-rows: auto 1fr auto;
   gap: 15px;
   padding: 20px;
   width: 100%;
   height: 100%;
-  max-width: 1600px;
+  max-width: 1800px;
   margin: 0 auto;
 }
 
-/* Messages span full width at top */
-.messages-view {
+/* Stats bar spans full width at top */
+.stats-view {
   grid-column: 1 / -1;
   grid-row: 1;
   background: #2a2a2a;
   border: 1px solid #444;
-  padding: 15px;
-  min-height: 120px;
-  max-height: 150px;
-  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.messages div {
-  margin: 2px 0;
-}
-
-.msg-info { color: #ffffff; }
-.msg-combat { color: #ff8800; }
-.msg-warning { color: #ffdd00; }
-.msg-critical { color: #ff0000; }
-.msg-success { color: #00ff00; }
-
-/* Dungeon takes main area */
+/* Dungeon takes main area on left */
 .dungeon-view {
   grid-column: 1;
   grid-row: 2;
@@ -78,20 +68,28 @@ body {
   white-space: pre;
 }
 
-/* Stats sidebar on the right */
-.stats-view {
+/* Messages in right sidebar (vertical) */
+.messages-view {
   grid-column: 2;
   grid-row: 2;
   background: #2a2a2a;
   border: 1px solid #444;
-  padding: 15px;
-  min-width: 250px;
-  align-self: start;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
-.stats div {
-  margin: 4px 0;
+.messages div {
+  margin: 2px 0;
+  font-size: 0.9em;
 }
+
+.msg-info { color: #ffffff; }
+.msg-combat { color: #ff8800; }
+.msg-warning { color: #ffdd00; }
+.msg-critical { color: #ff0000; }
+.msg-success { color: #00ff00; }
 
 /* Contextual command bar spans full width at bottom */
 .contextual-command-bar {
@@ -107,27 +105,204 @@ body {
 .tile-explored { opacity: 0.5; }
 .tile-unexplored { opacity: 0; }
 
+/* Stats Panel Components */
+.stats-row-1 {
+  display: flex;
+  gap: 12px;
+  font-size: 0.95em;
+}
+
+/* Stats panel styling */
+.stats-panel {
+  flex: 1;
+  padding: 10px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stats-panel-header {
+  color: #888;
+  font-size: 0.85em;
+  margin-bottom: 2px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
+}
+
+.stats-panel-content {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.stats-panel-content > div {
+  white-space: nowrap;
+}
+
+.stats-row-2 {
+  display: flex;
+  gap: 12px;
+}
+
+.equipment-section {
+  flex: 3;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 10px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+}
+
+.equipment-header {
+  grid-column: 1 / -1;
+  color: #888;
+  font-size: 0.85em;
+  margin-bottom: 2px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
+}
+
+.equipment-slot {
+  font-size: 0.9em;
+  color: #ccc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.equipment-slot.empty {
+  color: #666;
+  font-style: italic;
+}
+
+.equipment-slot.cursed {
+  color: #ff4444;
+}
+
+.status-section {
+  flex: 2;
+  padding: 10px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.status-header {
+  color: #888;
+  font-size: 0.85em;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
+}
+
+.status-effect-item {
+  font-size: 0.85em;
+  margin: 2px 0;
+}
+
+.status-empty {
+  color: #666;
+  font-style: italic;
+  font-size: 0.85em;
+}
+
+.stats-row-3 {
+  display: flex;
+  gap: 20px;
+  font-size: 0.85em;
+}
+
+.resource-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-visual {
+  display: inline-block;
+  width: 100px;
+  height: 12px;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+}
+
+.bar-fill.hunger {
+  background: #00ff00;
+}
+
+.bar-fill.hunger.warning {
+  background: #ff8800;
+}
+
+.bar-fill.hunger.critical {
+  background: #ff0000;
+}
+
+.bar-fill.light {
+  background: #ffdd00;
+}
+
+.bar-fill.light.warning {
+  background: #ff8800;
+}
+
+.bar-fill.light.critical {
+  background: #ff0000;
+}
+
 /* Responsive adjustments */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .game-container {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto 1fr auto auto;
   }
 
   .stats-view {
     grid-column: 1;
-    grid-row: 2;
-    min-width: auto;
+    grid-row: 1;
   }
 
   .dungeon-view {
     grid-column: 1;
+    grid-row: 2;
+  }
+
+  .messages-view {
+    grid-column: 1;
     grid-row: 3;
+    max-height: 200px;
   }
 
   .contextual-command-bar {
     grid-column: 1;
     grid-row: 4;
+  }
+
+  .stats-row-2 {
+    flex-direction: column;
+  }
+
+  .equipment-section,
+  .status-section {
+    flex: 1;
   }
 }
 
