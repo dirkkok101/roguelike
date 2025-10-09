@@ -78,6 +78,8 @@ export interface Level {
   stairsUp: Position | null
   stairsDown: Position | null
   explored: boolean[][]
+  wanderingMonsterCount?: number // Count of wandering monsters spawned (max 5)
+  lastWanderingSpawnTurn?: number // Turn number of last wandering monster spawn
 }
 
 /**

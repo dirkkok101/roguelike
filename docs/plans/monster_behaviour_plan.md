@@ -210,15 +210,15 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 - `src/services/WanderingMonsterService/index.ts`
 
 ##### Subtasks:
-- [ ] Define `WanderingMonsterService` interface
-- [ ] Implement `shouldSpawnWanderer(level: Level, turnCount: number): boolean`
-- [ ] Implement `getSpawnLocation(level: Level, playerPos: Position): Position | null`
-- [ ] Implement `spawnWanderer(level: Level, depth: number): Monster`
-- [ ] Track `lastWanderingSpawnTurn` in Level interface
-- [ ] Inject MonsterSpawnService for monster creation
-- [ ] Write comprehensive unit tests (>90% coverage)
-- [ ] Create barrel export
-- [ ] Git commit: "feat: implement WanderingMonsterService (Phase 3.2)"
+- [x] Define `WanderingMonsterService` interface
+- [x] Implement `shouldSpawnWanderer(level: Level, turnCount: number): boolean`
+- [x] Implement `getSpawnLocation(level: Level, playerPos: Position): Position | null`
+- [x] Implement `spawnWanderer(level: Level, depth: number): Monster`
+- [x] Track `lastWanderingSpawnTurn` in Level interface
+- [x] Inject MonsterSpawnService for monster creation
+- [x] Write comprehensive unit tests (>90% coverage)
+- [x] Create barrel export
+- [x] Git commit: "feat: implement WanderingMonsterService (Phase 3.2)"
 
 ---
 
