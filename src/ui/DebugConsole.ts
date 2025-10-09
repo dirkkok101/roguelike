@@ -179,6 +179,7 @@ export class DebugConsole {
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">v</span> Reveal Map</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">a</span> Identify All Items</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">m</span> Spawn Monster</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">I</span> Spawn Item</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">M</span> Wake All Monsters</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">K</span> Kill All Monsters</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">f</span> FOV Overlay</div>

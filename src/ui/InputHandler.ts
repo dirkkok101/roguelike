@@ -27,6 +27,7 @@ import { ToggleFOVDebugCommand } from '@commands/ToggleFOVDebugCommand'
 import { TogglePathDebugCommand } from '@commands/TogglePathDebugCommand'
 import { ToggleAIDebugCommand } from '@commands/ToggleAIDebugCommand'
 import { IdentifyAllItemsCommand } from '@commands/IdentifyAllItemsCommand'
+import { SpawnItemCommand } from '@commands/SpawnItemCommand'
 import { RestService } from '@services/RestService'
 import { SearchService } from '@services/SearchService'
 import { MovementService } from '@services/MovementService'
@@ -720,6 +721,14 @@ export class InputHandler {
         if (this.debugService.isEnabled()) {
           event.preventDefault()
           return new IdentifyAllItemsCommand(this.debugService)
+        }
+        return null
+
+      case 'I':
+        // Spawn item (hardcoded to potion/HEAL for now - TODO: add item type/subtype selection modal)
+        if (this.debugService.isEnabled()) {
+          event.preventDefault()
+          return new SpawnItemCommand('potion', 'HEAL', this.debugService)
         }
         return null
 
