@@ -427,6 +427,334 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 
 ---
 
+### Phase 3.5: Viewport Scrolling & Camera System (Priority: HIGH)
+
+**Objective**: Implement a NetHack-style scroll margin camera system that allows the player to move visibly within the viewport while only scrolling when approaching edges. Replace the current always-centered camera which makes it feel like the map is moving rather than the player moving.
+
+**Context**:
+- **Current Issue**: Camera always centers on player, making it feel like the map moves instead of the player
+- **Research**: NetHack uses scroll margins, Angband uses panel-based or centered mode, classic roguelikes favor deadzone approaches
+- **Viewport Analysis**:
+  - Canvas Size: 2560×704px
+  - Tile Size: 32×32px
+  - Grid Dimensions: 80×22 tiles (2560÷32 = 80 wide, 704÷32 = 22 tall)
+  - Map Size: Varies by level, typically 80-100 tiles wide × 40-60 tiles tall
+
+**Scroll Margin Design**:
+- **Horizontal Margins**: 10 tiles from left/right edges
+- **Vertical Margins**: 5 tiles from top/bottom edges
+- **Comfort Zone**: 60×12 tile center area where player can move without scrolling
+- **Behavior**: Camera only scrolls when player enters margin zones
+
+#### Task 3.5.1: Add Scroll Margin Configuration
+
+**Context**: Extend CanvasRenderConfig with scroll margin settings and camera state tracking
+
+**Files to create/modify**:
+- `src/ui/CanvasGameRenderer.ts` (modify)
+
+##### Subtasks:
+- [ ] Add to `CanvasRenderConfig` interface:
+  ```typescript
+  scrollMarginX: number  // Default: 10 tiles (horizontal deadzone)
+  scrollMarginY: number  // Default: 5 tiles (vertical deadzone)
+  ```
+- [ ] Add private camera state fields to `CanvasGameRenderer` class:
+  ```typescript
+  private isFirstRender: boolean = true         // For initial centering
+  private previousLevel: number | null = null   // For level transition detection
+  private previousPlayerPos: Position | null = null  // For movement detection
+  ```
+- [ ] Update constructor to initialize scroll margins with defaults
+- [ ] Git commit: "feat: add scroll margin configuration to CanvasRenderer (Phase 3.5.1)"
+
+---
+
+#### Task 3.5.2: Implement Scroll Margin Camera Logic
+
+**Context**: Replace simple centering with scroll margin-based camera positioning
+
+**Files to create/modify**:
+- `src/ui/CanvasGameRenderer.ts` (modify)
+
+##### Subtasks:
+- [ ] Create `updateCamera(state: GameState): void` method with algorithm:
+  ```typescript
+  private updateCamera(state: GameState): void {
+    const playerPos = state.player.position
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return
+
+    // 1. Check for level transition (new level or first render)
+    const levelChanged = this.previousLevel !== state.currentLevel
+    if (levelChanged || this.isFirstRender) {
+      // Center camera on player for new level
+      this.cameraOffsetX = playerPos.x - Math.floor(this.config.gridWidth / 2)
+      this.cameraOffsetY = playerPos.y - Math.floor(this.config.gridHeight / 2)
+      this.isFirstRender = false
+      this.previousLevel = state.currentLevel
+    } else {
+      // 2. Scroll margin mode (normal gameplay)
+      // Horizontal scrolling
+      if (playerPos.x < this.cameraOffsetX + this.config.scrollMarginX) {
+        this.cameraOffsetX = playerPos.x - this.config.scrollMarginX
+      } else if (playerPos.x >= this.cameraOffsetX + this.config.gridWidth - this.config.scrollMarginX) {
+        this.cameraOffsetX = playerPos.x - this.config.gridWidth + this.config.scrollMarginX
+      }
+
+      // Vertical scrolling
+      if (playerPos.y < this.cameraOffsetY + this.config.scrollMarginY) {
+        this.cameraOffsetY = playerPos.y - this.config.scrollMarginY
+      } else if (playerPos.y >= this.cameraOffsetY + this.config.gridHeight - this.config.scrollMarginY) {
+        this.cameraOffsetY = playerPos.y - this.config.gridHeight + this.config.scrollMarginY
+      }
+    }
+
+    // 3. Edge clamping (prevent showing off-map areas)
+    const mapWidth = level.tiles[0]?.length || this.config.gridWidth
+    const mapHeight = level.tiles.length || this.config.gridHeight
+
+    this.cameraOffsetX = Math.max(0, Math.min(this.cameraOffsetX, mapWidth - this.config.gridWidth))
+    this.cameraOffsetY = Math.max(0, Math.min(this.cameraOffsetY, mapHeight - this.config.gridHeight))
+
+    // Store for next frame
+    this.previousPlayerPos = { ...playerPos }
+  }
+  ```
+- [ ] Call `updateCamera(state)` at start of `render(state)` method (before rendering)
+- [ ] Remove old centering logic from `render()` method
+- [ ] Git commit: "feat: implement scroll margin camera system (Phase 3.5.2)"
+
+---
+
+#### Task 3.5.3: Handle Level Transitions and Edge Cases
+
+**Context**: Ensure camera behaves correctly for stairs navigation and small maps
+
+**Files to create/modify**:
+- `src/ui/CanvasGameRenderer.ts` (modify)
+
+##### Subtasks:
+- [ ] Add level transition detection in `updateCamera()`:
+  - Compare `state.currentLevel` with `this.previousLevel`
+  - If changed, trigger initial centering
+- [ ] Handle small maps (smaller than viewport):
+  ```typescript
+  // If map width < viewport width, lock camera at X=0
+  if (mapWidth <= this.config.gridWidth) {
+    this.cameraOffsetX = 0
+  }
+  // Same for height
+  if (mapHeight <= this.config.gridHeight) {
+    this.cameraOffsetY = 0
+  }
+  ```
+- [ ] Adjust scroll margins dynamically for small maps:
+  ```typescript
+  const effectiveMarginX = Math.min(this.config.scrollMarginX, Math.floor(mapWidth / 4))
+  const effectiveMarginY = Math.min(this.config.scrollMarginY, Math.floor(mapHeight / 4))
+  ```
+- [ ] Add debug logging (removable after testing):
+  ```typescript
+  console.log(`[Camera] offset=(${this.cameraOffsetX}, ${this.cameraOffsetY}) player=(${playerPos.x}, ${playerPos.y}) level=${state.currentLevel}`)
+  ```
+- [ ] Git commit: "feat: handle level transitions and small maps in camera (Phase 3.5.3)"
+
+---
+
+#### Task 3.5.4: Write Comprehensive Camera Unit Tests
+
+**Context**: Test all camera behaviors with scroll margins, transitions, and edge cases
+
+**Files to create/modify**:
+- `src/ui/CanvasGameRenderer.camera.test.ts` (new file)
+
+##### Subtasks:
+- [ ] **Test Suite**: Camera Scroll Margin System
+- [ ] **Scenario 1: Initial Centering on Level Entry**
+  - Given: New level, player at (50, 30)
+  - When: First render() called
+  - Then: Camera centered at (50-40, 30-11) = (10, 19)
+  - Verify: `cameraOffsetX = 10, cameraOffsetY = 19`
+
+- [ ] **Scenario 2: Player Movement Within Comfort Zone**
+  - Given: Camera at (10, 10), player at (50, 21), margins (10, 5)
+  - When: Player moves to (51, 21) [still in comfort zone: X ∈ [20, 70], Y ∈ [15, 17]]
+  - Then: Camera stays at (10, 10)
+  - Verify: Camera did not scroll
+
+- [ ] **Scenario 3: Player Approaches Right Edge (Scroll Right)**
+  - Given: Camera at (10, 10), player at (69, 21), viewport 80×22
+  - When: Player moves to (70, 21) [exits comfort zone: 10+(80-10) = 80]
+  - Then: Camera scrolls to (70-(80-10), 10) = (0, 10)
+  - Verify: `cameraOffsetX` updated
+
+- [ ] **Scenario 4: Player Approaches Left Edge (Scroll Left)**
+  - Given: Camera at (20, 10), player at (30, 21)
+  - When: Player moves to (29, 21) [enters left margin: 20+10=30]
+  - Then: Camera scrolls to (29-10, 10) = (19, 10)
+  - Verify: `cameraOffsetX = 19`
+
+- [ ] **Scenario 5: Player Approaches Bottom Edge (Scroll Down)**
+  - Given: Camera at (10, 10), player at (50, 21)
+  - When: Player moves to (50, 22) [exits comfort zone: 10+5=15, 10+(22-5)=27]
+  - Then: Camera scrolls to (10, 22-(22-5)) = (10, 5)
+  - Verify: `cameraOffsetY = 5`
+
+- [ ] **Scenario 6: Player Approaches Top Edge (Scroll Up)**
+  - Given: Camera at (10, 10), player at (50, 15)
+  - When: Player moves to (50, 14) [enters top margin: 10+5=15]
+  - Then: Camera scrolls to (10, 14-5) = (10, 9)
+  - Verify: `cameraOffsetY = 9`
+
+- [ ] **Scenario 7: Edge Clamping - Left/Top Map Boundary**
+  - Given: Camera at (0, 0), player at (5, 5), map 80×50 tiles
+  - When: Player moves to (3, 3) [would move camera to negative]
+  - Then: Camera clamped at (0, 0)
+  - Verify: `cameraOffsetX >= 0, cameraOffsetY >= 0`
+
+- [ ] **Scenario 8: Edge Clamping - Right/Bottom Map Boundary**
+  - Given: Map 80×50 tiles, viewport 80×22, player at (77, 47)
+  - When: Player moves right (camera would exceed map width)
+  - Then: Camera clamped at (max(0, 80-80), max(0, 50-22)) = (0, 28)
+  - Verify: Camera doesn't show off-map areas
+
+- [ ] **Scenario 9: Small Map - Width < Viewport**
+  - Given: Map 60×50 tiles (< 80 viewport width)
+  - When: render() called with player anywhere
+  - Then: Camera locked at X=0 (entire width visible)
+  - Verify: `cameraOffsetX = 0` always
+
+- [ ] **Scenario 10: Small Map - Height < Viewport**
+  - Given: Map 80×18 tiles (< 22 viewport height)
+  - When: render() called with player anywhere
+  - Then: Camera locked at Y=0 (entire height visible)
+  - Verify: `cameraOffsetY = 0` always
+
+- [ ] **Scenario 11: Level Transition via Stairs Down**
+  - Given: Player on level 1 at (70, 30), camera at (30, 19)
+  - When: Player takes stairs to level 2, spawns at (40, 25)
+  - Then: Camera re-centers at (40-40, 25-11) = (0, 14)
+  - Verify: `previousLevel` updated, camera centered
+
+- [ ] **Scenario 12: Level Transition via Stairs Up**
+  - Given: Player on level 2 at (20, 10), camera at (0, 0)
+  - When: Player takes stairs to level 1, spawns at (15, 8)
+  - Then: Camera re-centers at (15-40, 8-11) = (-25, -3) → clamped to (0, 0)
+  - Verify: Level change detected, camera centered and clamped
+
+- [ ] **Scenario 13: Rapid Movement Within Comfort Zone**
+  - Given: Camera at (10, 10), player at (50, 21)
+  - When: Player makes 5 moves within comfort zone
+  - Then: Camera never scrolls
+  - Verify: `cameraOffsetX` and `cameraOffsetY` unchanged
+
+- [ ] **Scenario 14: Diagonal Movement Crossing Both Margins**
+  - Given: Camera at (20, 10), player at (29, 14)
+  - When: Player moves diagonally to (28, 13) [crosses both margins]
+  - Then: Camera scrolls on both axes
+  - Verify: Both `cameraOffsetX` and `cameraOffsetY` updated
+
+- [ ] **Scenario 15: Map Reveal Debug Command**
+  - Given: Camera at (10, 10), reveal entire map (all tiles explored)
+  - When: render() called after reveal
+  - Then: Camera position unchanged (player still in same position)
+  - Verify: No unintended camera jump
+
+- [ ] Achieve >90% coverage for camera logic
+- [ ] Git commit: "test: comprehensive camera scroll margin tests (Phase 3.5.4)"
+
+---
+
+#### Task 3.5.5: Integration Testing with Real Gameplay
+
+**Context**: Test camera system with actual game scenarios and player input
+
+**Files to create/modify**:
+- `src/ui/CanvasGameRenderer.integration.test.ts` (new file)
+
+##### Subtasks:
+- [ ] **Integration Test 1: Full game loop with movement**
+  - Start new game
+  - Move player around starting room (no scrolling)
+  - Move player toward corridor (camera scrolls)
+  - Verify smooth camera following
+
+- [ ] **Integration Test 2: Level navigation**
+  - Complete level 1
+  - Take stairs down to level 2
+  - Verify camera re-centers on new level
+  - Take stairs back up
+  - Verify camera re-centers again
+
+- [ ] **Integration Test 3: Combat while near edge**
+  - Position player near viewport edge
+  - Engage monster (movement during combat)
+  - Verify camera scrolls appropriately
+
+- [ ] **Integration Test 4: Multiple level transitions**
+  - Navigate from level 1 → 2 → 3 → 2 → 1
+  - Verify camera centers correctly each time
+
+- [ ] Git commit: "test: camera integration tests with gameplay (Phase 3.5.5)"
+
+---
+
+#### Task 3.5.6: Manual Testing Checklist
+
+**Context**: Human verification of camera feel and behavior
+
+##### Manual Test Cases:
+- [ ] **Test 1: Game start** - Camera centers on player in starting room
+- [ ] **Test 2: Move around starting room** - Player moves visibly, no camera scroll
+- [ ] **Test 3: Move toward room edge** - Camera scrolls smoothly when approaching viewport edge
+- [ ] **Test 4: Move to level edge** - Camera clamps at map boundaries, no black space shown
+- [ ] **Test 5: Take stairs down** - Camera re-centers on player on new level
+- [ ] **Test 6: Take stairs up** - Camera re-centers on returning to previous level
+- [ ] **Test 7: Navigate corridors** - Camera follows player appropriately through tight spaces
+- [ ] **Test 8: Explore large room** - Player can explore room before camera scrolls
+- [ ] **Test 9: Use reveal map debug (`v` key)** - Camera stays stable after revealing entire level
+- [ ] **Test 10: Fast movement** - Rapidly move player in all directions, verify no jitter or lag
+- [ ] **Test 11: Diagonal movement** - Camera scrolls smoothly on both axes when needed
+- [ ] **Test 12: Play through 3 levels** - Verify consistent behavior across multiple levels
+
+##### Subjective Feel Checks:
+- [ ] Camera feels responsive (not laggy)
+- [ ] Player movement feels natural (not like map is moving)
+- [ ] Scroll margins feel appropriate (not too aggressive or too passive)
+- [ ] No disorienting camera jumps
+- [ ] Smooth transitions on level changes
+
+---
+
+#### Task 3.5.7: Update Documentation for Camera System
+
+**Context**: Document the scroll margin camera system for future reference
+
+**Files to create/modify**:
+- `docs/systems-core.md` (modify)
+- `docs/ui/CanvasGameRenderer.md` (new or modify)
+
+##### Subtasks:
+- [ ] Add "Camera & Viewport System" section to `docs/systems-core.md`:
+  - Explain scroll margin concept
+  - Document comfort zone dimensions
+  - Describe level transition behavior
+  - Include diagrams showing margin zones
+  - Performance considerations
+
+- [ ] Update `docs/ui/CanvasGameRenderer.md`:
+  - Document `updateCamera()` method
+  - Explain scroll margin algorithm
+  - Describe edge clamping logic
+  - Include code examples
+
+- [ ] Add camera system to architecture diagrams (if applicable)
+
+- [ ] Git commit: "docs: document scroll margin camera system (Phase 3.5.7)"
+
+---
+
 ### Phase 4: Performance Optimization (Priority: MEDIUM)
 
 **Objective**: Optimize rendering for 60 FPS with minimal CPU/GPU usage

@@ -16,6 +16,8 @@ export interface CanvasRenderConfig {
   enableDirtyRectangles: boolean // true for optimization
   exploredOpacity: number // 0.5 for dimming
   detectedOpacity: number // 0.6 for detected entities
+  scrollMarginX: number // 10 tiles - horizontal deadzone for camera scrolling
+  scrollMarginY: number // 5 tiles - vertical deadzone for camera scrolling
 }
 
 /**
@@ -27,6 +29,13 @@ export interface CanvasRenderConfig {
 export class CanvasGameRenderer {
   private ctx: CanvasRenderingContext2D
   private config: CanvasRenderConfig
+
+  // Camera state for scroll margin system
+  private cameraOffsetX = 0
+  private cameraOffsetY = 0
+  private isFirstRender = true
+  private previousLevel: number | null = null
+  private previousPlayerPos: Position | null = null
 
   constructor(
     private renderingService: RenderingService,
@@ -51,6 +60,8 @@ export class CanvasGameRenderer {
       enableDirtyRectangles: true,
       exploredOpacity: 0.5,
       detectedOpacity: 0.6,
+      scrollMarginX: 10, // 10 tiles from left/right edges
+      scrollMarginY: 5, // 5 tiles from top/bottom edges
       ...config,
     }
 
@@ -87,6 +98,19 @@ export class CanvasGameRenderer {
       return
     }
 
+    console.log('[CanvasGameRenderer] render() called')
+
+    // Calculate camera offset to center on player
+    const playerPos = state.player.position
+    const viewportWidth = this.config.gridWidth
+    const viewportHeight = this.config.gridHeight
+
+    // Camera offset in grid coordinates
+    this.cameraOffsetX = playerPos.x - Math.floor(viewportWidth / 2)
+    this.cameraOffsetY = playerPos.y - Math.floor(viewportHeight / 2)
+
+    console.log(`[CanvasGameRenderer] Camera offset: (${this.cameraOffsetX}, ${this.cameraOffsetY}), player at (${playerPos.x}, ${playerPos.y})`)
+
     // Clear canvas
     this.clear()
 
@@ -112,6 +136,12 @@ export class CanvasGameRenderer {
       return
     }
 
+    let visibleCount = 0
+    let exploredCount = 0
+    let unexploredCount = 0
+    let spriteFoundCount = 0
+    let spriteNotFoundCount = 0
+
     // Loop through entire grid
     for (let y = 0; y < this.config.gridHeight; y++) {
       for (let x = 0; x < this.config.gridWidth; x++) {
@@ -127,16 +157,26 @@ export class CanvasGameRenderer {
           level
         )
 
+        // Count visibility states
+        if (visibilityState === 'visible') visibleCount++
+        else if (visibilityState === 'explored') exploredCount++
+        else unexploredCount++
+
         // Skip unexplored tiles
         if (visibilityState === 'unexplored') continue
 
         // Look up sprite for tile character
         const sprite = this.assetLoader.getSprite(tile.char)
         if (!sprite) {
-          // Fallback: log warning for missing sprite (don't spam console)
-          // In Phase 5 we'll add better fallback handling
+          spriteNotFoundCount++
+          // Log first few missing sprites
+          if (spriteNotFoundCount <= 3) {
+            console.warn(`[CanvasGameRenderer] No sprite for '${tile.char}' at (${x},${y})`)
+          }
           continue
         }
+
+        spriteFoundCount++
 
         // Determine opacity based on visibility
         const opacity = visibilityState === 'visible' ? 1.0 : this.config.exploredOpacity
@@ -145,6 +185,8 @@ export class CanvasGameRenderer {
         this.drawTile(x, y, sprite, opacity)
       }
     }
+
+    console.log(`[CanvasGameRenderer] Terrain: visible=${visibleCount}, explored=${exploredCount}, unexplored=${unexploredCount}, sprites found=${spriteFoundCount}, not found=${spriteNotFoundCount}`)
   }
 
   /**
@@ -314,6 +356,13 @@ export class CanvasGameRenderer {
     // Convert grid coordinates to screen coordinates
     const screen = this.worldToScreen({ x, y })
 
+    // Debug: Log first few draw calls WITH image state
+    if (this.drawCallCount < 3) {
+      console.log(`[CanvasGameRenderer] drawTile(${x}, ${y}) sprite=(${sprite.x}, ${sprite.y}) screen=(${screen.x}, ${screen.y}) opacity=${opacity}`)
+      console.log(`[CanvasGameRenderer] image.complete=${tileset.image.complete}, image.width=${tileset.image.width}, image.height=${tileset.image.height}, image.naturalWidth=${tileset.image.naturalWidth}, image.naturalHeight=${tileset.image.naturalHeight}`)
+      this.drawCallCount++
+    }
+
     // Set opacity
     const previousAlpha = this.ctx.globalAlpha
     this.ctx.globalAlpha = opacity
@@ -344,6 +393,8 @@ export class CanvasGameRenderer {
     this.ctx.globalAlpha = previousAlpha
   }
 
+  private drawCallCount = 0
+
   /**
    * Convert world (grid) coordinates to screen (pixel) coordinates
    *
@@ -352,8 +403,8 @@ export class CanvasGameRenderer {
    */
   worldToScreen(pos: Position): { x: number; y: number } {
     return {
-      x: pos.x * this.config.tileWidth,
-      y: pos.y * this.config.tileHeight,
+      x: (pos.x - this.cameraOffsetX) * this.config.tileWidth,
+      y: (pos.y - this.cameraOffsetY) * this.config.tileHeight,
     }
   }
 
