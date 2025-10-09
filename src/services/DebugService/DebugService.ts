@@ -275,23 +275,19 @@ export class DebugService {
     try {
       switch (itemType.toLowerCase()) {
         case 'potion': {
-          const potionType = subType ? (PotionType[subType as keyof typeof PotionType] || PotionType.HEAL) : PotionType.HEAL
-          item = this.itemSpawnService.createPotion(potionType, spawnPos)
+          item = this.itemSpawnService.createPotion(this.parsePotionType(subType), spawnPos)
           break
         }
         case 'scroll': {
-          const scrollType = subType ? (ScrollType[subType as keyof typeof ScrollType] || ScrollType.IDENTIFY) : ScrollType.IDENTIFY
-          item = this.itemSpawnService.createScroll(scrollType, spawnPos)
+          item = this.itemSpawnService.createScroll(this.parseScrollType(subType), spawnPos)
           break
         }
         case 'ring': {
-          const ringType = subType ? (RingType[subType as keyof typeof RingType] || RingType.PROTECTION) : RingType.PROTECTION
-          item = this.itemSpawnService.createRing(ringType, spawnPos)
+          item = this.itemSpawnService.createRing(this.parseRingType(subType), spawnPos)
           break
         }
         case 'wand': {
-          const wandType = subType ? (WandType[subType as keyof typeof WandType] || WandType.MAGIC_MISSILE) : WandType.MAGIC_MISSILE
-          item = this.itemSpawnService.createWand(wandType, spawnPos)
+          item = this.itemSpawnService.createWand(this.parseWandType(subType), spawnPos)
           break
         }
         case 'food': {
@@ -725,5 +721,65 @@ export class DebugService {
     }
 
     return null
+  }
+
+  // ============================================================================
+  // ENUM PARSING HELPERS (Phase 7.2)
+  // ============================================================================
+
+  /**
+   * Parse potion type from string
+   *
+   * Converts string subtype to PotionType enum value.
+   * Returns default (HEAL) if subtype is undefined or invalid.
+   *
+   * @param subType - Optional string representation of PotionType
+   * @returns PotionType enum value
+   */
+  private parsePotionType(subType?: string): PotionType {
+    if (!subType) return PotionType.HEAL
+    return PotionType[subType as keyof typeof PotionType] || PotionType.HEAL
+  }
+
+  /**
+   * Parse scroll type from string
+   *
+   * Converts string subtype to ScrollType enum value.
+   * Returns default (IDENTIFY) if subtype is undefined or invalid.
+   *
+   * @param subType - Optional string representation of ScrollType
+   * @returns ScrollType enum value
+   */
+  private parseScrollType(subType?: string): ScrollType {
+    if (!subType) return ScrollType.IDENTIFY
+    return ScrollType[subType as keyof typeof ScrollType] || ScrollType.IDENTIFY
+  }
+
+  /**
+   * Parse ring type from string
+   *
+   * Converts string subtype to RingType enum value.
+   * Returns default (PROTECTION) if subtype is undefined or invalid.
+   *
+   * @param subType - Optional string representation of RingType
+   * @returns RingType enum value
+   */
+  private parseRingType(subType?: string): RingType {
+    if (!subType) return RingType.PROTECTION
+    return RingType[subType as keyof typeof RingType] || RingType.PROTECTION
+  }
+
+  /**
+   * Parse wand type from string
+   *
+   * Converts string subtype to WandType enum value.
+   * Returns default (MAGIC_MISSILE) if subtype is undefined or invalid.
+   *
+   * @param subType - Optional string representation of WandType
+   * @returns WandType enum value
+   */
+  private parseWandType(subType?: string): WandType {
+    if (!subType) return WandType.MAGIC_MISSILE
+    return WandType[subType as keyof typeof WandType] || WandType.MAGIC_MISSILE
   }
 }
