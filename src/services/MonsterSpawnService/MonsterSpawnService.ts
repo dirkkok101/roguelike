@@ -68,6 +68,33 @@ export class MonsterSpawnService {
   }
 
   /**
+   * Get monster template by letter
+   *
+   * Looks up a monster template by its single-letter identifier (A-Z).
+   * Used by debug tools to spawn specific monster types.
+   *
+   * @param letter - Single character monster identifier (A-Z)
+   * @returns MonsterTemplate if found, null if not found or invalid letter
+   */
+  getMonsterByLetter(letter: string): MonsterTemplate | null {
+    // Ensure data is loaded
+    if (!this.dataLoaded) {
+      throw new Error('Monster data not loaded. Call loadMonsterData() first.')
+    }
+
+    // Validate input
+    if (typeof letter !== 'string' || letter.length !== 1) {
+      return null
+    }
+
+    // Find template by letter (case-insensitive)
+    const upperLetter = letter.toUpperCase()
+    const template = this.monsterTemplates.find((t) => t.letter === upperLetter)
+
+    return template || null
+  }
+
+  /**
    * Spawn monsters for a dungeon level
    *
    * Creates monsters appropriate for the given depth with weighted selection.
