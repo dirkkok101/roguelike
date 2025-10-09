@@ -196,7 +196,7 @@ The original UI design (section 5 in 11-ui-design.md) was optimized for vertical
 
 **Test Results**: See `docs/plans/ui_refactor_test_results.md` for full report
 
-**Status**: All critical issues resolved (Tasks 3.2, 3.3, 3.4, 3.5 completed)
+**Status**: All critical issues resolved (Tasks 3.2, 3.3, 3.4, 3.5, 3.6 completed)
 
 ---
 
@@ -350,7 +350,39 @@ The original UI design (section 5 in 11-ui-design.md) was optimized for vertical
 
 ---
 
-#### Task 3.6: Accessibility Verification
+#### Task 3.6: Compact 2-Column Panel Layout ✅ COMPLETED
+
+**Context**: Further reduce stats bar height by using 2-column grid within Combat and Resources panels
+
+**Priority**: HIGH - Maximizes vertical space for dungeon map
+
+**Files modified**:
+- `public/styles.css` (.stats-panel-content, equipment-section, status-section overrides)
+
+##### Subtasks:
+- [x] Update .stats-panel-content to use CSS Grid with 2 columns (1fr 1fr)
+- [x] Combat panel: Display stats in 2-column grid (HP/Str left, AC/Lvl right, XP spans)
+- [x] Resources panel: Display resources in 2-column grid (Gold/Hunger/Depth left, Turn/Torch right)
+- [x] Add override for equipment-section to remain single column
+- [x] Add override for status-section to remain single column
+- [x] Adjust gaps: 3px row gap, 8px column gap for readability
+- [x] Test at 1920x1080 and 1000px
+- [x] Git commit: "refactor: implement 2-column grid layout in panels" (b1fcbc1)
+
+**Result**: Stats bar height reduced by additional 30-40%, providing maximum vertical space for dungeon map. Panels are now extremely compact while maintaining readability.
+
+**User Feedback**:
+> "we can reduce the height of the top section further by using a 2 column layout per panel. This gives us more space for our map"
+
+**Testing Results**:
+- ✅ Tested at 1920x1080 - Compact 2-column layout in Combat/Resources panels
+- ✅ Tested at 1000x800 - 2x2 grid with compact panels
+- ✅ Equipment and Status panels remain single-column as designed
+- ✅ Dungeon map now has maximum possible vertical space
+
+---
+
+#### Task 3.7: Accessibility Verification
 
 **Context**: Verify layout is accessible for all users
 
@@ -363,7 +395,7 @@ The original UI design (section 5 in 11-ui-design.md) was optimized for vertical
 - [ ] Test with browser zoom (150%, 200%)
 - [ ] Test readability with long item names
 - [ ] Test with dark mode browser extensions (if applicable)
-- [ ] Git commit: "test: verify accessibility of refactored UI layout (Phase 3.6)"
+- [ ] Git commit: "test: verify accessibility of refactored UI layout (Phase 3.7)"
 
 ---
 
@@ -371,22 +403,22 @@ The original UI design (section 5 in 11-ui-design.md) was optimized for vertical
 
 **Objective**: Update all documentation to reflect new UI layout
 
-#### Task 4.1: Update UI Design Documentation
+#### Task 4.1: Update UI Design Documentation ✅ COMPLETED
 
 **Context**: UI design doc still shows old layout in section 5
 
-**Files to modify**:
+**Files modified**:
 - `docs/game-design/11-ui-design.md`
 
 ##### Subtasks:
-- [ ] Update section 5 (Layout) ASCII diagram to show new layout
-- [ ] Document stats panel 3-row structure
-- [ ] Document equipment section layout
-- [ ] Document status effects section
-- [ ] Document vertical messages sidebar
-- [ ] Update responsive design section (section 7)
-- [ ] Add screenshots/diagrams if helpful
-- [ ] Git commit: "docs: update UI design doc for wide screen layout (Phase 4.1)"
+- [x] Update section 5 (Layout) ASCII diagram to show new layout
+- [x] Document stats panel single-row structure with 4 panels
+- [x] Document equipment section layout
+- [x] Document status effects section
+- [x] Document vertical messages sidebar
+- [x] Update responsive design section (section 7) with 2x2 grid behavior
+- [x] Update version number (2.0 → 2.1) and last updated date
+- [x] Git commit: "docs: update UI design doc for wide screen layout (Phase 4.1)" (20689ff)
 
 ---
 
@@ -615,9 +647,9 @@ Key: Dungeon map gets majority of vertical space on small screens
 
 **Files to Update**:
 - [x] Create `docs/plans/ui_refactor_plan.md` - This plan document
-- [ ] Update `docs/game-design/11-ui-design.md` - Layout section 5
-- [ ] Update `CLAUDE.md` - Verify UI layer description accuracy
-- [ ] (Optional) Create `docs/decisions/ui-refactor-wide-screen.md` - ADR
+- [x] Update `docs/game-design/11-ui-design.md` - Layout section 5 (Task 4.1) ✅ COMPLETED
+- [ ] Update `CLAUDE.md` - Verify UI layer description accuracy (Task 4.2)
+- [ ] (Optional) Create `docs/decisions/ui-refactor-wide-screen.md` - ADR (Task 4.3)
 
 ---
 
@@ -668,14 +700,16 @@ Key: Dungeon map gets majority of vertical space on small screens
 ### Estimated Timeline
 - Phase 1: Core Layout Implementation - ✅ COMPLETED (~3 hours)
 - Phase 2: Component Rendering Updates - ✅ COMPLETED (~4 hours)
-- Phase 3: Testing & Refinement - ✅ COMPLETED (~7 hours)
+- Phase 3: Testing & Refinement - ✅ COMPLETED (~8 hours)
   - Testing complete (Playwright): 2 hours
   - Equipment label fixes (Task 3.2): 1 hour
   - Stats panel reorganization (Task 3.3): 1-2 hours
   - Responsive breakpoint fix (Task 3.4): 1 hour
   - Single-row layout optimization (Task 3.5): 2 hours
-- Phase 4: Documentation Updates - 2-3 hours
-- **Total**: 16-19 hours (~2-3 hours remaining)
+  - Compact 2-column panel layout (Task 3.6): 1 hour
+- Phase 4: Documentation Updates - 🚧 IN PROGRESS (1-2 hours remaining)
+  - Task 4.1 (UI Design Doc): ✅ COMPLETED (~30 mins)
+- **Total**: 16-19 hours (~1-1.5 hours remaining)
 
 ---
 
@@ -697,6 +731,7 @@ Key: Dungeon map gets majority of vertical space on small screens
 - [x] Add explicit equipment labels (Task 3.2) ✅ COMPLETED
 - [x] Reorganize stats panel into distinct panels (Task 3.3) ✅ COMPLETED
 - [x] Reduce vertical space with single-row layout (Task 3.5) ✅ COMPLETED
+- [x] Compact panels with 2-column grid layout (Task 3.6) ✅ COMPLETED
 
 ### Follow-Up Tasks (Future Enhancements)
 - [ ] Add XP progress bar visual (currently only percentage calculated)
