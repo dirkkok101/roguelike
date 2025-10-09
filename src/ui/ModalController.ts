@@ -1,4 +1,4 @@
-import { GameState, Item, ItemType, Ring, TargetingRequest, TargetingResult } from '@game/core/core'
+import { GameState, Item, ItemType, Ring, TargetingRequest, TargetingResult, PotionType, ScrollType, RingType, WandType } from '@game/core/core'
 import { IdentificationService } from '@services/IdentificationService'
 import { CurseService } from '@services/CurseService'
 import { TargetingService } from '@services/TargetingService'
@@ -23,6 +23,8 @@ type ItemFilter =
 type SelectionCallback = (item: Item | null) => void
 type RingSelectionCallback = (result: { ring: Ring; slot: 'left' | 'right' } | null) => void
 type TargetingCallback = (result: TargetingResult) => void
+type SpawnCategoryCallback = (category: string | null) => void
+type SpawnSubtypeCallback = (subtype: string | null) => void
 
 /**
  * Internal state for each modal in the stack
@@ -33,6 +35,10 @@ interface ModalState {
   callback?: SelectionCallback
   ringCallback?: RingSelectionCallback
   ringData?: Array<{ ring: Ring; slot: 'left' | 'right' }>
+  spawnCategoryCallback?: SpawnCategoryCallback
+  spawnSubtypeCallback?: SpawnSubtypeCallback
+  spawnCategories?: string[]
+  spawnSubtypes?: string[]
   state?: GameState
   filter: ItemFilter
 }
@@ -157,6 +163,63 @@ export class ModalController {
   }
 
   /**
+   * Show spawn item category selection modal (DEBUG)
+   * @param callback - Called with selected category (or null if cancelled)
+   */
+  showSpawnItemCategory(callback: SpawnCategoryCallback): void {
+    const categories = ['potion', 'scroll', 'ring', 'wand', 'food', 'torch', 'lantern', 'oil']
+    const modalContainer = this.createSpawnCategoryModal(categories)
+
+    this.modalStack.push({
+      modal: modalContainer,
+      spawnCategoryCallback: callback,
+      spawnCategories: categories,
+      filter: 'all',
+    })
+
+    document.body.appendChild(modalContainer)
+  }
+
+  /**
+   * Show spawn item subtype selection modal (DEBUG)
+   * @param category - Item category (potion, scroll, ring, wand)
+   * @param callback - Called with selected subtype (or null if cancelled)
+   */
+  showSpawnItemSubtype(category: string, callback: SpawnSubtypeCallback): void {
+    let subtypes: string[] = []
+
+    switch (category) {
+      case 'potion':
+        subtypes = Object.keys(PotionType)
+        break
+      case 'scroll':
+        subtypes = Object.keys(ScrollType)
+        break
+      case 'ring':
+        subtypes = Object.keys(RingType)
+        break
+      case 'wand':
+        subtypes = Object.keys(WandType)
+        break
+      default:
+        // No subtypes for this category
+        callback(null)
+        return
+    }
+
+    const modalContainer = this.createSpawnSubtypeModal(category, subtypes)
+
+    this.modalStack.push({
+      modal: modalContainer,
+      spawnSubtypeCallback: callback,
+      spawnSubtypes: subtypes,
+      filter: 'all',
+    })
+
+    document.body.appendChild(modalContainer)
+  }
+
+  /**
    * Hide and cleanup top modal
    */
   hide(): void {
@@ -198,6 +261,10 @@ export class ModalController {
         topModalState.callback(null)
       } else if (topModalState.ringCallback) {
         topModalState.ringCallback(null)
+      } else if (topModalState.spawnCategoryCallback) {
+        topModalState.spawnCategoryCallback(null)
+      } else if (topModalState.spawnSubtypeCallback) {
+        topModalState.spawnSubtypeCallback(null)
       }
       this.hide()
       return true
@@ -210,6 +277,32 @@ export class ModalController {
         event.preventDefault()
         const selection = topModalState.ringData[index]
         topModalState.ringCallback(selection)
+        this.hide()
+        return true
+      }
+      return false
+    }
+
+    // Spawn category selection modal
+    if (topModalState.spawnCategoryCallback && topModalState.spawnCategories) {
+      const index = this.getItemIndexFromLetter(event.key)
+      if (index !== null && index < topModalState.spawnCategories.length) {
+        event.preventDefault()
+        const category = topModalState.spawnCategories[index]
+        topModalState.spawnCategoryCallback(category)
+        this.hide()
+        return true
+      }
+      return false
+    }
+
+    // Spawn subtype selection modal
+    if (topModalState.spawnSubtypeCallback && topModalState.spawnSubtypes) {
+      const index = this.getItemIndexFromLetter(event.key)
+      if (index !== null && index < topModalState.spawnSubtypes.length) {
+        event.preventDefault()
+        const subtype = topModalState.spawnSubtypes[index]
+        topModalState.spawnSubtypeCallback(subtype)
         this.hide()
         return true
       }
@@ -521,6 +614,80 @@ export class ModalController {
       const cursedLabel =
         this.curseService.isCursed(entry.ring) && entry.ring.identified ? ' (cursed)' : ''
       itemEl.textContent = `${letter}) ${slotLabel}: ${displayName}${cursedLabel}`
+      list.appendChild(itemEl)
+    })
+
+    content.appendChild(list)
+
+    // Footer
+    const footer = document.createElement('div')
+    footer.className = 'modal-footer'
+    footer.textContent = '[ESC to cancel]'
+    content.appendChild(footer)
+
+    modal.appendChild(content)
+    return modal
+  }
+
+  private createSpawnCategoryModal(categories: string[]): HTMLElement {
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+
+    const content = document.createElement('div')
+    content.className = 'modal-content'
+
+    // Title
+    const titleEl = document.createElement('div')
+    titleEl.className = 'modal-title'
+    titleEl.textContent = 'Spawn which item type?'
+    content.appendChild(titleEl)
+
+    // Categories list
+    const list = document.createElement('div')
+    list.className = 'modal-items'
+
+    categories.forEach((category, index) => {
+      const itemEl = document.createElement('div')
+      itemEl.className = 'modal-item'
+      const letter = String.fromCharCode(97 + index) // a-z
+      itemEl.textContent = `${letter}) ${category}`
+      list.appendChild(itemEl)
+    })
+
+    content.appendChild(list)
+
+    // Footer
+    const footer = document.createElement('div')
+    footer.className = 'modal-footer'
+    footer.textContent = '[ESC to cancel]'
+    content.appendChild(footer)
+
+    modal.appendChild(content)
+    return modal
+  }
+
+  private createSpawnSubtypeModal(category: string, subtypes: string[]): HTMLElement {
+    const modal = document.createElement('div')
+    modal.className = 'modal-overlay'
+
+    const content = document.createElement('div')
+    content.className = 'modal-content'
+
+    // Title
+    const titleEl = document.createElement('div')
+    titleEl.className = 'modal-title'
+    titleEl.textContent = `Spawn which ${category}?`
+    content.appendChild(titleEl)
+
+    // Subtypes list
+    const list = document.createElement('div')
+    list.className = 'modal-items'
+
+    subtypes.forEach((subtype, index) => {
+      const itemEl = document.createElement('div')
+      itemEl.className = 'modal-item'
+      const letter = String.fromCharCode(97 + index) // a-z
+      itemEl.textContent = `${letter}) ${subtype}`
       list.appendChild(itemEl)
     })
 

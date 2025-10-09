@@ -725,10 +725,30 @@ export class InputHandler {
         return null
 
       case 'I':
-        // Spawn item (hardcoded to potion/HEAL for now - TODO: add item type/subtype selection modal)
+        // Spawn item (with category and subtype selection)
         if (this.debugService.isEnabled()) {
           event.preventDefault()
-          return new SpawnItemCommand('potion', 'HEAL', this.debugService)
+
+          // Step 1: Show item category selection
+          this.modalController.showSpawnItemCategory((category) => {
+            if (!category) return // Cancelled
+
+            // Step 2: For items with subtypes, show subtype selection
+            const categoriesWithSubtypes = ['potion', 'scroll', 'ring', 'wand']
+
+            if (categoriesWithSubtypes.includes(category)) {
+              // Show subtype selection modal
+              this.modalController.showSpawnItemSubtype(category, (subtype) => {
+                if (subtype) {
+                  this.pendingCommand = new SpawnItemCommand(category, subtype, this.debugService)
+                }
+              })
+            } else {
+              // No subtype needed, spawn directly
+              this.pendingCommand = new SpawnItemCommand(category, undefined, this.debugService)
+            }
+          })
+          return null
         }
         return null
 
