@@ -269,7 +269,265 @@ For each octant:
 
 ---
 
-## 4. RenderingService
+## 4. Sprite Rendering System
+
+**Objective**: Hardware-accelerated sprite-based rendering using HTML5 Canvas and AngbandTK tileset
+
+### 4.1 Overview
+
+The game uses **CanvasGameRenderer** to render the dungeon view with 2D sprites instead of ASCII text. This provides:
+- Hardware acceleration via GPU
+- Smooth 60 FPS performance
+- Visual effects (color tinting, opacity, animations)
+- Pixel-perfect rendering without CSS overhead
+
+### 4.2 Architecture
+
+**Rendering Pipeline**:
+```
+GameState → CanvasGameRenderer → HTML5 Canvas
+     ↓              ↓                   ↓
+RenderingService  AssetLoaderService  Browser GPU
+(visibility)      (sprite coords)     (compositing)
+```
+
+**Key Components**:
+- **CanvasGameRenderer**: Renders game state to canvas using sprites
+- **AssetLoaderService**: Loads sprite sheets and .prf mapping files
+- **RenderingService**: Determines visibility states (unchanged from ASCII version)
+- **FOVService**: Calculates visible cells (unchanged from ASCII version)
+
+**Canvas Configuration**:
+- **Size**: 2560×704 pixels (80 tiles × 22 tiles @ 32px per tile)
+- **Image Smoothing**: Disabled for crisp pixel art
+- **Composite Operations**: Multiply blend for color tinting
+- **Alpha Blending**: Opacity for explored tiles
+
+### 4.3 Tileset Format
+
+**AngbandTK Gervais 32×32 Tileset**:
+- **Source**: https://github.com/angband/angband/tree/master/lib/tiles/gervais
+- **Creator**: David Gervais
+- **License**: Free for open source use (Angband license)
+
+**File Structure**:
+```
+public/assets/tilesets/gervais/
+├── 32x32.png           # Single sprite atlas (4096×960px)
+├── graf-dvg.prf        # Main tile mappings (terrain, monsters, objects)
+├── flvr-dvg.prf        # Flavored items (colored potions, rings)
+├── xtra-dvg.prf        # Player character variants
+└── LICENSE.txt         # Attribution to David Gervais
+```
+
+**Sprite Atlas Layout**:
+- **Format**: Single PNG image with all sprites in a grid
+- **Tile Size**: 32×32 pixels
+- **Coordinate System**: Hexadecimal 0x80-based (Angband convention)
+
+**.prf File Format** (Angband tile mapping):
+```
+# Terrain features
+feat:FLOOR:torch:0x80:0x96   # Floor tile (torchlit condition)
+feat:GRANITE:*:0x80:0x92     # Wall tile (any condition)
+feat:CLOSED:lit:0x84:0x96    # Closed door (lit condition)
+
+# Monsters
+monster:Bat:0x80:0x8B        # Monster 'B' sprite
+monster:Kobold:0x8C:0x8D     # Monster 'K' sprite
+
+# Objects
+object:potion:Healing:0x80:0x82   # Potion sprite
+object:scroll:Light:0x81:0x82     # Scroll sprite
+object:ring:Protection:0x82:0x82  # Ring sprite
+
+# Hex to Pixel Conversion:
+# pixelX = (hexX - 0x80) * 32
+# pixelY = (hexY - 0x80) * 32
+# Example: 0x80:0x96 → pixel (704, 0)
+```
+
+### 4.4 Sprite Lookup System
+
+**Character-to-Sprite Mapping**:
+1. **Direct Lookup**: Try character directly (for monster letters A-Z)
+2. **Angband Mapping**: Map ASCII character to Angband feature names
+3. **Condition Variants**: Try multiple conditions (torch, lit, los, *, no condition)
+4. **Fallback**: Return null if no sprite found (logged as warning)
+
+**Example Mapping Table**:
+| Character | Angband Features | Conditions Tried |
+|-----------|------------------|------------------|
+| `@` | `<player>` | torch, lit, los, *, none |
+| `.` | `FLOOR` | torch, lit, los, *, none |
+| `#` | `GRANITE`, `PERM` | torch, lit, los, *, none |
+| `+` | `CLOSED` | torch, lit, los, *, none |
+| `-` | `OPEN` | torch, lit, los, *, none |
+| `<` | `LESS` | torch, lit, los, *, none |
+| `>` | `MORE` | torch, lit, los, *, none |
+| `A-Z` | Direct character lookup | (monster names) |
+
+**Lookup Performance**:
+- O(1) average case (Map.get)
+- Maximum ~5 lookups per character (direct + 4 condition variants)
+- Cached after first lookup
+
+### 4.5 Visibility Effects
+
+**Three-State Opacity System**:
+| State | Opacity | Rendering | Effect |
+|-------|---------|-----------|--------|
+| **Visible** | 1.0 | Full brightness | Currently in FOV |
+| **Explored** | 0.5 | Dimmed | Map memory, not in FOV |
+| **Unexplored** | — | Hidden | Never seen, not rendered |
+
+**Implementation**:
+```typescript
+// Visible tiles (in FOV)
+ctx.globalAlpha = 1.0
+ctx.drawImage(sprite, ...)
+
+// Explored tiles (memory)
+ctx.globalAlpha = 0.5  // 50% dimming
+ctx.drawImage(sprite, ...)
+
+// Unexplored tiles
+// Skip rendering entirely
+```
+
+**Entity-Specific Rules**:
+- **Monsters**: Only render in visible state (never in memory)
+- **Items**: Render in visible + explored (if config.showItemsInMemory)
+- **Gold**: Render only in visible (not in memory)
+- **Stairs**: Render in visible + explored
+- **Traps**: Render if discovered AND (visible OR explored)
+- **Player**: Always full opacity (1.0)
+
+### 4.6 Color Tinting
+
+**Monster Threat Levels**:
+Colors applied dynamically based on monster letter (A-Z):
+| Threat Level | Monster Letters | Color | Hex Code |
+|--------------|-----------------|-------|----------|
+| Low | A-E | Green | `#44FF44` |
+| Medium | F-P | Yellow | `#FFDD00` |
+| High | Q-U | Orange | `#FF8800` |
+| Boss | V-Z | Red | `#FF4444` |
+
+**Tinting Implementation**:
+Uses multiply blend composite operation:
+```typescript
+// 1. Draw sprite normally
+ctx.drawImage(tileset.image, srcX, srcY, w, h, destX, destY, w, h)
+
+// 2. Apply color tint
+if (tintColor) {
+  ctx.globalCompositeOperation = 'multiply'
+  ctx.fillStyle = tintColor  // e.g., '#FF4444' for red
+  ctx.fillRect(destX, destY, w, h)
+  ctx.globalCompositeOperation = 'source-over'  // Reset
+}
+```
+
+**Effect**: Multiplies sprite colors by tint color, darkening and colorizing the sprite while preserving details.
+
+### 4.7 Render Order (Z-Index)
+
+Sprites are drawn in this order (bottom to top):
+1. **Terrain** (floor, walls, corridors, doors, stairs)
+2. **Items** (potions, scrolls, weapons, armor, rings, wands)
+3. **Gold** piles ($)
+4. **Monsters** (A-Z)
+5. **Stairs** (<, >)
+6. **Traps** (^)
+7. **Player** (@) - Always on top
+
+This ensures the player is always visible and monsters appear on top of items.
+
+### 4.8 Performance Considerations
+
+**Current Performance**:
+- **Canvas Size**: 2560×704 pixels (80×22 tiles @ 32px)
+- **Draw Calls**: ~500-800 per frame (depends on FOV size)
+- **Target FPS**: 60 FPS
+- **Actual FPS**: ~200-300 FPS on modern hardware
+
+**Optimization Techniques**:
+1. **Image Smoothing Disabled**:
+   ```typescript
+   ctx.imageSmoothingEnabled = false
+   ```
+   Prevents anti-aliasing blur, keeps pixel art crisp, reduces GPU overhead.
+
+2. **Opacity Batching**:
+   ```typescript
+   ctx.globalAlpha = opacity
+   // Draw multiple sprites at same opacity
+   ctx.globalAlpha = 1.0  // Reset once
+   ```
+
+3. **Composite Operation Caching**:
+   ```typescript
+   const prev = ctx.globalCompositeOperation
+   ctx.globalCompositeOperation = 'multiply'
+   // Apply tint
+   ctx.globalCompositeOperation = prev  // Restore
+   ```
+
+**Future Optimizations** (Phase 4, not yet implemented):
+1. **Dirty Rectangles**: Only redraw changed tiles
+2. **Sprite Batching**: Group draws by texture
+3. **Offscreen Canvas**: Pre-composite layers
+4. **RequestAnimationFrame Throttling**: Skip frames if GPU overloaded
+
+### 4.9 Integration with Existing Systems
+
+**RenderingService** (unchanged):
+- Continues to determine visibility states (visible/explored/unexplored)
+- Provides color information for monsters (threat-level colors)
+- Filters entity rendering (monsters only in FOV, items in memory, etc.)
+
+**FOVService** (unchanged):
+- Continues to calculate visible cells using shadowcasting
+- Light radius determines FOV size (unchanged)
+- Explored tiles tracked in Level.explored boolean array
+
+**GameRenderer**:
+- **Dungeon View**: Replaced text-based rendering with CanvasGameRenderer
+- **Stats Panel**: Text-based rendering unchanged
+- **Messages**: Text-based rendering unchanged
+
+**No Changes Required**:
+- All commands remain unchanged (no awareness of rendering)
+- GameState structure unchanged (rendering is purely presentational)
+- Service layer unchanged (except new AssetLoaderService)
+
+### 4.10 Testing
+
+**Unit Tests** (51 tests total):
+- **CanvasGameRenderer**: 34 tests
+  - Constructor & setup (4 tests)
+  - Helper methods (6 tests)
+  - Rendering pipeline (11 tests)
+  - Entity rendering (10 tests)
+  - Player rendering (3 tests)
+- **AssetLoaderService**: 17 tests
+  - Tileset loading (PNG + .prf files)
+  - .prf file parsing (hex to pixel conversion)
+  - Sprite coordinate lookup
+  - Error handling (404, malformed .prf)
+  - Caching behavior
+
+**Coverage**: >80% for sprite rendering code
+
+**See**:
+- [CanvasGameRenderer Documentation](./ui/CanvasGameRenderer.md)
+- [AssetLoaderService Documentation](./services/AssetLoaderService.md)
+- [Architecture - AssetLoaderService](./architecture.md#432-assetloaderservice)
+
+---
+
+## 5. RenderingService
 
 **Responsibilities**: Determine visibility states, apply color schemes, filter entity rendering
 
@@ -361,7 +619,7 @@ See [Testing Strategy](./testing-strategy.md) - `RenderingService/` folder
 
 ---
 
-## 5. Integration Example: Movement Turn
+## 6. Integration Example: Movement Turn
 
 **How Core Systems Coordinate** during a player movement:
 
@@ -410,11 +668,11 @@ MoveCommand Flow:
 
 ---
 
-## 6. RegenerationService
+## 7. RegenerationService
 
 **Inspiration**: Original Rogue (1980) natural healing, NetHack's ring mechanics, Angband's regeneration system
 
-### 6.1 Core Mechanic
+### 7.1 Core Mechanic
 
 **Natural Regeneration**: Player heals **1 HP per 10 turns** when conditions are met
 
@@ -438,7 +696,7 @@ if (canRegenerate && counter >= requiredTurns) {
 
 ---
 
-### 6.2 Blocking Conditions
+### 7.2 Blocking Conditions
 
 **Combat Blocking**:
 - No regeneration when enemy visible in FOV
@@ -456,7 +714,7 @@ if (canRegenerate && counter >= requiredTurns) {
 
 ---
 
-### 6.3 Ring of Regeneration
+### 7.3 Ring of Regeneration
 
 **Effect**: Doubles regeneration rate (5 turns instead of 10)
 
@@ -477,7 +735,7 @@ hasRegenerationRing(player: Player): boolean {
 
 ---
 
-### 6.4 Rest Command Integration
+### 7.4 Rest Command Integration
 
 **RestCommand** uses RegenerationService to heal until full HP or interrupted:
 
@@ -507,7 +765,7 @@ Rest Loop:
 
 ---
 
-### 6.5 Integration with Other Systems
+### 7.5 Integration with Other Systems
 
 **HungerService**:
 - Checks hunger threshold (> 100) before allowing regen
@@ -532,7 +790,7 @@ Rest Loop:
 
 ---
 
-### 6.6 Testing Strategy
+### 7.6 Testing Strategy
 
 **Unit Tests** (46 tests across 4 files):
 - `natural-regen.test.ts`: Base 10-turn cycle, hunger gating
@@ -551,7 +809,7 @@ Rest Loop:
 
 ---
 
-### 6.7 Design Rationale
+### 7.7 Design Rationale
 
 **Turn-Based Formula**:
 - Predictable healing rate (1 HP / 10 turns = ~6 HP / minute)
@@ -580,7 +838,7 @@ Rest Loop:
 
 ---
 
-### 6.8 Implementation Notes
+### 7.8 Implementation Notes
 
 **Counter Key Generation**:
 ```typescript
@@ -611,9 +869,9 @@ return {
 
 ---
 
-## 7. Performance Considerations
+## 8. Performance Considerations
 
-### 7.1 FOV Optimization
+### 8.1 FOV Optimization
 
 **Caching**:
 - Only recompute FOV when necessary (movement, light change, door state change)
@@ -625,7 +883,7 @@ return {
 
 ---
 
-### 6.2 Rendering Optimization
+### 8.2 Rendering Optimization
 
 **Visibility State Caching**:
 - Store visibility state per tile (don't recompute every frame)
@@ -641,7 +899,7 @@ return {
 
 ---
 
-## 7. Cross-References
+## 9. Cross-References
 
 **Related Systems**:
 - Monster AI uses FOV for awareness checks: [Advanced Systems](./systems-advanced.md#monster-ai)

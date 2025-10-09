@@ -585,16 +585,16 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `docs/systems-core.md` (modify)
 
 ##### Subtasks:
-- [ ] Update `docs/architecture.md`:
+- [x] Update `docs/architecture.md`:
   - Add AssetLoaderService to service catalog
   - Update UI layer description (canvas-based instead of text)
   - Add sprite rendering to technology stack
-- [ ] Update `docs/systems-core.md`:
+- [x] Update `docs/systems-core.md`:
   - Add section on sprite rendering system
   - Document tileset format and configuration
   - Explain color tinting and visibility effects
   - Add performance considerations
-- [ ] Git commit: "docs: update architecture for sprite rendering (Phase 6.2)"
+- [x] Git commit: "docs: update architecture for sprite rendering (Phase 6.2)"
 
 ---
 

@@ -12,16 +12,24 @@
 
 - **Language**: TypeScript (strict mode)
 - **Build Tool**: Vite
-- **UI Rendering**: Vanilla TypeScript + DOM manipulation (NO framework)
+- **UI Rendering**: Canvas 2D + HTML5 (sprite-based rendering)
+- **Sprite Assets**: AngbandTK Gervais 32×32 tileset
 - **Testing**: Jest (unit + integration tests)
 - **Storage**: Browser LocalStorage (game saves)
 - **Data Files**: JSON (monsters, items, config)
 
-**Rationale for No Framework**:
-- ASCII grid rendering is simple and performant with direct DOM manipulation
-- Avoids framework overhead for a turn-based game
-- Full control over rendering pipeline
-- Smaller bundle size
+**Rendering Architecture**:
+- **Dungeon View**: HTML5 Canvas with hardware-accelerated sprite rendering
+- **UI Panels**: Vanilla TypeScript + DOM manipulation for stats and messages
+- **Tileset**: Single PNG sprite atlas with .prf mapping files
+- **Performance**: 60 FPS target on 80×22 grid (2560×704px canvas)
+
+**Rationale for Canvas Rendering**:
+- Hardware acceleration via GPU for smooth performance
+- Efficient sprite atlas rendering using drawImage
+- Support for advanced visual effects (color tinting, opacity, animations)
+- Pixel-perfect control without CSS reflow/repaint overhead
+- Smaller than framework-based solution
 
 ---
 
@@ -31,8 +39,9 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  UI Layer (Vanilla TypeScript + DOM)                         │
-│  - Renders game state to DOM                                 │
+│  UI Layer (Canvas 2D + HTML5)                                │
+│  - CanvasGameRenderer: Sprite-based dungeon rendering        │
+│  - GameRenderer: Stats/messages with DOM                     │
 │  - Captures keyboard input                                   │
 │  - Converts user input into Commands                         │
 │  - NO game logic in UI layer                                 │
@@ -66,6 +75,7 @@
 │  - LightingService: Light source management, fuel tracking   │
 │  - MonsterAIService: AI behavior decision-making             │
 │  - RenderingService: Visibility states, color selection      │
+│  - AssetLoaderService: Sprite sheet loading, .prf parsing    │
 │  - DebugService: Debug commands and visualizations           │
 │  - RandomService: Seeded RNG (injectable for testing)        │
 │  - Contains ALL game logic and rules                         │
@@ -711,6 +721,42 @@ class DungeonService {
 - **DRAINS_STRENGTH**: Reduces strength (Rattlesnake)
 
 **Dependencies**: RandomService
+
+---
+
+### 4.32 AssetLoaderService
+
+**Responsibilities**: Load sprite sheets, parse .prf tile mappings, cache loaded assets
+
+**Key Capabilities**:
+- Asynchronous PNG image loading via browser Image API
+- Parse Angband .prf format tile mapping files
+- Convert hexadecimal coordinates (0x80-based) to pixel offsets
+- Build sprite coordinate lookup maps for fast rendering
+- Cache loaded tilesets to avoid duplicate network requests
+- Character-to-Angband feature name mapping
+
+**Tileset Support**:
+- **Format**: AngbandTK Gervais 32×32 tileset
+- **Files**: Single PNG sprite atlas + multiple .prf mapping files
+- **Coordinate System**: Hex-based (0x80:0x80 origin)
+- **Lookup**: Character → Angband feature name → sprite coordinates
+
+**Key Methods**:
+- `loadTileset(imageUrl: string, prfFiles: string[], tileSize: number): Promise<Tileset>`
+- `getSprite(char: string): TileCoordinate | null`
+- `getSpriteByName(type: string, name: string, condition?: string): TileCoordinate | null`
+- `isLoaded(): boolean`
+- `getCurrentTileset(): Tileset | null`
+
+**Character Mapping**:
+- Maps ASCII characters (`@`, `.`, `#`, `+`) to Angband feature names
+- Supports condition variants (torch, lit, los, *, no condition)
+- Fallback strategies for missing sprites
+
+**Dependencies**: None (uses browser Image API and fetch API)
+
+**See**: [AssetLoaderService Documentation](./services/AssetLoaderService.md)
 
 ---
 
