@@ -231,13 +231,13 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 - `src/types/core/core.ts` (add lastWanderingSpawnTurn to Level)
 
 ##### Subtasks:
-- [ ] Inject WanderingMonsterService into TurnService
-- [ ] After monster turns, call `wanderingService.shouldSpawnWanderer()`
-- [ ] If true, spawn wanderer and add to level.monsters
-- [ ] Update level.lastWanderingSpawnTurn
-- [ ] Generate notification: "You hear a faint noise in the distance..." (atmospheric)
-- [ ] Write integration tests
-- [ ] Git commit: "feat: integrate wandering monster spawns into turn system (Phase 3.3)"
+- [x] Inject WanderingMonsterService into TurnService
+- [x] After monster turns, call `wanderingService.shouldSpawnWanderer()`
+- [x] If true, spawn wanderer and add to level.monsters
+- [x] Update level.lastWanderingSpawnTurn
+- [x] Generate notification: "You hear a faint noise in the distance..." (atmospheric)
+- [x] Write integration tests
+- [x] Git commit: "feat: integrate wandering monster spawns into turn system (Phase 3.3)"
 
 ---
 
