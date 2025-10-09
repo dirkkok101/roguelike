@@ -216,6 +216,103 @@ describe('CanvasGameRenderer', () => {
     })
   })
 
+  describe('renderTerrain', () => {
+    it('renders visible tiles at full opacity', () => {
+      const mockState = createMockGameState()
+
+      // Create a simple 3×3 level
+      const level = createSimpleLevel(3, 3)
+      mockState.levels.set(1, level)
+
+      // Mark center tile as visible
+      mockState.visibleCells.add('1,1')
+
+      // Mock sprite lookup
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 32,
+        y: 64,
+        hexX: 0x81,
+        hexY: 0x82,
+      })
+
+      renderer.render(mockState)
+
+      // Should have drawn at least the visible tile
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('renders explored tiles at reduced opacity', () => {
+      const mockState = createMockGameState()
+
+      // Create a simple 3×3 level
+      const level = createSimpleLevel(3, 3)
+      level.explored[1][1] = true // Mark as explored
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 0,
+        y: 0,
+        hexX: 0x80,
+        hexY: 0x80,
+      })
+
+      renderer.render(mockState)
+
+      // Should have drawn the explored tile
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('skips unexplored tiles', () => {
+      const mockState = createMockGameState()
+
+      // Create a simple 3×3 level (all unexplored by default)
+      const level = createSimpleLevel(3, 3)
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 0,
+        y: 0,
+        hexX: 0x80,
+        hexY: 0x80,
+      })
+
+      renderer.render(mockState)
+
+      // Should not draw any tiles (all unexplored)
+      expect(mockCtx.drawImage).not.toHaveBeenCalled()
+    })
+
+    it('skips tiles with missing sprites', () => {
+      const mockState = createMockGameState()
+
+      // Create a simple 3×3 level
+      const level = createSimpleLevel(3, 3)
+      level.explored[1][1] = true
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup to return null (missing sprite)
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue(null)
+
+      renderer.render(mockState)
+
+      // Should not draw any tiles (missing sprites)
+      expect(mockCtx.drawImage).not.toHaveBeenCalled()
+    })
+
+    it('handles missing level gracefully', () => {
+      const mockState = createMockGameState()
+      mockState.levels.clear() // No levels
+
+      // Should not throw
+      renderer.render(mockState)
+
+      expect(mockCtx.clearRect).toHaveBeenCalled() // Canvas still cleared
+      expect(mockCtx.drawImage).not.toHaveBeenCalled() // No tiles drawn
+    })
+  })
+
   describe('getters', () => {
     it('returns canvas element', () => {
       expect(renderer.getCanvas()).toBe(canvas)
@@ -242,8 +339,49 @@ describe('CanvasGameRenderer', () => {
 })
 
 // ============================================================================
-// HELPER: Create mock game state
+// HELPERS: Create mock game state and levels
 // ============================================================================
+
+function createSimpleLevel(width: number, height: number) {
+  const tiles = []
+  const explored = []
+
+  for (let y = 0; y < height; y++) {
+    const tileRow = []
+    const exploredRow = []
+
+    for (let x = 0; x < width; x++) {
+      tileRow.push({
+        type: 'FLOOR' as const,
+        char: '.',
+        walkable: true,
+        transparent: true,
+        colorVisible: '#FFFFFF',
+        colorExplored: '#707070',
+      })
+      exploredRow.push(false) // Default unexplored
+    }
+
+    tiles.push(tileRow)
+    explored.push(exploredRow)
+  }
+
+  return {
+    depth: 1,
+    width,
+    height,
+    tiles,
+    rooms: [],
+    doors: [],
+    traps: [],
+    monsters: [],
+    items: [],
+    gold: [],
+    stairsUp: null,
+    stairsDown: { x: Math.floor(width / 2), y: Math.floor(height / 2) },
+    explored,
+  }
+}
 
 function createMockGameState(): GameState {
   return {

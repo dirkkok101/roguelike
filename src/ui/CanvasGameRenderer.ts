@@ -90,9 +90,58 @@ export class CanvasGameRenderer {
     // Clear canvas
     this.clear()
 
-    // TODO: Render terrain (Phase 2, Task 2.2)
+    // Render terrain (floor, walls, doors, stairs)
+    this.renderTerrain(state)
+
     // TODO: Render entities (Phase 2, Task 2.3)
     // TODO: Render player (Phase 2, Task 2.4)
+  }
+
+  /**
+   * Render terrain tiles (floor, walls, corridors, doors, stairs)
+   *
+   * @param state - Current game state
+   */
+  private renderTerrain(state: GameState): void {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      console.warn('[CanvasGameRenderer] Current level not found')
+      return
+    }
+
+    // Loop through entire grid
+    for (let y = 0; y < this.config.gridHeight; y++) {
+      for (let x = 0; x < this.config.gridWidth; x++) {
+        // Get tile at position
+        const tile = level.tiles[y]?.[x]
+        if (!tile) continue
+
+        // Get visibility state
+        const position: Position = { x, y }
+        const visibilityState = this.renderingService.getVisibilityState(
+          position,
+          state.visibleCells,
+          level
+        )
+
+        // Skip unexplored tiles
+        if (visibilityState === 'unexplored') continue
+
+        // Look up sprite for tile character
+        const sprite = this.assetLoader.getSprite(tile.char)
+        if (!sprite) {
+          // Fallback: log warning for missing sprite (don't spam console)
+          // In Phase 5 we'll add better fallback handling
+          continue
+        }
+
+        // Determine opacity based on visibility
+        const opacity = visibilityState === 'visible' ? 1.0 : this.config.exploredOpacity
+
+        // Draw tile sprite
+        this.drawTile(x, y, sprite, opacity)
+      }
+    }
   }
 
   /**
