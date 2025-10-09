@@ -11,6 +11,7 @@ import {
   RingType,
   WandType,
   Room,
+  TileType,
 } from '@game/core/core'
 import { MessageService } from '@services/MessageService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
@@ -679,7 +680,7 @@ export class DebugService {
     }
 
     // Must be walkable floor
-    if (level.tiles[pos.y][pos.x].type !== 'floor') {
+    if (level.tiles[pos.y][pos.x].type !== TileType.FLOOR) {
       return false
     }
 

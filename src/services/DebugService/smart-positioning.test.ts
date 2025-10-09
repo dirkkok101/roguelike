@@ -61,10 +61,13 @@ describe('DebugService - Smart Positioning', () => {
         Array(width)
           .fill(null)
           .map((_, x) => ({
-            type: 'floor' as TileType,
+            type: TileType.FLOOR,
             walkable: true,
             transparent: true,
             position: { x, y },
+            char: '.',
+            colorVisible: '#fff',
+            colorExplored: '#888',
           }))
       )
 
@@ -234,7 +237,7 @@ describe('DebugService - Smart Positioning', () => {
     test('returns false for non-floor tile', () => {
       const rooms: Room[] = [{ x: 5, y: 5, width: 10, height: 8 }]
       const level = createTestLevel(rooms)
-      level.tiles[10][10].type = 'wall' as TileType
+      level.tiles[10][10].type = TileType.WALL
       const pos = { x: 10, y: 10 }
 
       const isValid = (debugService as any).isValidSpawnPosition(level, pos)

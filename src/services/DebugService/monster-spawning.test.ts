@@ -90,13 +90,13 @@ describe('DebugService - Monster Spawning', () => {
       height: 10,
       tiles: Array(10).fill(null).map((_, y) =>
         Array(10).fill(null).map((_, x) => ({
-          type: 'floor' as TileType, // Use string literal for type check compatibility
+          type: TileType.FLOOR,
           char: '.',
           walkable: true,
           transparent: true,
           colorVisible: '#fff',
           colorExplored: '#888',
-          position: { x, y }, // Add position for completeness
+          position: { x, y },
         }))
       ),
       explored: Array(10).fill(null).map(() => Array(10).fill(false)),
@@ -220,7 +220,7 @@ describe('DebugService - Monster Spawning', () => {
       rooms: [], // No rooms
       tiles: Array(10).fill(null).map((_, y) =>
         Array(10).fill(null).map((_, x) => ({
-          type: 'wall' as TileType, // Use string literal
+          type: TileType.WALL,
           char: '#',
           walkable: false,
           transparent: false,
