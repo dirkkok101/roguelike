@@ -393,21 +393,28 @@ export class MonsterAIService {
   }
 
   /**
-   * THIEF behavior - Steal and flee
+   * THIEF behavior - Approach, steal, and flee
    * Used by Leprechaun (steals gold), Nymph (steals items)
+   *
+   * Authentic Rogue behavior:
+   * - Approach player using A* pathfinding to get adjacent
+   * - Steal when adjacent (handled in MonsterTurnService attack phase)
+   * - Teleport to random location after stealing (handled in MonsterTurnService)
+   * - Flee on foot after teleport (this method returns flee action)
    */
   private thiefBehavior(
     monster: Monster,
     playerPos: Position,
     level: any
   ): MonsterAction {
-    // If already stole, flee from player
+    // If already stole, flee from player on foot
+    // (Teleportation happens immediately after stealing in MonsterTurnService)
     if (monster.hasStolen) {
       return this.fleeBehavior(monster, playerPos, level)
     }
 
     // Otherwise, approach player using A* to get close enough to steal
-    // (Actual stealing happens when adjacent in the attack phase)
+    // (Actual stealing and teleportation happen when adjacent in MonsterTurnService)
     return this.smartBehavior(monster, playerPos, level)
   }
 
