@@ -87,7 +87,9 @@ export class PlayingState extends BaseState {
    * 4. Process monster turns if player exhausted energy
    * 5. Increment turn counter
    * 6. Auto-save
-   * 7. Re-render
+   *
+   * Note: Rendering is now handled by the main loop's renderAllVisibleStates()
+   * after handleInput() completes. This ensures correct state stack rendering.
    *
    * @param input - Key press and modifiers
    */
@@ -126,8 +128,8 @@ export class PlayingState extends BaseState {
       this.autoSaveMiddleware.afterTurn(this.gameState)
     }
 
-    // Always re-render (handles modal closes, inventory updates, etc.)
-    this.renderer.render(this.gameState)
+    // Rendering is now handled by main loop after handleInput() returns
+    // This allows the state stack to render correctly (base game + overlays)
   }
 
   /**

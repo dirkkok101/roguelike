@@ -488,6 +488,10 @@ async function initializeGame() {
           alt: event.altKey,
         }
         currentState.handleInput(input)
+
+        // Render all visible states after input is processed
+        // This ensures transparent states (targeting, inventory) show correctly
+        renderAllVisibleStates()
       }
     }
     document.addEventListener('keydown', currentKeydownHandler)
