@@ -135,9 +135,9 @@ body {
 }
 
 .stats-panel-content {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 8px; /* row-gap column-gap */
   font-size: 0.85em;
 }
 
@@ -149,9 +149,11 @@ body {
 
 .equipment-section {
   /* Now inherits styles from .stats-panel */
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+}
+
+.equipment-section .stats-panel-content {
+  grid-template-columns: 1fr; /* Single column for equipment */
+  gap: 2px;
 }
 
 .equipment-header {
@@ -177,9 +179,11 @@ body {
 
 .status-section {
   /* Now inherits styles from .stats-panel */
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+}
+
+.status-section .stats-panel-content {
+  grid-template-columns: 1fr; /* Single column for status effects */
+  gap: 2px;
 }
 
 .status-header {
