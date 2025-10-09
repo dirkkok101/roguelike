@@ -258,6 +258,31 @@ export class DebugService {
     const currentLevel = state.levels.get(state.currentLevel)
     if (!currentLevel) return state
 
+    // Validate itemType parameter
+    if (!itemType || typeof itemType !== 'string' || itemType.trim() === '') {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'Invalid item type: must be a non-empty string',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // Validate itemType is a recognized category
+    const validTypes = ['potion', 'scroll', 'ring', 'wand', 'food', 'torch', 'lantern', 'oil']
+    const normalizedType = itemType.trim().toLowerCase()
+
+    if (!validTypes.includes(normalizedType)) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        `Unknown item type: "${itemType}". Valid types: ${validTypes.join(', ')}`,
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
     // Determine spawn position (use smart positioning if no position provided)
     const spawnPos = position || this.findSpawnPosition(state)
     if (!spawnPos) {
@@ -273,7 +298,7 @@ export class DebugService {
     // Create item using ItemSpawnService
     let item
     try {
-      switch (itemType.toLowerCase()) {
+      switch (normalizedType) {
         case 'potion': {
           item = this.itemSpawnService.createPotion(this.parsePotionType(subType), spawnPos)
           break
@@ -307,9 +332,10 @@ export class DebugService {
           break
         }
         default: {
+          // This should never happen due to validation above, but TypeScript requires it
           const messages = this.messageService.addMessage(
             state.messages,
-            `Unknown item type: ${itemType}`,
+            `Unexpected error: unhandled item type "${itemType}"`,
             'warning',
             state.turnCount
           )
