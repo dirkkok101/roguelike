@@ -176,7 +176,8 @@ export class CanvasGameRenderer {
 
     // Render monsters (top layer)
     for (const monster of level.monsters) {
-      this.renderEntity(state, level, monster.position, monster.letter, 'monster', renderConfig)
+      // Pass monster name for Angband tileset lookup
+      this.renderEntity(state, level, monster.position, monster.name, 'monster', renderConfig)
     }
 
     // Render stairs
@@ -292,8 +293,9 @@ export class CanvasGameRenderer {
    * @param y - Grid Y coordinate (0-21)
    * @param sprite - Sprite coordinates in tileset
    * @param opacity - Opacity (0.0-1.0)
+   * @param tintColor - Optional color to tint the sprite (e.g., '#FF4444' for red)
    */
-  drawTile(x: number, y: number, sprite: TileCoordinate, opacity: number): void {
+  drawTile(x: number, y: number, sprite: TileCoordinate, opacity: number, tintColor?: string): void {
     const tileset = this.assetLoader.getCurrentTileset()
     if (!tileset) {
       console.warn('[CanvasGameRenderer] No tileset loaded, cannot draw tile')
@@ -319,6 +321,15 @@ export class CanvasGameRenderer {
       this.config.tileWidth, // Destination width
       this.config.tileHeight // Destination height
     )
+
+    // Apply color tint if provided
+    if (tintColor) {
+      const previousComposite = this.ctx.globalCompositeOperation
+      this.ctx.globalCompositeOperation = 'multiply'
+      this.ctx.fillStyle = tintColor
+      this.ctx.fillRect(screen.x, screen.y, this.config.tileWidth, this.config.tileHeight)
+      this.ctx.globalCompositeOperation = previousComposite
+    }
 
     // Restore previous alpha
     this.ctx.globalAlpha = previousAlpha

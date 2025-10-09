@@ -5,9 +5,32 @@ import { parsePrfFile, buildLookupMap } from '@utils/prfParser'
 // ASSET LOADER SERVICE - Load sprite sheets and .prf tile mappings
 // ============================================================================
 
+// Character to Angband feature name mapping
+const CHAR_TO_ANGBAND: Record<string, string[]> = {
+  '@': ['<player>'], // Player character
+  '.': ['FLOOR'], // Floor
+  '#': ['GRANITE', 'PERM'], // Walls
+  '+': ['CLOSED'], // Closed door
+  '-': ['OPEN'], // Open door
+  '<': ['LESS'], // Up stairs
+  '>': ['MORE'], // Down stairs
+  '^': ['trap'], // Trap
+  '%': ['RUBBLE'], // Rubble
+  '*': ['MAGMA', 'QUARTZ'], // Veins
+  '$': ['gold'], // Gold
+  '!': ['potion'], // Potion
+  '?': ['scroll'], // Scroll
+  '=': ['ring'], // Ring
+  '/': ['wand', 'staff'], // Wand/Staff
+  ')': ['sword', 'weapon'], // Weapon
+  '[': ['armor'], // Armor
+  // Monster letters will be looked up directly
+}
+
 export class AssetLoaderService {
   private tilesets: Map<string, Tileset> = new Map()
   private currentTileset: Tileset | null = null
+  private missingSprites: Set<string> = new Set()
 
   /**
    * Load a tileset from PNG + .prf files
@@ -89,7 +112,35 @@ export class AssetLoaderService {
       return null
     }
 
-    return this.currentTileset.config.tiles.get(char) ?? null
+    // Try direct lookup first (for monster letters A-Z, etc.)
+    let sprite = this.currentTileset.config.tiles.get(char)
+    if (sprite) return sprite
+
+    // Try mapping to Angband feature names
+    const featureNames = CHAR_TO_ANGBAND[char]
+    if (featureNames) {
+      // Try each feature name with different conditions
+      const conditions = ['torch', 'lit', 'los', '*', ''] // Common conditions in .prf files
+
+      for (const featureName of featureNames) {
+        for (const condition of conditions) {
+          const key = condition ? `${featureName}:${condition}` : featureName
+          sprite = this.currentTileset.config.tiles.get(key)
+          if (sprite) return sprite
+        }
+      }
+    }
+
+    // Debug: Log missing sprite (only once per character)
+    if (!this.missingSprites.has(char)) {
+      this.missingSprites.add(char)
+      console.warn(`[AssetLoader] Sprite not found for '${char}' (code: ${char.charCodeAt(0)})`)
+      // Log a few example keys to help debugging
+      const examples = Array.from(this.currentTileset.config.tiles.keys()).slice(0, 20)
+      console.log('[AssetLoader] Example sprite keys:', examples.join(', '))
+    }
+
+    return null
   }
 
   /**
