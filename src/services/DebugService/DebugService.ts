@@ -10,8 +10,11 @@ import {
   ScrollType,
   RingType,
   WandType,
+  Room,
 } from '@game/core/core'
 import { MessageService } from '@services/MessageService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { IRandomService } from '@services/RandomService'
 
 /**
  * DebugService - Debug tools for testing and development
@@ -28,6 +31,8 @@ export class DebugService {
 
   constructor(
     private messageService: MessageService,
+    private monsterSpawnService: MonsterSpawnService,
+    private random: IRandomService,
     isDevMode?: boolean
   ) {
     // Priority: explicit parameter > NODE_ENV check > false (production default)

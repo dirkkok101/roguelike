@@ -215,7 +215,12 @@ describe('Energy Game Loop - Integration Tests', () => {
     turnService = new TurnService(statusEffectService, levelService)
     messageService = new MessageService()
     hungerService = new HungerService(mockRandom)
-    debugService = new DebugService(messageService)
+    debugService = await (async () => {
+      const mockRandom = new MockRandom()
+      const monsterSpawnService = new MonsterSpawnService(mockRandom)
+      await monsterSpawnService.loadMonsterData()
+      return new DebugService(messageService, monsterSpawnService, mockRandom)
+    })()
     combatService = new CombatService(mockRandom, hungerService, debugService)
     pathfindingService = new PathfindingService(levelService)
     fovService = new FOVService(statusEffectService)

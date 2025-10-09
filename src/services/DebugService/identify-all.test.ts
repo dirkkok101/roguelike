@@ -1,14 +1,26 @@
 import { DebugService } from './DebugService'
 import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { GameState, PotionType, ScrollType, RingType, WandType } from '@game/core/core'
 
 describe('DebugService - Identify All', () => {
+  async function createDebugService(isDevMode: boolean = true) {
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    return new DebugService(new MessageService(), monsterSpawnService, mockRandom, isDevMode)
+  }
+
   let debugService: DebugService
   let mockState: GameState
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const messageService = new MessageService()
-    debugService = new DebugService(messageService, true)
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    debugService = new DebugService(messageService, monsterSpawnService, mockRandom, true)
 
     mockState = {
       messages: [],
@@ -18,7 +30,7 @@ describe('DebugService - Identify All', () => {
     } as GameState
   })
 
-  test('identifyAll marks all potion types as identified', () => {
+  test('identifyAll marks all potion types as identified', async () => {
     const result = debugService.identifyAll(mockState)
 
     const potionCount = Object.values(PotionType).length
@@ -27,7 +39,7 @@ describe('DebugService - Identify All', () => {
     expect(potionItems).toHaveLength(potionCount)
   })
 
-  test('identifyAll marks all scroll types as identified', () => {
+  test('identifyAll marks all scroll types as identified', async () => {
     const result = debugService.identifyAll(mockState)
 
     const scrollCount = Object.values(ScrollType).length
@@ -36,7 +48,7 @@ describe('DebugService - Identify All', () => {
     expect(scrollItems).toHaveLength(scrollCount)
   })
 
-  test('identifyAll marks all ring types as identified', () => {
+  test('identifyAll marks all ring types as identified', async () => {
     const result = debugService.identifyAll(mockState)
 
     const ringCount = Object.values(RingType).length
@@ -45,7 +57,7 @@ describe('DebugService - Identify All', () => {
     expect(ringItems).toHaveLength(ringCount)
   })
 
-  test('identifyAll marks all wand types as identified', () => {
+  test('identifyAll marks all wand types as identified', async () => {
     const result = debugService.identifyAll(mockState)
 
     const wandCount = Object.values(WandType).length
@@ -54,7 +66,7 @@ describe('DebugService - Identify All', () => {
     expect(wandItems).toHaveLength(wandCount)
   })
 
-  test('identifyAll adds message with total count', () => {
+  test('identifyAll adds message with total count', async () => {
     const result = debugService.identifyAll(mockState)
 
     expect(result.messages).toHaveLength(1)
@@ -62,7 +74,7 @@ describe('DebugService - Identify All', () => {
     expect(result.messages[0].text).toContain('item types')
   })
 
-  test('identifyAll includes all item categories', () => {
+  test('identifyAll includes all item categories', async () => {
     const result = debugService.identifyAll(mockState)
 
     const totalTypes =
@@ -74,7 +86,7 @@ describe('DebugService - Identify All', () => {
     expect(result.identifiedItems.size).toBe(totalTypes)
   })
 
-  test('preserves immutability', () => {
+  test('preserves immutability', async () => {
     const result = debugService.identifyAll(mockState)
 
     expect(result).not.toBe(mockState)
@@ -82,32 +94,32 @@ describe('DebugService - Identify All', () => {
     expect(mockState.identifiedItems.size).toBe(0) // Original unchanged
   })
 
-  test('does nothing in production mode', () => {
-    const prodService = new DebugService(new MessageService(), false)
+  test('does nothing in production mode', async () => {
+    const prodService = await createDebugService(false)
     const result = prodService.identifyAll(mockState)
 
     expect(result).toBe(mockState)
   })
 
-  test('identifyAll includes specific potion type', () => {
+  test('identifyAll includes specific potion type', async () => {
     const result = debugService.identifyAll(mockState)
 
     expect(result.identifiedItems.has('potion-HEAL')).toBe(true)
   })
 
-  test('identifyAll includes specific scroll type', () => {
+  test('identifyAll includes specific scroll type', async () => {
     const result = debugService.identifyAll(mockState)
 
     expect(result.identifiedItems.has('scroll-IDENTIFY')).toBe(true)
   })
 
-  test('identifyAll includes specific ring type', () => {
+  test('identifyAll includes specific ring type', async () => {
     const result = debugService.identifyAll(mockState)
 
     expect(result.identifiedItems.has('ring-PROTECTION')).toBe(true)
   })
 
-  test('identifyAll includes specific wand type', () => {
+  test('identifyAll includes specific wand type', async () => {
     const result = debugService.identifyAll(mockState)
 
     expect(result.identifiedItems.has('wand-LIGHTNING')).toBe(true)

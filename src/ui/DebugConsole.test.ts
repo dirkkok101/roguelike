@@ -1,6 +1,8 @@
 import { DebugConsole } from './DebugConsole'
 import { DebugService } from '@services/DebugService'
 import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { GameState } from '@game/core/core'
 
 describe('DebugConsole', () => {
@@ -9,7 +11,10 @@ describe('DebugConsole', () => {
 
   beforeEach(() => {
     const messageService = new MessageService()
-    debugService = new DebugService(messageService, true)
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    debugService = new DebugService(messageService, monsterSpawnService, mockRandom, true)
     debugConsole = new DebugConsole(debugService)
   })
 

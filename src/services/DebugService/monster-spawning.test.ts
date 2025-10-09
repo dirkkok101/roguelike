@@ -1,14 +1,26 @@
 import { DebugService } from './DebugService'
 import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { GameState, Level, TileType, MonsterState, MonsterBehavior } from '@game/core/core'
 
 describe('DebugService - Monster Spawning', () => {
+  async function createDebugService(isDevMode: boolean = true) {
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    return new DebugService(new MessageService(), monsterSpawnService, mockRandom, isDevMode)
+  }
+
   let debugService: DebugService
   let mockState: GameState
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const messageService = new MessageService()
-    debugService = new DebugService(messageService, true)
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    debugService = new DebugService(messageService, monsterSpawnService, mockRandom, true)
 
     // Create state with empty level
     const level: Level = {
@@ -48,7 +60,7 @@ describe('DebugService - Monster Spawning', () => {
     } as GameState
   })
 
-  test('spawnMonster creates new monster at player position', () => {
+  test('spawnMonster creates new monster at player position', async () => {
     const result = debugService.spawnMonster(mockState, 'T')
 
     const level = result.levels.get(1)!
@@ -56,7 +68,7 @@ describe('DebugService - Monster Spawning', () => {
     expect(level.monsters[0].letter).toBe('T')
   })
 
-  test('spawnMonster creates monster with correct properties', () => {
+  test('spawnMonster creates monster with correct properties', async () => {
     const result = debugService.spawnMonster(mockState, 'D')
 
     const monster = result.levels.get(1)!.monsters[0]
@@ -68,7 +80,7 @@ describe('DebugService - Monster Spawning', () => {
     expect(monster.xpValue).toBe(10)
   })
 
-  test('spawnMonster creates awake hunting monster', () => {
+  test('spawnMonster creates awake hunting monster', async () => {
     const result = debugService.spawnMonster(mockState, 'M')
 
     const monster = result.levels.get(1)!.monsters[0]
@@ -77,7 +89,7 @@ describe('DebugService - Monster Spawning', () => {
     expect(monster.state).toBe(MonsterState.HUNTING)
   })
 
-  test('spawnMonster creates monster with SIMPLE behavior', () => {
+  test('spawnMonster creates monster with SIMPLE behavior', async () => {
     const result = debugService.spawnMonster(mockState, 'G')
 
     const monster = result.levels.get(1)!.monsters[0]
@@ -86,14 +98,14 @@ describe('DebugService - Monster Spawning', () => {
     expect(monster.aiProfile.aggroRange).toBe(5)
   })
 
-  test('spawnMonster adds message with position', () => {
+  test('spawnMonster adds message with position', async () => {
     const result = debugService.spawnMonster(mockState, 'T')
 
     expect(result.messages).toHaveLength(1)
     expect(result.messages[0].text).toContain('Spawned T at')
   })
 
-  test('spawnMonster finds nearby empty tile when position blocked', () => {
+  test('spawnMonster finds nearby empty tile when position blocked', async () => {
     // Add monster at player position
     const blockedLevel: Level = {
       ...mockState.levels.get(1)!,
@@ -115,14 +127,14 @@ describe('DebugService - Monster Spawning', () => {
     expect(level.monsters[1].position).not.toEqual({ x: 1, y: 1 })
   })
 
-  test('spawnMonster with explicit position uses that position', () => {
+  test('spawnMonster with explicit position uses that position', async () => {
     const result = debugService.spawnMonster(mockState, 'T', { x: 5, y: 5 })
 
     const monster = result.levels.get(1)!.monsters[0]
     expect(monster.position).toEqual({ x: 5, y: 5 })
   })
 
-  test('spawnMonster preserves immutability', () => {
+  test('spawnMonster preserves immutability', async () => {
     const result = debugService.spawnMonster(mockState, 'T')
 
     expect(result).not.toBe(mockState)
@@ -130,14 +142,14 @@ describe('DebugService - Monster Spawning', () => {
     expect(mockState.levels.get(1)!.monsters).toHaveLength(0) // Original unchanged
   })
 
-  test('spawnMonster does nothing in production mode', () => {
-    const prodService = new DebugService(new MessageService(), false)
+  test('spawnMonster does nothing in production mode', async () => {
+    const prodService = await createDebugService(false)
     const result = prodService.spawnMonster(mockState, 'T')
 
     expect(result).toBe(mockState)
   })
 
-  test('spawnMonster returns state with warning if no empty tile found', () => {
+  test('spawnMonster returns state with warning if no empty tile found', async () => {
     // Create level with all walls
     const walledLevel: Level = {
       ...mockState.levels.get(1)!,

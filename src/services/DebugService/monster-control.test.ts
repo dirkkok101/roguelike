@@ -1,14 +1,26 @@
 import { DebugService } from './DebugService'
 import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { GameState, Level, TileType, MonsterState, MonsterBehavior } from '@game/core/core'
 
 describe('DebugService - Monster Control', () => {
+  async function createDebugService(isDevMode: boolean = true) {
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    return new DebugService(new MessageService(), monsterSpawnService, mockRandom, isDevMode)
+  }
+
   let debugService: DebugService
   let mockState: GameState
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const messageService = new MessageService()
-    debugService = new DebugService(messageService, true)
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    debugService = new DebugService(messageService, monsterSpawnService, mockRandom, true)
 
     // Create state with sleeping and awake monsters
     const level: Level = {
@@ -122,7 +134,7 @@ describe('DebugService - Monster Control', () => {
   })
 
   describe('wakeAllMonsters', () => {
-    test('wakes all sleeping monsters', () => {
+    test('wakes all sleeping monsters', async () => {
       const result = debugService.wakeAllMonsters(mockState)
 
       const monsters = result.levels.get(1)!.monsters
@@ -130,7 +142,7 @@ describe('DebugService - Monster Control', () => {
       expect(monsters.every(m => !m.isAsleep)).toBe(true)
     })
 
-    test('sets sleeping monsters to HUNTING state', () => {
+    test('sets sleeping monsters to HUNTING state', async () => {
       const result = debugService.wakeAllMonsters(mockState)
 
       const monsters = result.levels.get(1)!.monsters
@@ -138,21 +150,21 @@ describe('DebugService - Monster Control', () => {
       expect(previouslySleeping.every(m => m.state === MonsterState.HUNTING)).toBe(true)
     })
 
-    test('preserves state of already awake monsters', () => {
+    test('preserves state of already awake monsters', async () => {
       const result = debugService.wakeAllMonsters(mockState)
 
       const kobold = result.levels.get(1)!.monsters.find(m => m.id === 'monster3')
       expect(kobold!.state).toBe(MonsterState.HUNTING)
     })
 
-    test('adds message with awake count', () => {
+    test('adds message with awake count', async () => {
       const result = debugService.wakeAllMonsters(mockState)
 
       expect(result.messages).toHaveLength(1)
       expect(result.messages[0].text).toContain('Woke 3 monsters')
     })
 
-    test('preserves immutability', () => {
+    test('preserves immutability', async () => {
       const result = debugService.wakeAllMonsters(mockState)
 
       expect(result).not.toBe(mockState)
@@ -160,8 +172,8 @@ describe('DebugService - Monster Control', () => {
       expect(mockState.levels.get(1)!.monsters[0].isAsleep).toBe(true) // Original unchanged
     })
 
-    test('does nothing in production mode', () => {
-      const prodService = new DebugService(new MessageService(), false)
+    test('does nothing in production mode', async () => {
+      const prodService = await createDebugService(false)
       const result = prodService.wakeAllMonsters(mockState)
 
       expect(result).toBe(mockState)
@@ -169,21 +181,21 @@ describe('DebugService - Monster Control', () => {
   })
 
   describe('killAllMonsters', () => {
-    test('removes all monsters from level', () => {
+    test('removes all monsters from level', async () => {
       const result = debugService.killAllMonsters(mockState)
 
       const level = result.levels.get(1)!
       expect(level.monsters).toHaveLength(0)
     })
 
-    test('adds message with monster count', () => {
+    test('adds message with monster count', async () => {
       const result = debugService.killAllMonsters(mockState)
 
       expect(result.messages).toHaveLength(1)
       expect(result.messages[0].text).toContain('Removed 3 monsters')
     })
 
-    test('preserves immutability', () => {
+    test('preserves immutability', async () => {
       const result = debugService.killAllMonsters(mockState)
 
       expect(result).not.toBe(mockState)
@@ -191,14 +203,14 @@ describe('DebugService - Monster Control', () => {
       expect(mockState.levels.get(1)!.monsters).toHaveLength(3) // Original unchanged
     })
 
-    test('does nothing in production mode', () => {
-      const prodService = new DebugService(new MessageService(), false)
+    test('does nothing in production mode', async () => {
+      const prodService = await createDebugService(false)
       const result = prodService.killAllMonsters(mockState)
 
       expect(result).toBe(mockState)
     })
 
-    test('handles empty monster list', () => {
+    test('handles empty monster list', async () => {
       const emptyLevel: Level = {
         ...mockState.levels.get(1)!,
         monsters: [],

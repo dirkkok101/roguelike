@@ -1,6 +1,8 @@
 import { DebugOverlays } from './DebugOverlays'
 import { DebugService } from '@services/DebugService'
 import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { GameState, Level, TileType, MonsterBehavior, MonsterState } from '@game/core/core'
 
 describe('DebugOverlays', () => {
@@ -11,7 +13,10 @@ describe('DebugOverlays', () => {
 
   beforeEach(() => {
     const messageService = new MessageService()
-    debugService = new DebugService(messageService, true)
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    debugService = new DebugService(messageService, monsterSpawnService, mockRandom, true)
     debugOverlays = new DebugOverlays(debugService)
 
     // Create mock canvas context
