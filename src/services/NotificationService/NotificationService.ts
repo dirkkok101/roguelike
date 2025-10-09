@@ -13,6 +13,8 @@ interface NotificationContext {
   lastItemSeen?: string
   lastGoldSeen?: number
   recentNotifications: Set<string> // For deduplication
+  monstersSeen: Set<string> // Track first sightings (monster IDs)
+  lastLevelSeen?: number // Track level changes to reset monstersSeen
 }
 
 /**
@@ -37,6 +39,7 @@ interface NotificationContext {
 export class NotificationService {
   private context: NotificationContext = {
     recentNotifications: new Set(),
+    monstersSeen: new Set(),
   }
 
   constructor(private identificationService: IdentificationService) {}
@@ -138,6 +141,67 @@ export class NotificationService {
     }
 
     return notifications
+  }
+
+  /**
+   * Check for newly visible monsters and generate sighting messages
+   */
+  checkMonsterSightings(state: GameState): string[] {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return []
+
+    // Reset monstersSeen when player changes levels
+    if (this.context.lastLevelSeen !== state.currentLevel) {
+      this.context.monstersSeen.clear()
+      this.context.lastLevelSeen = state.currentLevel
+    }
+
+    // Find monsters in visible cells that haven't been seen yet
+    const newlyVisibleMonsters = level.monsters.filter(
+      (monster) =>
+        state.visibleCells.has(`${monster.position.x},${monster.position.y}`) &&
+        !this.context.monstersSeen.has(monster.id)
+    )
+
+    // No new monsters to report
+    if (newlyVisibleMonsters.length === 0) return []
+
+    // Mark these monsters as seen
+    newlyVisibleMonsters.forEach((monster) => {
+      this.context.monstersSeen.add(monster.id)
+    })
+
+    // Generate sighting message
+    return this.formatMonsterSightingMessage(newlyVisibleMonsters)
+  }
+
+  /**
+   * Format monster sighting message
+   * Examples:
+   * - "You see a Dragon!"
+   * - "You see a Bat and an Orc!"
+   * - "You see a Snake, a Hobgoblin, and a Troll!"
+   */
+  private formatMonsterSightingMessage(monsters: Monster[]): string[] {
+    if (monsters.length === 0) return []
+
+    if (monsters.length === 1) {
+      const monster = monsters[0]
+      return [`You see ${this.getArticle(monster.name)} ${monster.name}!`]
+    }
+
+    if (monsters.length === 2) {
+      const first = monsters[0]
+      const second = monsters[1]
+      return [
+        `You see ${this.getArticle(first.name)} ${first.name} and ${this.getArticle(second.name)} ${second.name}!`,
+      ]
+    }
+
+    // 3+ monsters: "a Snake, a Hobgoblin, and a Troll!"
+    const monsterNames = monsters.map((m) => `${this.getArticle(m.name)} ${m.name}`)
+    const lastMonster = monsterNames.pop()
+    return [`You see ${monsterNames.join(', ')}, and ${lastMonster}!`]
   }
 
   /**

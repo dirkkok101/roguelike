@@ -145,15 +145,15 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 - `src/services/NotificationService/NotificationService.test.ts`
 
 ##### Subtasks:
-- [ ] Add `monstersSeen: Set<string>` to NotificationContext (track first sighting per monster)
-- [ ] Implement `checkMonsterSightings(state: GameState): string[]` method
-- [ ] Compare current visibleCells with monster positions
-- [ ] Generate "You see a Dragon!" message for newly visible monsters
-- [ ] Handle multiple monsters: "You see a Bat and an Orc!"
-- [ ] Deduplicate: Don't spam message if monster still visible
-- [ ] Clear monstersSeen when player changes levels
-- [ ] Write unit tests for sighting messages (>90% coverage)
-- [ ] Git commit: "feat: add monster sighting notifications (Phase 2.1)"
+- [x] Add `monstersSeen: Set<string>` to NotificationContext (track first sighting per monster)
+- [x] Implement `checkMonsterSightings(state: GameState): string[]` method
+- [x] Compare current visibleCells with monster positions
+- [x] Generate "You see a Dragon!" message for newly visible monsters
+- [x] Handle multiple monsters: "You see a Bat and an Orc!"
+- [x] Deduplicate: Don't spam message if monster still visible
+- [x] Clear monstersSeen when player changes levels
+- [x] Write unit tests for sighting messages (>90% coverage)
+- [x] Git commit: "feat: add monster sighting notifications (Phase 2.1)"
 
 ---
 
