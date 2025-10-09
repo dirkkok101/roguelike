@@ -9,6 +9,7 @@ import { MovementService } from '@services/MovementService'
 import { MessageService } from '@services/MessageService'
 import { DungeonService } from '@services/DungeonService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { CombatService } from '@services/CombatService'
 import { PathfindingService } from '@services/PathfindingService'
 import { MonsterAIService } from '@services/MonsterAIService'
@@ -79,8 +80,11 @@ async function initializeGame() {
     throw error // Fatal error - game cannot proceed without monster data
   }
 
+  // Create ItemSpawnService (needed by DebugService)
+  const itemSpawnService = new ItemSpawnService(random, itemData)
+
   // Create debug service early (needed by HungerService and LightingService)
-  const debugService = new DebugService(messageService, monsterSpawnService, random, import.meta.env.DEV)
+  const debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, random, import.meta.env.DEV)
 
   const lightingService = new LightingService(random, debugService)
   const fovService = new FOVService(statusEffectService)
