@@ -169,8 +169,22 @@ export class DebugConsole {
           ${debugState.fovOverlay ? '✓' : '✗'} FOV Debug
         </span>
       </div>
-      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #0f0; font-size: 10px; color: #888;">
-        ~ console | g god | v map | m spawn | M wake | K kill | f/p/n overlays
+      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #0f0;">
+        <div style="font-weight: bold; margin-bottom: 6px; color: #ff0; font-size: 11px;">
+          DEBUG COMMANDS:
+        </div>
+        <div style="font-size: 10px; color: #888; line-height: 1.4;">
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">~</span> Toggle Console</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">g</span> God Mode</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">v</span> Reveal Map</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">a</span> Identify All Items</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">m</span> Spawn Monster</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">M</span> Wake All Monsters</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">K</span> Kill All Monsters</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">f</span> FOV Overlay</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">p</span> Path Overlay</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">n</span> AI Overlay</div>
+        </div>
       </div>
     `
   }
