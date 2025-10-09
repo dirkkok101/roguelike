@@ -62,15 +62,18 @@
 - **Example**: Orc
 
 ### ERRATIC
-- **50% random movement**, 50% toward player
-- **Unpredictable** and difficult to anticipate
+- **100% random movement** (never seeks player)
+- **Completely unpredictable** - no player tracking
 - **Flying** creatures (can cross certain terrain)
 - **Examples**: Bat, Kestrel
+- **Authentic Rogue**: Matches 1980 Rogue where Bats "always moved as if confused"
 
 ### THIEF
-- **Steals item/gold** then flees
-- **Teleports or runs away** after theft
+- **Steals item/gold** when adjacent to player
+- **Immediately teleports** to random location after stealing
+- **Then flees on foot** if encountered again
 - **Examples**: Leprechaun (gold), Nymph (magic items)
+- **Authentic Rogue**: Matches 1980 Rogue where thieves "vanished" after stealing
 
 ### STATIONARY
 - **Does not move** from spawn position
@@ -105,14 +108,23 @@
 - Can make armor **cursed** (negative AC penalty)
 - **Strategy**: Avoid close combat, use ranged attacks if available
 
-### Steal & Flee
+### Steal & Teleport
 **Monsters**: Leprechaun (gold), Nymph (magic item)
 
 **Mechanic**:
-- **Steals item/gold** on successful hit
-- **Teleports or flees** immediately after
-- Difficult to recover stolen items
-- **Strategy**: Keep distance, kill before they reach you
+1. **Approaches** using intelligent pathfinding (A*)
+2. **Steals item/gold** when adjacent to player
+3. **Immediately teleports** to random walkable location
+4. **Flees on foot** if encountered again
+
+**Authentic Rogue**: In 1980 Rogue, Leprechauns and Nymphs were stationary and would "vanish" after stealing, simulated here by teleportation.
+
+**Recovery**: Extremely difficult to chase down after teleport
+
+**Strategy**:
+- Keep distance, kill before they reach you
+- Protect valuable items
+- High priority targets in group encounters
 
 ### Drain Stats/XP
 **Monsters**: Wraith (XP), Rattlesnake (Strength), Vampire (max HP)
@@ -170,7 +182,7 @@
 | `breath_weapon` | Dragon | Combat (40%) | 6d6 fire damage ranged |
 | `flying` | Bat, Kestrel, Griffin | Passive | Erratic movement, can cross terrain |
 | `invisible` | Phantom | Passive | Hidden until revealed |
-| `mean` | Various | Spawn | Always start awake and aggressive |
+| `mean` | Various (12 monsters) | Passive | 67% chase chance per turn (authentic Rogue ISMEAN flag) |
 
 **Example Configuration**:
 ```json
@@ -247,12 +259,26 @@
 - Attack when adjacent
 - Pursue player based on AI type
 
-### Mean Monsters
-**Always start awake and aggressive**
+### Mean Monsters (ISMEAN Flag)
+**Special Behavior**: **67% chance per turn to pursue** player (authentic Rogue ISMEAN flag)
 
-**Examples**: Emu, Hobgoblin, Kestrel, Quagga, Snake, Troll, Ur-vile, Zombie
+**Complete List** (12 monsters):
+- Dragon (D), Emu (E), Griffin (G), Hobgoblin (H)
+- Jabberwock (J), Kestrel (K), Orc (O), Quagga (Q)
+- Snake (S), Troll (T), Ur-vile (U), Zombie (Z)
 
-**Strategy**: Expect immediate combat, prepare defenses
+**Chase Mechanic**:
+- Each turn, MEAN monster rolls against 67% chance
+- **Success** (67%): Monster pursues player
+- **Failure** (33%): Monster waits/stands still
+- **Always attacks** when adjacent (no roll needed)
+
+**Authentic Rogue Behavior**: In original 1980 Rogue, the ISMEAN flag gave monsters exactly 67% chance to chase per turn, creating the same tactical feel where aggressive monsters occasionally hesitate.
+
+**Strategy**:
+- MEAN monsters are less relentless than 100% pursuers
+- Use waiting turns to heal or reposition
+- Still dangerous due to multiple attempts per encounter
 
 ---
 
