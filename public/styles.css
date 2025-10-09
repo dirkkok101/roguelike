@@ -156,8 +156,6 @@ body {
 }
 
 .equipment-slot {
-  font-size: 0.8em;
-  color: #ccc;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -181,14 +179,12 @@ body {
 }
 
 .status-effect-item {
-  font-size: 0.8em;
   margin: 0;
 }
 
 .status-empty {
   color: #666;
   font-style: italic;
-  font-size: 0.8em;
 }
 
 .resource-bar {
@@ -285,10 +281,7 @@ body {
     font-size: 0.8em;
   }
 
-  .equipment-slot,
-  .status-effect-item {
-    font-size: 0.8em;
-  }
+  /* Equipment and status items inherit font-size from .stats-panel-content */
 }
 
 /* Modal overlay and content */
