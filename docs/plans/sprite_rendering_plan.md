@@ -1,6 +1,6 @@
 # Sprite-Based Rendering Implementation Plan
 
-**Status**: 🚧 In Progress - Phase 2 Complete (5/5 tasks), Starting Phase 3
+**Status**: 🚧 In Progress - Phase 3 Complete (2/3 tasks), Task 3.3 Optional
 **Version**: 1.0
 **Created**: 2025-10-09
 **Last Updated**: 2025-10-09
@@ -366,18 +366,18 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/services/ColorService/ColorService.ts` (new service - optional)
 
 ##### Subtasks:
-- [ ] Research canvas color tinting techniques:
-  - Option A: Use `ctx.globalCompositeOperation = 'multiply'` with colored rectangle overlay
+- [x] Research canvas color tinting techniques:
+  - Option A: Use `ctx.globalCompositeOperation = 'multiply'` with colored rectangle overlay ← IMPLEMENTED
   - Option B: Use `ctx.filter = 'hue-rotate() brightness() saturate()'`
   - Option C: Pre-render colored sprite variants (less flexible, more performant)
-- [ ] Implement chosen technique in `drawTile()` method
-- [ ] Apply monster threat-level colors (from RenderingService.getMonsterColor):
+- [x] Implement chosen technique in `drawTile()` method
+- [x] Apply monster threat-level colors (from RenderingService.getColorForEntity):
   - Low threat (A-E): Green (#44FF44)
   - Medium threat (F-P): Yellow (#FFDD00)
   - High threat (Q-U): Orange (#FF8800)
   - Boss tier (V-Z): Red (#FF4444)
-- [ ] Test color accuracy in browser (compare to ASCII version)
-- [ ] Git commit: "feat: implement color tinting for sprites (Phase 3.1)"
+- [x] Test color accuracy in browser (compare to ASCII version)
+- [x] Git commit: "feat: implement color tinting for sprites (Phase 3.1)"
 
 ---
 
@@ -389,19 +389,19 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/ui/CanvasGameRenderer.ts` (modify)
 
 ##### Subtasks:
-- [ ] Add opacity parameter to `drawTile()`:
+- [x] Add opacity parameter to `drawTile()`:
   - Visible state: `opacity = 1.0`
   - Explored state: `opacity = 0.5`
   - Unexplored: Don't render
-- [ ] Apply opacity using `ctx.globalAlpha`:
+- [x] Apply opacity using `ctx.globalAlpha`:
   ```typescript
   ctx.globalAlpha = opacity
   ctx.drawImage(...)
   ctx.globalAlpha = 1.0  // Reset
   ```
-- [ ] Verify fog-of-war effect matches ASCII version
-- [ ] Test: Explored tiles should be dimmed but still visible
-- [ ] Git commit: "feat: implement visibility dimming with opacity (Phase 3.2)"
+- [x] Verify fog-of-war effect matches ASCII version
+- [x] Test: Explored tiles should be dimmed but still visible
+- [x] Git commit: "feat: implement visibility dimming with opacity (Phase 3.2)" (completed in Phase 2)
 
 ---
 

@@ -243,15 +243,24 @@ export class CanvasGameRenderer {
     }
 
     // Handle detection effects (detected but not visible)
-    // TODO: In Phase 3, add color tinting for detected entities
     if (entityType === 'monster' && state.detectedMonsters.has(`${position.x},${position.y}`)) {
       if (visibilityState !== 'visible') {
         opacity = this.config.detectedOpacity
       }
     }
 
+    // Get color tint for entities (Phase 3: color tinting)
+    let tintColor: string | undefined
+    if (entityType === 'monster' && visibilityState === 'visible') {
+      // Find the monster at this position to get its color
+      const monster = level.monsters.find(m => m.position.x === position.x && m.position.y === position.y)
+      if (monster) {
+        tintColor = this.renderingService.getColorForEntity(monster, visibilityState)
+      }
+    }
+
     // Draw entity sprite
-    this.drawTile(position.x, position.y, sprite, opacity)
+    this.drawTile(position.x, position.y, sprite, opacity, tintColor)
   }
 
   /**
