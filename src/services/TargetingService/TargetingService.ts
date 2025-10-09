@@ -450,6 +450,11 @@ export class TargetingService {
    * @returns Array of positions along the ray path (excluding start position)
    */
   public calculateRay(start: Position, end: Position, level: Level): Position[] {
+    // Early return if start and end are the same position
+    if (start.x === end.x && start.y === end.y) {
+      return []
+    }
+
     const path: Position[] = []
 
     // Calculate deltas
@@ -472,6 +477,12 @@ export class TargetingService {
       // Add current position to path (skip start position)
       if (x !== start.x || y !== start.y) {
         const pos = { x, y }
+
+        // Stop at out of bounds positions (before adding to path)
+        if (!this.movementService.isInBounds(pos, level)) {
+          break
+        }
+
         path.push(pos)
 
         // Stop if we've reached the end position
@@ -480,9 +491,6 @@ export class TargetingService {
         }
 
         // Stop at walls (non-walkable tiles)
-        if (!this.movementService.isInBounds(pos, level)) {
-          break
-        }
         if (!this.movementService.isWalkable(pos, level)) {
           break
         }
