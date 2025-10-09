@@ -122,13 +122,13 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 - `src/services/MonsterAIService/aggro-range.test.ts`
 
 ##### Subtasks:
-- [ ] Test monster wakes at exact aggroRange distance
-- [ ] Test monster stays asleep at aggroRange + 1 distance
-- [ ] Test ERRATIC monsters never wake from proximity (aggroRange 0)
-- [ ] Test Ring of Stealth prevents wake at adjacent distance
-- [ ] Test MEAN monsters have 67% wake chance (not 100%)
-- [ ] Verify test coverage >90% for wake-up logic
-- [ ] Git commit: "test: add aggro range validation tests (Phase 1.3)"
+- [x] Test monster wakes at exact aggroRange distance
+- [x] Test monster stays asleep at aggroRange + 1 distance
+- [x] Test ERRATIC monsters never wake from proximity (aggroRange 0)
+- [x] Test Ring of Stealth prevents wake at adjacent distance
+- [x] Test MEAN monsters have 67% wake chance (not 100%)
+- [x] Verify test coverage >90% for wake-up logic
+- [x] Git commit: "test: add aggro range validation tests (Phase 1.3)"
 
 ---
 
