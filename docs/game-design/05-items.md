@@ -1,7 +1,7 @@
 # Items
 
 **Version**: 2.1
-**Last Updated**: 2025-10-06
+**Last Updated**: 2025-10-09
 **Related Docs**: [Light Sources](./06-light-sources.md) | [Identification](./07-identification.md) | [Hunger](./08-hunger.md) | [Character](./02-character.md)
 
 ---
@@ -161,7 +161,7 @@
 
 ---
 
-**Total Potion Types**: 11 core potions ✅ **All Implemented**
+**Total Potion Types**: 13 potions ✅ **All Implemented**
 
 **Implementation Status**:
 - ✅ **Phase 1**: Healing, Extra Healing, Gain Strength, Restore Strength, Poison
@@ -169,7 +169,7 @@
 - ✅ **Phase 3**: Confusion, Blindness, Haste Self
 - ✅ **Phase 4**: Levitation, See Invisible
 
-**Test Coverage**: 159/159 test suites passing (100%), 1732/1732 tests (100%)
+**Test Coverage**: 10 test files, 100 tests passing (100%)
 
 **See**: [Potion Implementation Plan](../plans/potion_implementation_plan.md) for complete design documentation.
 
