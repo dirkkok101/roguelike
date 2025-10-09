@@ -2,6 +2,7 @@ import { DebugService } from './DebugService'
 import { MessageService } from '@services/MessageService'
 import { MockRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { GameState } from '@game/core/core'
 
 describe('DebugService - God Mode', () => {
@@ -40,7 +41,8 @@ describe('DebugService - God Mode', () => {
     const mockRandom = new MockRandom()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
-    return new DebugService(new MessageService(), monsterSpawnService, mockRandom, isDevMode)
+    const itemSpawnService = new ItemSpawnService(mockRandom)
+    return new DebugService(new MessageService(), monsterSpawnService, itemSpawnService, mockRandom, isDevMode)
   }
 
   let debugService: DebugService
@@ -51,7 +53,8 @@ describe('DebugService - God Mode', () => {
     const mockRandom = new MockRandom()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
-    debugService = new DebugService(messageService, monsterSpawnService, mockRandom, true)
+    const itemSpawnService = new ItemSpawnService(mockRandom)
+    debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom, true)
 
     mockState = {
       messages: [],

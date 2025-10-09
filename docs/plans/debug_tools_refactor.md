@@ -26,11 +26,13 @@ Fix incomplete god mode implementation, add user feedback to debug commands, cle
 - [x] Dead code removed (`applyGodModeEffects` unused method)
 - [x] Documentation matches implementation (no phantom features)
 - [x] Identify All items has keybind (`a` key)
-- [ ] Spawn Monster spawns real monsters from monsters.json (not generic "Debug X" monsters)
-- [ ] Spawn Item spawns all item categories with type-safe API (weapons, armor, potions, scrolls, rings, wands, food, light sources)
-- [ ] Smart positioning: items/monsters spawn 1-3 tiles from player in same room, or nearest room if in corridor
+- [x] Spawn Monster spawns real monsters from monsters.json (not generic "Debug X" monsters)
+- [x] Spawn Item spawns all item categories with type-safe API (weapons, armor, potions, scrolls, rings, wands, food, light sources)
+- [x] Smart positioning: items/monsters spawn 1-3 tiles from player in same room, or nearest room if in corridor
 - [x] All tests pass with >80% coverage
 - [x] Architecture follows CLAUDE.md principles (logic in services, orchestration in commands)
+- [ ] **Code Review**: All critical issues addressed (type safety, business logic extraction, template optimization, input validation)
+- [ ] **Code Review**: All high-priority improvements implemented (error handling, smart positioning validation, test coverage)
 
 ---
 
@@ -69,6 +71,19 @@ Fix incomplete god mode implementation, add user feedback to debug commands, cle
 - `DebugService.spawnMonster()` (line 177) - Comment: "would load from monsters.json in real implementation"
 - `MonsterSpawnService.createMonster()` - Private method, has real monster creation logic
 - `ItemSpawnService` - All item creation embedded in spawnItems(), not exposed for debug use
+
+**Code Review Findings** (Post-Phases 5-6):
+
+After completing Phases 5-6, a comprehensive code review identified critical issues requiring Phase 7 fixes:
+
+1. **Type Safety Violation** (CRITICAL): `DebugService.ts:212-216` uses `any` cast to access private MonsterSpawnService method
+2. **Business Logic in Switch** (CRITICAL): `DebugService.ts:240-354` has enum parsing duplicated in spawnItem() switch
+3. **Template Duplication + DI Violation** (CRITICAL): `ItemSpawnService.ts` recreates templates on every spawn (6x duplication), optional itemData with hardcoded fallbacks violates dependency injection principles (services should require what they need, not have fallback data)
+4. **Missing Input Validation** (CRITICAL): `spawnItem()` has no null/undefined checks for itemType parameter
+5. **Error Handling** (HIGH): spawnMonster() needs try-catch for robustness
+6. **Smart Positioning Validation** (HIGH): findSpawnPosition() needs fallback validation
+
+All 2,582 tests pass and functionality works correctly, but code quality needs improvement before production merge. **The optional itemData with fallbacks is particularly problematic** - it creates two code paths (tests using fallbacks, production using JSON) and violates the principle that services should explicitly require their dependencies. See Section 11 (Code Review Summary) for detailed findings and Phase 7 for remediation tasks.
 
 ---
 
@@ -435,6 +450,412 @@ Fix incomplete god mode implementation, add user feedback to debug commands, cle
 - [ ] Keybind opens modal with item category selection (weapon, armor, potion, scroll, ring, wand, food, torch, lantern, oil_flask)
 - [ ] For potions/scrolls/rings/wands, show second modal for specific type
 - [ ] Git commit: "feat: add SpawnItemCommand with 'i' keybind and category selection (Phase 6.4)"
+
+---
+
+### Phase 7: Code Review Fixes (Priority: HIGH)
+
+**Objective**: Address critical issues identified in comprehensive code review of Phases 5-6 implementation
+
+**Context**: Code review identified the following issues:
+- **Overall Assessment**: ⚠️ NOT production-ready
+- **Code Quality**: 7/10
+- **Test Coverage**: ✅ Good (89% for DebugService, all 2,582 tests passing)
+
+#### Task 7.1: Fix Type Safety Violation in spawnMonster()
+
+**Issue**: 🔴 CRITICAL - Type coercion with `any` cast bypasses TypeScript safety
+
+**Location**: `DebugService.ts:212-216`
+
+**Current Code**:
+```typescript
+const monster = (this.monsterSpawnService as any).createMonster(
+  template,
+  spawnPos,
+  `debug-monster-${Date.now()}`
+)
+```
+
+**Problem**:
+- Defeats TypeScript's type safety system
+- `createMonster()` is private, forcing `any` cast to access it
+- Compiler can't catch breaking changes in MonsterSpawnService API
+
+**Files to modify**:
+- `src/services/MonsterSpawnService/MonsterSpawnService.ts`
+- `src/services/DebugService/DebugService.ts`
+- `src/services/MonsterSpawnService/create-from-template.test.ts` (new)
+
+##### Subtasks:
+- [ ] Add public method to MonsterSpawnService:
+  ```typescript
+  public createMonsterFromTemplate(
+    template: MonsterTemplate,
+    position: Position,
+    id?: string
+  ): Monster {
+    const monsterId = id || `monster-${this.random.nextInt(1000, 9999)}`
+    return this.createMonster(template, position, monsterId)
+  }
+  ```
+- [ ] Update DebugService.spawnMonster() to call `createMonsterFromTemplate()` instead of casting to `any`
+- [ ] Write unit tests for `createMonsterFromTemplate()` verifying:
+  - Correct monster created from template
+  - Custom ID used when provided
+  - Generated ID used when not provided
+- [ ] Verify all existing tests still pass
+- [ ] Git commit: "fix: add createMonsterFromTemplate to MonsterSpawnService, remove type coercion (Phase 7.1)"
+
+---
+
+#### Task 7.2: Extract Business Logic from spawnItem() Switch
+
+**Issue**: 🔴 CRITICAL - Enum parsing logic duplicated in switch statement
+
+**Location**: `DebugService.ts:240-354`
+
+**Current Code**:
+```typescript
+switch (itemType.toLowerCase()) {
+  case 'potion': {
+    const potionType = subType ? (PotionType[subType as keyof typeof PotionType] || PotionType.HEAL) : PotionType.HEAL
+    item = this.itemSpawnService.createPotion(potionType, spawnPos)
+    break
+  }
+  case 'scroll': {
+    const scrollType = subType ? (ScrollType[subType as keyof typeof ScrollType] || ScrollType.IDENTIFY) : ScrollType.IDENTIFY
+    item = this.itemSpawnService.createScroll(scrollType, spawnPos)
+    break
+  }
+  // ... 6 more cases
+}
+```
+
+**Problem**:
+- Violates Single Responsibility Principle - command has business logic
+- Enum parsing repeated 4 times (potion, scroll, ring, wand)
+- Switch statement has 8 cases with embedded logic
+- Hard to test edge cases (invalid enum values)
+
+**Files to modify**:
+- `src/services/DebugService/DebugService.ts`
+- `src/services/DebugService/enum-parsing.test.ts` (new)
+
+##### Subtasks:
+- [ ] Extract enum parsing into helper methods:
+  ```typescript
+  private parsePotionType(subType?: string): PotionType {
+    if (!subType) return PotionType.HEAL
+    return PotionType[subType as keyof typeof PotionType] || PotionType.HEAL
+  }
+
+  private parseScrollType(subType?: string): ScrollType {
+    if (!subType) return ScrollType.IDENTIFY
+    return ScrollType[subType as keyof typeof ScrollType] || ScrollType.IDENTIFY
+  }
+
+  private parseRingType(subType?: string): RingType {
+    if (!subType) return RingType.PROTECTION
+    return RingType[subType as keyof typeof RingType] || RingType.PROTECTION
+  }
+
+  private parseWandType(subType?: string): WandType {
+    if (!subType) return WandType.MAGIC_MISSILE
+    return WandType[subType as keyof typeof WandType] || WandType.MAGIC_MISSILE
+  }
+  ```
+- [ ] Simplify switch statement to use parsing helpers:
+  ```typescript
+  case 'potion': {
+    item = this.itemSpawnService.createPotion(this.parsePotionType(subType), spawnPos)
+    break
+  }
+  ```
+- [ ] Write unit tests for each parsing helper verifying:
+  - Valid enum string returns correct type
+  - Invalid enum string returns default type
+  - Undefined/null returns default type
+- [ ] Verify all existing tests still pass
+- [ ] Git commit: "refactor: extract enum parsing logic from spawnItem switch (Phase 7.2)"
+
+---
+
+#### Task 7.3: Eliminate Template Duplication in ItemSpawnService
+
+**Issue**: 🔴 CRITICAL - Templates recreated on every spawn (6x duplication, performance issue)
+
+**Location**: `ItemSpawnService.ts:577-593, 618-633, 657-670` (and 3 more instances)
+
+**Current Code** (repeated 6 times):
+```typescript
+createPotion(potionType: PotionType, position: Position): Potion {
+  const potionTemplates =
+    this.itemData?.potions.map((p) => ({
+      type: PotionType[p.type as keyof typeof PotionType],
+      effect: p.effect,
+      power: p.power,
+      rarity: p.rarity,
+    })) || [
+      { type: PotionType.HEAL, effect: 'restore_hp', power: '1d8', rarity: 'common' },
+      // ... hardcoded fallbacks
+    ]
+  // Template recreation happens on EVERY spawn call
+}
+```
+
+**Problems**:
+- Violates DRY principle - template loading duplicated 6 times
+- Performance issue - templates rebuilt on every spawn (O(n) overhead)
+- Memory waste - same templates created repeatedly
+- **Hardcoded fallbacks violate dependency injection** - service has embedded data (wrong!)
+- **Optional itemData creates two code paths** - tests might use fallbacks while production uses JSON
+- **Hidden dependency** - service can't properly function without itemData but signature says it's optional
+
+**Correct Solution** (following MonsterSpawnService pattern):
+Make `itemData` REQUIRED, remove ALL fallbacks, load templates once in constructor. Tests should load real JSON data.
+
+**Files to modify**:
+- `src/services/ItemSpawnService/ItemSpawnService.ts`
+- `src/services/ItemSpawnService/template-loading.test.ts` (new)
+- All test files that instantiate ItemSpawnService (24+ files)
+
+##### Subtasks:
+- [ ] **Remove optional itemData parameter** - make it required:
+  ```typescript
+  constructor(
+    private random: IRandomService,
+    private itemData: ItemData  // REQUIRED, not optional
+  ) {
+    // Load all templates once from REQUIRED itemData
+    this.potionTemplates = this.loadPotionTemplates()
+    this.scrollTemplates = this.loadScrollTemplates()
+    this.ringTemplates = this.loadRingTemplates()
+    this.wandTemplates = this.loadWandTemplates()
+    this.weaponTemplates = this.loadWeaponTemplates()
+    this.armorTemplates = this.loadArmorTemplates()
+  }
+  ```
+- [ ] **Remove ALL fallback data** from template loading methods:
+  ```typescript
+  private loadPotionTemplates() {
+    // No more || [ hardcoded fallbacks ]
+    return this.itemData.potions.map((p) => ({
+      type: PotionType[p.type as keyof typeof PotionType],
+      effect: p.effect,
+      power: p.power,
+      rarity: p.rarity,
+    }))
+  }
+  ```
+- [ ] Add private template properties to ItemSpawnService:
+  ```typescript
+  private potionTemplates: Array<{type: PotionType, effect: string, power: string, rarity: string}>
+  private scrollTemplates: Array<{type: ScrollType, effect: string, power: string, rarity: string}>
+  private ringTemplates: Array<{type: RingType, effect: string, power: string, rarity: string}>
+  private wandTemplates: Array<{type: WandType, effect: string, power: string, rarity: string}>
+  private weaponTemplates: Array<{name: string, damage: string, hitBonus: number, rarity: string}>
+  private armorTemplates: Array<{name: string, acBonus: number, rarity: string}>
+  ```
+- [ ] Refactor all 6 creation methods to use cached templates instead of recreating
+- [ ] **Update main.ts** to ensure itemData is loaded before ItemSpawnService creation:
+  ```typescript
+  const itemData = await loadItemData()
+  if (!itemData) {
+    throw new Error('Failed to load items.json - game cannot start')
+  }
+  const itemSpawnService = new ItemSpawnService(random, itemData)
+  ```
+- [ ] **Update ALL test files** (24+) to load JSON data like MonsterSpawnService tests do:
+  ```typescript
+  let itemData: ItemData
+
+  beforeAll(async () => {
+    // Mock fetch to return item data (like MonsterSpawnService tests)
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockItemData  // Real item data structure
+    } as Response)
+
+    // Or load real items.json if available
+    const response = await fetch('/data/items.json')
+    itemData = await response.json()
+  })
+
+  beforeEach(() => {
+    const itemSpawnService = new ItemSpawnService(mockRandom, itemData)
+  })
+  ```
+- [ ] Write unit tests verifying:
+  - Templates loaded once in constructor (measure with spy)
+  - Templates used correctly in creation methods
+  - Service throws clear error if itemData is undefined/null
+  - Tests use same data path as production (no separate fallback path)
+- [ ] Measure performance improvement (template creation eliminated from hot path)
+- [ ] Git commit: "perf: make itemData required, remove fallbacks, load templates once (Phase 7.3)"
+
+**Why this is better**:
+- ✅ Single source of truth (items.json only)
+- ✅ Tests use real production data
+- ✅ Proper dependency injection (required dependencies are explicit)
+- ✅ Fail fast if data missing (don't hide errors)
+- ✅ Simpler service code (no fallback logic to maintain)
+- ✅ Same code path for tests and production
+
+---
+
+#### Task 7.4: Add Input Validation to spawnItem()
+
+**Issue**: 🔴 CRITICAL - Missing validation for `itemType` parameter
+
+**Location**: `DebugService.ts:240` (spawnItem method)
+
+**Current Code**:
+```typescript
+spawnItem(
+  state: GameState,
+  itemType: string,
+  subType?: string,
+  position?: Position
+): GameState {
+  // No validation - proceeds directly to switch
+  switch (itemType.toLowerCase()) {
+    // ...
+  }
+}
+```
+
+**Problem**:
+- No null/undefined checks for `itemType`
+- No validation before toLowerCase() call (crashes if itemType is null)
+- Switch default case shows "Unknown" message but no early validation
+- Debug commands should fail fast with clear error messages
+
+**Files to modify**:
+- `src/services/DebugService/DebugService.ts`
+- `src/services/DebugService/spawn-item.test.ts` (update existing)
+
+##### Subtasks:
+- [ ] Add input validation at top of spawnItem():
+  ```typescript
+  spawnItem(
+    state: GameState,
+    itemType: string,
+    subType?: string,
+    position?: Position
+  ): GameState {
+    // Validate itemType
+    if (!itemType || typeof itemType !== 'string') {
+      return this.messageService.addMessage(
+        state,
+        'Error: Invalid item type provided',
+        'error'
+      )
+    }
+
+    // Validate it's a known category
+    const validCategories = ['potion', 'scroll', 'ring', 'wand', 'food', 'torch', 'lantern', 'oil']
+    if (!validCategories.includes(itemType.toLowerCase())) {
+      return this.messageService.addMessage(
+        state,
+        `Error: Unknown item type '${itemType}'. Valid types: ${validCategories.join(', ')}`,
+        'error'
+      )
+    }
+
+    // Proceed with spawn logic...
+  }
+  ```
+- [ ] Write unit tests verifying:
+  - Null itemType shows error message
+  - Undefined itemType shows error message
+  - Empty string itemType shows error message
+  - Invalid category shows error with list of valid categories
+  - No items spawned when validation fails
+- [ ] Verify all existing tests still pass
+- [ ] Git commit: "fix: add input validation to spawnItem with clear error messages (Phase 7.4)"
+
+---
+
+#### Task 7.5: High-Priority Improvements
+
+**Issues**: 6 high-priority improvements identified in code review
+
+**Files to modify**: Multiple (see subtasks)
+
+##### Subtask 7.5.1: Improve Error Handling in spawnMonster()
+- [ ] Add try-catch around monster creation:
+  ```typescript
+  try {
+    const monster = this.monsterSpawnService.createMonsterFromTemplate(template, spawnPos, `debug-monster-${Date.now()}`)
+    // ... rest of spawn logic
+  } catch (error) {
+    return this.messageService.addMessage(
+      state,
+      `Error spawning monster '${letter}': ${error.message}`,
+      'error'
+    )
+  }
+  ```
+- [ ] Write test verifying error message shown if createMonsterFromTemplate throws
+- [ ] Git commit: "fix: add error handling to spawnMonster (Phase 7.5.1)"
+
+##### Subtask 7.5.2: Add Smart Positioning Validation
+- [ ] Add validation in findSpawnPosition() to ensure result is always valid:
+  ```typescript
+  const position = this.findSpawnPosition(state)
+  if (!position || !this.isValidSpawnPosition(level, position)) {
+    return this.messageService.addMessage(
+      state,
+      'Error: Could not find valid spawn position',
+      'error'
+    )
+  }
+  ```
+- [ ] Write test verifying error shown when no valid positions available (full room)
+- [ ] Git commit: "fix: add validation to smart positioning fallback (Phase 7.5.2)"
+
+##### Subtask 7.5.3: Add Edge Case Tests for Smart Positioning
+- [ ] Write test: Player in room with no valid spawn positions (all occupied)
+- [ ] Write test: Player in corridor with no rooms on level (should never happen, but handle gracefully)
+- [ ] Write test: Multiple spawn attempts in same turn (verify positions don't overlap)
+- [ ] Git commit: "test: add edge case tests for smart positioning (Phase 7.5.3)"
+
+##### Subtask 7.5.4: Document Template Caching in ItemSpawnService
+- [ ] Add JSDoc to constructor explaining template caching:
+  ```typescript
+  /**
+   * Creates ItemSpawnService with template caching.
+   * Templates are loaded once from itemData in constructor for performance.
+   * @param random - Random number generator for item selection
+   * @param itemData - Optional item data from JSON (uses fallbacks if undefined)
+   */
+  constructor(private random: IRandomService, private itemData?: ItemData) {
+    // Load all templates once (cached for lifetime of service)
+    this.potionTemplates = this.loadPotionTemplates()
+    // ...
+  }
+  ```
+- [ ] Add comment explaining performance benefits in each creation method
+- [ ] Git commit: "docs: add JSDoc explaining template caching in ItemSpawnService (Phase 7.5.4)"
+
+##### Subtask 7.5.5: Standardize Error Messages
+- [ ] Audit all error messages in DebugService for consistency:
+  - Start with "Error: " prefix
+  - Include relevant context (what failed, why)
+  - Use consistent casing and punctuation
+- [ ] Update tests to verify standardized error format
+- [ ] Git commit: "refactor: standardize error messages in DebugService (Phase 7.5.5)"
+
+##### Subtask 7.5.6: Add Performance Metrics Comments
+- [ ] Add comment documenting template caching performance improvement:
+  ```typescript
+  // Performance: Templates loaded once in constructor (O(1) lookup vs O(n) recreation)
+  // Previous: ~50μs per spawn (template recreation)
+  // Current: ~5μs per spawn (cached lookup)
+  // Improvement: 10x faster for repeated spawns
+  ```
+- [ ] Git commit: "docs: add performance metrics for template caching (Phase 7.5.6)"
 
 ---
 
@@ -868,15 +1289,18 @@ constructor(
 - Phase 2: 1 hour (add messages to overlays) - ✅ Complete
 - Phase 3: 1 hour (identify all command + keybind) - ✅ Complete
 - Phase 4: 1 hour (documentation updates) - ✅ Complete
-- Phase 5: 2-3 hours (spawn real monsters + smart positioning + tests)
-- Phase 6: 2.5-3 hours (extract item helpers + spawn item API + command + tests)
-- **Total**: 9.5-12 hours (5-6 hours complete, 4.5-6 hours remaining)
+- Phase 5: 2-3 hours (spawn real monsters + smart positioning + tests) - ✅ Complete
+- Phase 6: 2.5-3 hours (extract item helpers + spawn item API + command + tests) - ✅ Complete
+- Phase 7: 3-4 hours (code review fixes + high-priority improvements + tests) - 🚧 In Progress
+- **Total**: 12.5-16 hours (9.5-12 hours complete, 3-4 hours remaining)
 
 ---
 
 ## 10. Post-Implementation
 
 ### Verification Checklist
+
+**Core Functionality** (Phases 1-6):
 - [ ] All tests passing (`npm test`)
 - [ ] Type checking passing (`npm run type-check`)
 - [ ] Coverage >80% (`npm run test:coverage`)
@@ -892,9 +1316,41 @@ constructor(
   - [ ] Smart positioning fallback works (spawn in corridor → entity appears in nearest room)
   - [ ] Spawn item works for all categories (`i` key → category → item appears near player)
   - [ ] Spawn item type selection works (`i` → potion → healing → healing potion appears)
+
+**Code Review Fixes** (Phase 7):
+- [ ] **Task 7.1**: Type safety violation fixed
+  - [ ] `createMonsterFromTemplate()` added to MonsterSpawnService
+  - [ ] No `any` casts in DebugService.spawnMonster()
+  - [ ] TypeScript compiler enforces API contract
+- [ ] **Task 7.2**: Business logic extracted from switch
+  - [ ] Enum parsing helpers created (parsePotionType, parseScrollType, parseRingType, parseWandType)
+  - [ ] Switch statement simplified to use helpers
+  - [ ] Unit tests cover all parsing edge cases
+- [ ] **Task 7.3**: Template duplication eliminated
+  - [ ] Templates loaded once in ItemSpawnService constructor
+  - [ ] All creation methods use cached templates
+  - [ ] Performance improvement measured and documented
+- [ ] **Task 7.4**: Input validation added
+  - [ ] spawnItem() validates itemType before processing
+  - [ ] Clear error messages for null/undefined/invalid inputs
+  - [ ] Unit tests verify all validation cases
+- [ ] **Task 7.5**: High-priority improvements implemented
+  - [ ] Error handling in spawnMonster() (try-catch)
+  - [ ] Smart positioning validation (fallback checks)
+  - [ ] Edge case tests for smart positioning
+  - [ ] JSDoc documenting template caching
+  - [ ] Standardized error messages across DebugService
+  - [ ] Performance metrics documented
+
+**Quality Assurance**:
 - [ ] Architectural review completed ([ARCHITECTURAL_REVIEW.md](../ARCHITECTURAL_REVIEW.md))
+  - [ ] No logic in commands (orchestration only)
+  - [ ] All logic in services
+  - [ ] No state mutations (immutability verified)
+  - [ ] Proper dependency injection (no circular dependencies)
 - [ ] Documentation updated and accurate
 - [ ] Production build has debug disabled (verify in dist bundle)
+- [ ] Code quality improved from 7/10 to 9/10 or higher (reassess after Phase 7)
 
 ### Follow-Up Tasks
 - [ ] Consider adding teleport debug command (if needed for level testing)
@@ -905,5 +1361,36 @@ constructor(
 
 ---
 
+## 11. Code Review Summary
+
+**Date**: 2025-10-09
+**Reviewer**: Code Review Agent (automated comprehensive review)
+**Scope**: Phases 5-6 implementation (spawn real monsters, spawn items, smart positioning)
+
+### Overall Assessment
+- **Status**: ⚠️ NOT production-ready (requires Phase 7 fixes)
+- **Code Quality**: 7/10 (target: 9/10 after Phase 7)
+- **Test Coverage**: ✅ Good (89% for DebugService, all 2,582 tests passing)
+- **Functionality**: ✅ Works as intended (all manual tests pass)
+
+### Critical Issues Identified (Must Fix)
+1. **Type Safety Violation** - `any` cast bypasses TypeScript safety in spawnMonster()
+2. **Business Logic in Switch** - Enum parsing duplicated in spawnItem() switch statement
+3. **Template Duplication + Dependency Injection Violation** - Templates recreated on every spawn (6x duplication), optional itemData with hardcoded fallbacks violates DI principles
+4. **Missing Input Validation** - No null/undefined checks for itemType parameter
+
+### High-Priority Improvements (Should Fix)
+1. Improve error handling in spawnMonster() (try-catch)
+2. Add smart positioning validation (fallback checks)
+3. Add edge case tests for smart positioning
+4. Document template caching in ItemSpawnService (JSDoc)
+5. Standardize error messages across DebugService
+6. Add performance metrics documentation
+
+### Recommendation
+Implement Phase 7 before merging to production. All issues have clear fixes with minimal breaking changes.
+
+---
+
 **Last Updated**: 2025-10-09
-**Status**: 🚧 In Progress (Phases 1-4 Complete, Phases 5-6 Pending)
+**Status**: 🚧 In Progress (Phases 1-6 Complete, Phase 7 Pending - Code Review Fixes)

@@ -3,18 +3,30 @@ import { DebugService } from '@services/DebugService'
 import { MessageService } from '@services/MessageService'
 import { MockRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { GameState } from '@game/core/core'
 
 describe('DebugConsole', () => {
+  let originalFetch: typeof global.fetch
   let debugConsole: DebugConsole
   let debugService: DebugService
 
-  beforeEach(() => {
+  const mockMonsterData = [{ letter: 'T', name: 'Troll', hp: '6d8', ac: 4, damage: '1d8', xpValue: 120, level: 6, speed: 12, rarity: 'uncommon', mean: true, aiProfile: { behavior: 'SIMPLE', intelligence: 4, aggroRange: 8, fleeThreshold: 0.2, special: [] }}]
+
+  beforeAll(() => {
+    originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => mockMonsterData } as Response)
+  })
+
+  afterAll(() => { global.fetch = originalFetch })
+
+  beforeEach(async () => {
     const messageService = new MessageService()
     const mockRandom = new MockRandom()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
-    debugService = new DebugService(messageService, monsterSpawnService, mockRandom, true)
+    const itemSpawnService = new ItemSpawnService(mockRandom)
+    debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom, true)
     debugConsole = new DebugConsole(debugService)
   })
 

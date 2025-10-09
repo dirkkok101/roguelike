@@ -14,6 +14,7 @@ import {
 } from '@game/core/core'
 import { MessageService } from '@services/MessageService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { IRandomService } from '@services/RandomService'
 
 /**
@@ -32,6 +33,7 @@ export class DebugService {
   constructor(
     private messageService: MessageService,
     private monsterSpawnService: MonsterSpawnService,
+    private itemSpawnService: ItemSpawnService,
     private random: IRandomService,
     isDevMode?: boolean
   ) {
@@ -172,6 +174,9 @@ export class DebugService {
 
   /**
    * Spawn monster at position for testing
+   *
+   * Uses MonsterSpawnService to create real monsters from templates.
+   * Smart positioning: spawns near player in same room or nearest room.
    */
   spawnMonster(state: GameState, letter: string, position?: Position): GameState {
     if (!this.isEnabled()) return state
@@ -179,54 +184,40 @@ export class DebugService {
     const currentLevel = state.levels.get(state.currentLevel)
     if (!currentLevel) return state
 
-    // Find monster template by letter (would load from monsters.json in real implementation)
-    // For now, create basic monster
-    const spawnPos = position || this.findNearbyEmptyTile(currentLevel, state.player.position)
-    if (!spawnPos) {
+    // Get monster template from MonsterSpawnService
+    const template = this.monsterSpawnService.getMonsterByLetter(letter)
+    if (!template) {
       const messages = this.messageService.addMessage(
         state.messages,
-        'No empty tile found for monster spawn',
+        `Unknown monster letter: ${letter}`,
         'warning',
         state.turnCount
       )
       return { ...state, messages }
     }
 
-    const newMonster: Monster = {
-      id: `debug-monster-${Date.now()}`,
-      letter,
-      name: `Debug ${letter}`,
-      position: spawnPos,
-      hp: 10,
-      maxHp: 10,
-      ac: 5,
-      damage: '1d6',
-      xpValue: 10,
-      aiProfile: {
-        behavior: MonsterBehavior.SIMPLE,
-        intelligence: 5,
-        aggroRange: 5,
-        fleeThreshold: 0.25,
-        special: [],
-      },
-      isAsleep: false,
-      isAwake: true,
-      isInvisible: false,
-      state: MonsterState.HUNTING,
-      visibleCells: new Set(),
-      currentPath: null,
-      hasStolen: false,
-      level: state.currentLevel,
-      lastKnownPlayerPosition: null,
-      turnsWithoutSight: 0,
-      energy: 100, // Debug monsters start with full energy
-      speed: 10, // Normal speed
-      statusEffects: []
+    // Determine spawn position (use smart positioning if no position provided)
+    const spawnPos = position || this.findSpawnPosition(state)
+    if (!spawnPos) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        `No valid spawn position found for ${template.name}`,
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
     }
+
+    // Create monster using MonsterSpawnService
+    const monster = this.monsterSpawnService.createMonsterFromTemplate(
+      template,
+      spawnPos,
+      `debug-monster-${Date.now()}`
+    )
 
     const updatedLevel: Level = {
       ...currentLevel,
-      monsters: [...currentLevel.monsters, newMonster],
+      monsters: [...currentLevel.monsters, monster],
     }
 
     const newLevels = new Map(state.levels)
@@ -234,7 +225,123 @@ export class DebugService {
 
     const messages = this.messageService.addMessage(
       state.messages,
-      `Spawned ${letter} at (${spawnPos.x}, ${spawnPos.y})`,
+      `Spawned ${template.name} (${letter}) at (${spawnPos.x}, ${spawnPos.y})`,
+      'info',
+      state.turnCount
+    )
+
+    return {
+      ...state,
+      messages,
+      levels: newLevels,
+    }
+  }
+
+  /**
+   * Spawn item at position for testing
+   *
+   * Uses ItemSpawnService to create items of specific types.
+   * Smart positioning: spawns near player in same room or nearest room.
+   *
+   * @param itemType - Type category ('potion', 'scroll', 'ring', 'wand', 'food', 'torch', 'lantern', 'oil')
+   * @param subType - Specific type (e.g., PotionType.HEAL for potions, ScrollType.IDENTIFY for scrolls)
+   * @param position - Optional position (uses smart positioning if not provided)
+   */
+  spawnItem(
+    state: GameState,
+    itemType: string,
+    subType?: string,
+    position?: Position
+  ): GameState {
+    if (!this.isEnabled()) return state
+
+    const currentLevel = state.levels.get(state.currentLevel)
+    if (!currentLevel) return state
+
+    // Determine spawn position (use smart positioning if no position provided)
+    const spawnPos = position || this.findSpawnPosition(state)
+    if (!spawnPos) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        `No valid spawn position found for ${itemType}`,
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    // Create item using ItemSpawnService
+    let item
+    try {
+      switch (itemType.toLowerCase()) {
+        case 'potion': {
+          const potionType = subType ? (PotionType[subType as keyof typeof PotionType] || PotionType.HEAL) : PotionType.HEAL
+          item = this.itemSpawnService.createPotion(potionType, spawnPos)
+          break
+        }
+        case 'scroll': {
+          const scrollType = subType ? (ScrollType[subType as keyof typeof ScrollType] || ScrollType.IDENTIFY) : ScrollType.IDENTIFY
+          item = this.itemSpawnService.createScroll(scrollType, spawnPos)
+          break
+        }
+        case 'ring': {
+          const ringType = subType ? (RingType[subType as keyof typeof RingType] || RingType.PROTECTION) : RingType.PROTECTION
+          item = this.itemSpawnService.createRing(ringType, spawnPos)
+          break
+        }
+        case 'wand': {
+          const wandType = subType ? (WandType[subType as keyof typeof WandType] || WandType.MAGIC_MISSILE) : WandType.MAGIC_MISSILE
+          item = this.itemSpawnService.createWand(wandType, spawnPos)
+          break
+        }
+        case 'food': {
+          item = this.itemSpawnService.createFood(spawnPos)
+          break
+        }
+        case 'torch': {
+          item = this.itemSpawnService.createTorch(spawnPos)
+          break
+        }
+        case 'lantern': {
+          item = this.itemSpawnService.createLantern(spawnPos)
+          break
+        }
+        case 'oil': {
+          item = this.itemSpawnService.createOilFlask(spawnPos)
+          break
+        }
+        default: {
+          const messages = this.messageService.addMessage(
+            state.messages,
+            `Unknown item type: ${itemType}`,
+            'warning',
+            state.turnCount
+          )
+          return { ...state, messages }
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const messages = this.messageService.addMessage(
+        state.messages,
+        `Failed to spawn ${itemType}: ${errorMessage}`,
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    const updatedLevel: Level = {
+      ...currentLevel,
+      items: [...currentLevel.items, item],
+    }
+
+    const newLevels = new Map(state.levels)
+    newLevels.set(state.currentLevel, updatedLevel)
+
+    const messages = this.messageService.addMessage(
+      state.messages,
+      `Spawned ${item.name} at (${spawnPos.x}, ${spawnPos.y})`,
       'info',
       state.turnCount
     )
@@ -432,7 +539,158 @@ export class DebugService {
   }
 
   /**
-   * Helper: Find nearby empty tile for spawning
+   * Smart spawn position finder (Phase 5.2)
+   *
+   * Spawns items/monsters intelligently:
+   * - 1-3 tiles from player if player in room
+   * - Random position in nearest room if player in corridor
+   */
+  private findSpawnPosition(state: GameState): Position | null {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return null
+
+    const player = state.player
+
+    // Try to find player's current room
+    const playerRoom = this.findPlayerRoom(level, player.position)
+
+    if (playerRoom) {
+      // Player in room - try 1-3 tiles away
+      const radius = this.random.nextInt(1, 3)
+      const candidates = this.getPositionsInRadius(player.position, radius, level)
+      const valid = candidates.filter((pos) => this.isValidSpawnPosition(level, pos))
+
+      if (valid.length > 0) {
+        return this.random.pickRandom(valid)
+      }
+
+      // Fallback to any position in player's room
+      return this.findRandomPositionInRoom(level, playerRoom)
+    }
+
+    // Player in corridor - find nearest room
+    const nearestRoom = this.findNearestRoom(level, player.position)
+    if (!nearestRoom) return null
+
+    return this.findRandomPositionInRoom(level, nearestRoom)
+  }
+
+  /**
+   * Find player's current room (null if in corridor)
+   */
+  private findPlayerRoom(level: Level, playerPos: Position): Room | null {
+    return (
+      level.rooms.find(
+        (room) =>
+          playerPos.x >= room.x &&
+          playerPos.x < room.x + room.width &&
+          playerPos.y >= room.y &&
+          playerPos.y < room.y + room.height
+      ) || null
+    )
+  }
+
+  /**
+   * Find nearest room by Manhattan distance
+   */
+  private findNearestRoom(level: Level, pos: Position): Room | null {
+    if (level.rooms.length === 0) return null
+
+    let nearestRoom = level.rooms[0]
+    let minDistance = Infinity
+
+    for (const room of level.rooms) {
+      const roomCenter = {
+        x: room.x + Math.floor(room.width / 2),
+        y: room.y + Math.floor(room.height / 2),
+      }
+      const distance = Math.abs(pos.x - roomCenter.x) + Math.abs(pos.y - roomCenter.y)
+
+      if (distance < minDistance) {
+        minDistance = distance
+        nearestRoom = room
+      }
+    }
+
+    return nearestRoom
+  }
+
+  /**
+   * Find random walkable position in room
+   */
+  private findRandomPositionInRoom(level: Level, room: Room): Position | null {
+    const candidates: Position[] = []
+
+    for (let y = room.y; y < room.y + room.height; y++) {
+      for (let x = room.x; x < room.x + room.width; x++) {
+        const pos = { x, y }
+        if (this.isValidSpawnPosition(level, pos)) {
+          candidates.push(pos)
+        }
+      }
+    }
+
+    if (candidates.length === 0) return null
+
+    return this.random.pickRandom(candidates)
+  }
+
+  /**
+   * Validate spawn position (walkable, not occupied)
+   */
+  private isValidSpawnPosition(level: Level, pos: Position): boolean {
+    // Check bounds
+    if (pos.x < 0 || pos.x >= level.width || pos.y < 0 || pos.y >= level.height) {
+      return false
+    }
+
+    // Must be walkable floor
+    if (level.tiles[pos.y][pos.x].type !== 'floor') {
+      return false
+    }
+
+    // Must not have monster
+    if (level.monsters.some((m) => m.position.x === pos.x && m.position.y === pos.y)) {
+      return false
+    }
+
+    // Must not have item
+    if (level.items.some((i) => i.position.x === pos.x && i.position.y === pos.y)) {
+      return false
+    }
+
+    return true
+  }
+
+  /**
+   * Get all positions within radius
+   */
+  private getPositionsInRadius(center: Position, radius: number, level: Level): Position[] {
+    const positions: Position[] = []
+
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        // Skip center
+        if (dx === 0 && dy === 0) continue
+
+        // Manhattan distance check
+        if (Math.abs(dx) + Math.abs(dy) <= radius) {
+          const pos = { x: center.x + dx, y: center.y + dy }
+
+          // Check bounds
+          if (pos.x >= 0 && pos.x < level.width && pos.y >= 0 && pos.y < level.height) {
+            positions.push(pos)
+          }
+        }
+      }
+    }
+
+    return positions
+  }
+
+  /**
+   * Helper: Find nearby empty tile for spawning (legacy method, kept for compatibility)
+   * @deprecated Use findSpawnPosition() instead for smart positioning
    */
   private findNearbyEmptyTile(level: Level, center: Position): Position | null {
     const offsets = [

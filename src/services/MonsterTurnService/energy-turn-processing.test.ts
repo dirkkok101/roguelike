@@ -9,6 +9,8 @@ import { MessageService } from '@services/MessageService'
 import { HungerService } from '@services/HungerService'
 import { RingService } from '@services/RingService'
 import { DebugService } from '@services/DebugService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { PathfindingService } from '@services/PathfindingService'
 import { FOVService } from '@services/FOVService'
 import { LevelService } from '@services/LevelService'
@@ -160,6 +162,7 @@ function createTestState(player: Player, level: Level): GameState {
 // ============================================================================
 
 describe('MonsterTurnService - Energy Turn Processing', () => {
+  let originalFetch: typeof global.fetch
   let mockRandom: MockRandom
   let statusEffectService: StatusEffectService
   let turnService: TurnService
@@ -173,14 +176,26 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
   let specialAbilityService: SpecialAbilityService
   let service: MonsterTurnService
 
-  beforeEach(() => {
+  const mockMonsterData = [{ letter: 'T', name: 'Troll', hp: '6d8', ac: 4, damage: '1d8', xpValue: 120, level: 6, speed: 12, rarity: 'uncommon', mean: true, aiProfile: { behavior: 'SIMPLE', intelligence: 4, aggroRange: 8, fleeThreshold: 0.2, special: [] }}]
+
+  beforeAll(() => {
+    originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => mockMonsterData } as Response)
+  })
+
+  afterAll(() => { global.fetch = originalFetch })
+
+  beforeEach(async () => {
     mockRandom = new MockRandom()
     statusEffectService = new StatusEffectService()
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
     messageService = new MessageService()
     hungerService = new HungerService(mockRandom)
-    debugService = new DebugService(messageService)
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    const itemSpawnService = new ItemSpawnService(mockRandom)
+    debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom)
     combatService = new CombatService(mockRandom, hungerService, debugService)
     pathfindingService = new PathfindingService(levelService)
     fovService = new FOVService(statusEffectService)

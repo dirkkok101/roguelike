@@ -2,14 +2,47 @@ import { DebugService } from './DebugService'
 import { MessageService } from '@services/MessageService'
 import { MockRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { GameState, Level, TileType, MonsterState, MonsterBehavior } from '@game/core/core'
 
 describe('DebugService - Monster Control', () => {
+  let originalFetch: typeof global.fetch
+
+  // Mock monster data (minimal, not used by these tests but needed for service initialization)
+  const mockMonsterData = [
+    {
+      letter: 'T',
+      name: 'Troll',
+      hp: '6d8',
+      ac: 4,
+      damage: '1d8+1d8+2d6',
+      xpValue: 120,
+      level: 6,
+      speed: 12,
+      rarity: 'uncommon',
+      mean: true,
+      aiProfile: { behavior: 'SIMPLE', intelligence: 4, aggroRange: 8, fleeThreshold: 0.2, special: [] },
+    },
+  ]
+
+  beforeAll(() => {
+    originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockMonsterData,
+    } as Response)
+  })
+
+  afterAll(() => {
+    global.fetch = originalFetch
+  })
+
   async function createDebugService(isDevMode: boolean = true) {
     const mockRandom = new MockRandom()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
-    return new DebugService(new MessageService(), monsterSpawnService, mockRandom, isDevMode)
+    const itemSpawnService = new ItemSpawnService(mockRandom)
+    return new DebugService(new MessageService(), monsterSpawnService, itemSpawnService, mockRandom, isDevMode)
   }
 
   let debugService: DebugService
@@ -20,7 +53,8 @@ describe('DebugService - Monster Control', () => {
     const mockRandom = new MockRandom()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
-    debugService = new DebugService(messageService, monsterSpawnService, mockRandom, true)
+    const itemSpawnService = new ItemSpawnService(mockRandom)
+    debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom, true)
 
     // Create state with sleeping and awake monsters
     const level: Level = {

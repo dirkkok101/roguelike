@@ -19,6 +19,7 @@ import {
   Room,
   Tile,
   Monster,
+  Position,
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
@@ -563,5 +564,286 @@ export class ItemSpawnService {
     }
 
     return items
+  }
+
+  // ============================================================================
+  // PUBLIC ITEM CREATION HELPERS - For debug spawning and testing
+  // ============================================================================
+
+  /**
+   * Create a potion of a specific type
+   * Used by DebugService for spawning specific items
+   */
+  createPotion(potionType: PotionType, position: Position): Potion {
+    const potionTemplates =
+      this.itemData?.potions.map((p) => ({
+        type: PotionType[p.type as keyof typeof PotionType],
+        effect: p.effect,
+        power: p.power,
+        rarity: p.rarity,
+      })) ||
+      [
+        { type: PotionType.HEAL, effect: 'restore_hp', power: '1d8', rarity: 'common' },
+        { type: PotionType.EXTRA_HEAL, effect: 'restore_hp', power: '3d8', rarity: 'uncommon' },
+        { type: PotionType.GAIN_STRENGTH, effect: 'increase_strength', power: '1', rarity: 'uncommon' },
+        { type: PotionType.RESTORE_STRENGTH, effect: 'restore_strength', power: '1', rarity: 'common' },
+        { type: PotionType.POISON, effect: 'damage', power: '1d6', rarity: 'common' },
+        { type: PotionType.HASTE_SELF, effect: 'haste', power: '1d10', rarity: 'uncommon' },
+        { type: PotionType.RAISE_LEVEL, effect: 'level_up', power: '1', rarity: 'rare' },
+      ]
+
+    const template = potionTemplates.find((t) => t.type === potionType)
+    if (!template) {
+      throw new Error(`Unknown potion type: ${potionType}`)
+    }
+
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: `Potion of ${template.type}`,
+      type: ItemType.POTION,
+      identified: false,
+      position,
+      potionType: template.type,
+      effect: template.effect,
+      power: template.power,
+      descriptorName: 'unknown',
+    } as Potion
+  }
+
+  /**
+   * Create a scroll of a specific type
+   */
+  createScroll(scrollType: ScrollType, position: Position): Scroll {
+    const scrollTemplates =
+      this.itemData?.scrolls.map((s) => ({
+        type: ScrollType[s.type as keyof typeof ScrollType],
+        effect: s.effect,
+        rarity: s.rarity,
+      })) ||
+      [
+        { type: ScrollType.IDENTIFY, effect: 'identify_item', rarity: 'common' },
+        { type: ScrollType.ENCHANT_WEAPON, effect: 'enchant_weapon', rarity: 'uncommon' },
+        { type: ScrollType.ENCHANT_ARMOR, effect: 'enchant_armor', rarity: 'uncommon' },
+        { type: ScrollType.MAGIC_MAPPING, effect: 'reveal_map', rarity: 'uncommon' },
+        { type: ScrollType.TELEPORTATION, effect: 'teleport', rarity: 'common' },
+        { type: ScrollType.REMOVE_CURSE, effect: 'remove_curse', rarity: 'uncommon' },
+        { type: ScrollType.SCARE_MONSTER, effect: 'scare', rarity: 'rare' },
+        { type: ScrollType.HOLD_MONSTER, effect: 'hold', rarity: 'rare' },
+      ]
+
+    const template = scrollTemplates.find((t) => t.type === scrollType)
+    if (!template) {
+      throw new Error(`Unknown scroll type: ${scrollType}`)
+    }
+
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: `Scroll of ${template.type}`,
+      type: ItemType.SCROLL,
+      identified: false,
+      position,
+      scrollType: template.type,
+      effect: template.effect,
+      labelName: 'unknown',
+    } as Scroll
+  }
+
+  /**
+   * Create a ring of a specific type (always uncursed for debug spawning)
+   */
+  createRing(ringType: RingType, position: Position): Ring {
+    const ringTemplates =
+      this.itemData?.rings.map((r) => ({
+        type: RingType[r.type as keyof typeof RingType],
+        effect: r.effect,
+        rarity: r.rarity,
+      })) ||
+      [
+        { type: RingType.PROTECTION, effect: 'ac_bonus', rarity: 'uncommon' },
+        { type: RingType.REGENERATION, effect: 'regen', rarity: 'uncommon' },
+        { type: RingType.ADD_STRENGTH, effect: 'strength_bonus', rarity: 'uncommon' },
+        { type: RingType.SLOW_DIGESTION, effect: 'slow_hunger', rarity: 'uncommon' },
+        { type: RingType.SEE_INVISIBLE, effect: 'see_invisible', rarity: 'rare' },
+        { type: RingType.STEALTH, effect: 'stealth', rarity: 'rare' },
+      ]
+
+    const template = ringTemplates.find((t) => t.type === ringType)
+    if (!template) {
+      throw new Error(`Unknown ring type: ${ringType}`)
+    }
+
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    // Debug spawned rings are always uncursed with +1 bonus
+    const bonus = 1
+
+    return {
+      id: itemId,
+      name: `Ring of ${template.type} +${bonus}`,
+      type: ItemType.RING,
+      identified: false,
+      position,
+      ringType: template.type,
+      effect: template.effect,
+      bonus,
+      materialName: 'unknown',
+      hungerModifier: 1.5,
+      cursed: false, // Debug rings are never cursed
+    } as Ring
+  }
+
+  /**
+   * Create a wand of a specific type
+   */
+  createWand(wandType: WandType, position: Position): Wand {
+    const wandTemplates =
+      this.itemData?.wands.map((w) => ({
+        type: WandType[w.type as keyof typeof WandType],
+        damage: w.damage,
+        charges: w.charges,
+        rarity: w.rarity,
+      })) ||
+      [
+        { type: WandType.LIGHTNING, damage: '6d6', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.FIRE, damage: '6d6', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.COLD, damage: '6d6', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.MAGIC_MISSILE, damage: '2d6', charges: '4d4', rarity: 'common' },
+        { type: WandType.SLEEP, damage: '0', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.HASTE_MONSTER, damage: '0', charges: '3d3', rarity: 'rare' },
+        { type: WandType.SLOW_MONSTER, damage: '0', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.POLYMORPH, damage: '0', charges: '3d3', rarity: 'rare' },
+        { type: WandType.TELEPORT_AWAY, damage: '0', charges: '3d3', rarity: 'uncommon' },
+        { type: WandType.CANCELLATION, damage: '0', charges: '3d3', rarity: 'rare' },
+      ]
+
+    const template = wandTemplates.find((t) => t.type === wandType)
+    if (!template) {
+      throw new Error(`Unknown wand type: ${wandType}`)
+    }
+
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const maxCharges = this.random.roll(template.charges)
+    const range = this.getWandRange(template.type)
+
+    return {
+      id: itemId,
+      name: `Wand of ${template.type}`,
+      type: ItemType.WAND,
+      identified: false,
+      position,
+      wandType: template.type,
+      damage: template.damage,
+      charges: maxCharges,
+      currentCharges: maxCharges,
+      woodName: 'unknown',
+      range,
+    } as Wand
+  }
+
+  /**
+   * Create food ration
+   */
+  createFood(position: Position): Food {
+    const foodTemplates =
+      this.itemData?.food.map((f) => ({
+        name: f.name,
+        nutrition: parseInt(f.nutrition),
+        rarity: f.rarity,
+      })) || [{ name: 'Food Ration', nutrition: 900, rarity: 'common' }]
+
+    const template = this.random.pickRandom(foodTemplates)
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+
+    return {
+      id: itemId,
+      name: template.name,
+      type: ItemType.FOOD,
+      identified: false,
+      position,
+      nutrition: template.nutrition,
+    } as Food
+  }
+
+  /**
+   * Create torch
+   */
+  createTorch(position: Position): Torch {
+    const lightSourceTemplates =
+      this.itemData?.lightSources ||
+      [
+        { type: 'torch', name: 'Torch', radius: 2, fuel: 500, isPermanent: false, rarity: 'common' },
+      ]
+
+    const torch = lightSourceTemplates.find((t) => t.type === 'torch')
+    if (!torch) {
+      throw new Error('Torch template not found')
+    }
+
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: torch.name,
+      type: ItemType.TORCH,
+      identified: true,
+      position,
+      fuel: torch.fuel ?? 500,
+      maxFuel: torch.fuel ?? 500,
+      radius: torch.radius,
+      isPermanent: false,
+    } as Torch
+  }
+
+  /**
+   * Create lantern
+   */
+  createLantern(position: Position): Lantern {
+    const lightSourceTemplates =
+      this.itemData?.lightSources ||
+      [
+        { type: 'lantern', name: 'Lantern', radius: 2, fuel: 500, isPermanent: false, rarity: 'uncommon' },
+      ]
+
+    const lantern = lightSourceTemplates.find((t) => t.type === 'lantern')
+    if (!lantern) {
+      throw new Error('Lantern template not found')
+    }
+
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: lantern.name,
+      type: ItemType.LANTERN,
+      identified: true,
+      position,
+      fuel: lantern.fuel ?? 500,
+      maxFuel: 1000,
+      radius: lantern.radius,
+      isPermanent: false,
+    } as Lantern
+  }
+
+  /**
+   * Create oil flask
+   */
+  createOilFlask(position: Position): OilFlask {
+    const consumableTemplates =
+      this.itemData?.consumables ||
+      [{ name: 'Oil Flask', type: 'lantern_fuel', fuelAmount: 500, rarity: 'uncommon' }]
+
+    const oilFlask = consumableTemplates.find((t) => t.type === 'lantern_fuel')
+    if (!oilFlask) {
+      throw new Error('Oil flask template not found')
+    }
+
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: oilFlask.name,
+      type: ItemType.OIL_FLASK,
+      identified: true,
+      position,
+      fuelAmount: oilFlask.fuelAmount,
+    } as OilFlask
   }
 }

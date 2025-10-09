@@ -95,6 +95,35 @@ export class MonsterSpawnService {
   }
 
   /**
+   * Create monster from template
+   *
+   * Creates a Monster instance from a MonsterTemplate at a specific position.
+   * Used by debug tools and special spawning scenarios where a specific template
+   * is already selected (as opposed to weighted random selection in spawnMonsters).
+   *
+   * @param template - MonsterTemplate to instantiate
+   * @param position - Position to spawn monster at
+   * @param id - Optional monster ID (auto-generated if not provided)
+   * @returns Fully initialized Monster instance
+   */
+  createMonsterFromTemplate(
+    template: MonsterTemplate,
+    position: Position,
+    id?: string
+  ): Monster {
+    // Ensure data is loaded
+    if (!this.dataLoaded) {
+      throw new Error('Monster data not loaded. Call loadMonsterData() first.')
+    }
+
+    // Generate ID if not provided
+    const monsterId = id || `monster-${this.random.nextInt(1000, 9999)}`
+
+    // Delegate to private createMonster method
+    return this.createMonster(template, position, monsterId)
+  }
+
+  /**
    * Spawn monsters for a dungeon level
    *
    * Creates monsters appropriate for the given depth with weighted selection.

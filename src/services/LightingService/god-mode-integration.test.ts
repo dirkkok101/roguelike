@@ -2,18 +2,33 @@ import { LightingService } from './LightingService'
 import { MockRandom } from '@services/RandomService'
 import { DebugService } from '@services/DebugService'
 import { MessageService } from '@services/MessageService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { Player, GameState, ItemType } from '@game/core/core'
 
 describe('LightingService - God Mode Integration', () => {
+  let originalFetch: typeof global.fetch
   let lightingService: LightingService
   let debugService: DebugService
   let mockRandom: MockRandom
   let messageService: MessageService
 
-  beforeEach(() => {
+  const mockMonsterData = [{ letter: 'T', name: 'Troll', hp: '6d8', ac: 4, damage: '1d8', xpValue: 120, level: 6, speed: 12, rarity: 'uncommon', mean: true, aiProfile: { behavior: 'SIMPLE', intelligence: 4, aggroRange: 8, fleeThreshold: 0.2, special: [] }}]
+
+  beforeAll(() => {
+    originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => mockMonsterData } as Response)
+  })
+
+  afterAll(() => { global.fetch = originalFetch })
+
+  beforeEach(async () => {
     mockRandom = new MockRandom()
     messageService = new MessageService()
-    debugService = new DebugService(messageService, true) // Enable debug mode
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    const itemSpawnService = new ItemSpawnService(mockRandom)
+    debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom, true) // Enable debug mode
     lightingService = new LightingService(mockRandom, debugService)
   })
 
