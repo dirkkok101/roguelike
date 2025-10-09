@@ -1,0 +1,29 @@
+Gervais 32x32 Tileset
+======================
+
+Artist: David E. Gervais
+Source: Angband (https://github.com/angband/angband)
+Original Repository: https://github.com/angband/angband/tree/master/lib/tiles/gervais
+
+License
+-------
+This tileset is distributed under the Angband license, which allows free use,
+modification, and distribution in open source projects.
+
+The Angband tileset by David E. Gervais is used with permission under the terms
+of the Angband license. For more information about the Angband license, see:
+https://github.com/angband/angband/blob/master/copying.txt
+
+Attribution
+-----------
+Tileset created by David E. Gervais for the Angband roguelike game.
+Used in this project under the Angband license terms.
+
+Files
+-----
+- 32x32.png: Main sprite sheet (32×32 pixel tiles)
+- graf-dvg.prf: Main tile mappings (terrain, monsters, objects)
+- flvr-dvg.prf: Flavored item mappings (potions, scrolls, rings, wands)
+- xtra-dvg.prf: Player character variants (by class/race)
+
+Download Date: 2025-10-09
