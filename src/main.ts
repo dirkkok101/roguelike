@@ -405,6 +405,7 @@ async function initializeGame() {
     // Initialize renderer and inputHandler with all callbacks
     renderer = new GameRenderer(
       renderingService,
+      assetLoaderService,
       hungerService,
       levelingService,
       debugService,

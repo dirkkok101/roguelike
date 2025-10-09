@@ -1,6 +1,6 @@
 # Sprite-Based Rendering Implementation Plan
 
-**Status**: 🚧 In Progress - Phase 1 Complete, Starting Phase 2
+**Status**: 🚧 In Progress - Phase 2 Complete (5/5 tasks), Starting Phase 3
 **Version**: 1.0
 **Created**: 2025-10-09
 **Last Updated**: 2025-10-09
@@ -234,7 +234,7 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/ui/CanvasGameRenderer.test.ts` (unit tests)
 
 ##### Subtasks:
-- [ ] Create `CanvasGameRenderer` class with constructor:
+- [x] Create `CanvasGameRenderer` class with constructor:
   ```typescript
   constructor(
     private renderingService: RenderingService,
@@ -243,17 +243,17 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
     private config: CanvasRenderConfig
   )
   ```
-- [ ] Implement `render(state: GameState): void` method stub
-- [ ] Set up canvas context and initial configuration:
+- [x] Implement `render(state: GameState): void` method stub
+- [x] Set up canvas context and initial configuration:
   - Canvas size: 80 tiles × 22 tiles × 32px = 2560×704 pixels
   - Enable image smoothing: `ctx.imageSmoothingEnabled = false` (pixel art)
   - Set up coordinate transformation (if needed)
-- [ ] Add helper methods:
+- [x] Add helper methods:
   - `clear(): void` - Clear canvas
   - `drawTile(x: number, y: number, sprite: TileCoordinate, opacity: number): void`
   - `worldToScreen(pos: Position): { x: number, y: number }`
-- [ ] Write basic tests (canvas context mocking with jest-canvas-mock)
-- [ ] Git commit: "feat: create CanvasGameRenderer core structure (Phase 2.1)"
+- [x] Write basic tests (canvas context mocking with jest-canvas-mock)
+- [x] Git commit: "feat: create CanvasGameRenderer core structure (Phase 2.1)"
 
 ---
 
@@ -266,22 +266,22 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/ui/CanvasGameRenderer.test.ts` (add tests)
 
 ##### Subtasks:
-- [ ] Implement `renderTerrain(state: GameState): void`:
+- [x] Implement `renderTerrain(state: GameState): void`:
   - Loop through 80×22 grid
   - Get tile character from `level.tiles[y][x].char`
   - Look up sprite coordinates from AssetLoaderService
   - Get visibility state from RenderingService
   - Draw sprite with appropriate opacity (visible=1.0, explored=0.5, unexplored=skip)
-- [ ] Handle special cases:
+- [x] Handle special cases:
   - Doors: Different sprites for open/closed/locked states
   - Stairs: `<` (up) and `>` (down)
   - Traps: Only if discovered
-- [ ] Test scenarios:
+- [x] Test scenarios:
   - Visible tile rendered at full opacity
   - Explored tile rendered at 50% opacity
   - Unexplored tile not rendered
   - Correct sprite coordinates used for each tile type
-- [ ] Git commit: "feat: implement terrain rendering in CanvasGameRenderer (Phase 2.2)"
+- [x] Git commit: "feat: implement terrain rendering in CanvasGameRenderer (Phase 2.2)"
 
 ---
 
@@ -294,21 +294,21 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/ui/CanvasGameRenderer.test.ts` (add tests)
 
 ##### Subtasks:
-- [ ] Implement `renderEntities(state: GameState): void`:
+- [x] Implement `renderEntities(state: GameState): void`:
   - Render gold piles (`$`)
   - Render items (potions, scrolls, weapons, armor, rings, etc.)
   - Render monsters (A-Z letters)
   - Respect visibility rules (RenderingService.shouldRenderEntity)
-- [ ] Apply correct rendering order (terrain → items → gold → monsters → player)
-- [ ] Handle detection effects:
+- [x] Apply correct rendering order (terrain → items → gold → monsters → player)
+- [x] Handle detection effects:
   - Detected monsters (dimmed if not in FOV)
   - Detected magic items (dimmed if not in FOV)
-- [ ] Test scenarios:
+- [x] Test scenarios:
   - Monster only rendered when visible (not in explored state)
   - Items rendered in visible and explored (if config.showItemsInMemory)
   - Gold rendered only when visible
   - Detected entities rendered with dimming
-- [ ] Git commit: "feat: implement entity rendering (monsters, items, gold) (Phase 2.3)"
+- [x] Git commit: "feat: implement entity rendering (monsters, items, gold) (Phase 2.3)"
 
 ---
 
@@ -320,11 +320,11 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/ui/CanvasGameRenderer.ts` (modify)
 
 ##### Subtasks:
-- [ ] Implement `renderPlayer(state: GameState): void`
-- [ ] Get player sprite from tileset (`@` character)
-- [ ] Render at player.position with full opacity
-- [ ] Consider player status effects (future: add visual indicators for confusion, haste, etc.)
-- [ ] Git commit: "feat: implement player rendering (Phase 2.4)"
+- [x] Implement `renderPlayer(state: GameState): void`
+- [x] Get player sprite from tileset (`@` character)
+- [x] Render at player.position with full opacity
+- [x] Consider player status effects (future: add visual indicators for confusion, haste, etc.)
+- [x] Git commit: "feat: implement player rendering (Phase 2.4)"
 
 ---
 
@@ -337,18 +337,19 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/ui/GameRenderer.ts` (modify - keep stats/messages, only replace dungeon view)
 
 ##### Subtasks:
-- [ ] Create canvas element for dungeon view:
+- [x] Create canvas element for dungeon view:
   ```typescript
   const dungeonCanvas = document.createElement('canvas')
   dungeonCanvas.width = 2560  // 80 tiles × 32px
   dungeonCanvas.height = 704  // 22 tiles × 32px
   dungeonCanvas.className = 'dungeon-canvas'
   ```
-- [ ] Replace `<pre>` dungeon view with canvas in GameRenderer
-- [ ] Keep text-based rendering for stats panel and messages (unchanged)
-- [ ] Wire up CanvasGameRenderer.render() in game loop
-- [ ] Test in browser: Verify sprites render correctly
-- [ ] Git commit: "feat: integrate CanvasGameRenderer into main game loop (Phase 2.5)"
+- [x] Replace `<pre>` dungeon view with canvas in GameRenderer
+- [x] Keep text-based rendering for stats panel and messages (unchanged)
+- [x] Wire up CanvasGameRenderer.render() in game loop
+- [x] Pass AssetLoaderService to GameRenderer constructor
+- [x] Test in browser: Verify sprites render correctly
+- [x] Git commit: "feat: integrate CanvasGameRenderer into main game loop (Phase 2.5)"
 
 ---
 

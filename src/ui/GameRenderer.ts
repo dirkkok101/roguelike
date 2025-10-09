@@ -1,5 +1,6 @@
 import { GameState, Position, ItemType, StatusEffectType } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
+import { AssetLoaderService } from '@services/AssetLoaderService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
@@ -12,6 +13,7 @@ import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
 import { RingService } from '@services/RingService'
+import { CanvasGameRenderer } from './CanvasGameRenderer'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -36,9 +38,11 @@ export class GameRenderer {
   private helpModal: HelpModal
   private victoryScreen: VictoryScreen
   private deathScreen: DeathScreen
+  private canvasGameRenderer: CanvasGameRenderer | null = null
 
   constructor(
     private renderingService: RenderingService,
+    private assetLoaderService: AssetLoaderService,
     _hungerService: HungerService,
     private levelingService: LevelingService,
     debugService: DebugService,
@@ -184,6 +188,37 @@ export class GameRenderer {
     const container = document.createElement('div')
     container.id = 'dungeon'
     container.className = 'dungeon-view'
+
+    // Create canvas for sprite-based rendering
+    const canvas = document.createElement('canvas')
+    canvas.id = 'dungeon-canvas'
+    canvas.width = 2560  // 80 tiles × 32px
+    canvas.height = 704  // 22 tiles × 32px
+    canvas.className = 'dungeon-canvas'
+    container.appendChild(canvas)
+
+    // Initialize CanvasGameRenderer if tileset is loaded
+    if (this.assetLoaderService.isLoaded()) {
+      this.canvasGameRenderer = new CanvasGameRenderer(
+        this.renderingService,
+        this.assetLoaderService,
+        canvas,
+        {
+          tileWidth: 32,
+          tileHeight: 32,
+          gridWidth: 80,
+          gridHeight: 22,
+          enableSmoothing: false,
+          enableDirtyRectangles: true,
+          exploredOpacity: 0.5,
+          detectedOpacity: 0.6,
+        }
+      )
+      console.log('[GameRenderer] CanvasGameRenderer initialized')
+    } else {
+      console.warn('[GameRenderer] Tileset not loaded, will fall back to ASCII rendering')
+    }
+
     return container
   }
 
@@ -202,6 +237,13 @@ export class GameRenderer {
   }
 
   private renderDungeon(state: GameState): void {
+    // Use sprite-based rendering if CanvasGameRenderer is available
+    if (this.canvasGameRenderer) {
+      this.canvasGameRenderer.render(state)
+      return
+    }
+
+    // Fall back to ASCII rendering if tileset not loaded
     const level = state.levels.get(state.currentLevel)
     if (!level) return
 
