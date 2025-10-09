@@ -1,7 +1,7 @@
 # Debug Tools Refactor & Enhancement Plan
 
-**Status**: ✅ Complete
-**Version**: 1.0
+**Status**: 🚧 In Progress
+**Version**: 2.0
 **Created**: 2025-10-09
 **Last Updated**: 2025-10-09
 **Owner**: Dirk Kok
@@ -12,7 +12,7 @@
 ## 1. Objectives
 
 ### Primary Goal
-Fix incomplete god mode implementation, add user feedback to debug commands, clean up dead code, and enhance debug features to improve development workflow.
+Fix incomplete god mode implementation, add user feedback to debug commands, clean up dead code, enhance debug features to improve development workflow, and add comprehensive spawn functionality for testing (real monsters and all item types).
 
 ### Design Philosophy
 - **Developer Experience**: Debug tools should be intuitive with clear feedback
@@ -26,6 +26,9 @@ Fix incomplete god mode implementation, add user feedback to debug commands, cle
 - [x] Dead code removed (`applyGodModeEffects` unused method)
 - [x] Documentation matches implementation (no phantom features)
 - [x] Identify All items has keybind (`a` key)
+- [ ] Spawn Monster spawns real monsters from monsters.json (not generic "Debug X" monsters)
+- [ ] Spawn Item spawns all item categories with type-safe API (weapons, armor, potions, scrolls, rings, wands, food, light sources)
+- [ ] Smart positioning: items/monsters spawn 1-3 tiles from player in same room, or nearest room if in corridor
 - [x] All tests pass with >80% coverage
 - [x] Architecture follows CLAUDE.md principles (logic in services, orchestration in commands)
 
@@ -38,10 +41,12 @@ Fix incomplete god mode implementation, add user feedback to debug commands, cle
 - [Controls](../game-design/10-controls.md) - Keybinding conventions
 
 ### Related Systems
-- **DebugService**: Core debug logic (god mode, map reveal, overlays)
+- **DebugService**: Core debug logic (god mode, map reveal, overlays, spawn commands)
 - **HungerService**: Must integrate god mode to prevent hunger consumption
 - **LightingService**: Must integrate god mode to prevent fuel consumption
 - **CombatService**: Already has god mode integration (prevents damage)
+- **MonsterSpawnService**: Has infrastructure to create real monsters from templates
+- **ItemSpawnService**: Has item creation logic for level generation
 - **InputHandler**: Maps debug keybinds to commands
 
 ### Investigation Summary
@@ -53,12 +58,17 @@ Fix incomplete god mode implementation, add user feedback to debug commands, cle
 3. **No User Feedback** (MEDIUM): Overlay toggles (`f`, `p`, `n`) have no confirmation messages
 4. **Documentation Mismatch** (LOW): Docs list features that don't exist (teleport, spawn item, infinite light keybinds)
 5. **Missing Keybind** (LOW): Identify All method exists but no keybind assigned
+6. **Incomplete Monster Spawning** (MEDIUM): spawnMonster() creates generic "Debug X" monsters, not real monsters from monsters.json
+7. **Missing Item Spawning** (MEDIUM): No item spawn debug functionality exists, needed for testing
 
 **Evidence**:
 - `CombatService.ts:78` - God mode check present ✅
 - `HungerService` - No god mode check ❌
 - `LightingService` - No god mode check ❌
 - `DebugService.applyGodModeEffects()` - Defined but unused
+- `DebugService.spawnMonster()` (line 177) - Comment: "would load from monsters.json in real implementation"
+- `MonsterSpawnService.createMonster()` - Private method, has real monster creation logic
+- `ItemSpawnService` - All item creation embedded in spawnItems(), not exposed for debug use
 
 ---
 
@@ -230,11 +240,209 @@ Fix incomplete god mode implementation, add user feedback to debug commands, cle
 
 ---
 
+### Phase 5: Spawn Real Monsters (Priority: MEDIUM)
+
+**Objective**: Replace generic "Debug X" monster spawning with real monsters from monsters.json
+
+**Current Issue**: `DebugService.spawnMonster()` creates generic monsters with hardcoded stats (hp=10, ac=5, damage='1d6'), ignoring actual monster templates. This makes testing specific monster behaviors impossible.
+
+**Solution**: Integrate MonsterSpawnService to create real monsters using proper templates.
+
+#### Task 5.1: Expose Monster Template Lookup
+
+**Context**: MonsterSpawnService.createMonster() is private, needs public method to get templates by letter
+
+**Files to modify**:
+- `src/services/MonsterSpawnService/MonsterSpawnService.ts`
+- `src/services/MonsterSpawnService/monster-templates.test.ts` (new)
+
+##### Subtasks:
+- [ ] Add `getMonsterByLetter(letter: string): MonsterTemplate | null` public method
+- [ ] Method returns template from monsters.json or null if invalid letter
+- [ ] Write unit tests verifying correct templates returned for all 26 letters (A-Z)
+- [ ] Write unit tests verifying null returned for invalid input
+- [ ] Git commit: "feat: add getMonsterByLetter to MonsterSpawnService (Phase 5.1)"
+
+---
+
+#### Task 5.2: Add Smart Positioning Helpers to DebugService
+
+**Context**: Need intelligent spawn positioning (1-3 tiles from player in same room, or nearest room)
+
+**Files to modify**:
+- `src/services/DebugService/DebugService.ts`
+- `src/services/DebugService/smart-positioning.test.ts` (new)
+
+##### Subtasks:
+- [ ] Add `findSpawnPosition(state, player)` - main positioning algorithm
+- [ ] Add `findPlayerRoom(level, player)` - detect player's room or null if in corridor
+- [ ] Add `findNearestRoom(level, player)` - find closest room by Manhattan distance
+- [ ] Add `findRandomPositionInRoom(level, room)` - random walkable position in room
+- [ ] Add `isValidSpawnPosition(level, pos)` - validate walkable, not occupied
+- [ ] Write unit tests for each helper method
+- [ ] Git commit: "feat: add smart positioning helpers to DebugService (Phase 5.2)"
+
+---
+
+#### Task 5.3: Inject Required Dependencies into DebugService
+
+**Context**: DebugService needs MonsterSpawnService and IRandomService (no optional dependencies)
+
+**Files to modify**:
+- `src/services/DebugService/DebugService.ts`
+- `src/main.ts`
+
+##### Subtasks:
+- [ ] Update DebugService constructor signature:
+  ```typescript
+  constructor(
+    private messageService: MessageService,
+    private monsterSpawnService: MonsterSpawnService,  // NEW - REQUIRED
+    private random: IRandomService,                     // NEW - REQUIRED
+    isDevMode?: boolean
+  )
+  ```
+- [ ] Update main.ts to inject MonsterSpawnService and RandomService into DebugService
+- [ ] Verify all DebugService instantiations updated
+- [ ] Git commit: "refactor: inject MonsterSpawnService and RandomService into DebugService (Phase 5.3)"
+
+---
+
+#### Task 5.4: Rewrite spawnMonster() to Use Real Monsters
+
+**Context**: Replace generic monster creation with real monster templates
+
+**Files to modify**:
+- `src/services/DebugService/DebugService.ts`
+- `src/services/DebugService/spawn-monster.test.ts` (update existing)
+
+##### Subtasks:
+- [ ] Rewrite `spawnMonster(state, letter)` to use `monsterSpawnService.getMonsterByLetter()`
+- [ ] Use smart positioning: `findSpawnPosition()` instead of random coordinates
+- [ ] Show error message if invalid monster letter (no fallback to generic monsters)
+- [ ] Remove all generic "Debug X" monster creation code
+- [ ] Update existing tests to verify real monsters spawned
+- [ ] Add tests verifying error message for invalid letters
+- [ ] Add tests verifying smart positioning used
+- [ ] Git commit: "feat: rewrite spawnMonster to use real monster templates with smart positioning (Phase 5.4)"
+
+---
+
+### Phase 6: Spawn Items (Priority: MEDIUM)
+
+**Objective**: Add comprehensive item spawning functionality for all item categories
+
+**Current Issue**: No item spawning functionality exists. ItemSpawnService has all the logic but embedded in level generation (spawnItems() method), not exposed for debug use.
+
+**Solution**: Extract item creation into reusable helpers, create type-safe spawn API.
+
+#### Task 6.1: Extract Item Creation Helpers from ItemSpawnService
+
+**Context**: ItemSpawnService.spawnItems() has embedded item creation for weapons, armor, potions, scrolls, rings, wands, food, light sources. Need to extract into standalone methods.
+
+**Files to modify**:
+- `src/services/ItemSpawnService/ItemSpawnService.ts`
+- `src/services/ItemSpawnService/item-creation.test.ts` (new)
+
+##### Subtasks:
+- [ ] Extract `createWeapon(position: Position): Item` from spawnItems() logic
+- [ ] Extract `createArmor(position: Position): Item` from spawnItems() logic
+- [ ] Extract `createPotion(position: Position, type?: PotionType): Item` from spawnItems() logic
+- [ ] Extract `createScroll(position: Position, type?: ScrollType): Item` from spawnItems() logic
+- [ ] Extract `createRing(position: Position, type?: RingType): Item` from spawnItems() logic
+- [ ] Extract `createWand(position: Position, type?: WandType): Item` from spawnItems() logic
+- [ ] Extract `createFood(position: Position): Item` from spawnItems() logic
+- [ ] Extract `createTorch(position: Position): Item` from spawnItems() logic
+- [ ] Extract `createLantern(position: Position): Item` from spawnItems() logic
+- [ ] Extract `createOilFlask(position: Position): Item` from spawnItems() logic
+- [ ] Refactor spawnItems() to use new helper methods (DRY principle)
+- [ ] Write unit tests for each item creation helper
+- [ ] Git commit: "refactor: extract item creation helpers from ItemSpawnService (Phase 6.1)"
+
+---
+
+#### Task 6.2: Inject ItemSpawnService into DebugService
+
+**Context**: DebugService needs ItemSpawnService to create items (required dependency)
+
+**Files to modify**:
+- `src/services/DebugService/DebugService.ts`
+- `src/main.ts`
+
+##### Subtasks:
+- [ ] Update DebugService constructor signature:
+  ```typescript
+  constructor(
+    private messageService: MessageService,
+    private monsterSpawnService: MonsterSpawnService,
+    private itemSpawnService: ItemSpawnService,        // NEW - REQUIRED
+    private random: IRandomService,
+    isDevMode?: boolean
+  )
+  ```
+- [ ] Update main.ts to inject ItemSpawnService into DebugService
+- [ ] Verify all DebugService instantiations updated
+- [ ] Git commit: "refactor: inject ItemSpawnService into DebugService (Phase 6.2)"
+
+---
+
+#### Task 6.3: Implement spawnItem() in DebugService
+
+**Context**: Create type-safe item spawning API with smart positioning
+
+**Files to modify**:
+- `src/services/DebugService/DebugService.ts`
+- `src/services/DebugService/spawn-item.test.ts` (new)
+
+##### Subtasks:
+- [ ] Define `ItemSpawnSpec` interface:
+  ```typescript
+  interface ItemSpawnSpec {
+    category: 'weapon' | 'armor' | 'potion' | 'scroll' | 'ring' | 'wand' | 'food' | 'torch' | 'lantern' | 'oil_flask'
+    type?: PotionType | ScrollType | RingType | WandType  // Optional specific type
+    rarity?: 'common' | 'uncommon' | 'rare'                // Optional rarity override
+  }
+  ```
+- [ ] Implement `spawnItem(state: GameState, spec: ItemSpawnSpec): GameState`
+- [ ] Use smart positioning (reuse findSpawnPosition() from Phase 5.2)
+- [ ] Delegate to ItemSpawnService helpers based on category
+- [ ] Add confirmation message showing item spawned
+- [ ] Write unit tests for each item category
+- [ ] Write unit tests verifying smart positioning
+- [ ] Write unit tests verifying error handling for invalid specs
+- [ ] Git commit: "feat: implement spawnItem with type-safe API and smart positioning (Phase 6.3)"
+
+---
+
+#### Task 6.4: Create SpawnItemCommand and Wire Keybind
+
+**Context**: Create command to orchestrate spawnItem(), add 'i' keybind with modal selection
+
+**Files to create**:
+- `src/commands/SpawnItemCommand/SpawnItemCommand.ts`
+- `src/commands/SpawnItemCommand/SpawnItemCommand.test.ts`
+- `src/commands/SpawnItemCommand/index.ts`
+
+**Files to modify**:
+- `src/ui/InputHandler.ts`
+
+##### Subtasks:
+- [ ] Create SpawnItemCommand class (orchestrates DebugService.spawnItem only)
+- [ ] Command takes ItemSpawnSpec as parameter
+- [ ] Write unit tests for command orchestration
+- [ ] Create barrel export
+- [ ] Add 'i' keybind in InputHandler.ts (debug mode only)
+- [ ] Keybind opens modal with item category selection (weapon, armor, potion, scroll, ring, wand, food, torch, lantern, oil_flask)
+- [ ] For potions/scrolls/rings/wands, show second modal for specific type
+- [ ] Git commit: "feat: add SpawnItemCommand with 'i' keybind and category selection (Phase 6.4)"
+
+---
+
 ## 4. Technical Design
 
 ### Data Structures
 
-No new data structures needed. Using existing:
+**Existing Structures** (no changes needed):
 
 ```typescript
 interface DebugState {
@@ -247,17 +455,40 @@ interface DebugState {
 }
 ```
 
+**New Structures** (Phase 6):
+
+```typescript
+// Type-safe item spawning specification
+interface ItemSpawnSpec {
+  category: 'weapon' | 'armor' | 'potion' | 'scroll' | 'ring' | 'wand' | 'food' | 'torch' | 'lantern' | 'oil_flask'
+  type?: PotionType | ScrollType | RingType | WandType  // Optional specific type
+  rarity?: 'common' | 'uncommon' | 'rare'                // Optional rarity override
+}
+```
+
+**Why ItemSpawnSpec?**:
+- **Type Safety**: Compile-time validation prevents invalid item categories
+- **Flexibility**: Optional type and rarity for fine-grained control
+- **Extensibility**: Easy to add new categories without breaking existing code
+
 ### Service Architecture
 
 **Modified Services**:
-- **DebugService**: Add messages to overlay toggles, remove unused method
-- **HungerService**: Add god mode check in consumeHunger() and applyStarvationDamage()
-- **LightingService**: Add god mode check in consumeFuel()
+- **DebugService**:
+  - Add messages to overlay toggles, remove unused method (Phase 1-2)
+  - Add smart positioning helpers (Phase 5.2)
+  - Rewrite spawnMonster() to use real monsters (Phase 5.4)
+  - Add spawnItem() with type-safe API (Phase 6.3)
+- **HungerService**: Add god mode check in consumeHunger() and applyStarvationDamage() (Phase 1)
+- **LightingService**: Add god mode check in consumeFuel() (Phase 1)
+- **MonsterSpawnService**: Add getMonsterByLetter() public method (Phase 5.1)
+- **ItemSpawnService**: Extract item creation helpers into standalone methods (Phase 6.1)
 
 **New Commands**:
-- **IdentifyAllItemsCommand**: Orchestrates DebugService.identifyAll()
+- **IdentifyAllItemsCommand**: Orchestrates DebugService.identifyAll() (Phase 3)
+- **SpawnItemCommand**: Orchestrates DebugService.spawnItem() (Phase 6.4)
 
-**Service Dependencies**:
+**Service Dependencies** (Updated):
 ```
 HungerService
   └─ depends on → DebugService (new dependency)
@@ -266,7 +497,10 @@ LightingService
   └─ depends on → DebugService (new dependency)
 
 DebugService
-  └─ depends on → MessageService (existing)
+  ├─ depends on → MessageService (existing)
+  ├─ depends on → MonsterSpawnService (new - Phase 5)
+  ├─ depends on → ItemSpawnService (new - Phase 6)
+  └─ depends on → IRandomService (new - Phase 5)
 ```
 
 ### God Mode Integration Pattern
@@ -295,6 +529,119 @@ consumeHunger(player: Player, state: GameState): Player {
 - Optional dependency (works if debugService not provided)
 - Follows existing CombatService pattern (line 78)
 
+### Smart Positioning Algorithm (Phase 5.2)
+
+**Objective**: Spawn items/monsters intelligently near player, not randomly across the map
+
+**Algorithm**:
+1. Try to find player's current room
+2. If player in room: spawn 1-3 tiles away from player in that room
+3. If player in corridor: find nearest room, spawn at random position in that room
+4. Validate position is walkable and not occupied
+
+**Implementation**:
+
+```typescript
+// Main positioning logic
+findSpawnPosition(state: GameState, player: Player): Position {
+  const level = state.levels[player.currentLevel]
+
+  // Try player's room first
+  const playerRoom = this.findPlayerRoom(level, player.position)
+
+  if (playerRoom) {
+    // Player in room - try 1-3 tiles away
+    const radius = this.random.range(1, 3)
+    const candidates = this.getPositionsInRadius(player.position, radius, level)
+    const valid = candidates.filter(pos => this.isValidSpawnPosition(level, pos))
+
+    if (valid.length > 0) {
+      return this.random.choice(valid)
+    }
+
+    // Fallback to any position in player's room
+    return this.findRandomPositionInRoom(level, playerRoom)
+  }
+
+  // Player in corridor - find nearest room
+  const nearestRoom = this.findNearestRoom(level, player.position)
+  return this.findRandomPositionInRoom(level, nearestRoom)
+}
+
+// Helper: Find player's room (null if in corridor)
+findPlayerRoom(level: Level, playerPos: Position): Room | null {
+  return level.rooms.find(room =>
+    playerPos.x >= room.x &&
+    playerPos.x < room.x + room.width &&
+    playerPos.y >= room.y &&
+    playerPos.y < room.y + room.height
+  ) || null
+}
+
+// Helper: Find nearest room by Manhattan distance
+findNearestRoom(level: Level, pos: Position): Room {
+  let nearestRoom = level.rooms[0]
+  let minDistance = Infinity
+
+  for (const room of level.rooms) {
+    const roomCenter = {
+      x: room.x + Math.floor(room.width / 2),
+      y: room.y + Math.floor(room.height / 2)
+    }
+    const distance = Math.abs(pos.x - roomCenter.x) + Math.abs(pos.y - roomCenter.y)
+
+    if (distance < minDistance) {
+      minDistance = distance
+      nearestRoom = room
+    }
+  }
+
+  return nearestRoom
+}
+
+// Helper: Random walkable position in room
+findRandomPositionInRoom(level: Level, room: Room): Position {
+  const candidates: Position[] = []
+
+  for (let y = room.y; y < room.y + room.height; y++) {
+    for (let x = room.x; x < room.x + room.width; x++) {
+      const pos = { x, y }
+      if (this.isValidSpawnPosition(level, pos)) {
+        candidates.push(pos)
+      }
+    }
+  }
+
+  return this.random.choice(candidates)
+}
+
+// Helper: Validate spawn position
+isValidSpawnPosition(level: Level, pos: Position): boolean {
+  // Must be walkable floor
+  if (level.tiles[pos.y][pos.x].type !== 'floor') {
+    return false
+  }
+
+  // Must not have monster
+  if (level.monsters.some(m => m.position.x === pos.x && m.position.y === pos.y)) {
+    return false
+  }
+
+  // Must not have item
+  if (level.items.some(i => i.position.x === pos.x && i.position.y === pos.y)) {
+    return false
+  }
+
+  return true
+}
+```
+
+**Why this algorithm?**:
+- **User-Friendly**: Items spawn near player, easy to find
+- **Room-Aware**: Respects dungeon structure (no spawning in walls/corridors)
+- **Fallback Logic**: Handles edge cases (player in corridor, no valid positions nearby)
+- **Deterministic**: Testable with MockRandom
+
 ---
 
 ## 5. Testing Strategy
@@ -307,10 +654,22 @@ consumeHunger(player: Player, state: GameState): Player {
 - Overall: >80%
 
 **New Test Files**:
+
+**Phase 1-4** (Complete):
 - `HungerService/god-mode-integration.test.ts` - Hunger doesn't consume in god mode
 - `LightingService/god-mode-integration.test.ts` - Fuel doesn't consume in god mode
 - `DebugService/overlay-messages.test.ts` - Overlay toggles show messages
 - `IdentifyAllItemsCommand/IdentifyAllItemsCommand.test.ts` - Command orchestration
+
+**Phase 5** (Spawn Real Monsters):
+- `MonsterSpawnService/monster-templates.test.ts` - getMonsterByLetter() returns correct templates
+- `DebugService/smart-positioning.test.ts` - Smart positioning helpers (findPlayerRoom, findNearestRoom, etc.)
+- `DebugService/spawn-monster.test.ts` (update) - spawnMonster() uses real monsters with smart positioning
+
+**Phase 6** (Spawn Items):
+- `ItemSpawnService/item-creation.test.ts` - Item creation helpers (createWeapon, createPotion, etc.)
+- `DebugService/spawn-item.test.ts` - spawnItem() with type-safe API
+- `SpawnItemCommand/SpawnItemCommand.test.ts` - Command orchestration
 
 ### Test Scenarios
 
@@ -334,6 +693,36 @@ consumeHunger(player: Player, state: GameState): Player {
 - When: `consumeHunger()` called
 - Then: Hunger decreases normally
 
+**Scenario 5: Spawn Real Monster** (Phase 5)
+- Given: Valid monster letter 'D' (Dragon)
+- When: `spawnMonster(state, 'D')` called
+- Then: Dragon spawned with correct stats from monsters.json (hp: 10d8, ac: -1, damage: 1d8+3d10)
+
+**Scenario 6: Invalid Monster Letter** (Phase 5)
+- Given: Invalid monster letter '1' (not A-Z)
+- When: `spawnMonster(state, '1')` called
+- Then: Error message shown, no monster spawned
+
+**Scenario 7: Smart Positioning in Room** (Phase 5)
+- Given: Player at (10, 10) in room
+- When: `findSpawnPosition()` called
+- Then: Position returned is 1-3 tiles from player, walkable, in same room
+
+**Scenario 8: Smart Positioning in Corridor** (Phase 5)
+- Given: Player at (5, 5) in corridor (not in any room)
+- When: `findSpawnPosition()` called
+- Then: Position returned is in nearest room, walkable
+
+**Scenario 9: Spawn Item with Type** (Phase 6)
+- Given: ItemSpawnSpec { category: 'potion', type: 'healing' }
+- When: `spawnItem(state, spec)` called
+- Then: Healing potion spawned at smart position, confirmation message shown
+
+**Scenario 10: Spawn Random Item** (Phase 6)
+- Given: ItemSpawnSpec { category: 'weapon' } (no specific type)
+- When: `spawnItem(state, spec)` called
+- Then: Random weapon spawned (mace, sword, dagger, etc.), confirmation message shown
+
 ---
 
 ## 6. Integration Points
@@ -341,12 +730,14 @@ consumeHunger(player: Player, state: GameState): Player {
 ### Commands
 
 **New Commands**:
-- **IdentifyAllItemsCommand**: Reveals all item types, triggered by `a` key in debug mode
+- **IdentifyAllItemsCommand**: Reveals all item types, triggered by `a` key in debug mode (Phase 3)
+- **SpawnItemCommand**: Spawns items with category selection modal, triggered by `i` key in debug mode (Phase 6)
 
 **Modified Commands**:
-- **ToggleFOVDebugCommand**: Now adds message to state
-- **TogglePathDebugCommand**: Now adds message to state
-- **ToggleAIDebugCommand**: Now adds message to state
+- **ToggleFOVDebugCommand**: Now adds message to state (Phase 2)
+- **TogglePathDebugCommand**: Now adds message to state (Phase 2)
+- **ToggleAIDebugCommand**: Now adds message to state (Phase 2)
+- **SpawnMonsterCommand**: Now uses real monsters from monsters.json (Phase 5)
 
 ### UI Changes
 
@@ -354,8 +745,9 @@ consumeHunger(player: Player, state: GameState): Player {
 - No changes needed (messages already render via MessageService)
 
 **Input Handling**:
-- Add `a` key mapping in InputHandler.ts (debug mode only)
-- Keybind: `case 'a': if (debugService.isEnabled()) return new IdentifyAllItemsCommand(...)`
+- Add `a` key mapping in InputHandler.ts (debug mode only) - Identify All Items (Phase 3)
+- Add `i` key mapping in InputHandler.ts (debug mode only) - Spawn Item with modal (Phase 6)
+- Modify `m` key handling - Spawn Monster now uses real monsters (Phase 5)
 
 ### State Updates
 
@@ -363,13 +755,30 @@ No GameState changes needed - using existing structures.
 
 **Service Constructor Changes**:
 ```typescript
+// HungerService, LightingService (Phase 1)
 // Before
 constructor(private message: MessageService) {}
 
-// After (HungerService, LightingService)
+// After
 constructor(
   private message: MessageService,
   private debugService?: DebugService  // Optional dependency
+) {}
+
+// DebugService (Phase 5-6)
+// Before
+constructor(
+  private messageService: MessageService,
+  isDevMode?: boolean
+) {}
+
+// After
+constructor(
+  private messageService: MessageService,
+  private monsterSpawnService: MonsterSpawnService,  // NEW - REQUIRED (Phase 5)
+  private itemSpawnService: ItemSpawnService,        // NEW - REQUIRED (Phase 6)
+  private random: IRandomService,                     // NEW - REQUIRED (Phase 5)
+  isDevMode?: boolean
 ) {}
 ```
 
@@ -379,6 +788,8 @@ constructor(
 
 **Files to Update**:
 - [x] Create plan: `docs/plans/debug_tools_refactor.md` (this file)
+
+**Phase 1-4** (Complete):
 - [ ] Update `docs/systems-advanced.md` - Fix debug commands table
 - [ ] Update `docs/services/DebugService.md` - Update god mode effects
 - [ ] Update `docs/services/HungerService.md` - Add god mode integration
@@ -386,6 +797,15 @@ constructor(
 - [ ] Create `docs/commands/debug-identify.md` - Document identify all command
 - [ ] Update `docs/commands/README.md` - Add debug commands section
 - [ ] Update `CLAUDE.md` - Fix debug tools quick reference
+
+**Phase 5-6** (New):
+- [ ] Update `docs/services/DebugService.md` - Add spawnMonster() and spawnItem() methods, smart positioning
+- [ ] Update `docs/services/MonsterSpawnService.md` - Add getMonsterByLetter() method
+- [ ] Update `docs/services/ItemSpawnService.md` - Document item creation helpers
+- [ ] Create `docs/commands/debug-spawn-item.md` - Document spawn item command
+- [ ] Update `docs/commands/debug-spawn.md` - Update to reflect real monster spawning
+- [ ] Update `docs/systems-advanced.md` - Add smart positioning algorithm description
+- [ ] Update `CLAUDE.md` - Add 'i' keybind for item spawning
 
 ---
 
@@ -407,15 +827,33 @@ constructor(
 
 ### Breaking Changes
 
-None - all changes are backwards compatible:
+**Phase 1-4**: None - all changes are backwards compatible:
 - Optional DebugService parameter (existing code works)
 - New commands don't affect existing commands
 - God mode is opt-in feature
+
+**Phase 5-6**: Minor breaking changes in DebugService:
+- **DebugService constructor signature changed**: Now requires MonsterSpawnService, ItemSpawnService, IRandomService
+- **Impact**: All DebugService instantiations must be updated (main.ts, tests)
+- **Mitigation**: Compiler will catch all missing parameters, easy to fix
+- **spawnMonster() behavior changed**: No longer creates generic "Debug X" monsters, shows error for invalid letters
+- **Impact**: Tests expecting generic monsters will fail
+- **Mitigation**: Update tests to expect real monsters or error messages
 
 ### Performance Considerations
 
 **God Mode Checks**: O(1) boolean lookup, negligible performance impact
 **Fuel/Hunger Consumption**: Early exit in god mode actually improves performance (skips calculations)
+
+**Smart Positioning** (Phase 5):
+- **findPlayerRoom()**: O(n) where n = number of rooms (typically 5-10), negligible
+- **findNearestRoom()**: O(n) room iteration with Manhattan distance, negligible
+- **findRandomPositionInRoom()**: O(width × height) room iteration, typically <100 tiles
+- **Overall**: All positioning operations <1ms even in worst case
+
+**Item Creation Helpers** (Phase 6):
+- Extracting helpers has no performance impact (same logic, better organization)
+- spawnItems() refactored to use helpers, no performance regression expected
 
 ---
 
@@ -426,11 +864,13 @@ None - all changes are backwards compatible:
 - **Blocks**: None (debug features don't block game features)
 
 ### Estimated Timeline
-- Phase 1: 2-3 hours (god mode integration + tests)
-- Phase 2: 1 hour (add messages to overlays)
-- Phase 3: 1 hour (identify all command + keybind)
-- Phase 4: 1 hour (documentation updates)
-- **Total**: 5-6 hours
+- Phase 1: 2-3 hours (god mode integration + tests) - ✅ Complete
+- Phase 2: 1 hour (add messages to overlays) - ✅ Complete
+- Phase 3: 1 hour (identify all command + keybind) - ✅ Complete
+- Phase 4: 1 hour (documentation updates) - ✅ Complete
+- Phase 5: 2-3 hours (spawn real monsters + smart positioning + tests)
+- Phase 6: 2.5-3 hours (extract item helpers + spawn item API + command + tests)
+- **Total**: 9.5-12 hours (5-6 hours complete, 4.5-6 hours remaining)
 
 ---
 
@@ -446,16 +886,24 @@ None - all changes are backwards compatible:
   - [ ] God mode prevents damage (already works, verify still works)
   - [ ] Overlay toggles show messages (`f`, `p`, `n` keys)
   - [ ] Identify all works (`a` key in debug mode)
+  - [ ] Spawn monster creates real monsters (`m` key → letter → verify correct monster with proper stats)
+  - [ ] Spawn monster shows error for invalid letters (`m` key → '1' → error message)
+  - [ ] Smart positioning works (spawned entities appear 1-3 tiles from player in same room)
+  - [ ] Smart positioning fallback works (spawn in corridor → entity appears in nearest room)
+  - [ ] Spawn item works for all categories (`i` key → category → item appears near player)
+  - [ ] Spawn item type selection works (`i` → potion → healing → healing potion appears)
 - [ ] Architectural review completed ([ARCHITECTURAL_REVIEW.md](../ARCHITECTURAL_REVIEW.md))
 - [ ] Documentation updated and accurate
 - [ ] Production build has debug disabled (verify in dist bundle)
 
 ### Follow-Up Tasks
-- [ ] Consider adding spawn item debug command (if needed for testing)
 - [ ] Consider adding teleport debug command (if needed for level testing)
+- [ ] Consider adding change level debug command (quick level navigation)
 - [ ] Add debug overlay visual improvements (colors, better rendering)
+- [ ] Consider adding full heal debug command (restore hp, hunger, cure status effects)
+- [ ] Consider adding equipment spawning debug command (spawn specific armor/weapons)
 
 ---
 
 **Last Updated**: 2025-10-09
-**Status**: ✅ Complete
+**Status**: 🚧 In Progress (Phases 1-4 Complete, Phases 5-6 Pending)
