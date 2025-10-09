@@ -166,28 +166,6 @@ export class DebugService {
   }
 
   /**
-   * Apply god mode effects to player state
-   * Called by relevant services (CombatService, HungerService, LightingService)
-   */
-  applyGodModeEffects(state: GameState): GameState {
-    if (!this.isGodModeActive(state)) return state
-
-    // Restore full HP
-    const player = state.player
-    if (player.hp < player.maxHp) {
-      return {
-        ...state,
-        player: {
-          ...player,
-          hp: player.maxHp,
-        },
-      }
-    }
-
-    return state
-  }
-
-  /**
    * Spawn monster at position for testing
    */
   spawnMonster(state: GameState, letter: string, position?: Position): GameState {

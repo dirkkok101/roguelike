@@ -58,36 +58,4 @@ describe('DebugService - God Mode', () => {
     expect(result.debug).not.toBe(mockState.debug)
     expect(mockState.debug?.godMode).toBe(false) // Original unchanged
   })
-
-  test('applyGodModeEffects restores HP when below max', () => {
-    const enabledState = debugService.toggleGodMode(mockState)
-    const result = debugService.applyGodModeEffects(enabledState)
-
-    expect(result.player.hp).toBe(result.player.maxHp)
-  })
-
-  test('applyGodModeEffects does nothing when god mode disabled', () => {
-    const result = debugService.applyGodModeEffects(mockState)
-
-    expect(result).toBe(mockState)
-    expect(result.player.hp).toBe(8)
-  })
-
-  test('applyGodModeEffects does nothing when HP already full', () => {
-    const fullHpState = {
-      ...mockState,
-      player: {
-        ...mockState.player,
-        hp: 12,
-      },
-      debug: {
-        ...mockState.debug!,
-        godMode: true,
-      },
-    }
-
-    const result = debugService.applyGodModeEffects(fullHpState)
-
-    expect(result).toBe(fullHpState)
-  })
 })
