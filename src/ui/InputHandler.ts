@@ -454,9 +454,6 @@ export class InputHandler {
         event.preventDefault()
         this.modalController.showItemSelection('wand', 'Zap which wand?', state, (item) => {
           if (item) {
-            // Close wand selection modal before opening targeting modal
-            this.modalController.hide()
-
             // After wand selected, show targeting modal
             const wand = item as any // Cast to Wand (will have range property)
             const wandRange = wand.range || 5 // Default range if not set yet
