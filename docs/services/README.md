@@ -46,7 +46,7 @@ See [Architecture Guide](../architecture.md) for details.
 | [PathfindingService](./PathfindingService.md) | A* algorithm | `findPath` | None |
 | [RenderingService](./RenderingService.md) | Visual rendering | `getVisibilityState`, `getTileColor` | None |
 | **Item Systems** ||||
-| [PotionService](./PotionService.md) | Potion effects (11 types) | `applyPotion` | RandomService, IdentificationService, StatusEffectService, LevelingService, FOVService |
+| [PotionService](./PotionService.md) | Potion effects (13 types) | `applyPotion` | RandomService, IdentificationService, StatusEffectService, LevelingService, FOVService |
 | [StatusEffectService](./StatusEffectService.md) | Status effects, durations | `addStatusEffect`, `tickStatusEffects` | None |
 | [ScrollService](./ScrollService.md) | Scroll effects | `applyScroll` | None |
 | [WandService](./WandService.md) | Wand effects, charges | `applyWand`, `decrementCharge` | RandomService |

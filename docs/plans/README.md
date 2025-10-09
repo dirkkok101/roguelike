@@ -16,6 +16,7 @@ This folder contains both **active plans** (in progress) and **archived plans** 
 
 | Plan | Status | Started | Description |
 |------|--------|---------|-------------|
+| **[Potion System Refactor](./potion_refactor.md)** | 🚧 In Progress | 2025-10-09 | Fix critical spawn bug (SEE_INVISIBLE, LEVITATION), add missing tests, update docs (3 phases) |
 | **[Monster Spawn Refactor](./monster_spawn_refactor_plan.md)** | 🚧 In Progress | 2025-10-06 | Extract MonsterSpawnService, fix speed variety, implement weighted spawning (8 phases) |
 
 ---
@@ -24,7 +25,7 @@ This folder contains both **active plans** (in progress) and **archived plans** 
 
 | Plan | Status | Completed | Description |
 |------|--------|-----------|-------------|
-| **[Potion Implementation](./potion_implementation_plan.md)** | 📦 Archived | 2025-10-06 | Complete potion system (11 potions + StatusEffectService + energy system) |
+| **[Potion Implementation](./potion_implementation_plan.md)** | 📦 Archived | 2025-10-06 | Complete potion system (13 potions + StatusEffectService + energy system) |
 | **[Death Screen Refactor](./death_screen_refactor.md)** | 📦 Archived | 2025-10-06 | Death and victory screen implementation |
 | **[Documentation Refactor](./document_refactor_plan.md)** | 📦 Archived | 2025-10-06 | SOLID principles applied to documentation (6 phases, 12 commits) |
 | **[Game Design Refactor](./game_design_document_refactor_plan.md)** | 📦 Archived | 2025-10-05 | Game design docs restructure (Phases 1-6) |
@@ -64,4 +65,4 @@ Good plans include:
 
 ---
 
-**Last Updated**: 2025-10-06
+**Last Updated**: 2025-10-09
