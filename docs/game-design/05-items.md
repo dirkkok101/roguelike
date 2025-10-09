@@ -118,13 +118,13 @@
 **Potion of Levitation** (Uncommon):
 - **Effect**: Float over traps (immune to all trap damage)
 - **Duration**: 29-32 turns
-- **Message**: "You start to float in the air"
+- **Message**: "You begin to float above the ground!"
 - **Strategy**: Navigate trapped corridors safely
 
 **Potion of See Invisible** (Uncommon):
 - **Effect**: Reveals invisible monsters (Phantoms)
 - **Duration**: Until level change
-- **Message**: "This potion tastes like slime mold juice"
+- **Message**: "Your eyes tingle. You can now see invisible creatures!"
 - **Strategy**: Essential for Phantom-heavy levels
 
 ---
@@ -169,7 +169,7 @@
 - ✅ **Phase 3**: Confusion, Blindness, Haste Self
 - ✅ **Phase 4**: Levitation, See Invisible
 
-**Test Coverage**: 10 test files, 100 tests passing (100%)
+**Test Coverage**: 10 dedicated potion test files, 100 potion-specific tests passing (100% coverage)
 
 **See**: [Potion Implementation Plan](../plans/potion_implementation_plan.md) for complete design documentation.
 
