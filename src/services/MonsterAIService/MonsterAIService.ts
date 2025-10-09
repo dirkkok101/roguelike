@@ -329,41 +329,36 @@ export class MonsterAIService {
   }
 
   /**
-   * ERRATIC behavior - 50% random, 50% toward player
+   * ERRATIC behavior - 100% random movement
    * Used by flying creatures (Bat, Kestrel)
+   * Matches original Rogue where Bats "always moved as if confused"
    */
   private erraticBehavior(
     monster: Monster,
-    playerPos: Position,
+    _playerPos: Position,
     level: any
   ): MonsterAction {
-    // 50% chance to move randomly
-    if (this.random.chance(0.5)) {
-      // Random movement
-      const directions = [
-        { x: 0, y: -1 }, // up
-        { x: 0, y: 1 },  // down
-        { x: -1, y: 0 }, // left
-        { x: 1, y: 0 },  // right
-      ]
+    // Always move randomly (matches original Rogue behavior)
+    const directions = [
+      { x: 0, y: -1 }, // up
+      { x: 0, y: 1 },  // down
+      { x: -1, y: 0 }, // left
+      { x: 1, y: 0 },  // right
+    ]
 
-      const randomDir = this.random.pickRandom(directions)
-      const target = {
-        x: monster.position.x + randomDir.x,
-        y: monster.position.y + randomDir.y,
-      }
-
-      // Check if walkable
-      const tile = level.tiles[target.y]?.[target.x]
-      if (tile?.walkable) {
-        return { type: 'move', target }
-      }
-
-      return { type: 'wait' }
-    } else {
-      // Move toward player using simple behavior
-      return this.simpleBehavior(monster, playerPos, level)
+    const randomDir = this.random.pickRandom(directions)
+    const target = {
+      x: monster.position.x + randomDir.x,
+      y: monster.position.y + randomDir.y,
     }
+
+    // Check if walkable
+    const tile = level.tiles[target.y]?.[target.x]
+    if (tile?.walkable) {
+      return { type: 'move', target }
+    }
+
+    return { type: 'wait' }
   }
 
   /**
