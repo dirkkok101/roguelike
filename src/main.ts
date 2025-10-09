@@ -41,6 +41,7 @@ import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
 import { TargetingService } from '@services/TargetingService'
+import { AssetLoaderService } from '@services/AssetLoaderService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -78,6 +79,24 @@ async function initializeGame() {
   } catch (error) {
     console.error('Failed to load monsters.json:', error)
     throw error // Fatal error - game cannot proceed without monster data
+  }
+
+  // Load tileset early (Gervais 32×32 sprite sheet)
+  const assetLoaderService = new AssetLoaderService()
+  try {
+    await assetLoaderService.loadTileset(
+      '/assets/tilesets/gervais/32x32.png',
+      [
+        '/assets/tilesets/gervais/graf-dvg.prf',
+        '/assets/tilesets/gervais/flvr-dvg.prf',
+        '/assets/tilesets/gervais/xtra-dvg.prf',
+      ],
+      32
+    )
+    console.log('Tileset loaded successfully (Gervais 32×32)')
+  } catch (error) {
+    console.warn('Failed to load tileset, will fall back to ASCII rendering:', error)
+    // Non-fatal error - game can proceed with ASCII rendering
   }
 
   // Create ItemSpawnService (needed by DebugService)
