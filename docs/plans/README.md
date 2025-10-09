@@ -1,68 +1,266 @@
-# Implementation Plans
+# [Feature Name] Implementation Plan
 
-**Purpose**: Active and historical feature plans and refactors
-
----
-
-## Overview
-
-This folder contains both **active plans** (in progress) and **archived plans** (completed). Plans provide detailed implementation roadmaps with objectives, phases, tasks, and success criteria.
-
-**For new features**: Follow the planning workflow in [contributing.md](../contributing.md) and use [TEMPLATE.md](./TEMPLATE.md).
+**Status**: 🚧 In Progress
+**Version**: 1.0
+**Created**: YYYY-MM-DD
+**Last Updated**: YYYY-MM-DD
+**Owner**: [Your Name]
+**Related Docs**: [Game Design](../game-design/README.md) | [Architecture](../architecture.md) | [CLAUDE.md](../../CLAUDE.md)
 
 ---
 
-## Active Plans
+## 1. Objectives
 
-| Plan | Status | Started | Description |
-|------|--------|---------|-------------|
-| **[Monster Spawn Refactor](./monster_spawn_refactor_plan.md)** | 🚧 In Progress | 2025-10-06 | Extract MonsterSpawnService, fix speed variety, implement weighted spawning (8 phases) |
+### Primary Goal
+[One sentence describing what this plan achieves and why it's important]
 
----
+### Design Philosophy
+- **[Principle 1]**: [Brief explanation]
+- **[Principle 2]**: [Brief explanation]
+- **[Principle 3]**: [Brief explanation]
 
-## Completed Plans
-
-| Plan | Status | Completed | Description |
-|------|--------|-----------|-------------|
-| **[Potion System Refactor](./potion_refactor.md)** | 📦 Archived | 2025-10-09 | Fix critical spawn bug (SEE_INVISIBLE, LEVITATION), add missing tests, update docs (3 phases) |
-| **[Potion Implementation](./potion_implementation_plan.md)** | 📦 Archived | 2025-10-06 | Complete potion system (13 potions + StatusEffectService + energy system) |
-| **[Death Screen Refactor](./death_screen_refactor.md)** | 📦 Archived | 2025-10-06 | Death and victory screen implementation |
-| **[Documentation Refactor](./document_refactor_plan.md)** | 📦 Archived | 2025-10-06 | SOLID principles applied to documentation (6 phases, 12 commits) |
-| **[Game Design Refactor](./game_design_document_refactor_plan.md)** | 📦 Archived | 2025-10-05 | Game design docs restructure (Phases 1-6) |
-| **[Light Source Refactor](./light_source_plan.md)** | 📦 Archived | 2025-10-05 | Light source data model refactor (fuel tracking) |
-| **[Regeneration Service](./regeneration_plan.md)** | 📦 Archived | 2025-10-05 | Natural health regeneration implementation |
+### Success Criteria
+- [ ] [Criterion 1 - functional requirement]
+- [ ] [Criterion 2 - technical requirement]
+- [ ] [Criterion 3 - quality requirement]
+- [ ] All tests pass with >80% coverage
+- [ ] Architecture follows CLAUDE.md principles
+- [ ] Documentation updated
 
 ---
 
-## Creating New Plans
+## 2. Context & Related Documentation
 
-**When to create a plan**:
-- New features (items, monsters, systems)
-- Major refactors
-- Architectural changes
+### Relevant Game Design Docs
+- [Link to specific game design document section]
+- [Link to related mechanic documentation]
 
-**Plan Template**: See [contributing.md](../contributing.md#2-create-plan-for-features)
+### Related Systems
+- **[System Name]**: [How it relates to this plan]
+- **[System Name]**: [How it relates to this plan]
 
-**Workflow**:
-1. Create `feature_name_plan.md` in `docs/plans/`
-2. Include: Objectives, Phases, Tasks, Related Docs
-3. Mark status: 🚧 In Progress
-4. Link from PR description
-5. Mark 📦 Archived when complete
+### Research Summary (if applicable)
+[Brief summary of research from classic roguelikes, similar games, or algorithms used]
 
 ---
 
-## Plan Structure
+## 3. Phases & Tasks
 
-Good plans include:
-- **Objectives** - What and why
-- **Phases** - Logical groupings
-- **Tasks** - Specific subtasks with checkboxes
-- **Related Documentation** - Context references
-- **Success Criteria** - Definition of done
+### Phase 1: [Phase Name] (Priority: HIGH/MEDIUM/LOW)
 
-**Example**: See [document_refactor_plan.md](./document_refactor_plan.md) for comprehensive plan structure
+**Objective**: [What this phase achieves]
+
+#### Task 1.1: [Task Name]
+
+**Context**: [Why this task is needed, what problem it solves]
+
+**Files to create/modify**:
+- `src/services/ServiceName/ServiceName.ts`
+- `src/services/ServiceName/scenario-name.test.ts`
+- `src/services/ServiceName/index.ts`
+
+##### Subtasks:
+- [ ] Create service interface and type definitions
+- [ ] Implement core logic with dependency injection
+- [ ] Write unit tests (aim for >90% coverage)
+- [ ] Create barrel export (`index.ts`)
+- [ ] Update path aliases if needed
+- [ ] Git commit: "feat: implement ServiceName core logic (Phase 1.1)"
 
 ---
 
-**Last Updated**: 2025-10-09
+#### Task 1.2: [Task Name]
+
+**Context**: [Why this task is needed]
+
+##### Subtasks:
+- [ ] Subtask 1 description
+- [ ] Subtask 2 description
+- [ ] Git commit: "feat: [descriptive message] (Phase 1.2)"
+
+---
+
+### Phase 2: [Phase Name] (Priority: HIGH/MEDIUM/LOW)
+
+**Objective**: [What this phase achieves]
+
+#### Task 2.1: [Task Name]
+
+**Context**: [Why this task is needed]
+
+##### Subtasks:
+- [ ] Subtask 1 description
+- [ ] Subtask 2 description
+- [ ] Git commit: "feat: [descriptive message] (Phase 2.1)"
+
+---
+
+## 4. Technical Design
+
+### Data Structures
+
+```typescript
+// Key interfaces and types used in this feature
+interface ExampleInterface {
+  id: string
+  name: string
+  // ... other fields
+}
+```
+
+### Service Architecture
+
+**New Services**:
+- **ServiceName**: [Responsibility and key methods]
+
+**Modified Services**:
+- **ExistingService**: [What modifications are needed]
+
+**Service Dependencies**:
+```
+ServiceA
+  ├─ depends on → ServiceB
+  └─ depends on → ServiceC
+```
+
+### Algorithms & Formulas
+
+**[Algorithm Name]**:
+```
+Step 1: [Description]
+Step 2: [Description]
+Result: [What it produces]
+```
+
+**[Formula Name]**:
+```
+result = formula_here
+```
+
+---
+
+## 5. Testing Strategy
+
+### Unit Tests
+
+**Coverage Goals**:
+- Services: >90%
+- Commands: >80%
+- Overall: >80%
+
+**Test Files**:
+- `scenario-name.test.ts` - [What it tests]
+- `edge-cases.test.ts` - [What it tests]
+- `integration.test.ts` - [What it tests]
+
+### Test Scenarios
+
+**Scenario 1: [Name]**
+- Given: [Initial state]
+- When: [Action]
+- Then: [Expected result]
+
+**Scenario 2: [Name]**
+- Given: [Initial state]
+- When: [Action]
+- Then: [Expected result]
+
+---
+
+## 6. Integration Points
+
+### Commands
+
+**New Commands**:
+- **CommandName**: [What it does, when it's triggered]
+
+**Modified Commands**:
+- **ExistingCommand**: [What changes are needed]
+
+### UI Changes
+
+**Renderer Updates**:
+- [What visual changes are needed]
+
+**Input Handling**:
+- [What new keyboard/mouse inputs are needed]
+
+### State Updates
+
+**GameState Changes**:
+```typescript
+interface GameState {
+  // ... existing fields
+  newField: Type  // ← Added for this feature
+}
+```
+
+**Player/Level Changes**:
+- [What changes to Player or Level interfaces]
+
+---
+
+## 7. Documentation Updates
+
+**Files to Update**:
+- [ ] Create `docs/services/ServiceName.md` - Full service documentation
+- [ ] Update `docs/game-design/XX-topic.md` - Add feature to game design
+- [ ] Update `docs/architecture.md` - Add to service catalog
+- [ ] Update `docs/systems-core.md` or `systems-advanced.md` - System details
+- [ ] Update `CLAUDE.md` - If new patterns or principles introduced
+
+---
+
+## 8. Risk & Considerations
+
+### Potential Issues
+
+**Issue 1: [Name]**
+- **Problem**: [Description]
+- **Mitigation**: [How to address it]
+
+**Issue 2: [Name]**
+- **Problem**: [Description]
+- **Mitigation**: [How to address it]
+
+### Breaking Changes
+- [List any breaking changes to existing APIs or behavior]
+- [How to handle migration if needed]
+
+### Performance Considerations
+- [Any performance concerns]
+- [How to optimize if needed]
+
+---
+
+## 9. Timeline & Dependencies
+
+### Dependencies
+- **Blocked by**: [What must be completed first]
+- **Blocks**: [What depends on this being completed]
+
+### Estimated Timeline
+- Phase 1: [X hours/days]
+- Phase 2: [X hours/days]
+- **Total**: [X hours/days]
+
+---
+
+## 10. Post-Implementation
+
+### Verification Checklist
+- [ ] All tests passing (`npm test`)
+- [ ] Type checking passing (`npm run type-check`)
+- [ ] Coverage >80% (`npm run test:coverage`)
+- [ ] Architectural review completed ([ARCHITECTURAL_REVIEW.md](../ARCHITECTURAL_REVIEW.md))
+- [ ] Documentation updated
+- [ ] Manual testing completed
+
+### Follow-Up Tasks
+- [ ] [Future enhancement 1]
+- [ ] [Future enhancement 2]
+
+---
+
+**Last Updated**: YYYY-MM-DD
+**Status**: [🚧 In Progress | ✅ Complete | 📦 Archived]
