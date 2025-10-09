@@ -440,7 +440,9 @@ async function initializeGame() {
       modalController,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
-      returnToMenu
+      returnToMenu,
+      stateManager,
+      renderer
     )
 
     // Render initial state
