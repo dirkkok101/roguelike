@@ -75,13 +75,13 @@ export class TargetSelectionState extends BaseState {
     private onCancel: TargetCancelCallback
   ) {
     super()
-    // Initialize cursor at player position
+    // Cursor position will be set in enter() to nearest monster or adjacent walkable tile
     this.cursorPosition = { ...gameState.player.position }
   }
 
   /**
    * Called when state becomes active
-   * Initialize cursor at nearest monster (if any)
+   * Initialize cursor at nearest monster (if any), or adjacent walkable tile
    */
   enter(): void {
     const currentLevel = this.gameState.levels.get(this.gameState.currentLevel)
@@ -107,8 +107,40 @@ export class TargetSelectionState extends BaseState {
       if (nearestMonster) {
         this.cursorPosition = { ...nearestMonster.position }
         this.currentTargetIndex = 0
+        return
       }
     }
+
+    // No monsters visible - initialize cursor at first walkable adjacent tile
+    // Try tiles in order: right, up, left, down, diagonals
+    const adjacentOffsets = [
+      { dx: 1, dy: 0 },   // right
+      { dx: 0, dy: -1 },  // up
+      { dx: -1, dy: 0 },  // left
+      { dx: 0, dy: 1 },   // down
+      { dx: 1, dy: -1 },  // up-right
+      { dx: -1, dy: -1 }, // up-left
+      { dx: 1, dy: 1 },   // down-right
+      { dx: -1, dy: 1 },  // down-left
+    ]
+
+    for (const offset of adjacentOffsets) {
+      const x = this.gameState.player.position.x + offset.dx
+      const y = this.gameState.player.position.y + offset.dy
+
+      // Check bounds
+      if (x >= 0 && x < currentLevel.width && y >= 0 && y < currentLevel.height) {
+        const tile = currentLevel.tiles[y][x]
+        if (tile.walkable) {
+          this.cursorPosition = { x, y }
+          return
+        }
+      }
+    }
+
+    // Fallback: If all adjacent tiles are non-walkable, cancel targeting
+    // (This shouldn't happen in normal gameplay, but handle it gracefully)
+    this.onCancel()
   }
 
   /**
@@ -299,16 +331,20 @@ export class TargetSelectionState extends BaseState {
     if (!level) return
 
     if (newX >= 0 && newX < level.width && newY >= 0 && newY < level.height) {
-      // Calculate Manhattan distance from player
-      const dist = this.targetingService.distance(
-        this.gameState.player.position,
-        { x: newX, y: newY }
-      )
+      const newPos = { x: newX, y: newY }
 
-      // Allow cursor to move anywhere within range
-      // Visual feedback will indicate if target is invalid
+      // Check if tile is walkable (cursor can only move to walkable tiles)
+      const tile = level.tiles[newY][newX]
+      if (!tile.walkable) {
+        return // Cannot move cursor to non-walkable tiles (walls, etc.)
+      }
+
+      // Calculate Manhattan distance from player
+      const dist = this.targetingService.distance(this.gameState.player.position, newPos)
+
+      // Allow cursor to move anywhere walkable within range
       if (dist <= this.range) {
-        this.cursorPosition = { x: newX, y: newY }
+        this.cursorPosition = newPos
       }
     }
   }
@@ -344,7 +380,15 @@ export class TargetSelectionState extends BaseState {
    * The WandService will handle projectile logic to find what gets hit
    */
   private confirmTarget(): void {
-    // Always fire at cursor position (enable firing at empty tiles for projectile logic)
+    // Cannot target player's own position
+    if (
+      this.cursorPosition.x === this.gameState.player.position.x &&
+      this.cursorPosition.y === this.gameState.player.position.y
+    ) {
+      return // Silently ignore attempts to target self
+    }
+
+    // Fire at cursor position (enable firing at empty tiles for projectile logic)
     this.onTarget({ ...this.cursorPosition })
   }
 }

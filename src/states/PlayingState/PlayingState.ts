@@ -48,9 +48,15 @@ export class PlayingState extends BaseState {
   /**
    * Called when state becomes active
    * Render initial game state
+   * Also check for pending commands (from targeting, modals, etc.)
    */
   enter(): void {
     this.renderer.render(this.gameState)
+
+    // Check for pending commands when state becomes active
+    // This handles cases where a higher state (like TargetSelectionState) pops
+    // and leaves a pending command to execute
+    this.checkAndExecutePendingCommand()
   }
 
   /**
@@ -152,6 +158,39 @@ export class PlayingState extends BaseState {
    */
   getGameState(): GameState {
     return this.gameState
+  }
+
+  /**
+   * Check for and execute pending commands
+   * Called when state becomes active (via enter()) to handle commands
+   * left by states that popped themselves (like TargetSelectionState)
+   */
+  private checkAndExecutePendingCommand(): void {
+    // Create a dummy keyboard event to check for pending commands
+    const dummyEvent = new KeyboardEvent('keydown', { key: '' })
+    const command = this.inputHandler.handleKeyPress(dummyEvent, this.gameState)
+
+    if (command) {
+      // Execute the pending command and update game state
+      this.gameState = command.execute(this.gameState)
+
+      // Consume player energy after action
+      this.gameState = {
+        ...this.gameState,
+        player: this.turnService.consumePlayerEnergy(this.gameState.player),
+      }
+
+      // Process monsters only if player exhausted energy
+      if (!this.turnService.canPlayerAct(this.gameState.player)) {
+        this.gameState = this.monsterTurnService.processMonsterTurns(this.gameState)
+        this.gameState = this.turnService.incrementTurn(this.gameState)
+      }
+
+      this.autoSaveMiddleware.afterTurn(this.gameState)
+
+      // Re-render after command execution
+      this.renderer.render(this.gameState)
+    }
   }
 
   /**
