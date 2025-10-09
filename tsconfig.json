@@ -28,6 +28,7 @@
       "@commands/*": ["src/commands/*"],
       "@states/*": ["src/states/*"],
       "@game/*": ["src/types/*"],
+      "@assets/*": ["src/types/assets/*"],
       "@ui/*": ["src/ui/*"],
       "@utils/*": ["src/utils/*"],
       "@test-utils/*": ["src/__test-utils__/*"]
