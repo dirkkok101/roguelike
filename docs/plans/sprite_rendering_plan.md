@@ -1,6 +1,6 @@
 # Sprite-Based Rendering Implementation Plan
 
-**Status**: 🚧 In Progress
+**Status**: 🚧 In Progress - Phase 1 Complete, Starting Phase 2
 **Version**: 1.0
 **Created**: 2025-10-09
 **Last Updated**: 2025-10-09
@@ -89,16 +89,16 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `public/assets/tilesets/gervais/LICENSE.txt` (attribution)
 
 ##### Subtasks:
-- [ ] Download assets from https://github.com/angband/angband/tree/master/lib/tiles/gervais
+- [x] Download assets from https://github.com/angband/angband/tree/master/lib/tiles/gervais
   - Download `32x32.png` (single sprite sheet)
   - Download `graf-dvg.prf` (main mappings)
   - Download `flvr-dvg.prf` (flavored items)
   - Download `xtra-dvg.prf` (player variants)
-- [ ] Create `public/assets/tilesets/gervais/` directory
-- [ ] Copy downloaded files to public directory
-- [ ] Verify tileset license (Angband license, free for open source use)
-- [ ] Create `LICENSE.txt` with attribution to David Gervais and Angband project
-- [ ] Git commit: "chore: add Gervais 32x32 tileset from Angband (Phase 1.1)"
+- [x] Create `public/assets/tilesets/gervais/` directory
+- [x] Copy downloaded files to public directory
+- [x] Verify tileset license (Angband license, free for open source use)
+- [x] Create `LICENSE.txt` with attribution to David Gervais and Angband project
+- [x] Git commit: "chore: add Gervais 32x32 tileset from Angband (Phase 1.1)"
 
 ---
 
@@ -111,7 +111,7 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/utils/prfParser.ts` (new file - .prf file parser)
 
 ##### Subtasks:
-- [ ] Create `src/types/assets/assets.ts` with TypeScript interfaces:
+- [x] Create `src/types/assets/assets.ts` with TypeScript interfaces:
   ```typescript
   export interface TilesetConfig {
     name: string
@@ -143,12 +143,12 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
     hexX: number        // 0xXX character
   }
   ```
-- [ ] Create `src/utils/prfParser.ts`:
+- [x] Create `src/utils/prfParser.ts`:
   - `parsePrfFile(content: string): PrfEntry[]` - Parse .prf text format
   - `hexToPixel(hex: number, tileSize: number): number` - Convert 0x80-based hex to pixel offset
   - Handle .prf format: `feat:FLOOR:torch:0x96:0x80`, `monster:Bat:0x8B:0x81`, etc.
-- [ ] Add path alias to `tsconfig.json`: `"@assets/*": ["src/types/assets/*"]`
-- [ ] Git commit: "feat: create .prf parser and tileset type definitions (Phase 1.2)"
+- [x] Add path alias to `tsconfig.json`: `"@assets/*": ["src/types/assets/*"]`
+- [x] Git commit: "feat: create .prf parser and tileset type definitions (Phase 1.2)"
 
 ---
 
@@ -163,24 +163,24 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/services/AssetLoaderService/index.ts`
 
 ##### Subtasks:
-- [ ] Create `AssetLoaderService` with methods:
+- [x] Create `AssetLoaderService` with methods:
   - `loadTileset(imageUrl: string, prfFiles: string[]): Promise<Tileset>`
   - `getSprite(char: string): TileCoordinate | null`
   - `getSpriteByName(type: string, name: string): TileCoordinate | null`
   - `isLoaded(): boolean`
-- [ ] Implement PNG image preloading using `Image` objects
-- [ ] Implement .prf file fetching and parsing:
+- [x] Implement PNG image preloading using `Image` objects
+- [x] Implement .prf file fetching and parsing:
   - Fetch each .prf file (graf-dvg.prf, flvr-dvg.prf, xtra-dvg.prf)
   - Parse using `prfParser.parsePrfFile()`
   - Convert hex coordinates to pixel offsets
   - Build Map<string, TileCoordinate> for fast lookups
-- [ ] Add error handling:
+- [x] Add error handling:
   - Missing image file (404)
   - Missing .prf files (404)
   - Malformed .prf syntax
   - Network errors
-- [ ] Cache loaded tilesets in Map (support multiple tilesets)
-- [ ] Write unit tests:
+- [x] Cache loaded tilesets in Map (support multiple tilesets)
+- [x] Write unit tests:
   - Load tileset successfully (PNG + .prf files)
   - Parse .prf format correctly (feat, monster, object, trap entries)
   - Hex to pixel conversion accuracy
@@ -188,8 +188,8 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
   - Handle malformed .prf syntax
   - Cache behavior (avoid duplicate loads)
   - Get sprite coordinates for valid/invalid characters
-- [ ] Create barrel export `index.ts`
-- [ ] Git commit: "feat: implement AssetLoaderService with .prf parsing (Phase 1.3)"
+- [x] Create barrel export `index.ts`
+- [x] Git commit: "feat: implement AssetLoaderService with .prf parsing (Phase 1.3)"
 
 ---
 
@@ -202,7 +202,7 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `src/ui/LoadingScreen.ts` (new file - optional)
 
 ##### Subtasks:
-- [ ] Modify `src/main.ts` to preload tileset before game starts:
+- [x] Modify `src/main.ts` to preload tileset before game starts:
   ```typescript
   const assetLoader = new AssetLoaderService()
   await assetLoader.loadTileset(
@@ -215,9 +215,9 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
   )
   // Then initialize game renderer with loaded tileset
   ```
-- [ ] Add loading indicator (optional): "Loading sprites..." text or progress bar
-- [ ] Handle loading errors gracefully (fallback to ASCII or show error screen)
-- [ ] Git commit: "feat: add tileset preloading to game initialization (Phase 1.4)"
+- [x] Add loading indicator (optional): "Loading sprites..." text or progress bar
+- [x] Handle loading errors gracefully (fallback to ASCII or show error screen)
+- [x] Git commit: "feat: add tileset preloading to game initialization (Phase 1.4)"
 
 ---
 
