@@ -289,8 +289,16 @@ export class ModalController {
       if (index !== null && index < topModalState.spawnCategories.length) {
         event.preventDefault()
         const category = topModalState.spawnCategories[index]
+        const topModalBefore = this.modalStack[this.modalStack.length - 1]
         topModalState.spawnCategoryCallback(category)
-        this.hide()
+        const topModalAfter = this.modalStack[this.modalStack.length - 1]
+
+        // Only hide if the top modal is still the same one
+        // (callback may have opened a new modal for subtype selection)
+        if (topModalBefore === topModalAfter) {
+          this.hide()
+        }
+
         return true
       }
       return false

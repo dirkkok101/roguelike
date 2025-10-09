@@ -737,6 +737,9 @@ export class InputHandler {
             const categoriesWithSubtypes = ['potion', 'scroll', 'ring', 'wand']
 
             if (categoriesWithSubtypes.includes(category)) {
+              // Close category modal before opening subtype modal
+              this.modalController.hide()
+
               // Show subtype selection modal
               this.modalController.showSpawnItemSubtype(category, (subtype) => {
                 if (subtype) {
