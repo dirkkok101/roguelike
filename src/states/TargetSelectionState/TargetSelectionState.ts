@@ -5,8 +5,9 @@ import { GameRenderer } from '@ui/GameRenderer'
 
 /**
  * TargetConfirmCallback - called when user confirms target
+ * @param targetPosition - The position where the user targeted (may or may not have a monster)
  */
-export type TargetConfirmCallback = (targetMonsterId: string | null) => void
+export type TargetConfirmCallback = (targetPosition: Position) => void
 
 /**
  * TargetCancelCallback - called when user cancels targeting
@@ -339,18 +340,11 @@ export class TargetSelectionState extends BaseState {
 
   /**
    * Confirm target and call callback
-   * Only confirms if target is valid
+   * Fires wand at the targeted position (whether empty or with monster)
+   * The WandService will handle projectile logic to find what gets hit
    */
   private confirmTarget(): void {
-    const monster = this.getMonsterAtCursor()
-
-    // If no monster at cursor or target is invalid, don't confirm
-    if (!monster || !this.isValidTarget()) {
-      // Could add a message here: "Invalid target"
-      return
-    }
-
-    // Call callback with monster ID
-    this.onTarget(monster.id)
+    // Always fire at cursor position (enable firing at empty tiles for projectile logic)
+    this.onTarget({ ...this.cursorPosition })
   }
 }

@@ -472,20 +472,19 @@ export class InputHandler {
               this.gameRenderer!,
               state,
               wandRange,
-              (targetMonsterId) => {
-                // Targeting confirmed
-                if (targetMonsterId) {
-                  this.pendingCommand = new ZapWandCommand(
-                    item.id,
-                    this.inventoryService,
-                    this.wandService,
-                    this.messageService,
-                    this.turnService,
-                    this.statusEffectService,
-                    this.targetingService,
-                    targetMonsterId
-                  )
-                }
+              (targetPosition) => {
+                // Targeting confirmed - fire wand at target position
+                // WandService will handle projectile logic to find what gets hit
+                this.pendingCommand = new ZapWandCommand(
+                  item.id,
+                  this.inventoryService,
+                  this.wandService,
+                  this.messageService,
+                  this.turnService,
+                  this.statusEffectService,
+                  this.targetingService,
+                  targetPosition
+                )
                 // Pop targeting state
                 this.stateManager!.popState()
               },
