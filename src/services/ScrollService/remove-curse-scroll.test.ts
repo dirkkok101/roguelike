@@ -1,4 +1,6 @@
 import { ScrollService } from './ScrollService'
+import { mockItemData } from '@/test-utils'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { IdentificationService } from '@services/IdentificationService'
 import { InventoryService } from '@services/InventoryService'
 import { LevelService } from '@services/LevelService'
@@ -43,7 +45,7 @@ describe('ScrollService - REMOVE_CURSE Scroll', () => {
     levelService = new LevelService()
     statusEffectService = new StatusEffectService()
       fovService = new FOVService(statusEffectService)
-    dungeonService = new DungeonService(mockRandom)
+    dungeonService = new DungeonService(mockRandom, {} as MonsterSpawnService, mockItemData)
     curseService = new CurseService()
     scrollService = new ScrollService(
       identificationService,

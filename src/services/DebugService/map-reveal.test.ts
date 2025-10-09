@@ -1,14 +1,60 @@
 import { DebugService } from './DebugService'
 import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { ItemSpawnService } from '@services/ItemSpawnService'
 import { GameState, Level, TileType } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 describe('DebugService - Map Reveal', () => {
+  let originalFetch: typeof global.fetch
+
+  const mockMonsterData = [
+    {
+      letter: 'T',
+      name: 'Troll',
+      hp: '6d8',
+      ac: 4,
+      damage: '1d8+1d8+2d6',
+      xpValue: 120,
+      level: 6,
+      speed: 12,
+      rarity: 'uncommon',
+      mean: true,
+      aiProfile: { behavior: 'SIMPLE', intelligence: 4, aggroRange: 8, fleeThreshold: 0.2, special: [] },
+    },
+  ]
+
+  beforeAll(() => {
+    originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockMonsterData,
+    } as Response)
+  })
+
+  afterAll(() => {
+    global.fetch = originalFetch
+  })
+
+  async function createDebugService(isDevMode: boolean = true) {
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
+    return new DebugService(new MessageService(), monsterSpawnService, itemSpawnService, mockRandom, isDevMode)
+  }
+
   let debugService: DebugService
   let mockState: GameState
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const messageService = new MessageService()
-    debugService = new DebugService(messageService, true)
+    const mockRandom = new MockRandom()
+    const monsterSpawnService = new MonsterSpawnService(mockRandom)
+    await monsterSpawnService.loadMonsterData()
+    const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
+    debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom, true)
 
     // Create state with unexplored level
     const level: Level = {
@@ -45,27 +91,27 @@ describe('DebugService - Map Reveal', () => {
     } as GameState
   })
 
-  test('revealMap marks all tiles as explored', () => {
+  test('revealMap marks all tiles as explored', async () => {
     const result = debugService.revealMap(mockState)
 
     const level = result.levels.get(1)!
     expect(level.explored.every(row => row.every(cell => cell === true))).toBe(true)
   })
 
-  test('revealMap sets mapRevealed flag', () => {
+  test('revealMap sets mapRevealed flag', async () => {
     const result = debugService.revealMap(mockState)
 
     expect(result.debug?.mapRevealed).toBe(true)
   })
 
-  test('revealMap adds message', () => {
+  test('revealMap adds message', async () => {
     const result = debugService.revealMap(mockState)
 
     expect(result.messages).toHaveLength(1)
     expect(result.messages[0].text).toContain('Map REVEALED')
   })
 
-  test('revealMap toggles off when called twice', () => {
+  test('revealMap toggles off when called twice', async () => {
     const revealed = debugService.revealMap(mockState)
     const hidden = debugService.revealMap(revealed)
 
@@ -73,14 +119,14 @@ describe('DebugService - Map Reveal', () => {
     expect(hidden.messages[hidden.messages.length - 1].text).toContain('DISABLED')
   })
 
-  test('revealMap does nothing in production', () => {
-    const prodService = new DebugService(new MessageService(), false)
+  test('revealMap does nothing in production', async () => {
+    const prodService = await createDebugService(false)
     const result = prodService.revealMap(mockState)
 
     expect(result).toBe(mockState)
   })
 
-  test('preserves original state immutability', () => {
+  test('preserves original state immutability', async () => {
     const result = debugService.revealMap(mockState)
 
     expect(result).not.toBe(mockState)
@@ -88,7 +134,7 @@ describe('DebugService - Map Reveal', () => {
     expect(mockState.levels.get(1)!.explored[0][0]).toBe(false) // Original unchanged
   })
 
-  test('revealMap returns unchanged state if level not found', () => {
+  test('revealMap returns unchanged state if level not found', async () => {
     const invalidState = {
       ...mockState,
       currentLevel: 99,
@@ -99,7 +145,7 @@ describe('DebugService - Map Reveal', () => {
     expect(result).toBe(invalidState)
   })
 
-  test('revealMap creates new level object', () => {
+  test('revealMap creates new level object', async () => {
     const result = debugService.revealMap(mockState)
 
     const originalLevel = mockState.levels.get(1)!
@@ -109,7 +155,7 @@ describe('DebugService - Map Reveal', () => {
     expect(resultLevel.explored).not.toBe(originalLevel.explored)
   })
 
-  test('revealMap preserves other level properties', () => {
+  test('revealMap preserves other level properties', async () => {
     const result = debugService.revealMap(mockState)
 
     const originalLevel = mockState.levels.get(1)!

@@ -1,0 +1,24 @@
+import { ICommand } from '@commands/ICommand'
+import { GameState } from '@game/core/core'
+import { DebugService } from '@services/DebugService'
+
+/**
+ * SpawnItemCommand - Spawn item for testing
+ *
+ * Spawns specific item type at player position or nearby using smart positioning
+ *
+ * Architecture:
+ * - Orchestrates DebugService only
+ * - No logic in command
+ */
+export class SpawnItemCommand implements ICommand {
+  constructor(
+    private itemType: string,
+    private subType: string | undefined,
+    private debugService: DebugService
+  ) {}
+
+  execute(state: GameState): GameState {
+    return this.debugService.spawnItem(state, this.itemType, this.subType)
+  }
+}

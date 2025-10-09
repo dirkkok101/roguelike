@@ -1,16 +1,15 @@
-import { WakeAllMonstersCommand } from './WakeAllMonstersCommand'
+import { SpawnItemCommand } from './SpawnItemCommand'
 import { DebugService } from '@services/DebugService'
 import { MessageService } from '@services/MessageService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Level, TileType, MonsterState, MonsterBehavior } from '@game/core/core'
+import { GameState, Level, TileType } from '@game/core/core'
 import { mockItemData } from '@/test-utils'
 
-describe('WakeAllMonstersCommand', () => {
+describe('SpawnItemCommand', () => {
   let originalFetch: typeof global.fetch
   let debugService: DebugService
-  let command: WakeAllMonstersCommand
   let mockState: GameState
 
   const mockMonsterData = [
@@ -43,7 +42,13 @@ describe('WakeAllMonstersCommand', () => {
 
   beforeEach(async () => {
     const messageService = new MessageService()
-    const mockRandom = new MockRandom()
+    // Set up MockRandom with values for item spawning (radius, pickRandom index)
+    // Each spawn needs: radius (1-3), pickRandom index (0-N)
+    const mockRandom = new MockRandom([
+      2, 0,    // radius, pick index for first spawn
+      2, 1,    // radius, pick index for second spawn
+      2, 0,    // radius, pick index for third spawn
+    ])
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
     const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
@@ -54,53 +59,32 @@ describe('WakeAllMonstersCommand', () => {
       mockRandom,
       true
     )
-    command = new WakeAllMonstersCommand(debugService)
 
     const level: Level = {
       depth: 1,
       width: 10,
       height: 10,
-      tiles: Array(10).fill(null).map(() =>
-        Array(10).fill(null).map(() => ({
-          type: TileType.FLOOR,
-          char: '.',
-          walkable: true,
-          transparent: true,
-          colorVisible: '#fff',
-          colorExplored: '#888',
-        }))
-      ),
-      explored: Array(10).fill(null).map(() => Array(10).fill(false)),
-      rooms: [],
+      tiles: Array(10)
+        .fill(null)
+        .map(() =>
+          Array(10)
+            .fill(null)
+            .map(() => ({
+              type: TileType.FLOOR,
+              char: '.',
+              walkable: true,
+              transparent: true,
+              colorVisible: '#fff',
+              colorExplored: '#888',
+            }))
+        ),
+      explored: Array(10)
+        .fill(null)
+        .map(() => Array(10).fill(false)),
+      rooms: [{ id: 0, x: 2, y: 2, width: 6, height: 6 }],
       doors: [],
       traps: [],
-      monsters: [
-        {
-          id: 'monster1',
-          letter: 'O',
-          name: 'Orc',
-          position: { x: 2, y: 2 },
-          hp: 10,
-          maxHp: 10,
-          ac: 5,
-          damage: '1d8',
-          xpValue: 15,
-          aiProfile: {
-            behavior: MonsterBehavior.SIMPLE,
-            intelligence: 5,
-            aggroRange: 5,
-            fleeThreshold: 0.25,
-            special: [],
-          },
-          isAsleep: true,
-          isAwake: false,
-          state: MonsterState.SLEEPING,
-          visibleCells: new Set(),
-          currentPath: null,
-          hasStolen: false,
-          level: 1,
-        },
-      ] as any,
+      monsters: [],
       items: [],
       gold: [],
       stairsUp: null,
@@ -111,31 +95,38 @@ describe('WakeAllMonstersCommand', () => {
       currentLevel: 1,
       levels: new Map([[1, level]]),
       messages: [],
+      player: {
+        position: { x: 3, y: 3 },
+      },
       debug: debugService.initializeDebugState(),
     } as GameState
   })
 
-  test('executes debugService.wakeAllMonsters', () => {
+  test('spawns potion with specified type', () => {
+    const command = new SpawnItemCommand('potion', undefined, debugService)
     const result = command.execute(mockState)
 
-    const monsters = result.levels.get(1)!.monsters
-    expect(monsters.every(m => m.isAwake)).toBe(true)
+    const level = result.levels.get(1)!
+    expect(level.items).toHaveLength(1)
+    expect(result.messages[0].text).toContain('Spawned')
   })
 
-  test('wakes all sleeping monsters', () => {
-    const result = command.execute(mockState)
+  test('spawns different item types', () => {
+    const commandPotion = new SpawnItemCommand('potion', undefined, debugService)
+    const commandScroll = new SpawnItemCommand('scroll', undefined, debugService)
 
-    const monsters = result.levels.get(1)!.monsters
-    expect(monsters).toHaveLength(1)
-    expect(monsters[0].isAwake).toBe(true)
-    expect(monsters[0].isAsleep).toBe(false)
+    const result1 = commandPotion.execute(mockState)
+    const result2 = commandScroll.execute(result1)
+
+    const level = result2.levels.get(1)!
+    expect(level.items).toHaveLength(2)
   })
 
-  test('adds message with monster count', () => {
+  test('adds message indicating spawn', () => {
+    const command = new SpawnItemCommand('food', undefined, debugService)
     const result = command.execute(mockState)
 
     expect(result.messages).toHaveLength(1)
-    expect(result.messages[0].text).toContain('Woke')
-    expect(result.messages[0].text).toContain('monsters')
+    expect(result.messages[0].text).toContain('Spawned')
   })
 })

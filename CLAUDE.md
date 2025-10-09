@@ -503,10 +503,15 @@ npm run type-check   # TypeScript validation
 
 Debug mode enabled in development:
 - **`~`** - Toggle debug console
-- **`g`** - God mode (invincible)
+- **`g`** - God mode (invincible, infinite hunger/light)
 - **`v`** - Reveal entire map
+- **`m`** - Spawn test monster
+- **`M`** - Wake all sleeping monsters
+- **`K`** - Kill all monsters
+- **`a`** - Identify all items
 - **`f`** - Toggle FOV overlay
 - **`p`** - Toggle pathfinding overlay
+- **`n`** - Toggle AI overlay
 
 See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 
