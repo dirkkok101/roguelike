@@ -188,7 +188,7 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      'monster-1' // Target monster
+      { x: 6, y: 5 } // Target position (monster location)
     )
     const result = command.execute(state)
 
@@ -259,7 +259,7 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      'monster-1' // Target monster
+      { x: 6, y: 5 } // Target position (monster location)
     )
     const result = command.execute(state)
 
@@ -284,7 +284,7 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      'monster-1'
+      { x: 6, y: 5 } // Target position (monster location)
     )
     const result = command.execute(state)
 

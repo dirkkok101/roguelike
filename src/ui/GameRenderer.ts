@@ -305,12 +305,14 @@ export class GameRenderer {
 
         // Targeting cursor (render before player)
         if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
-          // Check if target is valid
+          // Check if target is valid (position-based targeting)
+          // Valid if: in FOV + within range + walkable tile
           const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
           const key = `${cursorPos.x},${cursorPos.y}`
           const inFOV = state.visibleCells.has(key)
-          const monster = level.monsters.find(m => m.position.x === cursorPos.x && m.position.y === cursorPos.y)
-          const isValid = inFOV && !!monster
+          const tile = level.tiles[cursorPos.y][cursorPos.x]
+          const inRange = targetingState ? distance <= targetingState.getRange() : false
+          const isValid = inFOV && inRange && tile.walkable
 
           char = 'X'
           color = isValid ? '#00FF00' : '#FF0000' // Green if valid, red if invalid
@@ -702,10 +704,12 @@ export class GameRenderer {
     const distance = Math.abs(cursor.x - state.player.position.x) +
                     Math.abs(cursor.y - state.player.position.y)
 
-    // Check validity
+    // Check validity (position-based targeting)
+    // Valid if: in FOV + within range + walkable tile (monster not required)
     const key = `${cursor.x},${cursor.y}`
     const inFOV = state.visibleCells.has(key)
-    const isValid = distance <= range && inFOV && !!monster
+    const tile = level.tiles[cursor.y][cursor.x]
+    const isValid = distance <= range && inFOV && tile.walkable
 
     // Create or update info panel
     let infoPanel = document.getElementById('targeting-info-panel')

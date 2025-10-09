@@ -20,18 +20,31 @@ Fix the wand targeting system so that after selecting a wand, the targeting curs
 - **Centralized Rendering Loop**: Main loop should orchestrate rendering of all visible states
 
 ### Success Criteria
+
+**Implementation Status (PR #15):**
 - [x] Diagnostic complete: Root cause identified
-- [x] **TESTED**: Wand selection modal appears correctly
-- [x] **TESTED**: Targeting cursor moves with arrow keys and shows real-time visual feedback
-- [x] **TESTED**: Targeting line draws from player through cursor
-- [x] **TESTED**: Contextual menu shows options: "Enter to zap / ESC to cancel"
-- [x] **TESTED**: Pressing ESC cancels targeting and returns to normal gameplay
-- [ ] **BUG #3**: Targeting cursor appears immediately on game map (currently invisible until first move)
-- [ ] **BUG #4**: Pressing Enter fires the wand at target position (currently does nothing)
-- [ ] Wand fires at empty tiles (projectile travels in direction until hitting obstacle)
-- [ ] Wand effect applies to first monster hit along projectile path
-- [ ] Wand stops at walls with appropriate message
-- [ ] All existing tests pass
+- [x] **IMPLEMENTED**: Wand selection modal appears correctly
+- [x] **IMPLEMENTED**: Targeting cursor moves with arrow keys and shows real-time visual feedback
+- [x] **IMPLEMENTED**: Targeting line draws from player through cursor
+- [x] **IMPLEMENTED**: Contextual menu shows options: "Enter to zap / ESC to cancel"
+- [x] **IMPLEMENTED**: Pressing ESC cancels targeting and returns to normal gameplay
+- [x] **IMPLEMENTED**: Position-based targeting callback (refactored from monster ID)
+- [x] **IMPLEMENTED**: Projectile logic in WandService (Bresenham ray tracing)
+- [x] **IMPLEMENTED**: TargetingService.calculateRay() method
+- [x] **IMPLEMENTED**: State management integration (centralized rendering)
+
+**Critical Fixes Required (PR Review 2025-10-09):**
+- [ ] **BLOCKING**: Fix failing tests - Update ZapWandCommand.test.ts to use Position instead of string
+- [ ] **HIGH**: Fix cursor validation logic - Allow empty tiles as valid targets
+- [ ] **MEDIUM**: Add comprehensive integration tests for targeting flow
+- [ ] **MEDIUM**: Add edge case tests (diagonal, walls, multiple monsters)
+- [ ] **LOW**: Refactor or deprecate old WandService.applyWand() method
+
+**Original Success Criteria:**
+- [ ] Wand fires at empty tiles (projectile travels until hitting obstacle) - ✅ IMPLEMENTED, ❌ TESTS FAILING
+- [ ] Wand effect applies to first monster hit along projectile path - ✅ IMPLEMENTED, ❌ TESTS FAILING
+- [ ] Wand stops at walls with appropriate message - ✅ IMPLEMENTED, ❌ TESTS FAILING
+- [ ] All existing tests pass - ❌ **FAILING** (3 tests in ZapWandCommand.test.ts)
 - [ ] Manual testing completed for full zap-wand-target-confirm flow
 
 ---
@@ -358,6 +371,198 @@ While earlier research mentioned "bouncing bolts," the actual source code shows:
 - See Phase 4, Task 4.3 for detailed projectile logic implementation
 - All 10 wand types share the same bolt mechanics (stop at first obstacle)
 - Only the wand EFFECT differs (damage, sleep, teleport, etc.), not the bolt behavior
+
+---
+
+## 2d. PR #15 Review Findings (2025-10-09)
+
+### Review Summary
+
+**Overall Assessment**: ⚠️ **Approve After Fixes** - High-quality implementation with excellent architecture, but tests are failing and need updates.
+
+**Lines Changed**: +1885 additions, -453 deletions across 15 files
+
+**Code Quality**:
+- ✅ Excellent architecture (SOLID principles, clean separation of concerns)
+- ✅ Well-researched implementation (Original Rogue mechanics)
+- ✅ Strong service layer with proper projectile logic
+- ✅ Good state management integration
+- ❌ **BLOCKING**: Tests failing (wrong signature - passing string instead of Position)
+- ⚠️ Minor cursor validation issue (doesn't allow empty tiles)
+
+---
+
+### Critical Issue #1: Failing Tests (BLOCKING) 🚨
+
+**Problem**: Tests are passing old signature (string monster ID) instead of new signature (Position)
+
+**File**: `src/commands/ZapWandCommand/ZapWandCommand.test.ts`
+
+**Failing Tests**:
+1. `zaps wand successfully` (line 175-199)
+2. `handles wand with no charges` (line 248-269)
+3. `immutability - does not mutate original state` (line 271-295)
+
+**Root Cause**: Tests were not updated when refactoring from `targetMonsterId: string` to `targetPosition: Position`
+
+**Current (Wrong)**:
+```typescript
+// Line 183-192
+const command = new ZapWandCommand(
+  'wand-1',
+  inventoryService,
+  wandService,
+  messageService,
+  turnService,
+  statusEffectService,
+  targetingService,
+  'monster-1' // ❌ String, should be Position
+)
+```
+
+**Expected (Correct)**:
+```typescript
+const command = new ZapWandCommand(
+  'wand-1',
+  inventoryService,
+  wandService,
+  messageService,
+  turnService,
+  statusEffectService,
+  targetingService,
+  { x: 6, y: 5 } // ✅ Position of monster at (6, 5)
+)
+```
+
+**Test Output**:
+```
+● ZapWandCommand › zaps wand successfully
+  Expected: 4 (charge decremented)
+  Received: 5 (charge NOT decremented - wand never fired)
+
+● ZapWandCommand › handles wand with no charges
+  Expected: "The wand has no charges."
+  Received: "Target out of range (NaN > 8)."
+  (Range calculation fails with undefined position)
+```
+
+**Impact**: **BLOCKING** - PR cannot be merged until tests pass
+
+**Fix Required**: See Phase 6 below
+
+---
+
+### Issue #2: Cursor Validation Logic (HIGH Priority)
+
+**Problem**: Cursor validation in GameRenderer duplicates logic from TargetSelectionState and doesn't match new position-based targeting.
+
+**File**: `src/ui/GameRenderer.ts` lines 310-318
+
+**Current Code**:
+```typescript
+// GameRenderer.ts:310-318
+const monster = level.monsters.find(m => m.position.x === cursorPos.x && m.position.y === cursorPos.y)
+const isValid = inFOV && !!monster // ❌ Requires monster to be valid
+```
+
+**Problem**: Cursor shows RED even on valid empty tiles within range/FOV, but `confirmTarget()` now allows firing at empty tiles!
+
+**Impact**: Confusing UX - cursor is red but Enter key works
+
+**Fix**:
+```typescript
+// GameRenderer.ts:310-318 (SUGGESTED)
+const tile = level.tiles[cursorPos.y][cursorPos.x]
+const inRange = distance <= targetingState.getRange()
+const isValid = inFOV && inRange && tile.walkable // ✅ Empty tiles valid
+```
+
+**See**: Phase 7 below
+
+---
+
+### Issue #3: Old Method Still Exists (MEDIUM Priority)
+
+**Problem**: Old `WandService.applyWand(targetMonsterId)` method still exists alongside new `applyWandAtPosition(targetPosition)`
+
+**File**: `src/services/WandService/WandService.ts` lines 45-103
+
+**Current Usage**: Not used by ZapWandCommand anymore (uses new method)
+
+**Options**:
+1. **Remove** (breaking change, but clean)
+2. **Deprecate** with `@deprecated` tag and migration note
+3. **Refactor** to delegate to new method (maintain backward compatibility)
+
+**Recommendation**: Option 3 (refactor to delegate):
+```typescript
+applyWand(player: Player, wand: Wand, state: GameState, targetMonsterId?: string): WandEffectResult {
+  const level = state.levels.get(state.currentLevel)
+  const monster = level?.monsters.find(m => m.id === targetMonsterId)
+
+  if (!monster) {
+    return { player, wand, message: 'No target in range.', identified: false }
+  }
+
+  // Delegate to new position-based method
+  return this.applyWandAtPosition(player, wand, state, monster.position)
+}
+```
+
+**See**: Phase 8 below
+
+---
+
+### Issue #4: Missing Integration Tests (MEDIUM Priority)
+
+**File**: `src/commands/ZapWandCommand/targeting-integration.test.ts`
+
+**Current Coverage**: Only 2 tests, both commented as "targeting-integration"
+
+**Missing Scenarios**:
+1. Fire at empty tile → bolt travels → hits monster in path
+2. Fire at monster → bolt stops at first monster
+3. Fire at wall → bolt stops with message
+4. Fire beyond range → bolt fizzles out
+5. Multiple monsters in path → only first is hit
+
+**Recommended Test**:
+```typescript
+test('cursor targeting integration - fire at empty tile, hits monster in path', () => {
+  // Setup: Player at (5,5), Monster at (8,5), Target empty tile at (10,5)
+  // Expected: Bolt travels from (5,5) to (10,5), stops at monster (8,5)
+  // Verify: Monster takes damage, bolt stops at first obstacle
+})
+```
+
+**See**: Phase 9 below
+
+---
+
+### Issue #5: Missing Edge Case Tests (LOW Priority)
+
+**Scenarios Not Tested**:
+1. **Diagonal projectile path** - Bresenham handles diagonal lines?
+2. **Wall blocking line of sight** - Bolt stops at wall before target?
+3. **Out of bounds targeting** - Cursor exceeds map boundaries?
+4. **Multiple monsters in path** - Only FIRST monster is hit?
+5. **Player targeting self** - Should be blocked (already handled in confirmTarget:410-415)
+
+**Location**: Add to `src/services/WandService/WandService.test.ts` or `src/services/TargetingService/TargetingService.test.ts`
+
+**See**: Phase 10 below
+
+---
+
+### Architectural Compliance ✅
+
+**Excellent adherence to CLAUDE.md principles**:
+- ✅ Service layer: All logic properly encapsulated
+- ✅ Command layer: Clean orchestration, no business logic
+- ✅ State management: Transparent states work correctly
+- ✅ Immutability: Return new objects, no mutations
+- ✅ Dependency injection: Services properly injected
+- ✅ Documentation: Comprehensive plan and comments
 
 ---
 
@@ -906,9 +1111,326 @@ applyWandAtPosition(
 
 ---
 
-### Phase 4: Edge Cases & Polish (Priority: MEDIUM)
+### Phase 6: Fix Failing Tests (Priority: BLOCKING) 🚨
 
-**Objective**: Handle edge cases and improve UX
+**Objective**: Update tests to use Position instead of string monster ID
+
+**Status**: ❌ **BLOCKING PR MERGE** - Must be completed before PR can be approved
+
+#### Task 6.1: Update ZapWandCommand.test.ts
+
+**Context**: Three tests are failing because they pass string monster IDs instead of Position objects to ZapWandCommand constructor.
+
+**Files to modify**:
+- `src/commands/ZapWandCommand/ZapWandCommand.test.ts` (lines 191, 268, 139)
+
+##### Subtasks:
+- [ ] Update `zaps wand successfully` test (line 175-199) - Change `'monster-1'` to `{ x: 6, y: 5 }`
+- [ ] Update `handles wand with no charges` test (line 248-269) - Change `'monster-1'` to `{ x: 6, y: 5 }`
+- [ ] Update `immutability` test (line 271-295) - Change `'monster-1'` to `{ x: 6, y: 5 }`
+- [ ] Run `npm test` to verify all tests pass
+- [ ] Git commit: "test: fix ZapWandCommand tests to use Position instead of string"
+
+**Code Changes**:
+```typescript
+// Line 183-192 (BEFORE)
+const command = new ZapWandCommand(
+  'wand-1',
+  inventoryService,
+  wandService,
+  messageService,
+  turnService,
+  statusEffectService,
+  targetingService,
+  'monster-1' // ❌ Wrong
+)
+
+// Line 183-192 (AFTER)
+const command = new ZapWandCommand(
+  'wand-1',
+  inventoryService,
+  wandService,
+  messageService,
+  turnService,
+  statusEffectService,
+  targetingService,
+  { x: 6, y: 5 } // ✅ Monster at (6, 5)
+)
+```
+
+**Apply same fix to**:
+- Line 268 in `handles wand with no charges` test
+- Line 139 in `immutability` test
+
+**Expected Result**: All 3 tests pass, wand charges decrement correctly
+
+---
+
+### Phase 7: Fix Cursor Validation Logic (Priority: HIGH)
+
+**Objective**: Update cursor validation to allow empty tiles as valid targets
+
+**Status**: ⚠️ **UX Issue** - Cursor shows red on valid empty tiles
+
+#### Task 7.1: Update GameRenderer cursor validation
+
+**Context**: Cursor validation currently requires a monster to show green, but position-based targeting allows firing at empty tiles.
+
+**Files to modify**:
+- `src/ui/GameRenderer.ts` (lines 310-318)
+
+##### Subtasks:
+- [ ] Update `renderDungeon()` cursor validation logic
+- [ ] Change validation from `inFOV && !!monster` to `inFOV && inRange && tile.walkable`
+- [ ] Test cursor color on empty tiles (should be green if in range/FOV)
+- [ ] Test cursor color on monsters (should still be green)
+- [ ] Test cursor color out of range (should be red)
+- [ ] Git commit: "fix: cursor validation allows empty tiles as valid targets"
+
+**Code Change**:
+```typescript
+// GameRenderer.ts lines 310-318 (BEFORE)
+if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
+  const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
+  const key = `${cursorPos.x},${cursorPos.y}`
+  const inFOV = state.visibleCells.has(key)
+  const monster = level.monsters.find(m => m.position.x === cursorPos.x && m.position.y === cursorPos.y)
+  const isValid = inFOV && !!monster // ❌ Requires monster
+
+  char = 'X'
+  color = isValid ? '#00FF00' : '#FF0000'
+}
+
+// GameRenderer.ts lines 310-318 (AFTER)
+if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
+  const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
+  const key = `${cursorPos.x},${cursorPos.y}`
+  const inFOV = state.visibleCells.has(key)
+  const inRange = distance <= targetingState.getRange()
+  const tile = level.tiles[cursorPos.y][cursorPos.x]
+  const isValid = inFOV && inRange && tile.walkable // ✅ Empty tiles valid
+
+  char = 'X'
+  color = isValid ? '#00FF00' : '#FF0000'
+}
+```
+
+---
+
+### Phase 8: Refactor Old WandService Method (Priority: MEDIUM)
+
+**Objective**: Update old `applyWand()` method to delegate to new `applyWandAtPosition()`
+
+**Status**: 🟡 **Code Cleanup** - Maintain backward compatibility
+
+#### Task 8.1: Refactor WandService.applyWand()
+
+**Context**: Old method still exists but is unused. Refactor to delegate to new method for backward compatibility.
+
+**Files to modify**:
+- `src/services/WandService/WandService.ts` (lines 45-103)
+
+##### Subtasks:
+- [ ] Update `applyWand()` to find monster by ID
+- [ ] Delegate to `applyWandAtPosition()` with monster position
+- [ ] Add deprecation comment with migration guide
+- [ ] Keep method signature unchanged (backward compatible)
+- [ ] Git commit: "refactor: applyWand delegates to applyWandAtPosition for compatibility"
+
+**Code Change**:
+```typescript
+/**
+ * Apply wand effect to target monster
+ *
+ * @deprecated Use applyWandAtPosition() instead for position-based targeting.
+ * This method is maintained for backward compatibility only.
+ *
+ * @param player Player state
+ * @param wand Wand being zapped
+ * @param state Current game state
+ * @param targetMonsterId Monster ID to target
+ * @returns Updated game state with wand effect applied
+ */
+applyWand(
+  player: Player,
+  wand: Wand,
+  state: GameState,
+  targetMonsterId?: string
+): WandEffectResult {
+  // Find monster by ID
+  const level = state.levels.get(state.currentLevel)
+  const monster = level?.monsters.find(m => m.id === targetMonsterId)
+
+  if (!monster) {
+    return {
+      player,
+      wand,
+      message: 'No target in range.',
+      identified: false,
+    }
+  }
+
+  // Delegate to position-based method
+  return this.applyWandAtPosition(player, wand, state, monster.position)
+}
+```
+
+---
+
+### Phase 9: Add Integration Tests (Priority: MEDIUM)
+
+**Objective**: Add comprehensive integration tests for targeting + projectile flow
+
+**Status**: 📝 **Test Coverage** - Improve end-to-end testing
+
+#### Task 9.1: Add projectile integration tests
+
+**Context**: Integration tests for full targeting flow are missing.
+
+**Files to modify**:
+- `src/commands/ZapWandCommand/targeting-integration.test.ts`
+
+##### Subtasks:
+- [ ] Add test: "fires at empty tile and hits monster in path"
+- [ ] Add test: "fires at monster and bolt stops at first monster"
+- [ ] Add test: "fires at wall and bolt stops with message"
+- [ ] Add test: "fires beyond range and bolt fizzles out"
+- [ ] Add test: "multiple monsters in path - only first is hit"
+- [ ] Run `npm test` to verify all tests pass
+- [ ] Git commit: "test: add comprehensive integration tests for wand targeting"
+
+**Test Examples**:
+```typescript
+test('fires at empty tile and hits monster in path', () => {
+  // Setup: Player at (5,5), Monster at (8,5), Target empty tile at (10,5)
+  const player = createTestPlayer({ x: 5, y: 5 })
+  const wand = createWand(WandType.LIGHTNING, 5)
+  player.inventory = [wand]
+
+  const monster = createMonster({ x: 8, y: 5 })
+  const state = createTestState(player, [monster])
+
+  // Act: Fire at empty tile (10, 5)
+  const command = new ZapWandCommand(
+    'wand-1',
+    inventoryService,
+    wandService,
+    messageService,
+    turnService,
+    statusEffectService,
+    targetingService,
+    { x: 10, y: 5 } // Empty tile
+  )
+  const result = command.execute(state)
+
+  // Assert: Bolt hits monster at (8,5)
+  const hitMonster = result.levels.get(1)?.monsters.find(m => m.id === monster.id)
+  expect(hitMonster).toBeDefined()
+  expect(hitMonster!.hp).toBeLessThan(monster.hp) // Took damage
+  expect(result.messages[0].text).toContain('struck by lightning')
+})
+
+test('multiple monsters in path - only first is hit', () => {
+  // Setup: Player at (5,5), Monster1 at (7,5), Monster2 at (9,5)
+  const player = createTestPlayer({ x: 5, y: 5 })
+  const wand = createWand(WandType.LIGHTNING, 5)
+  player.inventory = [wand]
+
+  const monster1 = createMonster({ x: 7, y: 5 }, 'monster-1')
+  const monster2 = createMonster({ x: 9, y: 5 }, 'monster-2')
+  const state = createTestState(player, [monster1, monster2])
+
+  // Act: Fire at (10, 5) - should hit monster1 first
+  const command = new ZapWandCommand(
+    'wand-1',
+    inventoryService,
+    wandService,
+    messageService,
+    turnService,
+    statusEffectService,
+    targetingService,
+    { x: 10, y: 5 }
+  )
+  const result = command.execute(state)
+
+  // Assert: Only monster1 took damage
+  const level = result.levels.get(1)!
+  const hitMonster1 = level.monsters.find(m => m.id === 'monster-1')
+  const hitMonster2 = level.monsters.find(m => m.id === 'monster-2')
+
+  expect(hitMonster1!.hp).toBeLessThan(monster1.hp) // First monster hit
+  expect(hitMonster2!.hp).toBe(monster2.hp) // Second monster untouched
+})
+```
+
+---
+
+### Phase 10: Add Edge Case Tests (Priority: LOW)
+
+**Objective**: Test edge cases and boundary conditions
+
+**Status**: 📝 **Test Coverage** - Comprehensive testing
+
+#### Task 10.1: Add edge case tests to WandService
+
+**Context**: Edge cases like diagonal projectiles, walls, and boundaries need testing.
+
+**Files to modify**:
+- `src/services/WandService/WandService.test.ts` (new file if doesn't exist)
+- `src/services/TargetingService/TargetingService.test.ts` (existing)
+
+##### Subtasks:
+- [ ] Add test: "diagonal projectile path uses Bresenham correctly"
+- [ ] Add test: "wall blocks line of sight and stops bolt"
+- [ ] Add test: "out of bounds position handled gracefully"
+- [ ] Add test: "player cannot target own position"
+- [ ] Run `npm test` to verify all tests pass
+- [ ] Git commit: "test: add edge case tests for wand targeting"
+
+**Test Examples**:
+```typescript
+// src/services/TargetingService/TargetingService.test.ts
+describe('TargetingService.calculateRay', () => {
+  test('diagonal ray uses Bresenham algorithm correctly', () => {
+    const targetingService = new TargetingService(fovService, movementService)
+    const level = createTestLevel()
+
+    const ray = targetingService.calculateRay(
+      { x: 5, y: 5 },
+      { x: 10, y: 10 },
+      level
+    )
+
+    // Bresenham should create smooth diagonal line
+    expect(ray.length).toBeGreaterThan(0)
+    expect(ray[0]).toEqual({ x: 6, y: 6 }) // First step diagonal
+    expect(ray[ray.length - 1]).toEqual({ x: 10, y: 10 }) // Ends at target
+  })
+
+  test('ray stops at wall before reaching target', () => {
+    const targetingService = new TargetingService(fovService, movementService)
+    const level = createTestLevel()
+
+    // Add wall at (7, 5)
+    level.tiles[5][7].walkable = false
+
+    const ray = targetingService.calculateRay(
+      { x: 5, y: 5 },
+      { x: 10, y: 5 },
+      level
+    )
+
+    // Ray should stop at wall
+    expect(ray[ray.length - 1]).toEqual({ x: 7, y: 5 })
+  })
+})
+```
+
+---
+
+### Phase 11: Edge Cases & Polish (Priority: LOW)
+
+**Objective**: Handle remaining edge cases and improve UX
 
 #### Task 4.1: Handle no monsters visible case
 
