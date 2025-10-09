@@ -40,7 +40,7 @@ describe('MonsterTurnService - Theft Mechanics', () => {
     const combatService = new CombatService(mockRandom, ringService, hungerService)
     const abilityService = new SpecialAbilityService(mockRandom)
 
-    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService, turnService, goldService)
+    service = new MonsterTurnService(mockRandom, aiService, combatService, abilityService, messageService, turnService, goldService, levelService)
   })
 
   function createTestState(monsters: Monster[] = []): GameState {
@@ -313,5 +313,202 @@ describe('MonsterTurnService - Theft Mechanics', () => {
     const thief = level.monsters.find(m => m.name === 'Nymph')
 
     expect(thief?.hasStolen).toBe(true)
+  })
+
+  describe('Teleport after stealing (original Rogue behavior)', () => {
+    test('Leprechaun teleports to different location after stealing gold', () => {
+      const originalPosition = { x: 10, y: 11 }
+      const leprechaun: Monster = {
+        id: 'leprechaun',
+        letter: 'L',
+        name: 'Leprechaun',
+        position: originalPosition,
+        hp: 8,
+        maxHp: 8,
+        ac: 8,
+        damage: '1d4',
+        xpValue: 15,
+        aiProfile: {
+          behavior: MonsterBehavior.THIEF,
+          intelligence: 5,
+          aggroRange: 10,
+          fleeThreshold: 0,
+          special: [SpecialAbilityFlag.STEALS],
+        },
+        isAsleep: false,
+        isAwake: true,
+        state: 'HUNTING',
+        visibleCells: new Set(),
+        currentPath: null,
+        hasStolen: false,
+        speed: 10,
+        energy: 100,
+        isInvisible: false,
+        level: 1,
+      }
+
+      const state = createTestState([leprechaun])
+
+      // MockRandom will pick first walkable tile different from monster position
+      mockRandom.setValues([25, 0]) // gold amount, then pickRandom index
+
+      const result = service.processMonsterTurns(state)
+
+      const level = result.levels.get(1)!
+      const thief = level.monsters.find(m => m.name === 'Leprechaun')
+
+      // Verify teleported to different position
+      expect(thief?.position).not.toEqual(originalPosition)
+      expect(thief?.hasStolen).toBe(true)
+      expect(thief?.state).toBe('FLEEING')
+    })
+
+    test('Nymph teleports to different location after stealing item', () => {
+      const originalPosition = { x: 10, y: 11 }
+      const nymph: Monster = {
+        id: 'nymph',
+        letter: 'N',
+        name: 'Nymph',
+        position: originalPosition,
+        hp: 10,
+        maxHp: 10,
+        ac: 9,
+        damage: '0d0',
+        xpValue: 20,
+        aiProfile: {
+          behavior: MonsterBehavior.THIEF,
+          intelligence: 7,
+          aggroRange: 10,
+          fleeThreshold: 0,
+          special: [SpecialAbilityFlag.STEALS],
+        },
+        isAsleep: false,
+        isAwake: true,
+        state: 'HUNTING',
+        visibleCells: new Set(),
+        currentPath: null,
+        hasStolen: false,
+        speed: 10,
+        energy: 100,
+        isInvisible: false,
+        level: 1,
+      }
+
+      const state = createTestState([nymph])
+
+      // MockRandom: index 0 for item selection, index 0 for teleport destination
+      mockRandom.setValues([0, 0])
+
+      const result = service.processMonsterTurns(state)
+
+      const level = result.levels.get(1)!
+      const thief = level.monsters.find(m => m.name === 'Nymph')
+
+      // Verify teleported to different position
+      expect(thief?.position).not.toEqual(originalPosition)
+      expect(thief?.hasStolen).toBe(true)
+      expect(thief?.state).toBe('FLEEING')
+    })
+
+    test('thief teleports to walkable floor tile only', () => {
+      const originalPosition = { x: 10, y: 11 }
+      const leprechaun: Monster = {
+        id: 'leprechaun',
+        letter: 'L',
+        name: 'Leprechaun',
+        position: originalPosition,
+        hp: 8,
+        maxHp: 8,
+        ac: 8,
+        damage: '1d4',
+        xpValue: 15,
+        aiProfile: {
+          behavior: MonsterBehavior.THIEF,
+          intelligence: 5,
+          aggroRange: 10,
+          fleeThreshold: 0,
+          special: [SpecialAbilityFlag.STEALS],
+        },
+        isAsleep: false,
+        isAwake: true,
+        state: 'HUNTING',
+        visibleCells: new Set(),
+        currentPath: null,
+        hasStolen: false,
+        speed: 10,
+        energy: 100,
+        isInvisible: false,
+        level: 1,
+      }
+
+      const state = createTestState([leprechaun])
+      const level = state.levels.get(1)!
+
+      // Make some tiles non-walkable
+      level.tiles[5][5] = {
+        type: 'WALL' as const,
+        walkable: false,
+        transparent: false,
+        visible: false,
+        explored: false,
+        lit: false,
+      }
+
+      mockRandom.setValues([25, 0])
+
+      const result = service.processMonsterTurns(state)
+
+      const resultLevel = result.levels.get(1)!
+      const thief = resultLevel.monsters.find(m => m.name === 'Leprechaun')
+
+      // Verify teleported to walkable tile (not the wall at 5,5)
+      const destinationTile = resultLevel.tiles[thief!.position.y][thief!.position.x]
+      expect(destinationTile.walkable).toBe(true)
+      expect(thief?.hasStolen).toBe(true)
+    })
+
+    test('thief does not teleport to same position', () => {
+      const originalPosition = { x: 10, y: 11 }
+      const leprechaun: Monster = {
+        id: 'leprechaun',
+        letter: 'L',
+        name: 'Leprechaun',
+        position: originalPosition,
+        hp: 8,
+        maxHp: 8,
+        ac: 8,
+        damage: '1d4',
+        xpValue: 15,
+        aiProfile: {
+          behavior: MonsterBehavior.THIEF,
+          intelligence: 5,
+          aggroRange: 10,
+          fleeThreshold: 0,
+          special: [SpecialAbilityFlag.STEALS],
+        },
+        isAsleep: false,
+        isAwake: true,
+        state: 'HUNTING',
+        visibleCells: new Set(),
+        currentPath: null,
+        hasStolen: false,
+        speed: 10,
+        energy: 100,
+        isInvisible: false,
+        level: 1,
+      }
+
+      const state = createTestState([leprechaun])
+
+      mockRandom.setValues([25, 0])
+
+      const result = service.processMonsterTurns(state)
+
+      const level = result.levels.get(1)!
+      const thief = level.monsters.find(m => m.name === 'Leprechaun')
+
+      // Verify not at original position (filtered out from teleport destinations)
+      expect(thief?.position.x !== originalPosition.x || thief?.position.y !== originalPosition.y).toBe(true)
+    })
   })
 })

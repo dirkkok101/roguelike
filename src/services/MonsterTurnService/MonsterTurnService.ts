@@ -11,6 +11,7 @@ import { SpecialAbilityService } from '@services/SpecialAbilityService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
+import { LevelService } from '@services/LevelService'
 import { IRandomService } from '@services/RandomService'
 
 // ============================================================================
@@ -25,7 +26,8 @@ export class MonsterTurnService {
     private abilityService: SpecialAbilityService,
     private messageService: MessageService,
     private turnService: TurnService,
-    private goldService: GoldService
+    private goldService: GoldService,
+    private levelService: LevelService
   ) {}
 
   /**
@@ -365,8 +367,30 @@ export class MonsterTurnService {
       )
     }
 
-    // Mark monster as having stolen
-    const updatedMonster = { ...monster, hasStolen: true, state: MonsterState.FLEEING }
+    // Mark monster as having stolen and teleport (matches original Rogue behavior)
+    // In original Rogue, Leprechauns and Nymphs were stationary and teleported after stealing
+    const walkableTiles = this.levelService.getAllWalkableTiles(level)
+
+    // Filter out monster's current position (avoid "teleporting" to same spot)
+    const teleportDestinations = walkableTiles.filter(
+      pos => pos.x !== monster.position.x || pos.y !== monster.position.y
+    )
+
+    let updatedMonster: Monster
+    if (teleportDestinations.length > 0) {
+      // Teleport to random walkable position
+      const teleportPos = this.random.pickRandom(teleportDestinations)
+      updatedMonster = {
+        ...monster,
+        hasStolen: true,
+        state: MonsterState.FLEEING,
+        position: teleportPos
+      }
+    } else {
+      // No valid teleport destinations - just mark as stolen (edge case)
+      updatedMonster = { ...monster, hasStolen: true, state: MonsterState.FLEEING }
+    }
+
     const updatedMonsters = level.monsters.map((m) =>
       m.id === monster.id ? updatedMonster : m
     )
