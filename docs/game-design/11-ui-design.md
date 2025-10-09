@@ -1,7 +1,7 @@
 # UI Design
 
-**Version**: 2.0
-**Last Updated**: 2025-10-05
+**Version**: 2.1
+**Last Updated**: 2025-10-09
 **Related Docs**: [Dungeon](./03-dungeon.md) | [Light Sources](./06-light-sources.md)
 
 ---
@@ -123,18 +123,16 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
-│  STATS BAR (Full Width, Compact)                                                    │
+│  STATS BAR (Full Width, Single Row with 4 Panels)                                   │
 │  ──────────────────────────────────────────────────────────────────────────────────  │
-│  HP: 24/30 ⚠️ │ Str: 16/16 │ AC: 4 │ Lvl: 3 │ XP: 156/300 │ Gold: 247 │ Turn: 523  │
-│                                                                                       │
-│  ┌──────────────────────────────────────┬──────────────────────────────────────┐    │
-│  │ EQUIPMENT                            │ STATUS EFFECTS                       │    │
-│  │ ⚔ Mace +1           🛡 Chain Mail [4]│ ? Confused (5)                       │    │
-│  │ = Protection +1     = (empty)        │ ⚡ Hasted (10)                       │    │
-│  │ 🔦 Torch (458/500)                   │                                      │    │
-│  └──────────────────────────────────────┴──────────────────────────────────────┘    │
-│                                                                                       │
-│  Hunger🍖: [████████▒▒▒] Hungry     Light🔥: [█████████▒] 458 turns                │
+│  ┌────────────────┬─────────────────┬──────────────────────┬───────────────────┐    │
+│  │ COMBAT         │ RESOURCES       │ EQUIPMENT            │ STATUS            │    │
+│  │ HP: 24/30 ⚠️   │ Gold: 247       │ Weapon: Mace +1      │ Confused (5)      │    │
+│  │ Str: 16/16     │ Hunger: Fed     │ Armor: Chain Mail +1 │ Hasted (10)       │    │
+│  │ AC: 4          │ Depth: 5        │ Left Hand: Ring +1   │                   │    │
+│  │ Lvl: 3         │ Turn: 523       │ Right Hand: (empty)  │                   │    │
+│  │ XP: 156/300    │ Torch: 458      │ Light: Torch (458)   │                   │    │
+│  └────────────────┴─────────────────┴──────────────────────┴───────────────────┘    │
 ├────────────────────────────────────────────────┬──────────────────────────────────────┤
 │                                                │  MESSAGES (Vertical Scroll)          │
 │                                                │  ────────────────────────────         │
@@ -156,24 +154,37 @@
 ```
 
 **Key Layout Features**:
-- **Stats Bar (Top)**: Compact 3-row design spanning full width
-  - Row 1: Core stats (HP, Str, AC, Level, XP, Gold, Turn, Depth, Inventory)
-  - Row 2: Equipment slots + Status effects (side-by-side sections)
-  - Row 3: Resource bars (Hunger and Light) with visual indicators
+- **Stats Bar (Top)**: Single row with 4 distinct panels spanning full width
+  - **Combat Panel**: HP, Str, AC, Level, XP (color-coded HP: green/yellow/red)
+  - **Resources Panel**: Gold, Hunger, Depth, Turn, Torch (text-only display)
+  - **Equipment Panel**: All 5 slots with explicit labels (Weapon, Armor, Left Hand, Right Hand, Light Source)
+  - **Status Panel**: Active status effects with durations, or "None"
 - **Dungeon View (Left)**: 80×22 ASCII grid, gets maximum vertical space
-- **Messages (Right)**: Vertical sidebar (320px), shows last 30 messages
+- **Messages (Right)**: Vertical sidebar (320px), shows last 30 messages with › prefix
 - **Command Bar (Bottom)**: Context-aware keybindings, spans full width
 
 ### Mobile/Tablet Layout (<1200px wide)
 
 ```
 ┌────────────────────────────────┐
-│  STATS BAR (Compact, Stacked)  │
-│  HP: 24/30 │ Str: 16/16 │ AC: 4│
+│  STATS (2x2 Grid, Compact)     │
 │  ──────────────────────────────  │
-│  Equipment: ⚔ Mace +1  🛡 [4]  │
-│  Status: ? Confused (5)        │
-│  Hunger: [████▒▒] Light: [██▒] │
+│  ┌──────────┬─────────────┐    │
+│  │ COMBAT   │ RESOURCES   │    │
+│  │ HP: 24/30│ Gold: 247   │    │
+│  │ Str: 16  │ Hunger: Fed │    │
+│  │ AC: 4    │ Depth: 5    │    │
+│  │ Lvl: 3   │ Turn: 523   │    │
+│  │ XP: 156  │ Torch: 458  │    │
+│  ├──────────┼─────────────┤    │
+│  │ EQUIP    │ STATUS      │    │
+│  │ Weapon:  │ Confused(5) │    │
+│  │  Mace +1 │ Hasted(10)  │    │
+│  │ Armor:   │             │    │
+│  │  Chain+1 │             │    │
+│  │ Light:   │             │    │
+│  │  Torch   │             │    │
+│  └──────────┴─────────────┘    │
 ├────────────────────────────────┤
 │                                │
 │         DUNGEON VIEW           │
@@ -185,15 +196,15 @@
 │  #################             │
 │                                │
 ├────────────────────────────────┤
-│  MESSAGES (Short, Scrollable)  │
-│  › You hit the Orc. (max 8-10) │
+│  MESSAGES (Bottom, Full Width) │
+│  › You hit the Orc.            │
 │  › Torch getting dim...        │
 ├────────────────────────────────┤
 │  [g]et [i]nv [?]help           │
 └────────────────────────────────┘
 ```
 
-**Mobile Priority**: Dungeon map gets majority of vertical space (stats and messages are compact)
+**Mobile Priority**: Dungeon map gets majority of vertical space (4 panels arrange in 2x2 grid)
 
 ---
 
@@ -262,7 +273,8 @@
 
 ### Desktop (>1200px)
 - **Grid**: 2 columns (dungeon + messages sidebar)
-- **Stats Bar**: Full width at top, 3-row compact design
+- **Stats Bar**: Full width at top, single row with 4 panels (Combat, Resources, Equipment, Status)
+- **Panel Layout**: Flexbox with equal-width panels (flex: 1)
 - **Dungeon**: Left column, gets all vertical space (grid row: `1fr`)
 - **Messages**: Right sidebar (320px fixed), vertical scroll (30 messages)
 - **Command Bar**: Full width bottom
@@ -270,14 +282,15 @@
 ### Mobile/Tablet (<1200px)
 - **Grid**: Single column, stacked layout
 - **Priority**: **Dungeon map gets maximum height**
-- **Stats**: Minimal height (`auto`), compact rows
+- **Stats**: 4 panels in 2x2 grid (Combat | Resources on top, Equipment | Status on bottom)
 - **Dungeon**: Flexible height (`1fr` - takes all remaining space)
-- **Messages**: Short scrollable area (max-height: 200px)
+- **Messages**: Stacked below dungeon (full width)
 - **Command Bar**: Bottom
 
 **Design Philosophy**:
-- Wide screens: Horizontal space for stats/equipment, vertical messages
-- Narrow screens: **Map is most important** - stats/messages compressed to maximize dungeon view
+- Wide screens: Single-row 4-panel layout maximizes horizontal space, vertical messages sidebar
+- Narrow screens: **Map is most important** - 4 panels in compact 2x2 grid to maximize dungeon view
+- Text-only resource display (no bars) saves vertical space on all screen sizes
 
 ---
 
