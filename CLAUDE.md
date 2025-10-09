@@ -1,7 +1,7 @@
 # ASCII Roguelike - Claude Code Reference
 
-**Project**: Web-based ASCII roguelike inspired by 1980 Rogue
-**Stack**: TypeScript + Vite + Jest (no framework)
+**Project**: Web-based roguelike inspired by 1980 Rogue with sprite-based rendering
+**Stack**: TypeScript + Vite + Jest + Canvas 2D (AngbandTK tileset)
 **Current Phase**: Phase 1 - Foundation & Core Loop (5/16 tasks complete)
 
 ---
@@ -40,7 +40,7 @@
 - **[Testing Strategy](./docs/testing-strategy.md)** - Test organization
 
 **Implementation Guides:**
-- **[Services Guide](./docs/services/README.md)** - All 33 services reference
+- **[Services Guide](./docs/services/README.md)** - All 34 services reference
 - **[Commands Guide](./docs/commands/README.md)** - All 40+ commands reference
 - **[Architectural Review](./docs/ARCHITECTURAL_REVIEW.md)** - Pre-commit checklist
 
@@ -51,13 +51,14 @@
 
 ## Project Overview
 
-Classic roguelike with:
+Classic roguelike with modern sprite rendering:
 - **10 procedurally generated dungeon levels**
 - **26 monsters** (A-Z) with varied AI behaviors
+- **Sprite-based graphics** (AngbandTK Gervais 32×32 tileset)
 - **Light management system** (torches, lanterns, artifacts)
 - **Field of view** based on light radius (1-3 tiles)
 - **Turn-based combat** with hunger and permadeath
-- **Three-state visibility** (visible/explored/unexplored)
+- **Three-state visibility** (visible/explored/unexplored with opacity)
 
 **Win condition**: Retrieve Amulet of Yendor from Level 10, return to Level 1.
 
@@ -218,14 +219,32 @@ This project follows **Clean Architecture** and **Functional Programming** princ
 
 ### Visibility Rendering
 
-Three states:
-1. **Visible** (in FOV) - Full color
-2. **Explored** (memory) - Dimmed/grayscale
-3. **Unexplored** - Hidden (black)
+Three states with sprite opacity:
+1. **Visible** (in FOV) - Full opacity (1.0), full color
+2. **Explored** (memory) - 50% opacity (0.5), dimmed
+3. **Unexplored** - Hidden (not rendered)
 
 **Critical**: Monsters ONLY render in visible state.
 
 **Details**: [Core Systems - Visibility](./docs/systems-core.md#visibility-color-system)
+
+---
+
+### Sprite Rendering System
+
+Hardware-accelerated canvas rendering with sprites:
+- **Tileset**: AngbandTK Gervais 32×32 (single PNG atlas + .prf mappings)
+- **Canvas**: 2560×704px (80×22 tiles @ 32px per tile)
+- **Rendering**: GPU-accelerated via Canvas 2D API
+- **Effects**: Color tinting for monster threat levels, opacity for visibility states
+- **Performance**: 200-300 FPS on modern hardware (target: 60 FPS)
+
+**Key Components**:
+- **AssetLoaderService**: Loads PNG sprite sheets, parses Angband .prf files
+- **CanvasGameRenderer**: Renders game state to canvas using sprites
+- **RenderingService**: Determines visibility states (unchanged from ASCII)
+
+**Details**: [Core Systems - Sprite Rendering](./docs/systems-core.md#sprite-rendering-system)
 
 ---
 
@@ -528,6 +547,8 @@ See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 
 ---
 
-**Last Updated**: 2025-10-06
+**Last Updated**: 2025-10-09
 **Developer**: Dirk Kok
 **Repository**: https://github.com/dirkkok101/roguelike
+
+**Note**: Game now uses sprite-based rendering (AngbandTK tileset) instead of ASCII. All core game logic remains unchanged.

@@ -606,10 +606,10 @@ Replace ASCII text rendering with canvas-based 2D sprite rendering using the Ang
 - `CLAUDE.md` (modify - only if new patterns)
 
 ##### Subtasks:
-- [ ] Review if new architectural patterns were introduced
-- [ ] Add sprite rendering quick reference (if significant)
-- [ ] Update "Running the Project" if asset setup required
-- [ ] Git commit: "docs: update CLAUDE.md for sprite rendering (Phase 6.3)"
+- [x] Review if new architectural patterns were introduced
+- [x] Add sprite rendering quick reference (if significant)
+- [x] Update "Running the Project" if asset setup required
+- [x] Git commit: "docs: update CLAUDE.md for sprite rendering (Phase 6.3)"
 
 ---
 
