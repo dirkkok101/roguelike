@@ -50,10 +50,10 @@ describe('Targeting System Integration', () => {
     fovService = new FOVService(statusEffectService)
     movementService = new MovementService(mockRandom, statusEffectService)
     identificationService = new IdentificationService(mockRandom)
-    const combatService = new CombatService(mockRandom, null as any, null as any)
-    wandService = new WandService(identificationService, mockRandom, combatService, levelService)
-    turnService = new TurnService(statusEffectService, levelService)
     targetingService = new TargetingService(fovService, movementService)
+    const combatService = new CombatService(mockRandom, null as any, null as any)
+    wandService = new WandService(identificationService, mockRandom, combatService, targetingService)
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   // Helper to create test level

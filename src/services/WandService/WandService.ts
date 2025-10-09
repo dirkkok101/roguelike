@@ -34,7 +34,7 @@ export class WandService {
     private identificationService: IdentificationService,
     private random: IRandomService,
     private combatService: CombatService,
-    private targetingService?: any // Optional for now, will be injected in Task 4.3
+    private targetingService?: import('@services/TargetingService').TargetingService
   ) {}
 
   /**

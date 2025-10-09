@@ -4,6 +4,15 @@ import { TargetingService } from '@services/TargetingService'
 import { GameRenderer } from '@ui/GameRenderer'
 
 /**
+ * ITargetingState - Interface for targeting states (for GameRenderer)
+ */
+export interface ITargetingState {
+  getCursorPosition(): Position
+  getRange(): number
+  getGameState(): GameState
+}
+
+/**
  * TargetConfirmCallback - called when user confirms target
  * @param targetPosition - The position where the user targeted (may or may not have a monster)
  */
@@ -44,24 +53,32 @@ export type TargetCancelCallback = () => void
  * - Callback pattern allows commands to handle target selection
  *
  * @example
- * // Zap wand command
+ * // Zap wand command with position-based targeting
  * const targetingState = new TargetSelectionState(
  *   targetingService,
  *   gameRenderer,
  *   gameState,
  *   7, // range
- *   (targetMonsterId) => {
- *     if (targetMonsterId) {
- *       // Zap the wand at target
- *       wandService.zap(gameState, wand, targetMonsterId)
- *     }
+ *   (targetPosition) => {
+ *     // Zap the wand at target position (projectile logic in WandService)
+ *     const command = new ZapWandCommand(
+ *       wand.id,
+ *       inventoryService,
+ *       wandService,
+ *       messageService,
+ *       turnService,
+ *       statusEffectService,
+ *       targetingService,
+ *       targetPosition
+ *     )
+ *     const newState = command.execute(gameState)
  *     stateManager.popState() // Close targeting
  *   },
  *   () => stateManager.popState() // Cancel
  * )
  * stateManager.pushState(targetingState)
  */
-export class TargetSelectionState extends BaseState {
+export class TargetSelectionState extends BaseState implements ITargetingState {
   private cursorPosition: Position
   private visibleMonsters: Monster[] = []
   private currentTargetIndex: number = 0
@@ -148,6 +165,10 @@ export class TargetSelectionState extends BaseState {
    * Hide targeting overlay
    */
   exit(): void {
+    if (!this.gameRenderer) {
+      console.error('GameRenderer not initialized in TargetSelectionState')
+      return
+    }
     this.gameRenderer.hideTargetingInfo()
   }
 
@@ -165,6 +186,11 @@ export class TargetSelectionState extends BaseState {
    * First stores targeting state, then renders the full game with targeting overlay
    */
   render(): void {
+    if (!this.gameRenderer) {
+      console.error('GameRenderer not initialized in TargetSelectionState')
+      return
+    }
+
     // Store targeting state FIRST so GameRenderer can use it during render
     this.gameRenderer.renderTargetingOverlay(this)
 

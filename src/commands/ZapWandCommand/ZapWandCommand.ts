@@ -11,6 +11,8 @@ import { TargetingService } from '@services/TargetingService'
 // ZAP WAND COMMAND - Use a wand from inventory
 // ============================================================================
 
+const DEFAULT_WAND_RANGE = 5
+
 export class ZapWandCommand implements ICommand {
   constructor(
     private itemId: string,
@@ -74,15 +76,18 @@ export class ZapWandCommand implements ICommand {
       return { ...state, messages }
     }
 
-    // 4. Validate target position is within range (use Manhattan distance)
-    const distance = Math.abs(this.targetPosition.x - state.player.position.x) +
-                     Math.abs(this.targetPosition.y - state.player.position.y)
-    const wandRange = wand.range || 5
+    // 4. Validate target position is within range
+    const wandRange = wand.range || DEFAULT_WAND_RANGE
+    const rangeCheck = this.targetingService.isTargetInRange(
+      state.player.position,
+      this.targetPosition,
+      wandRange
+    )
 
-    if (distance > wandRange) {
+    if (!rangeCheck.inRange) {
       const messages = this.messageService.addMessage(
         state.messages,
-        `Target out of range (${distance} > ${wandRange}).`,
+        `Target out of range (${rangeCheck.distance} > ${wandRange}).`,
         'warning',
         state.turnCount
       )
