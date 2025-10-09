@@ -201,6 +201,17 @@ export class MonsterAIService {
       }
     }
 
+    // Chase probability check (matches original Rogue ISMEAN behavior)
+    // If monster has chaseChance < 1.0, roll to see if it pursues this turn
+    // MEAN monsters in original Rogue had 67% chance to chase per turn
+    const chaseChance = monster.aiProfile.chaseChance ?? 1.0
+    if (chaseChance < 1.0) {
+      if (!this.random.chance(chaseChance)) {
+        // Failed chase roll - monster doesn't pursue this turn
+        return { type: 'wait' }
+      }
+    }
+
     const playerPos = state.player.position
     const playerPosKey = `${playerPos.x},${playerPos.y}`
 
