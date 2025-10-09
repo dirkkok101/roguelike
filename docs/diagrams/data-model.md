@@ -457,7 +457,7 @@ interface Item {
 **Item Types** (9 total):
 1. **Weapon** - Melee weapons (damage dice, bonus)
 2. **Armor** - Body armor (AC, bonus)
-3. **Potion** - Single-use consumables (11 types)
+3. **Potion** - Single-use consumables (13 types)
 4. **Scroll** - Magic scrolls (11 types)
 5. **Ring** - Stat-modifying jewelry (10 types)
 6. **Wand** - Rechargeable magic (8 types)

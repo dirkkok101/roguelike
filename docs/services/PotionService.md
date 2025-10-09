@@ -2,13 +2,13 @@
 
 **Location**: `src/services/PotionService/PotionService.ts`
 **Dependencies**: RandomService, IdentificationService, StatusEffectService, LevelingService, FOVService
-**Test Coverage**: All 11 potion types, status effects, detection, healing caps, death handling
+**Test Coverage**: All 13 potion types, status effects, detection, healing caps, death handling
 
 ---
 
 ## Purpose
 
-Implements **all 11 potion types from Original Rogue (1980)**: healing, strength manipulation, poison, level progression, detection, and status effects. Handles identification-by-use, status effect application, and result messaging.
+Implements **all 13 potion types from Original Rogue (1980)**: healing, strength manipulation, poison, level progression, detection, and status effects. Handles identification-by-use, status effect application, and result messaging.
 
 ---
 

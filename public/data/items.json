@@ -187,6 +187,20 @@
       "power": "1",
       "rarity": "legendary",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "SEE_INVISIBLE",
+      "effect": "see_invisible",
+      "power": "0",
+      "rarity": "uncommon",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
+    },
+    {
+      "type": "LEVITATION",
+      "effect": "levitate",
+      "power": "0",
+      "rarity": "uncommon",
+      "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     }
   ],
   "scrolls": [
