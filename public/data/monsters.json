@@ -15,7 +15,7 @@
       "intelligence": 3,
       "aggroRange": 7,
       "fleeThreshold": 0.0,
-      "special": ["rust_armor"]
+      "special": ["rusts_armor"]
     }
   },
   {
@@ -72,6 +72,7 @@
       "intelligence": 8,
       "aggroRange": 15,
       "fleeThreshold": 0.15,
+      "chaseChance": 0.67,
       "special": ["mean", "breath_weapon"]
     }
   },
@@ -91,6 +92,7 @@
       "intelligence": 1,
       "aggroRange": 6,
       "fleeThreshold": 0.0,
+      "chaseChance": 0.67,
       "special": ["mean"]
     }
   },
@@ -110,7 +112,7 @@
       "intelligence": 1,
       "aggroRange": 2,
       "fleeThreshold": 0.0,
-      "special": ["hold_player"]
+      "special": ["holds"]
     }
   },
   {
@@ -129,6 +131,7 @@
       "intelligence": 7,
       "aggroRange": 12,
       "fleeThreshold": 0.1,
+      "chaseChance": 0.67,
       "special": ["regeneration", "flying", "mean"]
     }
   },
@@ -148,6 +151,7 @@
       "intelligence": 2,
       "aggroRange": 7,
       "fleeThreshold": 0.0,
+      "chaseChance": 0.67,
       "special": ["mean"]
     }
   },
@@ -167,7 +171,7 @@
       "intelligence": 2,
       "aggroRange": 6,
       "fleeThreshold": 0.0,
-      "special": ["freeze_player"]
+      "special": ["freezes"]
     }
   },
   {
@@ -186,6 +190,7 @@
       "intelligence": 7,
       "aggroRange": 12,
       "fleeThreshold": 0.1,
+      "chaseChance": 0.67,
       "special": ["mean"]
     }
   },
@@ -205,6 +210,7 @@
       "intelligence": 2,
       "aggroRange": 8,
       "fleeThreshold": 0.0,
+      "chaseChance": 0.67,
       "special": ["flying", "mean"]
     }
   },
@@ -224,7 +230,7 @@
       "intelligence": 6,
       "aggroRange": 10,
       "fleeThreshold": 1.0,
-      "special": ["steal_gold"]
+      "special": ["steals"]
     }
   },
   {
@@ -243,7 +249,7 @@
       "intelligence": 7,
       "aggroRange": 10,
       "fleeThreshold": 0.2,
-      "special": ["confuse_player"]
+      "special": ["confuses"]
     }
   },
   {
@@ -262,7 +268,7 @@
       "intelligence": 7,
       "aggroRange": 8,
       "fleeThreshold": 1.0,
-      "special": ["steal_item", "teleport"]
+      "special": ["steals"]
     }
   },
   {
@@ -281,7 +287,8 @@
       "intelligence": 5,
       "aggroRange": 8,
       "fleeThreshold": 0.25,
-      "special": []
+      "chaseChance": 0.67,
+      "special": ["mean"]
     }
   },
   {
@@ -319,6 +326,7 @@
       "intelligence": 2,
       "aggroRange": 7,
       "fleeThreshold": 0.0,
+      "chaseChance": 0.67,
       "special": ["mean"]
     }
   },
@@ -338,7 +346,7 @@
       "intelligence": 2,
       "aggroRange": 6,
       "fleeThreshold": 0.0,
-      "special": ["drain_strength"]
+      "special": ["drains_strength"]
     }
   },
   {
@@ -357,7 +365,8 @@
       "intelligence": 2,
       "aggroRange": 5,
       "fleeThreshold": 0.0,
-      "special": []
+      "chaseChance": 0.67,
+      "special": ["mean"]
     }
   },
   {
@@ -376,6 +385,7 @@
       "intelligence": 4,
       "aggroRange": 8,
       "fleeThreshold": 0.2,
+      "chaseChance": 0.67,
       "special": ["regeneration"]
     }
   },
@@ -395,6 +405,7 @@
       "intelligence": 7,
       "aggroRange": 10,
       "fleeThreshold": 0.15,
+      "chaseChance": 0.67,
       "special": ["mean"]
     }
   },
@@ -414,7 +425,7 @@
       "intelligence": 7,
       "aggroRange": 10,
       "fleeThreshold": 0.3,
-      "special": ["regeneration", "drain_max_hp"]
+      "special": ["regeneration", "drains_max_hp"]
     }
   },
   {
@@ -433,7 +444,7 @@
       "intelligence": 6,
       "aggroRange": 9,
       "fleeThreshold": 0.25,
-      "special": ["drain_xp"]
+      "special": ["drains_xp"]
     }
   },
   {
@@ -490,7 +501,8 @@
       "intelligence": 1,
       "aggroRange": 6,
       "fleeThreshold": 0.0,
-      "special": []
+      "chaseChance": 0.67,
+      "special": ["mean"]
     }
   }
 ]

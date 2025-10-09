@@ -71,10 +71,10 @@ interface MonsterAIProfile {
 - Otherwise chases player with A*
 - Used by: Orc, Leprechaun (with THIEF)
 
-**ERRATIC**: 50% random movement, 50% toward player
-- Coin flip each turn
-- Random = pick random walkable neighbor
-- Toward player = simple greedy movement
+**ERRATIC**: 100% random movement (never seeks player)
+- Always picks random walkable direction
+- Completely unpredictable, no player tracking
+- Matches original 1980 Rogue where Bats "always moved as if confused"
 - Used by: Bat, Kestrel
 
 **SIMPLE**: Direct "greedy" movement toward player
@@ -86,11 +86,13 @@ interface MonsterAIProfile {
 - Only acts when player is adjacent
 - Used by: Venus Flytrap
 
-**THIEF**: Steals item/gold then flees using A*
+**THIEF**: Steals item/gold, teleports, then flees using A*
 - Approaches player with SMART behavior
 - On contact, steals gold/item
+- **Immediately teleports** to random walkable location
 - Sets `hasStolen` flag true
-- Flees using A* pathfinding
+- Flees using A* pathfinding if encountered again
+- Matches original 1980 Rogue where thieves "vanished" after stealing
 - Used by: Leprechaun (gold), Nymph (items)
 
 **COWARD**: Flees when HP < threshold
@@ -196,7 +198,49 @@ enum MonsterState {
 
 ---
 
-### 1.7 Testing
+### 1.7 Mean Monsters & Chase Probability
+
+**MEAN Flag (Authentic Rogue ISMEAN)**: In original 1980 Rogue, monsters with the ISMEAN flag had a **67% chance per turn** to pursue the player, creating unpredictable aggression patterns.
+
+**Modern Implementation**: `chaseChance` field in MonsterAIProfile (default 1.0 = always chase)
+
+**Complete List** (12 MEAN monsters):
+- Dragon (D), Emu (E), Griffin (G), Hobgoblin (H)
+- Jabberwock (J), Kestrel (K), Orc (O), Quagga (Q)
+- Snake (S), Troll (T), Ur-vile (U), Zombie (Z)
+
+**Chase Mechanic**:
+```typescript
+// In decideAction(), after adjacency check but before behavior routing
+const chaseChance = monster.aiProfile.chaseChance ?? 1.0
+if (chaseChance === 0.0) {
+  return { type: 'wait' }  // Passive monster, never chases
+}
+if (chaseChance < 1.0) {
+  if (!this.random.chance(chaseChance)) {
+    return { type: 'wait' }  // Failed chase roll - wait this turn
+  }
+}
+// Passed roll or chaseChance = 1.0 - proceed with behavior
+```
+
+**Priority Order**:
+1. **Scare scrolls** - Always flee from adjacent scrolls (highest priority)
+2. **Adjacency** - Always attack if adjacent (no roll needed)
+3. **Chase probability** - Roll against `chaseChance` (MEAN monsters: 67%)
+4. **Behavior logic** - Execute SMART/SIMPLE/ERRATIC/etc.
+
+**Example**:
+- Dragon with `chaseChance: 0.67` rolls each turn
+- **Success (67%)**: Dragon pursues using SMART behavior (A* pathfinding)
+- **Failure (33%)**: Dragon waits/stands still this turn
+- **Adjacent**: Dragon always attacks (no roll)
+
+**Authentic Rogue Match**: This exactly matches 1980 Rogue's ISMEAN flag behavior, creating tactical gameplay where aggressive monsters occasionally hesitate, giving players breathing room.
+
+---
+
+### 1.8 Testing
 
 See [Testing Strategy](./testing-strategy.md) - `MonsterAIService/` folder
 - `smart-behavior.test.ts` - A* pathfinding AI tests

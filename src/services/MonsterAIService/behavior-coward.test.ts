@@ -4,7 +4,12 @@ import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import { FOVService } from '@services/FOVService'
 import { StatusEffectService } from '@services/StatusEffectService'
-import { GameState, Monster, MonsterBehavior } from '@game/core/core'
+import {
+  GameState,
+  Monster,
+  MonsterBehavior,
+  SpecialAbilityFlag,
+} from '@game/core/core'
 
 describe('MonsterAIService - COWARD Behavior', () => {
   let service: MonsterAIService
@@ -38,7 +43,7 @@ describe('MonsterAIService - COWARD Behavior', () => {
         intelligence: 8,
         aggroRange: 10,
         fleeThreshold: 0.3,
-        special: ['regenerates', 'drains_max_hp'],
+        special: [SpecialAbilityFlag.REGENERATION, SpecialAbilityFlag.DRAINS_MAX_HP],
       },
       isAsleep: false,
       isAwake: true,

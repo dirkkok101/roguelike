@@ -62,15 +62,18 @@
 - **Example**: Orc
 
 ### ERRATIC
-- **50% random movement**, 50% toward player
-- **Unpredictable** and difficult to anticipate
+- **100% random movement** (never seeks player)
+- **Completely unpredictable** - no player tracking
 - **Flying** creatures (can cross certain terrain)
 - **Examples**: Bat, Kestrel
+- **Authentic Rogue**: Matches 1980 Rogue where Bats "always moved as if confused"
 
 ### THIEF
-- **Steals item/gold** then flees
-- **Teleports or runs away** after theft
+- **Steals item/gold** when adjacent to player
+- **Immediately teleports** to random location after stealing
+- **Then flees on foot** if encountered again
 - **Examples**: Leprechaun (gold), Nymph (magic items)
+- **Authentic Rogue**: Matches 1980 Rogue where thieves "vanished" after stealing
 
 ### STATIONARY
 - **Does not move** from spawn position
@@ -105,14 +108,23 @@
 - Can make armor **cursed** (negative AC penalty)
 - **Strategy**: Avoid close combat, use ranged attacks if available
 
-### Steal & Flee
+### Steal & Teleport
 **Monsters**: Leprechaun (gold), Nymph (magic item)
 
 **Mechanic**:
-- **Steals item/gold** on successful hit
-- **Teleports or flees** immediately after
-- Difficult to recover stolen items
-- **Strategy**: Keep distance, kill before they reach you
+1. **Approaches** using intelligent pathfinding (A*)
+2. **Steals item/gold** when adjacent to player
+3. **Immediately teleports** to random walkable location
+4. **Flees on foot** if encountered again
+
+**Authentic Rogue**: In 1980 Rogue, Leprechauns and Nymphs were stationary and would "vanish" after stealing, simulated here by teleportation.
+
+**Recovery**: Extremely difficult to chase down after teleport
+
+**Strategy**:
+- Keep distance, kill before they reach you
+- Protect valuable items
+- High priority targets in group encounters
 
 ### Drain Stats/XP
 **Monsters**: Wraith (XP), Rattlesnake (Strength), Vampire (max HP)
@@ -150,6 +162,89 @@
 
 ---
 
+## 3.1 Special Ability Flags Reference
+
+**Technical**: Special abilities are configured in `public/data/monsters.json` using the `special` array in each monster's `aiProfile`.
+
+**Flag Naming Convention**: All special ability flags use present-tense verb forms with underscores for compound names.
+
+| Flag Name | Monster(s) | Trigger | Effect |
+|-----------|------------|---------|--------|
+| `rusts_armor` | Aquator | On hit (50%) | Reduces armor bonus by 1 |
+| `freezes` | Ice Monster | On hit (40%) | Player skips next turn |
+| `confuses` | Medusa | On hit (30%) | Player movement randomized 3-5 turns |
+| `drains_strength` | Rattlesnake | On hit (50%) | Strength -1 (min 3) |
+| `drains_xp` | Wraith | On hit (40%) | XP -10 to -50 |
+| `drains_max_hp` | Vampire | On hit (30%) | Max HP -1 (min 1) |
+| `holds` | Venus Flytrap | On hit (60%) | Player held 1-2 turns |
+| `steals` | Leprechaun, Nymph | Adjacent | Steals gold/item, then flees |
+| `regeneration` | Troll, Griffin, Vampire | Per turn | Heal 1 HP when below max |
+| `breath_weapon` | Dragon | Combat (40%) | 6d6 fire damage ranged |
+| `flying` | Bat, Kestrel, Griffin | Passive | Erratic movement, can cross terrain |
+| `invisible` | Phantom | Passive | Hidden until revealed |
+| `mean` | Various (12 monsters) | Passive | 67% chase chance per turn (authentic Rogue ISMEAN flag) |
+
+**Example Configuration**:
+```json
+{
+  "letter": "A",
+  "name": "Aquator",
+  "aiProfile": {
+    "behavior": "SIMPLE",
+    "special": ["rusts_armor"]
+  }
+}
+```
+
+**Implementation**: See `src/services/SpecialAbilityService/SpecialAbilityService.ts` for ability logic.
+
+---
+
+## 3.2 Validating Special Ability Flags
+
+**When adding a new special ability**:
+
+1. **Add flag to valid list**: Update `validSpecialFlags` array in:
+   - `src/services/MonsterSpawnService/monster-data-validation.test.ts` (line 12)
+   - `scripts/validate-monster-data.cjs` (line 26)
+
+2. **Implement logic**: Add check in `SpecialAbilityService.applyOnHitAbilities()` or relevant service
+
+3. **Add tests**: Create test file in `src/services/SpecialAbilityService/`
+
+4. **Update documentation**: Add row to table above (section 3.1)
+
+5. **Validate**: Run `npm run validate:data` to check all monsters
+
+**How to verify a special ability works**:
+
+1. **Unit Test**: `npm test SpecialAbilityService` should pass
+2. **Integration Test**: `npm test monster-data-validation` should pass
+3. **Data Validation**: `npm run validate:data` should pass with no errors
+4. **Manual Test**: Follow `docs/MANUAL_MONSTER_TESTING.md` for the specific monster
+
+**Common Mistakes**:
+- ❌ Using past tense: `"drained_strength"` (wrong)
+- ✅ Using present tense: `"drains_strength"` (correct)
+- ❌ Using spaces: `"drains strength"` (wrong)
+- ✅ Using underscores: `"drains_strength"` (correct)
+- ❌ Typos in flags: `"rusts_armour"` instead of `"rusts_armor"` (wrong)
+
+**Automated Validation**:
+- ✅ Validation runs automatically before tests (`npm test`)
+- ✅ Validation script: `npm run validate:data`
+- ✅ Integration test: `npm test monster-data-validation`
+
+**Validation Catches**:
+- Invalid flag names (typos)
+- Missing required fields
+- Invalid behavior types
+- Out-of-range stats (HP, speed, level, etc.)
+- Duplicate letters or flags
+- Past-tense verb naming (common error)
+
+---
+
 ## 4. Monster Behavior
 
 ### Sleep & Waking
@@ -164,12 +259,26 @@
 - Attack when adjacent
 - Pursue player based on AI type
 
-### Mean Monsters
-**Always start awake and aggressive**
+### Mean Monsters (ISMEAN Flag)
+**Special Behavior**: **67% chance per turn to pursue** player (authentic Rogue ISMEAN flag)
 
-**Examples**: Emu, Hobgoblin, Kestrel, Quagga, Snake, Troll, Ur-vile, Zombie
+**Complete List** (12 monsters):
+- Dragon (D), Emu (E), Griffin (G), Hobgoblin (H)
+- Jabberwock (J), Kestrel (K), Orc (O), Quagga (Q)
+- Snake (S), Troll (T), Ur-vile (U), Zombie (Z)
 
-**Strategy**: Expect immediate combat, prepare defenses
+**Chase Mechanic**:
+- Each turn, MEAN monster rolls against 67% chance
+- **Success** (67%): Monster pursues player
+- **Failure** (33%): Monster waits/stands still
+- **Always attacks** when adjacent (no roll needed)
+
+**Authentic Rogue Behavior**: In original 1980 Rogue, the ISMEAN flag gave monsters exactly 67% chance to chase per turn, creating the same tactical feel where aggressive monsters occasionally hesitate.
+
+**Strategy**:
+- MEAN monsters are less relentless than 100% pursuers
+- Use waiting turns to heal or reposition
+- Still dangerous due to multiple attempts per encounter
 
 ---
 

@@ -114,31 +114,29 @@ describe('MonsterAIService - ERRATIC Behavior', () => {
     }
   }
 
-  test('moves randomly when RNG returns < 0.5', () => {
+  test('always moves randomly (100% erratic)', () => {
     const monster = createTestMonster({ position: { x: 5, y: 5 } })
     const state = createTestState({ x: 5, y: 5 }, { x: 10, y: 10 })
 
-    // chance() calls nextInt(0,1), returns true if value is 1
-    // When true (random), pickRandom returns array[0] which is { x: 0, y: -1 } (up)
-    mockRandom.setValues([1]) // chance returns true (random movement)
-
+    // pickRandom returns array[0] which is { x: 0, y: -1 } (up)
+    // Matches original Rogue where Bats "always moved as if confused"
     const action = service.decideAction(monster, state)
 
     expect(action.type).toBe('move')
     expect(action.target).toEqual({ x: 5, y: 4 }) // Moved up randomly (array[0])
   })
 
-  test('moves toward player when RNG returns >= 0.5', () => {
+  test('never moves toward player (no player-seeking)', () => {
     const monster = createTestMonster({ position: { x: 5, y: 5 } })
     const state = createTestState({ x: 5, y: 5 }, { x: 10, y: 5 })
 
-    // chance() returns false (0 means not random, so move toward player)
-    mockRandom.setValues([0])
-
+    // Even with player directly to the right, monster moves randomly
+    // pickRandom always returns array[0] (up direction)
     const action = service.decideAction(monster, state)
 
     expect(action.type).toBe('move')
-    expect(action.target).toEqual({ x: 6, y: 5 }) // Moved right toward player
+    // Should move up (random), NOT right toward player
+    expect(action.target).toEqual({ x: 5, y: 4 })
   })
 
   test('waits when random direction is blocked', () => {
@@ -156,22 +154,18 @@ describe('MonsterAIService - ERRATIC Behavior', () => {
       lit: false,
     }
 
-    // chance returns true (random), pickRandom returns array[0] = up (blocked)
-    mockRandom.setValues([1])
-
+    // pickRandom returns array[0] = up (blocked)
     const action = service.decideAction(monster, state)
 
     expect(action.type).toBe('wait')
   })
 
-  test('can move randomly in cardinal directions', () => {
+  test('can move randomly in any cardinal direction', () => {
     const monster = createTestMonster({ position: { x: 5, y: 5 } })
     const state = createTestState({ x: 5, y: 5 }, { x: 10, y: 10 })
 
     // pickRandom always returns array[0] which is up direction
-    // Just test that random movement works
-    mockRandom.setValues([1]) // Random movement
-
+    // In real game, pickRandom would vary based on RNG
     const action = service.decideAction(monster, state)
 
     expect(action.type).toBe('move')
@@ -188,29 +182,26 @@ describe('MonsterAIService - ERRATIC Behavior', () => {
     expect(action.target).toEqual({ x: 6, y: 5 })
   })
 
-  test('movement is unpredictable (50/50 split)', () => {
+  test('movement is always random (100% unpredictable)', () => {
     const monster = createTestMonster({ position: { x: 5, y: 5 } })
     const state = createTestState({ x: 5, y: 5 }, { x: 10, y: 5 })
 
-    // Simulate multiple decisions: 1 = random, 0 = toward player
+    // Simulate multiple decisions - all should be random (never toward player)
+    // With MockRandom, pickRandom always returns array[0] (up direction)
     let randomMoves = 0
-    let towardPlayerMoves = 0
 
     for (let i = 0; i < 10; i++) {
-      mockRandom.setValues([i < 5 ? 1 : 0]) // First 5 random, last 5 toward player
-
       const action = service.decideAction(monster, state)
 
       if (action.type === 'move') {
+        // MockRandom's pickRandom always returns array[0] (up)
         if (action.target!.y < monster.position.y) {
           randomMoves++ // Moved up (random, array[0])
-        } else if (action.target!.x > monster.position.x) {
-          towardPlayerMoves++ // Moved right toward player
         }
       }
     }
 
-    expect(randomMoves).toBeGreaterThan(0)
-    expect(towardPlayerMoves).toBeGreaterThan(0)
+    // All 10 moves should be random (up direction)
+    expect(randomMoves).toBe(10)
   })
 })

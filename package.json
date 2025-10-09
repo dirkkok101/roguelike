@@ -8,6 +8,8 @@
     "build": "vite build",
     "build:check": "tsc && vite build",
     "preview": "vite preview",
+    "validate:data": "node scripts/validate-monster-data.cjs",
+    "pretest": "npm run validate:data",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"

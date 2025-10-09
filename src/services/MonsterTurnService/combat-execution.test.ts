@@ -11,7 +11,13 @@ import { RingService } from '@services/RingService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Monster, MonsterBehavior, Player } from '@game/core/core'
+import {
+  GameState,
+  Monster,
+  MonsterBehavior,
+  Player,
+  SpecialAbilityFlag,
+} from '@game/core/core'
 
 describe('MonsterTurnService - Combat Execution', () => {
   let service: MonsterTurnService
@@ -188,7 +194,7 @@ describe('MonsterTurnService - Combat Execution', () => {
         intelligence: 1,
         aggroRange: 10,
         fleeThreshold: 0,
-        special: ['drains_strength'],
+        special: [SpecialAbilityFlag.DRAINS_STRENGTH],
       },
     })
     const state = createTestState([monster], { x: 10, y: 10 })

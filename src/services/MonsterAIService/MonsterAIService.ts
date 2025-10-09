@@ -191,6 +191,8 @@ export class MonsterAIService {
     const level = state.levels.get(state.currentLevel)
     if (!level) return { type: 'wait' }
 
+    const playerPos = state.player.position
+
     // HIGHEST PRIORITY: Check for adjacent SCARE_MONSTER scrolls
     // Monsters will flee from scare scrolls before any other behavior
     const adjacentPositions = this.getAdjacentPositions(monster.position)
@@ -201,7 +203,27 @@ export class MonsterAIService {
       }
     }
 
-    const playerPos = state.player.position
+    // SECOND PRIORITY: Check if adjacent to player - attack if adjacent
+    // This happens before chase probability check (always attack when adjacent)
+    if (this.isAdjacent(monster.position, playerPos)) {
+      return { type: 'attack', target: playerPos }
+    }
+
+    // Chase probability check (matches original Rogue ISMEAN behavior)
+    // If monster has chaseChance < 1.0, roll to see if it pursues this turn
+    // MEAN monsters in original Rogue had 67% chance to chase per turn
+    const chaseChance = monster.aiProfile.chaseChance ?? 1.0
+    if (chaseChance === 0.0) {
+      // 0% chase chance - passive monster, never chases
+      return { type: 'wait' }
+    }
+    if (chaseChance < 1.0) {
+      if (!this.random.chance(chaseChance)) {
+        // Failed chase roll - monster doesn't pursue this turn
+        return { type: 'wait' }
+      }
+    }
+
     const playerPosKey = `${playerPos.x},${playerPos.y}`
 
     // Check if player is visible
@@ -214,11 +236,6 @@ export class MonsterAIService {
     let targetPos: Position = canSeePlayer
       ? playerPos
       : (monster.lastKnownPlayerPosition ?? playerPos)
-
-    // Check if adjacent to player - attack if adjacent (even if can't see through wall)
-    if (this.isAdjacent(monster.position, playerPos)) {
-      return { type: 'attack', target: playerPos }
-    }
 
     // Determine behavior
     const behaviors = Array.isArray(monster.aiProfile.behavior)
@@ -312,41 +329,36 @@ export class MonsterAIService {
   }
 
   /**
-   * ERRATIC behavior - 50% random, 50% toward player
+   * ERRATIC behavior - 100% random movement
    * Used by flying creatures (Bat, Kestrel)
+   * Matches original Rogue where Bats "always moved as if confused"
    */
   private erraticBehavior(
     monster: Monster,
-    playerPos: Position,
+    _playerPos: Position,
     level: any
   ): MonsterAction {
-    // 50% chance to move randomly
-    if (this.random.chance(0.5)) {
-      // Random movement
-      const directions = [
-        { x: 0, y: -1 }, // up
-        { x: 0, y: 1 },  // down
-        { x: -1, y: 0 }, // left
-        { x: 1, y: 0 },  // right
-      ]
+    // Always move randomly (matches original Rogue behavior)
+    const directions = [
+      { x: 0, y: -1 }, // up
+      { x: 0, y: 1 },  // down
+      { x: -1, y: 0 }, // left
+      { x: 1, y: 0 },  // right
+    ]
 
-      const randomDir = this.random.pickRandom(directions)
-      const target = {
-        x: monster.position.x + randomDir.x,
-        y: monster.position.y + randomDir.y,
-      }
-
-      // Check if walkable
-      const tile = level.tiles[target.y]?.[target.x]
-      if (tile?.walkable) {
-        return { type: 'move', target }
-      }
-
-      return { type: 'wait' }
-    } else {
-      // Move toward player using simple behavior
-      return this.simpleBehavior(monster, playerPos, level)
+    const randomDir = this.random.pickRandom(directions)
+    const target = {
+      x: monster.position.x + randomDir.x,
+      y: monster.position.y + randomDir.y,
     }
+
+    // Check if walkable
+    const tile = level.tiles[target.y]?.[target.x]
+    if (tile?.walkable) {
+      return { type: 'move', target }
+    }
+
+    return { type: 'wait' }
   }
 
   /**
@@ -381,21 +393,28 @@ export class MonsterAIService {
   }
 
   /**
-   * THIEF behavior - Steal and flee
+   * THIEF behavior - Approach, steal, and flee
    * Used by Leprechaun (steals gold), Nymph (steals items)
+   *
+   * Authentic Rogue behavior:
+   * - Approach player using A* pathfinding to get adjacent
+   * - Steal when adjacent (handled in MonsterTurnService attack phase)
+   * - Teleport to random location after stealing (handled in MonsterTurnService)
+   * - Flee on foot after teleport (this method returns flee action)
    */
   private thiefBehavior(
     monster: Monster,
     playerPos: Position,
     level: any
   ): MonsterAction {
-    // If already stole, flee from player
+    // If already stole, flee from player on foot
+    // (Teleportation happens immediately after stealing in MonsterTurnService)
     if (monster.hasStolen) {
       return this.fleeBehavior(monster, playerPos, level)
     }
 
     // Otherwise, approach player using A* to get close enough to steal
-    // (Actual stealing happens when adjacent in the attack phase)
+    // (Actual stealing and teleportation happen when adjacent in MonsterTurnService)
     return this.smartBehavior(monster, playerPos, level)
   }
 

@@ -118,7 +118,8 @@ async function initializeGame() {
     specialAbilityService,
     messageService,
     turnService,
-    goldService
+    goldService,
+    levelService
   )
   const doorService = new DoorService()
   const potionService = new PotionService(random, identificationService, levelingService, statusEffectService)

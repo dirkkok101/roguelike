@@ -115,11 +115,13 @@ interface MonsterAction {
 }
 ```
 
-**Decision Process**:
+**Decision Process** (priority order):
 1. If asleep → `wait`
-2. If adjacent to player → `attack`
-3. Route to behavior-specific logic
-4. Return action
+2. Check for adjacent SCARE_MONSTER scrolls → `flee`
+3. If adjacent to player → `attack`
+4. **Chase probability check** (MEAN monsters: 67% chance per turn)
+5. Route to behavior-specific logic
+6. Return action
 
 **Target Selection** (smart memory tracking):
 1. If player visible → use current position
@@ -195,46 +197,45 @@ private simpleBehavior(monster: Monster, playerPos: Position, level: Level): Mon
 
 ---
 
-### ERRATIC - 50% Random
+### ERRATIC - 100% Random (Authentic Rogue)
 
 **Implementation**:
 ```typescript
-private erraticBehavior(monster: Monster, playerPos: Position, level: Level): MonsterAction {
-  if (this.random.chance(0.5)) {
-    // 50% random movement
-    const directions = [
-      { x: 0, y: -1 }, // up
-      { x: 0, y: 1 },  // down
-      { x: -1, y: 0 }, // left
-      { x: 1, y: 0 },  // right
-    ]
+private erraticBehavior(monster: Monster, _playerPos: Position, level: Level): MonsterAction {
+  // Always move randomly (matches original Rogue behavior)
+  const directions = [
+    { x: 0, y: -1 }, // up
+    { x: 0, y: 1 },  // down
+    { x: -1, y: 0 }, // left
+    { x: 1, y: 0 },  // right
+  ]
 
-    const randomDir = this.random.pickRandom(directions)
-    const target = {
-      x: monster.position.x + randomDir.x,
-      y: monster.position.y + randomDir.y,
-    }
-
-    const tile = level.tiles[target.y]?.[target.x]
-    if (tile?.walkable) {
-      return { type: 'move', target }
-    }
-
-    return { type: 'wait' }
-  } else {
-    // 50% toward player using simple behavior
-    return this.simpleBehavior(monster, playerPos, level)
+  const randomDir = this.random.pickRandom(directions)
+  const target = {
+    x: monster.position.x + randomDir.x,
+    y: monster.position.y + randomDir.y,
   }
+
+  // Check if walkable
+  const tile = level.tiles[target.y]?.[target.x]
+  if (tile?.walkable) {
+    return { type: 'move', target }
+  }
+
+  return { type: 'wait' }
 }
 ```
 
 **Used By**: Bat, Kestrel (flying creatures)
 
 **Characteristics**:
-- Unpredictable movement
-- 50% chance to move randomly
-- 50% chance to pursue player
-- Simulates flying/darting behavior
+- **100% random movement** (never seeks player)
+- Matches original Rogue where Bats "always moved as if confused"
+- Completely unpredictable
+- Simulates erratic flying/darting behavior
+- Can accidentally move toward or away from player
+
+**Authentic Rogue Behavior**: In the original 1980 Rogue, Bats always moved randomly, creating frustrating encounters where they were hard to hit.
 
 ---
 
@@ -273,28 +274,39 @@ private greedyBehavior(monster: Monster, playerPos: Position, level: Level, stat
 
 ---
 
-### THIEF - Steal and Flee
+### THIEF - Steal, Teleport, and Flee (Authentic Rogue)
 
 **Implementation**:
 ```typescript
 private thiefBehavior(monster: Monster, playerPos: Position, level: Level): MonsterAction {
   if (monster.hasStolen) {
-    // Already stole, flee from player
+    // Already stole, flee from player on foot
+    // (Teleportation happens immediately after stealing in MonsterTurnService)
     return this.fleeBehavior(monster, playerPos, level)
   }
 
   // Otherwise, approach player using A* to get close enough to steal
+  // (Actual stealing and teleportation happen when adjacent in MonsterTurnService)
   return this.smartBehavior(monster, playerPos, level)
 }
 ```
 
 **Used By**: Leprechaun (steals gold), Nymph (steals items)
 
+**Workflow**:
+1. **Approach**: Uses SMART behavior to get adjacent to player
+2. **Steal**: Steals when adjacent (handled in MonsterTurnService)
+3. **Teleport**: Immediately teleports to random walkable location (MonsterTurnService)
+4. **Flee**: If encountered again, flees on foot using this behavior
+
 **Characteristics**:
-- Uses SMART behavior to approach player
-- Steals when adjacent (handled in SpecialAbilityService)
-- Switches to FLEEING after theft
+- Uses A* pathfinding to approach player intelligently
+- **Teleports after stealing** (matches original Rogue where thieves "vanished")
+- Switches to FLEEING state after theft
 - Never fights, only steals
+- Teleport avoids current position (always moves away)
+
+**Authentic Rogue Behavior**: In the original 1980 Rogue, Leprechauns and Nymphs were stationary monsters that would "disappear" after stealing, simulated here by teleportation.
 
 ---
 
@@ -342,6 +354,51 @@ private cowardBehavior(monster: Monster, playerPos: Position, level: Level): Mon
 - Flees when HP drops below threshold
 - May re-engage if HP recovers (rare without regeneration)
 - Combines intelligence with self-preservation
+
+---
+
+## Chase Probability (MEAN Monsters - Authentic Rogue)
+
+**MEAN Flag**: In original 1980 Rogue, monsters with the ISMEAN flag had a **67% chance per turn** to pursue the player.
+
+**Modern Implementation**: `chaseChance` field in monster AIProfile
+
+**Affected Monsters** (12 total):
+- Dragon, Emu, Griffin, Hobgoblin, Jabberwock, Kestrel
+- Orc, Quagga, Snake, Troll, Ur-vile, Zombie
+
+**Decision Logic**:
+```typescript
+// Chase probability check (before behavior routing)
+const chaseChance = monster.aiProfile.chaseChance ?? 1.0
+
+if (chaseChance === 0.0) {
+  // 0% chase chance - passive monster, never chases
+  return { type: 'wait' }
+}
+
+if (chaseChance < 1.0) {
+  if (!this.random.chance(chaseChance)) {
+    // Failed chase roll - monster doesn't pursue this turn
+    return { type: 'wait' }
+  }
+}
+
+// Chase roll succeeded or chaseChance === 1.0 - continue to behavior
+```
+
+**Priority**: Chase probability is checked **AFTER** adjacency but **BEFORE** behavior routing
+- Adjacent monsters always attack (no roll needed)
+- Non-adjacent MEAN monsters must pass 67% roll to pursue
+
+**Example**: Hobgoblin 5 tiles away from player
+- Turn 1: Roll 0.45 ≤ 0.67 → **Pursues** (moves closer)
+- Turn 2: Roll 0.80 > 0.67 → **Waits** (stands still)
+- Turn 3: Roll 0.32 ≤ 0.67 → **Pursues** (moves closer)
+
+**Balance Impact**: MEAN monsters feel less relentless, giving player breathing room
+
+**Authentic Rogue Behavior**: This matches the original Rogue's ISMEAN flag exactly (67% chance), creating the same tactical dynamics players experienced in 1980.
 
 ---
 
@@ -524,6 +581,92 @@ describe('MonsterAIService - THIEF', () => {
 - **FOVService** - Computes monster vision
 - **MonsterTurnService** - Consumes actions to execute monster turns
 - **SpecialAbilityService** - Handles special attacks (breath weapon, steal)
+
+---
+
+## Authentic Rogue (1980) vs Modern Enhancements
+
+This implementation **balances authentic Rogue behavior with modern AI improvements**.
+
+### Authentic Behaviors Preserved
+
+**From Original Rogue (1980)**:
+
+1. **ISMEAN Flag → Chase Probability**
+   - ✅ **67% chase chance** for MEAN monsters
+   - Original: `if (rnd(100) < 67) chase_player();`
+   - Modern: `if (random.chance(0.67)) pursue();`
+
+2. **ERRATIC Movement (Bats)**
+   - ✅ **100% random movement** (never seeks player)
+   - Original: Bats "always moved as if confused"
+   - Modern: `pickRandom(directions)` every turn
+
+3. **THIEF Teleportation**
+   - ✅ **Teleport after stealing** (Leprechaun, Nymph)
+   - Original: Thieves were stationary and "vanished" after stealing
+   - Modern: Teleport to random walkable location, then flee on foot
+
+4. **GREEDY Behavior (Dragons)**
+   - ✅ **Guard gold piles** (prioritize gold over player)
+   - Original: Dragons had ISGREED flag, sat on gold hoards
+   - Modern: Orc uses similar logic (closest target priority)
+
+### Modern Enhancements
+
+**New Features Not in Original Rogue**:
+
+1. **Field of View (FOV)**
+   - **Modern**: Monsters compute FOV based on aggro range
+   - **Original**: Monsters always knew player position (omniscient)
+   - **Why**: More realistic, enables stealth gameplay
+
+2. **Memory Tracking**
+   - **Modern**: Monsters remember last known player position (5 turns)
+   - **Original**: No memory system
+   - **Why**: Creates suspense (monsters patrol last seen location)
+
+3. **A* Pathfinding (SMART behavior)**
+   - **Modern**: Optimal pathfinding around obstacles
+   - **Original**: Simple greedy movement (Bresenham's line algorithm)
+   - **Why**: Makes boss monsters more threatening, navigates complex levels
+
+4. **State Machine (FSM)**
+   - **Modern**: SLEEPING → WANDERING → HUNTING → FLEEING states
+   - **Original**: Binary asleep/awake, simple chase logic
+   - **Why**: More dynamic monster behavior, better pacing
+
+5. **4-Directional Movement**
+   - **Modern**: Cardinal directions only (no diagonals)
+   - **Original**: 8-directional movement
+   - **Why**: Design choice for this project (simpler, clearer)
+
+### Behavior Mapping
+
+**Original Rogue → Modern Implementation**:
+
+| Original Rogue | Modern Behavior | Notes |
+|----------------|-----------------|-------|
+| Bat (random) | ERRATIC (100%) | ✅ Authentic |
+| ISMEAN flag | chaseChance: 0.67 | ✅ Authentic |
+| ISGREED (Dragon) | GREEDY | ✅ Authentic |
+| Leprechaun steal | THIEF + teleport | ✅ Authentic |
+| Simple chase | SIMPLE | ✅ Preserved |
+| - | SMART (A*) | ⭐ Enhanced |
+| - | COWARD | ⭐ Enhanced |
+| - | STATIONARY | ⭐ Enhanced |
+
+### Testing Philosophy
+
+**Test Authentic Behaviors**:
+- Chase probability tests verify 67% chance exactly
+- ERRATIC tests verify 100% random (no player-seeking)
+- THIEF tests verify teleport after steal
+
+**Test Modern Enhancements**:
+- FOV tests verify vision radius = aggro range
+- Memory tests verify 5-turn retention
+- A* tests verify optimal pathfinding
 
 ---
 
