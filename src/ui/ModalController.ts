@@ -1,8 +1,6 @@
-import { GameState, Item, ItemType, Ring, TargetingRequest, TargetingResult, PotionType, ScrollType, RingType, WandType } from '@game/core/core'
+import { GameState, Item, ItemType, Ring, PotionType, ScrollType, RingType, WandType } from '@game/core/core'
 import { IdentificationService } from '@services/IdentificationService'
 import { CurseService } from '@services/CurseService'
-import { TargetingService } from '@services/TargetingService'
-import { TargetingModal } from './TargetingModal'
 
 // ============================================================================
 // MODAL CONTROLLER - Item selection and inventory display
@@ -22,7 +20,6 @@ type ItemFilter =
   | 'unidentified'
 type SelectionCallback = (item: Item | null) => void
 type RingSelectionCallback = (result: { ring: Ring; slot: 'left' | 'right' } | null) => void
-type TargetingCallback = (result: TargetingResult) => void
 type SpawnCategoryCallback = (category: string | null) => void
 type SpawnSubtypeCallback = (subtype: string | null) => void
 
@@ -45,16 +42,13 @@ interface ModalState {
 
 export class ModalController {
   private modalStack: ModalState[] = []
-  private targetingModal: TargetingModal | null = null
 
   constructor(
     private identificationService: IdentificationService,
-    private curseService: CurseService,
-    targetingService?: TargetingService
+    private curseService: CurseService
   ) {
-    if (targetingService) {
-      this.targetingModal = new TargetingModal(targetingService)
-    }
+    // ModalController handles item selection and inventory display only
+    // Targeting is now handled by TargetSelectionState (state-based approach)
   }
 
   /**
@@ -108,27 +102,6 @@ export class ModalController {
     document.body.appendChild(modalContainer)
   }
 
-  /**
-   * Show targeting modal
-   * @param request - Targeting parameters (mode, range, LOS)
-   * @param state - Current game state
-   * @param onConfirm - Called with TargetingResult when user confirms
-   * @param onCancel - Called when user cancels (ESC)
-   */
-  showTargeting(
-    request: TargetingRequest,
-    state: GameState,
-    onConfirm: TargetingCallback,
-    onCancel: () => void
-  ): void {
-    if (!this.targetingModal) {
-      console.error('TargetingModal not initialized (TargetingService required)')
-      onCancel()
-      return
-    }
-
-    this.targetingModal.show(request, state, onConfirm, onCancel)
-  }
 
   /**
    * Show equipped ring selection modal (for removal)
@@ -237,7 +210,7 @@ export class ModalController {
    * Check if any modal is currently open
    */
   isOpen(): boolean {
-    return this.modalStack.length > 0 || (this.targetingModal?.isVisible() ?? false)
+    return this.modalStack.length > 0
   }
 
   /**
@@ -245,11 +218,6 @@ export class ModalController {
    * Returns true if input was handled
    */
   handleInput(event: KeyboardEvent): boolean {
-    // Targeting modal handles its own input
-    if (this.targetingModal?.isVisible()) {
-      return true
-    }
-
     if (this.modalStack.length === 0) return false
 
     const topModalState = this.modalStack[this.modalStack.length - 1]

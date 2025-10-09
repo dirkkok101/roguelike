@@ -1,4 +1,4 @@
-import { GameState, Position, ItemType, StatusEffectType } from '@game/core/core'
+import { GameState, Position, ItemType, StatusEffectType, Level } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
@@ -12,6 +12,7 @@ import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
 import { RingService } from '@services/RingService'
+import { type ITargetingState } from '@states/TargetSelectionState'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -75,6 +76,8 @@ export class GameRenderer {
     this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService, scoreCalculationService)
   }
 
+  private targetingState: ITargetingState | null = null // Store active targeting state
+
   /**
    * Render complete game state
    */
@@ -117,7 +120,7 @@ export class GameRenderer {
       return // Don't render game when victory screen shown
     }
 
-    this.renderDungeon(state)
+    this.renderDungeon(state, this.targetingState)
     this.renderStats(state)
     this.renderMessages(state)
     this.commandBar.render(state)
@@ -201,12 +204,20 @@ export class GameRenderer {
     return container
   }
 
-  private renderDungeon(state: GameState): void {
+  private renderDungeon(state: GameState, targetingState: ITargetingState | null = null): void {
     const level = state.levels.get(state.currentLevel)
     if (!level) return
 
     // Check for SEE_INVISIBLE status effect
     const canSeeInvisible = state.player.statusEffects.some((e) => e.type === StatusEffectType.SEE_INVISIBLE)
+
+    // Get targeting data if active
+    let targetingLine: Set<string> | null = null
+    let cursorPos: Position | null = null
+    if (targetingState) {
+      cursorPos = targetingState.getCursorPosition()
+      targetingLine = this.calculateTargetingLine(state.player.position, cursorPos, level)
+    }
 
     let html = '<pre class="dungeon-grid">'
 
@@ -284,6 +295,25 @@ export class GameRenderer {
         ) {
           char = '>'
           color = visState === 'visible' ? '#FFFF00' : '#707070' // Yellow if visible, gray if explored
+        }
+
+        // Targeting line (render before player but after entities)
+        if (targetingLine && targetingLine.has(`${x},${y}`) && !(x === state.player.position.x && y === state.player.position.y) && !(cursorPos && x === cursorPos.x && y === cursorPos.y)) {
+          char = '*'
+          color = '#FFFF00' // Yellow
+        }
+
+        // Targeting cursor (render before player)
+        if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
+          // Check if target is valid
+          const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
+          const key = `${cursorPos.x},${cursorPos.y}`
+          const inFOV = state.visibleCells.has(key)
+          const monster = level.monsters.find(m => m.position.x === cursorPos.x && m.position.y === cursorPos.y)
+          const isValid = inFOV && !!monster
+
+          char = 'X'
+          color = isValid ? '#00FF00' : '#FF0000' // Green if valid, red if invalid
         }
 
         // Player (always on top)
@@ -639,5 +669,164 @@ export class GameRenderer {
     this.debugOverlays.renderFOVOverlay(state, ctx, cellSize)
     this.debugOverlays.renderPathOverlay(state, ctx, cellSize)
     this.debugOverlays.renderAIOverlay(state, ctx, cellSize)
+  }
+
+  /**
+   * Render targeting overlay (cursor, line, info panel)
+   * Called when TargetSelectionState is active
+   *
+   * @param targetingState - The active targeting state
+   */
+  renderTargetingOverlay(targetingState: ITargetingState): void {
+    // Store targeting state so it can be used in next render() call
+    this.targetingState = targetingState
+
+    // Render info panel showing target details
+    const cursor = targetingState.getCursorPosition()
+    const range = targetingState.getRange()
+    const state = targetingState.getGameState()
+    this.renderTargetingInfo(state, cursor, range)
+  }
+
+  /**
+   * Render targeting info panel (DOM overlay with target details)
+   */
+  private renderTargetingInfo(state: GameState, cursor: Position, range: number): void {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return
+
+    // Check if cursor is on a monster
+    const monster = level.monsters.find(m => m.position.x === cursor.x && m.position.y === cursor.y)
+
+    // Calculate distance
+    const distance = Math.abs(cursor.x - state.player.position.x) +
+                    Math.abs(cursor.y - state.player.position.y)
+
+    // Check validity
+    const key = `${cursor.x},${cursor.y}`
+    const inFOV = state.visibleCells.has(key)
+    const isValid = distance <= range && inFOV && !!monster
+
+    // Create or update info panel
+    let infoPanel = document.getElementById('targeting-info-panel')
+    if (!infoPanel) {
+      infoPanel = document.createElement('div')
+      infoPanel.id = 'targeting-info-panel'
+      infoPanel.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.85);
+        border: 2px solid ${isValid ? '#00ff00' : '#ff0000'};
+        color: white;
+        padding: 12px;
+        font-family: monospace;
+        font-size: 14px;
+        z-index: 1000;
+        min-width: 250px;
+        border-radius: 4px;
+      `
+      document.body.appendChild(infoPanel)
+    }
+
+    infoPanel.style.borderColor = isValid ? '#00ff00' : '#ff0000'
+
+    // Update content
+    let content = `<div style="margin-bottom: 8px;"><strong>Targeting Mode</strong></div>`
+
+    if (monster) {
+      content += `
+        <div style="color: ${isValid ? '#00ff00' : '#ff6666'};">
+          ${monster.name} (${monster.letter})
+        </div>
+        <div style="font-size: 12px; color: #aaa; margin-top: 4px;">
+          HP: ${monster.hp}/${monster.maxHp}<br>
+          Distance: ${distance} tiles<br>
+          Range: ${range} tiles
+        </div>
+      `
+      if (!isValid) {
+        if (distance > range) {
+          content += `<div style="color: #ff6666; margin-top: 6px;">⚠ Out of range!</div>`
+        } else if (!inFOV) {
+          content += `<div style="color: #ff6666; margin-top: 6px;">⚠ Not visible!</div>`
+        }
+      }
+    } else {
+      content += `
+        <div style="color: #888;">No target</div>
+        <div style="font-size: 12px; color: #aaa; margin-top: 4px;">
+          Distance: ${distance} tiles<br>
+          Range: ${range} tiles
+        </div>
+      `
+    }
+
+    content += `
+      <div style="border-top: 1px solid #444; margin-top: 10px; padding-top: 8px; font-size: 11px; color: #888;">
+        <div>hjkl/arrows: Move cursor</div>
+        <div>Tab: Cycle monsters</div>
+        <div>Enter: Confirm</div>
+        <div>ESC: Cancel</div>
+      </div>
+    `
+
+    infoPanel.innerHTML = content
+  }
+
+  /**
+   * Hide targeting info panel
+   */
+  hideTargetingInfo(): void {
+    const infoPanel = document.getElementById('targeting-info-panel')
+    if (infoPanel) {
+      infoPanel.remove()
+    }
+
+    // Clear targeting state
+    this.targetingState = null
+  }
+
+  /**
+   * Calculate targeting line from start to end position
+   * Uses Bresenham-like algorithm to trace line until hitting wall
+   *
+   * @param start - Starting position (player)
+   * @param end - End position (cursor)
+   * @param level - Current dungeon level
+   * @returns Set of position keys representing the line path
+   */
+  private calculateTargetingLine(start: Position, end: Position, level: Level): Set<string> {
+    const line = new Set<string>()
+
+    // Calculate direction vector
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+
+    // Number of steps = max of absolute differences
+    const steps = Math.max(Math.abs(dx), Math.abs(dy))
+
+    // Calculate step increments
+    const xStep = steps === 0 ? 0 : dx / steps
+    const yStep = steps === 0 ? 0 : dy / steps
+
+    // Trace line from start to end
+    for (let i = 0; i <= steps; i++) {
+      const x = Math.round(start.x + xStep * i)
+      const y = Math.round(start.y + yStep * i)
+
+      // Add position to line
+      line.add(`${x},${y}`)
+
+      // Stop if we hit a wall (but not at the cursor position itself)
+      if (x >= 0 && x < level.width && y >= 0 && y < level.height) {
+        const tile = level.tiles[y][x]
+        if (!tile.walkable && (x !== end.x || y !== end.y)) {
+          break
+        }
+      }
+    }
+
+    return line
   }
 }

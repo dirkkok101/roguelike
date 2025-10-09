@@ -42,12 +42,12 @@ describe('ZapWandCommand', () => {
     statusEffectService = new StatusEffectService()
     combatService = new CombatService(mockRandom)
     levelService = new LevelService()
-    wandService = new WandService(identificationService, mockRandom, combatService, levelService)
-    messageService = new MessageService()
-    turnService = new TurnService(statusEffectService, levelService)
     const fovService = new FOVService(statusEffectService)
     const movementService = new MovementService(mockRandom, statusEffectService)
     targetingService = new TargetingService(fovService, movementService)
+    wandService = new WandService(identificationService, mockRandom, combatService, targetingService)
+    messageService = new MessageService()
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   function createTestPlayer(): Player {

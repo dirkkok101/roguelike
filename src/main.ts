@@ -137,9 +137,9 @@ async function initializeGame() {
     dungeonService,
     curseService
   )
-  const wandService = new WandService(identificationService, random, combatService)
   const targetingService = new TargetingService(fovService, movementService)
-  const modalController = new ModalController(identificationService, curseService, targetingService)
+  const wandService = new WandService(identificationService, random, combatService, targetingService)
+  const modalController = new ModalController(identificationService, curseService)
 
   // Dungeon configuration
   const dungeonConfig = {
@@ -440,7 +440,9 @@ async function initializeGame() {
       modalController,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
-      returnToMenu
+      returnToMenu,
+      stateManager,
+      renderer
     )
 
     // Render initial state
@@ -486,6 +488,10 @@ async function initializeGame() {
           alt: event.altKey,
         }
         currentState.handleInput(input)
+
+        // Render all visible states after input is processed
+        // This ensures transparent states (targeting, inventory) show correctly
+        renderAllVisibleStates()
       }
     }
     document.addEventListener('keydown', currentKeydownHandler)
