@@ -87,6 +87,62 @@ export class CanvasGameRenderer {
   }
 
   /**
+   * Update camera position using scroll margin system
+   *
+   * @param state - Current game state
+   */
+  private updateCamera(state: GameState): void {
+    const playerPos = state.player.position
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return
+
+    // 1. Check for level transition (new level or first render)
+    const levelChanged = this.previousLevel !== state.currentLevel
+    if (levelChanged || this.isFirstRender) {
+      // Center camera on player for new level
+      this.cameraOffsetX = playerPos.x - Math.floor(this.config.gridWidth / 2)
+      this.cameraOffsetY = playerPos.y - Math.floor(this.config.gridHeight / 2)
+      this.isFirstRender = false
+      this.previousLevel = state.currentLevel
+    } else {
+      // 2. Scroll margin mode (normal gameplay)
+      // Horizontal scrolling
+      if (playerPos.x < this.cameraOffsetX + this.config.scrollMarginX) {
+        this.cameraOffsetX = playerPos.x - this.config.scrollMarginX
+      } else if (playerPos.x >= this.cameraOffsetX + this.config.gridWidth - this.config.scrollMarginX) {
+        this.cameraOffsetX = playerPos.x - this.config.gridWidth + this.config.scrollMarginX
+      }
+
+      // Vertical scrolling
+      if (playerPos.y < this.cameraOffsetY + this.config.scrollMarginY) {
+        this.cameraOffsetY = playerPos.y - this.config.scrollMarginY
+      } else if (playerPos.y >= this.cameraOffsetY + this.config.gridHeight - this.config.scrollMarginY) {
+        this.cameraOffsetY = playerPos.y - this.config.gridHeight + this.config.scrollMarginY
+      }
+    }
+
+    // 3. Edge clamping (prevent showing off-map areas)
+    const mapWidth = level.tiles[0]?.length || this.config.gridWidth
+    const mapHeight = level.tiles.length || this.config.gridHeight
+
+    // Handle small maps (smaller than viewport)
+    if (mapWidth <= this.config.gridWidth) {
+      this.cameraOffsetX = 0
+    } else {
+      this.cameraOffsetX = Math.max(0, Math.min(this.cameraOffsetX, mapWidth - this.config.gridWidth))
+    }
+
+    if (mapHeight <= this.config.gridHeight) {
+      this.cameraOffsetY = 0
+    } else {
+      this.cameraOffsetY = Math.max(0, Math.min(this.cameraOffsetY, mapHeight - this.config.gridHeight))
+    }
+
+    // Store for next frame
+    this.previousPlayerPos = { ...playerPos }
+  }
+
+  /**
    * Render the entire game state to canvas
    *
    * @param state - Current game state
@@ -100,16 +156,10 @@ export class CanvasGameRenderer {
 
     console.log('[CanvasGameRenderer] render() called')
 
-    // Calculate camera offset to center on player
-    const playerPos = state.player.position
-    const viewportWidth = this.config.gridWidth
-    const viewportHeight = this.config.gridHeight
+    // Update camera position using scroll margin system
+    this.updateCamera(state)
 
-    // Camera offset in grid coordinates
-    this.cameraOffsetX = playerPos.x - Math.floor(viewportWidth / 2)
-    this.cameraOffsetY = playerPos.y - Math.floor(viewportHeight / 2)
-
-    console.log(`[CanvasGameRenderer] Camera offset: (${this.cameraOffsetX}, ${this.cameraOffsetY}), player at (${playerPos.x}, ${playerPos.y})`)
+    console.log(`[CanvasGameRenderer] Camera offset: (${this.cameraOffsetX}, ${this.cameraOffsetY}), player at (${state.player.position.x}, ${state.player.position.y})`)
 
     // Clear canvas
     this.clear()
