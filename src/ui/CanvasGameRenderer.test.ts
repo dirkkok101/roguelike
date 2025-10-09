@@ -313,6 +313,339 @@ describe('CanvasGameRenderer', () => {
     })
   })
 
+  describe('renderEntities', () => {
+    it('renders monsters in visible FOV', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add a monster
+      level.monsters.push({
+        id: 'monster-1',
+        name: 'Bat',
+        letter: 'B',
+        position: { x: 5, y: 5 },
+        hp: 10,
+        maxHp: 10,
+        ac: 5,
+        damage: '1d4',
+        xpValue: 10,
+        behavior: 'SIMPLE',
+        speed: 1.0,
+        asleep: false,
+        stationary: false,
+        energy: 100,
+      })
+
+      // Mark monster position as visible
+      mockState.visibleCells.add('5,5')
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 0,
+        y: 32,
+        hexX: 0x80,
+        hexY: 0x81,
+      })
+
+      renderer.render(mockState)
+
+      // Should draw monster
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('does not render monsters in explored state (only visible)', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add a monster
+      level.monsters.push({
+        id: 'monster-1',
+        name: 'Bat',
+        letter: 'B',
+        position: { x: 5, y: 5 },
+        hp: 10,
+        maxHp: 10,
+        ac: 5,
+        damage: '1d4',
+        xpValue: 10,
+        behavior: 'SIMPLE',
+        speed: 1.0,
+        asleep: false,
+        stationary: false,
+        energy: 100,
+      })
+
+      // Mark position as explored (not visible)
+      level.explored[5][5] = true
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup - track what characters are requested
+      const getSpriteMock = jest.spyOn(assetLoader, 'getSprite')
+      getSpriteMock.mockImplementation((char: string) => {
+        if (char === '.') {
+          // Terrain sprite
+          return { x: 0, y: 0, hexX: 0x80, hexY: 0x80 }
+        }
+        // Monster sprite
+        return { x: 0, y: 32, hexX: 0x80, hexY: 0x81 }
+      })
+
+      renderer.render(mockState)
+
+      // Check that monster sprite ('B') was NOT requested
+      const monsterSpriteCalls = getSpriteMock.mock.calls.filter(call => call[0] === 'B')
+      expect(monsterSpriteCalls.length).toBe(0)
+    })
+
+    it('renders items in visible FOV', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add an item
+      level.items.push({
+        id: 'item-1',
+        name: 'Potion of Healing',
+        type: 'POTION',
+        identified: false,
+        position: { x: 3, y: 3 },
+      } as any)
+
+      // Mark item position as visible
+      mockState.visibleCells.add('3,3')
+      mockState.levels.set(1, level)
+
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 64,
+        y: 0,
+        hexX: 0x82,
+        hexY: 0x80,
+      })
+
+      renderer.render(mockState)
+
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('renders items in explored state (items persist in memory)', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add an item
+      level.items.push({
+        id: 'item-1',
+        name: 'Potion of Healing',
+        type: 'POTION',
+        identified: false,
+        position: { x: 3, y: 3 },
+      } as any)
+
+      // Mark position as explored (not visible)
+      level.explored[3][3] = true
+      mockState.levels.set(1, level)
+
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 64,
+        y: 0,
+        hexX: 0x82,
+        hexY: 0x80,
+      })
+
+      renderer.render(mockState)
+
+      // Should draw item (items shown in memory)
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('renders gold in visible FOV', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add gold
+      level.gold.push({
+        id: 'gold-1',
+        amount: 50,
+        position: { x: 7, y: 7 },
+      })
+
+      // Mark gold position as visible
+      mockState.visibleCells.add('7,7')
+      mockState.levels.set(1, level)
+
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 96,
+        y: 0,
+        hexX: 0x83,
+        hexY: 0x80,
+      })
+
+      renderer.render(mockState)
+
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('does not render gold in explored state (gold not in memory)', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add gold
+      level.gold.push({
+        id: 'gold-1',
+        amount: 50,
+        position: { x: 7, y: 7 },
+      })
+
+      // Mark position as explored (not visible)
+      level.explored[7][7] = true
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup
+      const getSpriteMock = jest.spyOn(assetLoader, 'getSprite')
+      getSpriteMock.mockImplementation((char: string) => {
+        if (char === '.') {
+          return { x: 0, y: 0, hexX: 0x80, hexY: 0x80 }
+        }
+        return { x: 96, y: 0, hexX: 0x83, hexY: 0x80 }
+      })
+
+      const initialCallCount = mockCtx.drawImage.mock.calls.length
+      renderer.render(mockState)
+      const finalCallCount = mockCtx.drawImage.mock.calls.length
+
+      // Should draw terrain tile but NOT gold
+      // Only 1 call for the terrain at (7,7)
+      expect(finalCallCount - initialCallCount).toBe(1)
+    })
+
+    it('renders stairs in explored state (stairs persist)', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      level.stairsDown = { x: 5, y: 5 }
+
+      // Mark stairs as explored (not visible)
+      level.explored[5][5] = true
+      mockState.levels.set(1, level)
+
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 0,
+        y: 0,
+        hexX: 0x80,
+        hexY: 0x80,
+      })
+
+      renderer.render(mockState)
+
+      // Should draw stairs (stairs persist in memory)
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('renders discovered traps', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add discovered trap
+      level.traps.push({
+        id: 'trap-1',
+        type: 'DART',
+        position: { x: 4, y: 4 },
+        discovered: true,
+      })
+
+      // Mark trap position as explored
+      level.explored[4][4] = true
+      mockState.levels.set(1, level)
+
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 0,
+        y: 0,
+        hexX: 0x80,
+        hexY: 0x80,
+      })
+
+      renderer.render(mockState)
+
+      // Should draw trap
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('does not render undiscovered traps', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add undiscovered trap
+      level.traps.push({
+        id: 'trap-1',
+        type: 'DART',
+        position: { x: 4, y: 4 },
+        discovered: false,
+      })
+
+      // Mark trap position as visible
+      mockState.visibleCells.add('4,4')
+      mockState.levels.set(1, level)
+
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 0,
+        y: 0,
+        hexX: 0x80,
+        hexY: 0x80,
+      })
+
+      const initialCallCount = mockCtx.drawImage.mock.calls.length
+      renderer.render(mockState)
+      const finalCallCount = mockCtx.drawImage.mock.calls.length
+
+      // Should draw terrain tile but NOT trap (undiscovered)
+      // Only 1 call for the terrain at (4,4)
+      expect(finalCallCount - initialCallCount).toBe(1)
+    })
+
+    it('handles detected monsters with dimmed opacity', () => {
+      const mockState = createMockGameState()
+      const level = createSimpleLevel(10, 10)
+
+      // Add a monster
+      level.monsters.push({
+        id: 'monster-1',
+        name: 'Bat',
+        letter: 'B',
+        position: { x: 5, y: 5 },
+        hp: 10,
+        maxHp: 10,
+        ac: 5,
+        damage: '1d4',
+        xpValue: 10,
+        behavior: 'SIMPLE',
+        speed: 1.0,
+        asleep: false,
+        stationary: false,
+        energy: 100,
+      })
+
+      // Mark monster as detected but not visible
+      mockState.detectedMonsters.add('5,5')
+      level.explored[5][5] = true
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup
+      const getSpriteMock = jest.spyOn(assetLoader, 'getSprite')
+      getSpriteMock.mockImplementation((char: string) => {
+        if (char === '.') {
+          return { x: 0, y: 0, hexX: 0x80, hexY: 0x80 }
+        }
+        return { x: 0, y: 32, hexX: 0x80, hexY: 0x81 }
+      })
+
+      renderer.render(mockState)
+
+      // Check that monster sprite ('B') was NOT requested
+      // (monsters only visible in FOV, detection doesn't override)
+      const monsterSpriteCalls = getSpriteMock.mock.calls.filter(call => call[0] === 'B')
+      expect(monsterSpriteCalls.length).toBe(0)
+    })
+  })
+
   describe('getters', () => {
     it('returns canvas element', () => {
       expect(renderer.getCanvas()).toBe(canvas)

@@ -93,7 +93,9 @@ export class CanvasGameRenderer {
     // Render terrain (floor, walls, doors, stairs)
     this.renderTerrain(state)
 
-    // TODO: Render entities (Phase 2, Task 2.3)
+    // Render entities (items, gold, monsters)
+    this.renderEntities(state)
+
     // TODO: Render player (Phase 2, Task 2.4)
   }
 
@@ -142,6 +144,112 @@ export class CanvasGameRenderer {
         this.drawTile(x, y, sprite, opacity)
       }
     }
+  }
+
+  /**
+   * Render entities (items, gold, monsters)
+   *
+   * Entities are rendered in order: items → gold → monsters
+   * This ensures monsters appear on top of items/gold.
+   *
+   * @param state - Current game state
+   */
+  private renderEntities(state: GameState): void {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return
+
+    const renderConfig = {
+      showItemsInMemory: true, // TODO: Make this configurable in Phase 5
+      showGoldInMemory: false, // Gold only visible in FOV
+    }
+
+    // Render items first (bottom layer)
+    for (const item of level.items) {
+      this.renderEntity(state, level, item.position, item.name[0] || '?', 'item', renderConfig)
+    }
+
+    // Render gold piles
+    for (const gold of level.gold) {
+      this.renderEntity(state, level, gold.position, '$', 'gold', renderConfig)
+    }
+
+    // Render monsters (top layer)
+    for (const monster of level.monsters) {
+      this.renderEntity(state, level, monster.position, monster.letter, 'monster', renderConfig)
+    }
+
+    // Render stairs
+    if (level.stairsUp) {
+      this.renderEntity(state, level, level.stairsUp, '<', 'stairs', renderConfig)
+    }
+    if (level.stairsDown) {
+      this.renderEntity(state, level, level.stairsDown, '>', 'stairs', renderConfig)
+    }
+
+    // Render discovered traps
+    for (const trap of level.traps) {
+      if (trap.discovered) {
+        this.renderEntity(state, level, trap.position, '^', 'trap', renderConfig)
+      }
+    }
+  }
+
+  /**
+   * Render a single entity (monster, item, gold, stairs, trap)
+   *
+   * @param state - Current game state
+   * @param level - Current level
+   * @param position - Entity position
+   * @param char - Character to look up sprite
+   * @param entityType - Type of entity
+   * @param config - Render configuration
+   */
+  private renderEntity(
+    state: GameState,
+    level: typeof state.levels extends Map<number, infer L> ? L : never,
+    position: Position,
+    char: string,
+    entityType: 'monster' | 'item' | 'gold' | 'stairs' | 'trap',
+    config: { showItemsInMemory: boolean; showGoldInMemory: boolean }
+  ): void {
+    // Get visibility state
+    const visibilityState = this.renderingService.getVisibilityState(
+      position,
+      state.visibleCells,
+      level
+    )
+
+    // Check if entity should be rendered
+    if (!this.renderingService.shouldRenderEntity(position, entityType, visibilityState, config)) {
+      return
+    }
+
+    // Look up sprite
+    const sprite = this.assetLoader.getSprite(char)
+    if (!sprite) {
+      // Missing sprite - skip (could add fallback in Phase 5)
+      return
+    }
+
+    // Determine opacity
+    let opacity = 1.0
+    if (visibilityState === 'explored') {
+      // Explored entities are dimmed
+      opacity = this.config.exploredOpacity
+    } else if (visibilityState === 'visible') {
+      opacity = 1.0
+    }
+
+    // Handle detection effects (detected but not visible)
+    // TODO: In Phase 3, add color tinting for detected entities
+    if (entityType === 'monster' && state.detectedMonsters.has(`${position.x},${position.y}`)) {
+      if (visibilityState !== 'visible') {
+        opacity = this.config.detectedOpacity
+      }
+    }
+
+    // Draw entity sprite
+    this.drawTile(position.x, position.y, sprite, opacity)
   }
 
   /**
