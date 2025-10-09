@@ -96,7 +96,8 @@ export class CanvasGameRenderer {
     // Render entities (items, gold, monsters)
     this.renderEntities(state)
 
-    // TODO: Render player (Phase 2, Task 2.4)
+    // Render player (always on top)
+    this.renderPlayer(state)
   }
 
   /**
@@ -250,6 +251,27 @@ export class CanvasGameRenderer {
 
     // Draw entity sprite
     this.drawTile(position.x, position.y, sprite, opacity)
+  }
+
+  /**
+   * Render player character (@)
+   *
+   * Player is always rendered on top of all other entities with full opacity.
+   *
+   * @param state - Current game state
+   */
+  private renderPlayer(state: GameState): void {
+    const playerPos = state.player.position
+
+    // Look up player sprite ('@')
+    const sprite = this.assetLoader.getSprite('@')
+    if (!sprite) {
+      console.warn('[CanvasGameRenderer] Player sprite not found')
+      return
+    }
+
+    // Always render player at full opacity
+    this.drawTile(playerPos.x, playerPos.y, sprite, 1.0)
   }
 
   /**

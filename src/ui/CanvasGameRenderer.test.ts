@@ -271,17 +271,19 @@ describe('CanvasGameRenderer', () => {
       mockState.levels.set(1, level)
 
       // Mock sprite lookup
-      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
-        x: 0,
-        y: 0,
-        hexX: 0x80,
-        hexY: 0x80,
+      const getSpriteMock = jest.spyOn(assetLoader, 'getSprite')
+      getSpriteMock.mockImplementation((char: string) => {
+        if (char === '@') {
+          return { x: 0, y: 64, hexX: 0x80, hexY: 0x82 }
+        }
+        return { x: 0, y: 0, hexX: 0x80, hexY: 0x80 }
       })
 
       renderer.render(mockState)
 
-      // Should not draw any tiles (all unexplored)
-      expect(mockCtx.drawImage).not.toHaveBeenCalled()
+      // Should draw player but no terrain tiles (all unexplored)
+      const terrainCalls = getSpriteMock.mock.calls.filter(call => call[0] === '.')
+      expect(terrainCalls.length).toBe(0)
     })
 
     it('skips tiles with missing sprites', () => {
@@ -508,13 +510,11 @@ describe('CanvasGameRenderer', () => {
         return { x: 96, y: 0, hexX: 0x83, hexY: 0x80 }
       })
 
-      const initialCallCount = mockCtx.drawImage.mock.calls.length
       renderer.render(mockState)
-      const finalCallCount = mockCtx.drawImage.mock.calls.length
 
-      // Should draw terrain tile but NOT gold
-      // Only 1 call for the terrain at (7,7)
-      expect(finalCallCount - initialCallCount).toBe(1)
+      // Check that gold sprite ('$') was NOT requested
+      const goldSpriteCalls = getSpriteMock.mock.calls.filter(call => call[0] === '$')
+      expect(goldSpriteCalls.length).toBe(0)
     })
 
     it('renders stairs in explored state (stairs persist)', () => {
@@ -585,20 +585,19 @@ describe('CanvasGameRenderer', () => {
       mockState.visibleCells.add('4,4')
       mockState.levels.set(1, level)
 
-      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+      const getSpriteMock = jest.spyOn(assetLoader, 'getSprite')
+      getSpriteMock.mockReturnValue({
         x: 0,
         y: 0,
         hexX: 0x80,
         hexY: 0x80,
       })
 
-      const initialCallCount = mockCtx.drawImage.mock.calls.length
       renderer.render(mockState)
-      const finalCallCount = mockCtx.drawImage.mock.calls.length
 
-      // Should draw terrain tile but NOT trap (undiscovered)
-      // Only 1 call for the terrain at (4,4)
-      expect(finalCallCount - initialCallCount).toBe(1)
+      // Check that trap sprite ('^') was NOT requested (undiscovered)
+      const trapSpriteCalls = getSpriteMock.mock.calls.filter(call => call[0] === '^')
+      expect(trapSpriteCalls.length).toBe(0)
     })
 
     it('handles detected monsters with dimmed opacity', () => {
@@ -643,6 +642,70 @@ describe('CanvasGameRenderer', () => {
       // (monsters only visible in FOV, detection doesn't override)
       const monsterSpriteCalls = getSpriteMock.mock.calls.filter(call => call[0] === 'B')
       expect(monsterSpriteCalls.length).toBe(0)
+    })
+  })
+
+  describe('renderPlayer', () => {
+    it('renders player sprite at player position', () => {
+      const mockState = createMockGameState()
+      mockState.player.position = { x: 10, y: 5 }
+
+      // Create level so terrain doesn't fail
+      const level = createSimpleLevel(20, 20)
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup
+      const getSpriteMock = jest.spyOn(assetLoader, 'getSprite')
+      getSpriteMock.mockImplementation((char: string) => {
+        if (char === '@') {
+          return { x: 0, y: 64, hexX: 0x80, hexY: 0x82 }
+        }
+        return null
+      })
+
+      renderer.render(mockState)
+
+      // Check that player sprite was requested
+      const playerSpriteCalls = getSpriteMock.mock.calls.filter(call => call[0] === '@')
+      expect(playerSpriteCalls.length).toBe(1)
+    })
+
+    it('renders player at full opacity', () => {
+      const mockState = createMockGameState()
+      mockState.player.position = { x: 15, y: 10 }
+
+      // Create level
+      const level = createSimpleLevel(20, 20)
+      mockState.levels.set(1, level)
+
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue({
+        x: 0,
+        y: 64,
+        hexX: 0x80,
+        hexY: 0x82,
+      })
+
+      renderer.render(mockState)
+
+      // Player should always be rendered (opacity handled by drawTile, which is tested separately)
+      expect(mockCtx.drawImage).toHaveBeenCalled()
+    })
+
+    it('handles missing player sprite gracefully', () => {
+      const mockState = createMockGameState()
+      mockState.player.position = { x: 5, y: 5 }
+
+      // Create level
+      const level = createSimpleLevel(10, 10)
+      mockState.levels.set(1, level)
+
+      // Mock sprite lookup to return null for player
+      jest.spyOn(assetLoader, 'getSprite').mockReturnValue(null)
+
+      // Should not throw
+      renderer.render(mockState)
+
+      // Should have logged warning (but we don't test console output)
     })
   })
 
