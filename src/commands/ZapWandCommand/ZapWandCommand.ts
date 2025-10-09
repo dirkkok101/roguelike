@@ -1,4 +1,4 @@
-import { GameState, ItemType, Wand, StatusEffectType } from '@game/core/core'
+import { GameState, ItemType, Wand, StatusEffectType, Position } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { WandService } from '@services/WandService'
@@ -20,7 +20,7 @@ export class ZapWandCommand implements ICommand {
     private turnService: TurnService,
     private statusEffectService: StatusEffectService,
     private targetingService: TargetingService,
-    private targetMonsterId?: string
+    private targetPosition?: Position
   ) {}
 
   execute(state: GameState): GameState {
@@ -63,8 +63,8 @@ export class ZapWandCommand implements ICommand {
 
     const wand = item as Wand
 
-    // 3. Validate target monster ID is provided
-    if (!this.targetMonsterId) {
+    // 3. Validate target position is provided
+    if (!this.targetPosition) {
       const messages = this.messageService.addMessage(
         state.messages,
         'No target selected.',
@@ -74,29 +74,54 @@ export class ZapWandCommand implements ICommand {
       return { ...state, messages }
     }
 
-    // 4-7. Comprehensive target validation (all checks delegated to service)
-    const validation = this.targetingService.validateWandTarget(
-      this.targetMonsterId,
-      wand.range || 5,
-      state
-    )
+    // 4. Validate target position is within range (use Manhattan distance)
+    const distance = Math.abs(this.targetPosition.x - state.player.position.x) +
+                     Math.abs(this.targetPosition.y - state.player.position.y)
+    const wandRange = wand.range || 5
 
-    if (!validation.isValid) {
+    if (distance > wandRange) {
       const messages = this.messageService.addMessage(
         state.messages,
-        validation.error!,
+        `Target out of range (${distance} > ${wandRange}).`,
         'warning',
         state.turnCount
       )
       return { ...state, messages }
     }
 
-    // 8. Apply wand effect (decrements charges)
+    // 8. Apply wand effect with projectile logic (decrements charges)
+    // TODO (Task 4.3): Implement wandService.applyWandAtPosition() with ray-casting
+    // For now, find monster at target position and use existing applyWand method
+    const currentLevel = state.levels.get(state.currentLevel)
+    if (!currentLevel) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'Invalid level state.',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
+    const targetMonster = currentLevel.monsters.find(
+      m => m.position.x === this.targetPosition!.x && m.position.y === this.targetPosition!.y
+    )
+
+    if (!targetMonster) {
+      const messages = this.messageService.addMessage(
+        state.messages,
+        'No monster at target position. (Projectile logic not yet implemented)',
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
+
     const result = this.wandService.applyWand(
       state.player,
       wand,
       state,
-      this.targetMonsterId
+      targetMonster.id
     )
 
     // 9. Update wand in inventory (charges changed)
