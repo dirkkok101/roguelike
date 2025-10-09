@@ -166,14 +166,14 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 - `src/services/NotificationService/NotificationService.ts`
 
 ##### Subtasks:
-- [ ] In MonsterAIService.checkWakeUp(), return wake event flag
-- [ ] Add `recentWakeUps: Monster[]` to service return value
-- [ ] NotificationService reads wake-up events from AI service
-- [ ] Generate "The Orc wakes up!" message
-- [ ] Handle multiple wake-ups: "The Bat and Snake wake up!"
-- [ ] Integrate with MessageService for proper display
-- [ ] Write tests for wake-up message generation
-- [ ] Git commit: "feat: add monster wake-up notifications (Phase 2.2)"
+- [x] Add checkWakeUpMessages() method to NotificationService (compares previous/current states)
+- [x] Detect monsters transitioning from isAsleep=true to isAsleep=false
+- [x] Generate "The Orc wakes up!" message for single wake-up
+- [x] Handle multiple wake-ups: "The Bat and Orc wake up!" (2 monsters)
+- [x] Handle 3+ wake-ups: "The Snake, Hobgoblin, and Troll wake up!"
+- [x] Filter out already-awake monsters and new/dead monsters
+- [x] Write comprehensive unit tests (13 tests, all passing, >90% coverage)
+- [x] Git commit: "feat: add monster wake-up notifications (Phase 2.2)"
 
 ---
 

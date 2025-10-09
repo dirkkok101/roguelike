@@ -205,6 +205,55 @@ export class NotificationService {
   }
 
   /**
+   * Check for monsters that woke up and generate wake-up messages
+   * Compares current and previous monster states to detect SLEEPING → HUNTING transitions
+   */
+  checkWakeUpMessages(currentMonsters: Monster[], previousMonsters: Monster[]): string[] {
+    // Create a map of previous monster states for quick lookup
+    const previousStates = new Map<string, Monster>()
+    previousMonsters.forEach((m) => previousStates.set(m.id, m))
+
+    // Find monsters that just woke up
+    const wokeUpMonsters = currentMonsters.filter((currentMonster) => {
+      const previousMonster = previousStates.get(currentMonster.id)
+      if (!previousMonster) return false
+
+      // Detect transition from asleep to awake
+      return previousMonster.isAsleep && !currentMonster.isAsleep
+    })
+
+    // No wake-ups
+    if (wokeUpMonsters.length === 0) return []
+
+    // Generate wake-up message
+    return this.formatWakeUpMessage(wokeUpMonsters)
+  }
+
+  /**
+   * Format wake-up message
+   * Examples:
+   * - "The Dragon wakes up!"
+   * - "The Bat and Orc wake up!"
+   * - "The Snake, Hobgoblin, and Troll wake up!"
+   */
+  private formatWakeUpMessage(monsters: Monster[]): string[] {
+    if (monsters.length === 0) return []
+
+    if (monsters.length === 1) {
+      return [`The ${monsters[0].name} wakes up!`]
+    }
+
+    if (monsters.length === 2) {
+      return [`The ${monsters[0].name} and ${monsters[1].name} wake up!`]
+    }
+
+    // 3+ monsters: "The Snake, Hobgoblin, and Troll wake up!"
+    const monsterNames = monsters.map((m) => m.name)
+    const lastMonster = monsterNames.pop()
+    return [`The ${monsterNames.join(', ')}, and ${lastMonster} wake up!`]
+  }
+
+  /**
    * Get nearby door (adjacent tiles)
    */
   private getNearbyDoor(level: Level, pos: Position) {
