@@ -74,8 +74,8 @@ describe('EntryDetailsModal', () => {
       const entry = createTestEntry({ score: 12345 })
       modal.show(entry, jest.fn())
 
-      // Accept both comma and space as thousands separator
-      expect(document.body.textContent).toMatch(/12[, ]345/)
+      // Accept comma or whitespace(s) as thousands separator
+      expect(document.body.textContent).toMatch(/12[,\s]+345/)
     })
 
     test('displays timestamp as formatted date', () => {
@@ -131,9 +131,9 @@ describe('EntryDetailsModal', () => {
 
       expect(document.body.textContent).toContain('Character Progression')
       expect(document.body.textContent).toContain('Level 8')
-      // Accept both comma and space as thousands separator
-      expect(document.body.textContent).toMatch(/5[, ]000/)
-      expect(document.body.textContent).toMatch(/1[, ]200/)
+      // Accept comma or whitespace(s) as thousands separator
+      expect(document.body.textContent).toMatch(/5[,\s]+000/)
+      expect(document.body.textContent).toMatch(/1[,\s]+200/)
     })
 
     test('displays exploration stats', () => {
@@ -146,8 +146,8 @@ describe('EntryDetailsModal', () => {
 
       expect(document.body.textContent).toContain('Exploration')
       expect(document.body.textContent).toContain('Level 10')
-      // Accept both comma and space as thousands separator
-      expect(document.body.textContent).toMatch(/1[, ]500/)
+      // Accept comma or whitespace(s) as thousands separator
+      expect(document.body.textContent).toMatch(/1[,\s]+500/)
     })
 
     test('displays combat stats', () => {

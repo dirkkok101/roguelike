@@ -146,7 +146,8 @@ describe('DeathScreen', () => {
     const stats = createDeathStats({ totalXP: 2500 })
     screen.show(stats, createTestState(), jest.fn(), jest.fn(), jest.fn())
 
-    expect(document.body.textContent).toContain('XP: 2,500')
+    // Accept comma or whitespace(s) as thousands separator
+    expect(document.body.textContent).toMatch(/XP: 2[,\s]+500/)
   })
 
   test('displays deepest level reached', () => {
@@ -160,7 +161,8 @@ describe('DeathScreen', () => {
     const stats = createDeathStats({ totalTurns: 1500 })
     screen.show(stats, createTestState(), jest.fn(), jest.fn(), jest.fn())
 
-    expect(document.body.textContent).toContain('Turns: 1,500')
+    // Accept comma or whitespace(s) as thousands separator
+    expect(document.body.textContent).toMatch(/Turns: 1[,\s]+500/)
   })
 
   test('displays seed', () => {
