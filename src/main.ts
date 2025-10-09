@@ -137,8 +137,8 @@ async function initializeGame() {
     dungeonService,
     curseService
   )
-  const wandService = new WandService(identificationService, random, combatService)
   const targetingService = new TargetingService(fovService, movementService)
+  const wandService = new WandService(identificationService, random, combatService, targetingService)
   const modalController = new ModalController(identificationService, curseService)
 
   // Dungeon configuration

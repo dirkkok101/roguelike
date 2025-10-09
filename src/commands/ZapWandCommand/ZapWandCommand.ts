@@ -90,38 +90,12 @@ export class ZapWandCommand implements ICommand {
     }
 
     // 8. Apply wand effect with projectile logic (decrements charges)
-    // TODO (Task 4.3): Implement wandService.applyWandAtPosition() with ray-casting
-    // For now, find monster at target position and use existing applyWand method
-    const currentLevel = state.levels.get(state.currentLevel)
-    if (!currentLevel) {
-      const messages = this.messageService.addMessage(
-        state.messages,
-        'Invalid level state.',
-        'warning',
-        state.turnCount
-      )
-      return { ...state, messages }
-    }
-
-    const targetMonster = currentLevel.monsters.find(
-      m => m.position.x === this.targetPosition!.x && m.position.y === this.targetPosition!.y
-    )
-
-    if (!targetMonster) {
-      const messages = this.messageService.addMessage(
-        state.messages,
-        'No monster at target position. (Projectile logic not yet implemented)',
-        'warning',
-        state.turnCount
-      )
-      return { ...state, messages }
-    }
-
-    const result = this.wandService.applyWand(
+    // Uses ray-casting to find first obstacle (monster or wall)
+    const result = this.wandService.applyWandAtPosition(
       state.player,
       wand,
       state,
-      targetMonster.id
+      this.targetPosition
     )
 
     // 9. Update wand in inventory (charges changed)

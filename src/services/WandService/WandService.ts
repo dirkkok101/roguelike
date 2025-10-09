@@ -33,7 +33,8 @@ export class WandService {
   constructor(
     private identificationService: IdentificationService,
     private random: IRandomService,
-    private combatService: CombatService
+    private combatService: CombatService,
+    private targetingService?: any // Optional for now, will be injected in Task 4.3
   ) {}
 
   /**
@@ -97,6 +98,117 @@ export class WandService {
       state: result.state,
       message: result.message,
       identified,
+    }
+  }
+
+  /**
+   * Apply wand at target position with projectile logic
+   * Based on original Rogue get_zapped_monster() behavior:
+   * - Bolts stop at first obstacle (monster or wall)
+   * - No pass-through or bouncing mechanics
+   * - All wand types use same bolt behavior
+   *
+   * @param player - Player state
+   * @param wand - Wand being zapped
+   * @param state - Current game state
+   * @param targetPosition - Target position (may be empty tile)
+   * @returns Updated game state with wand effect applied
+   */
+  applyWandAtPosition(
+    player: Player,
+    wand: Wand,
+    state: GameState,
+    targetPosition: Position
+  ): WandEffectResult {
+    // Check if wand has charges
+    if (wand.currentCharges === 0) {
+      return {
+        player,
+        wand,
+        message: 'The wand has no charges.',
+        identified: false,
+      }
+    }
+
+    // Get current level
+    const currentLevel = state.levels.get(state.currentLevel)
+    if (!currentLevel) {
+      return {
+        player,
+        wand,
+        message: 'Invalid level state.',
+        identified: false,
+      }
+    }
+
+    // Require TargetingService dependency
+    if (!this.targetingService) {
+      throw new Error('TargetingService not injected into WandService')
+    }
+
+    // Calculate ray from player to target position
+    const ray = this.targetingService.calculateRay(
+      player.position,
+      targetPosition,
+      currentLevel
+    )
+
+    // Find first obstacle along ray (based on original Rogue logic)
+    let hitMonster: Monster | null = null
+    let hitWall = false
+
+    for (const pos of ray) {
+      // Check for monster (MONSTER flag in original Rogue)
+      const monster = currentLevel.monsters.find(
+        m => m.position.x === pos.x && m.position.y === pos.y
+      )
+      if (monster) {
+        hitMonster = monster
+        break  // ✅ Stop at FIRST monster (no pass-through)
+      }
+
+      // Check for wall (HORWALL | VERTWALL in original Rogue)
+      const tile = currentLevel.tiles[pos.y][pos.x]
+      if (!tile.walkable) {
+        hitWall = true
+        break  // ✅ Stop at wall
+      }
+    }
+
+    // Identify wand by use
+    const identified = !this.identificationService.isIdentified(wand.wandType, state)
+    const displayName = this.identificationService.getDisplayName(wand, state)
+
+    // Decrement charges
+    const updatedWand = { ...wand, currentCharges: wand.currentCharges - 1 }
+
+    // Apply effect based on what was hit
+    if (hitMonster) {
+      // Hit a monster - apply wand effect
+      const result = this.applyWandEffect(wand, hitMonster, currentLevel, state, displayName)
+      return {
+        player,
+        wand: updatedWand,
+        state: result.state,
+        message: result.message,
+        identified,
+      }
+    } else if (hitWall) {
+      // Hit a wall - no effect
+      return {
+        player,
+        wand: updatedWand,
+        message: `You zap ${displayName}. The beam hits the wall.`,
+        identified,
+      }
+    } else {
+      // Nothing hit - beam fizzles out
+      return {
+        player,
+        wand: updatedWand,
+        message: `You zap ${displayName}. The beam fizzles out.`,
+        identified,
+      }
     }
   }
 

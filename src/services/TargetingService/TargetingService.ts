@@ -432,6 +432,77 @@ export class TargetingService {
     return null
   }
 
+  /**
+   * Calculate ray from start to end position using Bresenham's line algorithm
+   *
+   * This method traces a line between two arbitrary positions, used for
+   * projectile-based wand targeting. The ray stops at walls or reaches the
+   * target position, returning all positions along the path.
+   *
+   * Based on original Rogue (1980) behavior:
+   * - Bolts stop at first obstacle (monster or wall)
+   * - No pass-through or bouncing mechanics
+   * - All wand types use the same bolt mechanics
+   *
+   * @param start - Starting position (player position)
+   * @param end - End position (cursor/target position)
+   * @param level - Current dungeon level
+   * @returns Array of positions along the ray path (excluding start position)
+   */
+  public calculateRay(start: Position, end: Position, level: Level): Position[] {
+    const path: Position[] = []
+
+    // Calculate deltas
+    const dx = Math.abs(end.x - start.x)
+    const dy = Math.abs(end.y - start.y)
+
+    // Determine step directions
+    const sx = start.x < end.x ? 1 : -1
+    const sy = start.y < end.y ? 1 : -1
+
+    // Initial error
+    let err = dx - dy
+
+    // Current position
+    let x = start.x
+    let y = start.y
+
+    // Trace line using Bresenham's algorithm
+    while (true) {
+      // Add current position to path (skip start position)
+      if (x !== start.x || y !== start.y) {
+        const pos = { x, y }
+        path.push(pos)
+
+        // Stop if we've reached the end position
+        if (x === end.x && y === end.y) {
+          break
+        }
+
+        // Stop at walls (non-walkable tiles)
+        if (!this.movementService.isInBounds(pos, level)) {
+          break
+        }
+        if (!this.movementService.isWalkable(pos, level)) {
+          break
+        }
+      }
+
+      // Bresenham's algorithm step
+      const e2 = 2 * err
+      if (e2 > -dy) {
+        err -= dy
+        x += sx
+      }
+      if (e2 < dx) {
+        err += dx
+        y += sy
+      }
+    }
+
+    return path
+  }
+
   // ============================================================================
   // PRIVATE HELPER METHODS
   // ============================================================================
