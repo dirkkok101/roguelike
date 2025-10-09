@@ -106,70 +106,60 @@ body {
 .tile-unexplored { opacity: 0; }
 
 /* Stats Panel Components */
-.stats-row-1 {
+.stats-row {
   display: flex;
   gap: 12px;
-  font-size: 0.95em;
+  font-size: 0.9em;
 }
 
 /* Stats panel styling */
 .stats-panel {
   flex: 1;
-  padding: 10px;
+  padding: 8px 10px;
   background: #1a1a1a;
   border: 1px solid #333;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  min-width: 0; /* Allow flex shrink */
 }
 
 .stats-panel-header {
   color: #888;
-  font-size: 0.85em;
+  font-size: 0.8em;
   margin-bottom: 2px;
   border-bottom: 1px solid #333;
-  padding-bottom: 4px;
+  padding-bottom: 3px;
+  font-weight: bold;
 }
 
 .stats-panel-content {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.85em;
 }
 
 .stats-panel-content > div {
   white-space: nowrap;
-}
-
-.stats-row-2 {
-  display: flex;
-  gap: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .equipment-section {
-  flex: 3;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 10px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 4px;
+  /* Now inherits styles from .stats-panel */
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .equipment-header {
-  grid-column: 1 / -1;
-  color: #888;
-  font-size: 0.85em;
-  margin-bottom: 2px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 4px;
+  /* Inherits from .stats-panel-header */
 }
 
 .equipment-slot {
-  font-size: 0.9em;
+  font-size: 0.85em;
   color: #ccc;
   white-space: nowrap;
   overflow: hidden;
@@ -186,37 +176,24 @@ body {
 }
 
 .status-section {
-  flex: 2;
-  padding: 10px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 4px;
-  max-height: 90px;
-  overflow-y: auto;
+  /* Now inherits styles from .stats-panel */
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .status-header {
-  color: #888;
-  font-size: 0.85em;
-  margin-bottom: 4px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 4px;
+  /* Inherits from .stats-panel-header */
 }
 
 .status-effect-item {
   font-size: 0.85em;
-  margin: 2px 0;
+  margin: 1px 0;
 }
 
 .status-empty {
   color: #666;
   font-style: italic;
-  font-size: 0.85em;
-}
-
-.stats-row-3 {
-  display: flex;
-  gap: 20px;
   font-size: 0.85em;
 }
 
@@ -296,27 +273,27 @@ body {
     grid-row: 4;
   }
 
-  /* Stack stats panels vertically on narrow screens */
-  .stats-row-1 {
-    flex-direction: column;
-  }
-
-  .stats-row-2 {
-    flex-direction: column;
-  }
-
-  .equipment-section,
-  .status-section {
-    flex: 1;
+  /* Stack stats panels in 2x2 grid on narrow screens */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   /* Adjust font sizes for readability on small screens */
   .stats-panel {
-    font-size: 0.9em;
+    font-size: 0.85em;
+    padding: 6px 8px;
   }
 
   .stats-panel-content {
-    gap: 8px;
+    gap: 2px;
+    font-size: 0.8em;
+  }
+
+  .equipment-slot,
+  .status-effect-item {
+    font-size: 0.8em;
   }
 }
 

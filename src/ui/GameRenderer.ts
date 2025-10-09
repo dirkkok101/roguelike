@@ -366,51 +366,30 @@ export class GameRenderer {
           51%, 100% { opacity: 0.3; }
         }
       </style>
-      <!-- Row 1: Core Stats + Resources Panels -->
-      <div class="stats-row-1">
+      <!-- Single Row: 4 Panels Side-by-Side -->
+      <div class="stats-row">
         <div class="stats-panel">
-          <div class="stats-panel-header">Combat Stats</div>
+          <div class="stats-panel-header">Combat</div>
           <div class="stats-panel-content">
             <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
             <div>Str: ${strDisplay}</div>
             <div>AC: ${acDisplay}</div>
             <div>Lvl: ${player.level}</div>
+            <div>XP: ${xpDisplay}</div>
           </div>
         </div>
         <div class="stats-panel">
           <div class="stats-panel-header">Resources</div>
           <div class="stats-panel-content">
-            <div>XP: ${xpDisplay}</div>
             <div>Gold: ${player.gold}</div>
-            <div>Turn: ${state.turnCount}</div>
+            <div>Hunger: ${hungerLabel}${hungerWarning}</div>
             <div>Depth: ${state.currentLevel}</div>
-            <div style="color: ${invColor};">Inv: ${invCount}/26</div>
+            <div>Turn: ${state.turnCount}</div>
+            <div>Torch: ${lightLabel}${lightWarning}</div>
           </div>
         </div>
-      </div>
-
-      <!-- Row 2: Equipment + Status Effects -->
-      <div class="stats-row-2">
         ${this.renderEquipmentSlots(state)}
         ${this.renderStatusEffects(state)}
-      </div>
-
-      <!-- Row 3: Resource Bars -->
-      <div class="stats-row-3">
-        <div class="resource-bar">
-          <span>Hunger${hungerWarning}:</span>
-          <div class="bar-visual">
-            <div class="bar-fill ${hungerBarClass}" style="width: ${hungerPercent}%;"></div>
-          </div>
-          <span>${hungerLabel}</span>
-        </div>
-        <div class="resource-bar">
-          <span>Light${lightWarning}:</span>
-          <div class="bar-visual">
-            <div class="bar-fill ${lightBarClass}" style="width: ${lightPercent}%;"></div>
-          </div>
-          <span>${lightLabel}</span>
-        </div>
       </div>
     `
   }
@@ -576,13 +555,15 @@ export class GameRenderer {
     }
 
     return `
-      <div class="equipment-section">
-        <div class="equipment-header">Equipment</div>
-        <div class="${weaponClass}">${weaponSlot}${weaponCursed}</div>
-        <div class="${armorClass}">${armorSlot}${armorCursed}</div>
-        <div class="${leftRingClass}">${leftRingSlot}${leftRingCursed}</div>
-        <div class="${rightRingClass}">${rightRingSlot}${rightRingCursed}</div>
-        <div class="${lightClass}" style="grid-column: 1 / -1;">${lightSlot}</div>
+      <div class="stats-panel equipment-section">
+        <div class="stats-panel-header equipment-header">Equipment</div>
+        <div class="stats-panel-content">
+          <div class="${weaponClass}">${weaponSlot}${weaponCursed}</div>
+          <div class="${armorClass}">${armorSlot}${armorCursed}</div>
+          <div class="${leftRingClass}">${leftRingSlot}${leftRingCursed}</div>
+          <div class="${rightRingClass}">${rightRingSlot}${rightRingCursed}</div>
+          <div class="${lightClass}">${lightSlot}</div>
+        </div>
       </div>
     `
   }
@@ -595,9 +576,11 @@ export class GameRenderer {
 
     if (statusEffects.length === 0) {
       return `
-        <div class="status-section">
-          <div class="status-header">Status Effects</div>
-          <div class="status-empty">None</div>
+        <div class="stats-panel status-section">
+          <div class="stats-panel-header status-header">Status</div>
+          <div class="stats-panel-content">
+            <div class="status-empty">None</div>
+          </div>
         </div>
       `
     }
@@ -612,9 +595,11 @@ export class GameRenderer {
       .join('')
 
     return `
-      <div class="status-section">
-        <div class="status-header">Status Effects</div>
-        ${effectsHTML}
+      <div class="stats-panel status-section">
+        <div class="stats-panel-header status-header">Status</div>
+        <div class="stats-panel-content">
+          ${effectsHTML}
+        </div>
       </div>
     `
   }
