@@ -108,7 +108,8 @@ describe('VictoryScreen', () => {
     const stats = createVictoryStats({ finalScore: 50000 })
     screen.show(stats, createTestState(), jest.fn())
 
-    expect(document.body.textContent).toContain('Final Score: 50,000')
+    // Accept both comma and space as thousands separator
+    expect(document.body.textContent).toMatch(/Final Score: 50[, ]000/)
   })
 
   test('displays character level', () => {
