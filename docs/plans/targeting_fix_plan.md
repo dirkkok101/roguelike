@@ -21,12 +21,16 @@ Fix the wand targeting system so that after selecting a wand, the targeting curs
 
 ### Success Criteria
 - [x] Diagnostic complete: Root cause identified
-- [ ] After selecting a wand, targeting cursor appears immediately on game map
-- [ ] Targeting cursor moves with arrow keys and shows real-time visual feedback
-- [ ] Targeting line draws from player through cursor until hitting wall
-- [ ] Contextual menu shows options: "Enter to zap / ESC to cancel"
-- [ ] Pressing Enter zaps the wand at target
-- [ ] Pressing ESC cancels targeting and returns to normal gameplay
+- [x] **TESTED**: Wand selection modal appears correctly
+- [x] **TESTED**: Targeting cursor moves with arrow keys and shows real-time visual feedback
+- [x] **TESTED**: Targeting line draws from player through cursor
+- [x] **TESTED**: Contextual menu shows options: "Enter to zap / ESC to cancel"
+- [x] **TESTED**: Pressing ESC cancels targeting and returns to normal gameplay
+- [ ] **BUG #3**: Targeting cursor appears immediately on game map (currently invisible until first move)
+- [ ] **BUG #4**: Pressing Enter fires the wand at target position (currently does nothing)
+- [ ] Wand fires at empty tiles (projectile travels in direction until hitting obstacle)
+- [ ] Wand effect applies to first monster hit along projectile path
+- [ ] Wand stops at walls with appropriate message
 - [ ] All existing tests pass
 - [ ] Manual testing completed for full zap-wand-target-confirm flow
 
@@ -157,6 +161,203 @@ renderTargetingOverlay(targetingState: any): void {
 1. Main loop should render all visible states
 2. For transparent states like `TargetSelectionState`, render the base game first, then the overlay
 3. `TargetSelectionState.render()` should trigger a full game render with targeting overlay
+
+---
+
+## 2b. Playwright Test Results (2025-10-09)
+
+### Test Summary
+
+Comprehensive end-to-end testing was performed using Playwright MCP to validate the targeting system fixes. The tests revealed **the fixes are partially working**, but uncovered **critical bugs** in the wand firing logic.
+
+### ✅ **Passing Tests:**
+
+1. **Game Initialization** - Game loaded and rendered correctly
+2. **Wand Selection Modal** - Modal appeared correctly when pressing 'z'
+3. **Cursor Movement** - Arrow keys successfully moved the targeting cursor, distance updated in real-time
+4. **Targeting Line Rendering** - Yellow asterisk '*' line rendered between player and cursor
+5. **Contextual Menu** - All controls displayed correctly (hjkl/arrows, Tab, Enter, ESC)
+6. **ESC Cancellation** - ESC properly cancelled targeting and returned to normal gameplay
+7. **Enter Key Behavior** - Enter key exited targeting mode cleanly
+
+### ❌ **Critical Bugs Discovered:**
+
+#### Bug #3: Initial Cursor Not Visible
+
+**Symptom:** When first entering targeting mode after wand selection, the cursor 'X' does NOT appear on the map until you move it with arrow keys.
+
+**Expected:** Cursor should appear immediately on map after wand selection
+**Actual:** Cursor only appears after first arrow key press
+
+**Root Cause:** Missing initial render call when `TargetSelectionState` is first pushed onto the state stack. The `GameStateManager.pushState()` calls `state.enter()` but doesn't call `render()`. The first render only happens after the first input event.
+
+**Location:** `src/services/GameStateManager/GameStateManager.ts` - `pushState()` method
+**Impact:** HIGH - Poor UX, player thinks targeting mode failed
+**Fix Required:** Call `renderAllVisibleStates()` immediately after `pushState()` completes
+
+**Visual Evidence:**
+- `targeting-after-wand-selection.png` - Shows NO cursor visible initially
+- `targeting-after-cursor-move.png` - Shows cursor 'X' appeared AFTER moving
+
+---
+
+#### Bug #4: Wand Effect Not Firing
+
+**Symptom:** When pressing Enter on a target position, no wand damage message appeared in the log. The targeting mode exited, but no visible effect occurred on the target monster.
+
+**Expected:** Wand should fire at the targeted position, traveling in that direction until hitting a monster or wall, then applying the effect
+**Actual:** Nothing happens, targeting mode silently exits
+
+**Root Cause Analysis:**
+
+1. **TargetSelectionState.confirmTarget()** (lines 344-355) only calls the callback if:
+   - There's a monster at the cursor position (`if (!monster || !this.isValidTarget()`)
+   - The target is valid (in FOV and within range)
+   - Otherwise it just returns without calling the callback
+
+```typescript
+// src/states/TargetSelectionState/TargetSelectionState.ts:344-355
+private confirmTarget(): void {
+  const monster = this.getMonsterAtCursor()
+
+  // ❌ BUG: Only fires if there's a monster AND it's valid
+  if (!monster || !this.isValidTarget()) {
+    return // Silently exits without calling callback
+  }
+
+  // Only called if monster exists and is valid
+  this.onTarget(monster.id)
+}
+```
+
+2. **ZapWandCommand** expects a `targetMonsterId` (line 23, 67-75):
+   - It validates the monster ID exists
+   - It passes the monster ID to `wandService.applyWand()`
+   - It doesn't support firing at empty tiles or positions
+
+```typescript
+// src/commands/ZapWandCommand/ZapWandCommand.ts:67-75
+if (!this.targetMonsterId) {
+  const messages = this.messageService.addMessage(
+    state.messages,
+    'No target selected.',
+    'warning',
+    state.turnCount
+  )
+  return { ...state, messages }
+}
+```
+
+**Architectural Issue:** The targeting system currently passes **monster ID** to the callback, but it should pass **target POSITION**. This prevents:
+- Firing wands at empty tiles (projectile should travel in that direction)
+- Firing at monsters outside FOV (wand should still fire, projectile travels toward position)
+- Supporting area-of-effect targeting (need position, not monster)
+
+**Location:**
+- `src/states/TargetSelectionState/TargetSelectionState.ts:344-355` - `confirmTarget()`
+- `src/commands/ZapWandCommand/ZapWandCommand.ts:23,67-75,99` - Monster ID validation
+**Impact:** **CRITICAL** - Wands are completely non-functional
+**Fix Required:**
+1. Change `TargetConfirmCallback` signature from `(targetMonsterId: string | null) => void` to `(targetPosition: Position) => void`
+2. Update `confirmTarget()` to always call callback with cursor position (remove monster validation)
+3. Update `ZapWandCommand` to accept target position instead of monster ID
+4. Implement projectile logic in `WandService.applyWand()` to:
+   - Calculate ray from player to target position
+   - Travel along ray until hitting first obstacle (monster or wall)
+   - Apply wand effect to monster if hit, or stop at wall
+
+**User Requirement:** *"We should be able to press enter on any tile on the map, regardless of whether there is a monster or not. The game should zap the wand in the direction the player targeted when pressing enter. The wand should zap in that direction until we hit an obstacle (monster) or wall. If it hits a monster we do the wand effect on the monster."*
+
+---
+
+### Test Environment
+- **Browser:** Playwright MCP (Chromium)
+- **Test Date:** 2025-10-09
+- **Screenshots:** `.playwright-mcp/targeting-*.png`
+- **Console:** No JavaScript errors detected
+
+---
+
+## 2c. Original Rogue Wand Mechanics Research (2025-10-09)
+
+### Research Objective
+
+User requested: *"some wands might go through monsters. we need to research original rogue to study the behaviour"*
+
+The goal was to determine:
+1. Do wand bolts stop at the first monster or pass through multiple targets?
+2. Do different wand types have different projectile behaviors?
+3. Do bolts bounce off walls?
+
+### Source Code Analysis
+
+Examined the original Rogue (1980) source code from GitHub repositories:
+- `github.com/mpwillson/rogue/blob/master/zap.c`
+- `github.com/thedarkb/Rogue/blob/master/zap.c`
+
+### Key Findings
+
+#### 1. **Bolts STOP at First Monster** ✅
+
+The `get_zapped_monster()` function clearly shows bolts stop at the first obstacle:
+
+```c
+get_zapped_monster(short dir, short *row, short *col)
+{
+    for (;;) {
+        get_dir_rc(dir, row, col, 0);
+
+        // Stop if: wall, empty space, or start position
+        if (((*row == orow) && (*col == ocol))
+         || (dungeon[*row][*col] & (HORWALL | VERTWALL))
+         || (dungeon[*row][*col] == NOTHING))
+        {
+            return(0);  // No monster hit
+        }
+
+        // Stop at first monster found
+        if (dungeon[*row][*col] & MONSTER)
+        {
+            if (!imitating(*row, *col))
+            {
+                return(object_at(&level_monsters, *row, *col));
+            }
+        }
+    }
+}
+```
+
+**Behavior:** The function iterates along the bolt's path and **returns the first monster** encountered. It does NOT continue to check for additional monsters.
+
+#### 2. **No Pass-Through Mechanics** ❌
+
+The source code shows NO evidence of:
+- Bolts passing through monsters
+- Different behavior for fire/cold/lightning vs other wands
+- Area-of-effect damage
+
+**All wand types** use the same bolt-tracing logic via `get_zapped_monster()`.
+
+#### 3. **No Bouncing Mechanics** ❌
+
+While earlier research mentioned "bouncing bolts," the actual source code shows:
+- Bolts stop when hitting walls: `(dungeon[*row][*col] & (HORWALL | VERTWALL))`
+- No code for reflecting or bouncing trajectories
+- The "6 tiles" description likely refers to maximum range, not bouncing behavior
+
+### Conclusion
+
+**Projectile Implementation Strategy:**
+1. Calculate ray from player position to target position
+2. Iterate along ray to find first obstacle
+3. Stop at first monster OR first wall encountered
+4. Apply wand effect only to the single monster hit (if any)
+5. No pass-through, no bouncing, no area effects
+
+**Implementation Reference:**
+- See Phase 4, Task 4.3 for detailed projectile logic implementation
+- All 10 wand types share the same bolt mechanics (stop at first obstacle)
+- Only the wand EFFECT differs (damage, sleep, teleport, etc.), not the bolt behavior
 
 ---
 
@@ -348,27 +549,351 @@ if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
 
 ---
 
-### Phase 3: Testing & Verification (Priority: HIGH)
+### Phase 3: Fix Initial Cursor Rendering (Priority: HIGH)
+
+**Objective**: Ensure targeting cursor appears immediately when entering targeting mode
+
+#### Task 3.1: Add render call after pushState
+
+**Context**: When `GameStateManager.pushState()` is called, it calls `state.enter()` but doesn't trigger a render. The first render only happens after the first input event, causing the cursor to be invisible initially.
+
+**Files to modify**:
+- `src/services/GameStateManager/GameStateManager.ts` - `pushState()` method
+- `src/ui/InputHandler.ts` - Wand selection callback (line 470-501)
+
+##### Subtasks:
+- [ ] After `stateManager.pushState(targetingState)`, call `renderAllVisibleStates()` to trigger initial render
+- [ ] Verify cursor appears immediately without needing to move it
+- [ ] Test with multiple state transitions (inventory → targeting, etc.)
+- [ ] Git commit: "fix: render targeting cursor immediately after entering targeting mode"
+
+**Code Change:**
+```typescript
+// src/ui/InputHandler.ts line 470-501 (in wand selection callback)
+// CURRENT
+const targetingState = new TargetSelectionState(
+  // ... constructor args
+)
+stateManager.pushState(targetingState)
+// ❌ No render call - cursor invisible until first input
+
+// FIXED
+const targetingState = new TargetSelectionState(
+  // ... constructor args
+)
+stateManager.pushState(targetingState)
+renderAllVisibleStates() // ✅ Trigger initial render
+```
+
+**Alternative Approach**: Modify `GameStateManager.pushState()` to automatically call render after state transition:
+```typescript
+// src/services/GameStateManager/GameStateManager.ts
+pushState(state: IState): void {
+  this.states.push(state)
+  state.enter()
+  // ✅ Automatically render after state change
+  this.triggerRender() // Calls a registered render callback
+}
+```
+
+---
+
+### Phase 4: Refactor Targeting to Use Positions Instead of Monster IDs (Priority: CRITICAL)
+
+**Objective**: Enable wands to fire at any position, not just monsters
+
+#### Task 4.1: Change TargetConfirmCallback signature to accept Position
+
+**Context**: Currently the callback receives `targetMonsterId: string | null`, but it should receive `targetPosition: Position` to support firing at empty tiles and implementing projectile logic.
+
+**Files to modify**:
+- `src/states/TargetSelectionState/TargetSelectionState.ts:9,23,354` - Type and usage
+- `src/ui/InputHandler.ts:467-501` - Callback implementation
+- `src/commands/ZapWandCommand/ZapWandCommand.ts` - Constructor and execute method
+
+##### Subtasks:
+- [ ] Update `TargetConfirmCallback` type: `(targetMonsterId: string | null) => void` → `(targetPosition: Position) => void`
+- [ ] Update `confirmTarget()` to always call callback with cursor position (remove monster validation)
+- [ ] Update all callback implementations to accept Position
+- [ ] Git commit: "refactor: change targeting callback to pass Position instead of monsterId"
+
+**Code Change:**
+```typescript
+// src/states/TargetSelectionState/TargetSelectionState.ts
+
+// CURRENT
+export type TargetConfirmCallback = (targetMonsterId: string | null) => void
+
+private confirmTarget(): void {
+  const monster = this.getMonsterAtCursor()
+  if (!monster || !this.isValidTarget()) {
+    return // ❌ Silently fails on empty tiles
+  }
+  this.onTarget(monster.id) // ❌ Passes monster ID only
+}
+
+// FIXED
+export type TargetConfirmCallback = (targetPosition: Position) => void
+
+private confirmTarget(): void {
+  // ✅ Always call callback with cursor position
+  this.onTarget({ ...this.cursorPosition })
+}
+```
+
+---
+
+#### Task 4.2: Update ZapWandCommand to accept target position
+
+**Context**: ZapWandCommand currently expects `targetMonsterId` and validates the monster exists. It should accept `targetPosition` and pass it to WandService for projectile logic.
+
+**Files to modify**:
+- `src/commands/ZapWandCommand/ZapWandCommand.ts:23,67-75,99`
+- `src/ui/InputHandler.ts:467-501` - Update callback to create command with position
+
+##### Subtasks:
+- [ ] Change constructor parameter: `targetMonsterId?: string` → `targetPosition?: Position`
+- [ ] Remove monster ID validation (lines 67-75)
+- [ ] Pass position to `wandService.applyWand()` instead of monster ID
+- [ ] Update callback in InputHandler to pass position instead of monster ID
+- [ ] Git commit: "refactor: update ZapWandCommand to accept target position"
+
+**Code Change:**
+```typescript
+// src/commands/ZapWandCommand/ZapWandCommand.ts
+
+// CURRENT
+constructor(
+  private itemId: string,
+  // ... services
+  private targetMonsterId?: string // ❌ Monster ID
+) {}
+
+execute(state: GameState): GameState {
+  // ❌ Validates monster ID exists
+  if (!this.targetMonsterId) {
+    return { ...state, messages: addError('No target selected') }
+  }
+
+  // ❌ Validates monster exists in level
+  const validation = this.targetingService.validateWandTarget(
+    this.targetMonsterId,
+    wand.range,
+    state
+  )
+
+  // ❌ Passes monster ID to wand service
+  const result = this.wandService.applyWand(
+    state.player,
+    wand,
+    state,
+    this.targetMonsterId
+  )
+}
+
+// FIXED
+constructor(
+  private itemId: string,
+  // ... services
+  private targetPosition?: Position // ✅ Target position
+) {}
+
+execute(state: GameState): GameState {
+  // ✅ Validate position is provided
+  if (!this.targetPosition) {
+    return { ...state, messages: addError('No target selected') }
+  }
+
+  // ✅ Validate position is within range
+  const distance = this.targetingService.distance(
+    state.player.position,
+    this.targetPosition
+  )
+  if (distance > wand.range) {
+    return { ...state, messages: addError('Target out of range') }
+  }
+
+  // ✅ Pass position to wand service (projectile logic)
+  const result = this.wandService.applyWandAtPosition(
+    state.player,
+    wand,
+    state,
+    this.targetPosition
+  )
+}
+```
+
+---
+
+#### Task 4.3: Implement projectile logic in WandService
+
+**Context**: WandService needs a new method `applyWandAtPosition()` that calculates a ray from player to target, finds the first obstacle (monster or wall), and applies the wand effect. Based on original Rogue source code research (see Section 2c), bolts should:
+- Stop at the **first monster** encountered
+- Stop at the **first wall** encountered
+- **No pass-through** mechanics
+- **No bouncing** mechanics
+- **All wand types** use the same bolt mechanics (only effect differs)
+
+**Files to modify**:
+- `src/services/WandService/WandService.ts` - Add new method
+- `src/services/TargetingService/TargetingService.ts` - Add ray-casting utility method
+
+##### Subtasks:
+- [ ] Add `TargetingService.calculateRay(from: Position, to: Position, level: Level): Position[]` - Returns positions along line using Bresenham's algorithm
+- [ ] Add `WandService.applyWandAtPosition(player, wand, state, targetPos)` - Projectile logic (based on original Rogue `get_zapped_monster()`):
+  1. Calculate ray from player to target position
+  2. Iterate along ray positions in order
+  3. For each position:
+     - Check if wall → stop, return "beam hits the wall" message, decrement charges
+     - Check if monster → stop, apply wand effect to that monster, decrement charges
+     - Continue to next position if empty
+  4. If ray completes without hitting anything → "beam fizzles out", decrement charges
+- [ ] Keep existing `applyWand(player, wand, state, monsterId)` for backward compatibility
+- [ ] Add tests for projectile logic:
+  - Test: Bolt hits first monster in path (ignores monsters beyond first)
+  - Test: Bolt hits wall before reaching target
+  - Test: Bolt fizzles if no obstacles in range
+  - Test: Bolt applies correct wand effect to hit monster
+- [ ] Git commit: "feat: implement projectile logic for wand targeting (original Rogue behavior)"
+
+**Code Implementation:**
+```typescript
+// src/services/WandService/WandService.ts
+
+/**
+ * Apply wand at target position with projectile logic
+ * Based on original Rogue get_zapped_monster() behavior:
+ * - Bolts stop at first obstacle (monster or wall)
+ * - No pass-through or bouncing mechanics
+ * - All wand types use same bolt behavior
+ */
+applyWandAtPosition(
+  player: Player,
+  wand: Wand,
+  state: GameState,
+  targetPosition: Position
+): WandEffectResult {
+  // Check charges
+  if (wand.currentCharges === 0) {
+    return {
+      player,
+      wand,
+      message: 'The wand has no charges.',
+      identified: false,
+    }
+  }
+
+  // Get current level
+  const level = state.levels.get(state.currentLevel)
+  if (!level) {
+    return {
+      player,
+      wand,
+      message: 'Invalid level state.',
+      identified: false,
+    }
+  }
+
+  // Calculate ray from player to target position
+  const ray = this.targetingService.calculateRay(
+    player.position,
+    targetPosition,
+    level
+  )
+
+  // Find first obstacle along ray (based on original Rogue logic)
+  let hitMonster: Monster | null = null
+  let hitWall = false
+
+  for (const pos of ray) {
+    // Skip player's starting position
+    if (pos.x === player.position.x && pos.y === player.position.y) {
+      continue
+    }
+
+    // Check for wall (HORWALL | VERTWALL in original Rogue)
+    const tile = level.tiles[pos.y][pos.x]
+    if (!tile.walkable) {
+      hitWall = true
+      break
+    }
+
+    // Check for monster (MONSTER flag in original Rogue)
+    const monster = level.monsters.find(
+      m => m.position.x === pos.x && m.position.y === pos.y
+    )
+    if (monster) {
+      hitMonster = monster
+      break  // ✅ Stop at FIRST monster (no pass-through)
+    }
+  }
+
+  // Identify wand by use
+  const identified = !this.identificationService.isIdentified(wand.wandType, state)
+  const displayName = this.identificationService.getDisplayName(wand, state)
+
+  // Decrement charges
+  const updatedWand = { ...wand, currentCharges: wand.currentCharges - 1 }
+
+  // Apply effect based on what was hit
+  if (hitMonster) {
+    // Hit a monster - apply wand effect
+    const result = this.applyWandEffect(wand, hitMonster, level, state, displayName)
+    return {
+      player,
+      wand: updatedWand,
+      state: result.state,
+      message: result.message,
+      identified,
+    }
+  } else if (hitWall) {
+    // Hit a wall - no effect
+    return {
+      player,
+      wand: updatedWand,
+      message: `You zap ${displayName}. The beam hits the wall.`,
+      identified,
+    }
+  } else {
+    // Nothing hit - beam fizzles out
+    return {
+      player,
+      wand: updatedWand,
+      message: `You zap ${displayName}. The beam fizzles out.`,
+      identified,
+    }
+  }
+}
+```
+
+---
+
+### Phase 5: Testing & Verification (Priority: HIGH)
 
 **Objective**: Ensure the complete zap-wand-target flow works end-to-end
 
-#### Task 3.1: Manual Testing Checklist
+#### Task 5.1: Manual Testing Checklist
 
 **Context**: Test the full targeting workflow with various scenarios
 
 ##### Test Cases:
-- [ ] **Happy Path**: Press 'z' → select wand → cursor appears → move cursor → press Enter → wand zaps
-- [ ] **Cancel Targeting**: Press 'z' → select wand → cursor appears → press ESC → returns to normal gameplay
-- [ ] **Invalid Target**: Move cursor out of range or to empty tile → cursor shows red → Enter does nothing
-- [ ] **Multiple Monsters**: Cursor initializes on nearest monster in FOV
+- [x] **Wand Selection Modal**: Press 'z' → wand selection modal appears
+- [x] **Cursor Movement**: Arrow keys move cursor, distance updates in real-time
+- [x] **Targeting Line**: Yellow line ('*') draws from player through cursor
+- [x] **Contextual Menu**: Info panel shows targeting controls
+- [x] **ESC Cancellation**: Press ESC → targeting cancelled, returns to normal gameplay
+- [ ] **Immediate Cursor**: Cursor appears immediately after wand selection (Bug #3)
+- [ ] **Fire at Monster**: Press Enter on monster → wand fires, monster takes damage
+- [ ] **Fire at Empty Tile**: Press Enter on empty tile → projectile travels in direction
+- [ ] **Hit First Monster**: Fire through empty tile → projectile hits first monster in path
+- [ ] **Hit Wall**: Fire at wall → wand beam stops, message "beam hits the wall"
+- [ ] **Out of Range**: Fire beyond range → wand beam fizzles out
 - [ ] **Tab Cycling**: Press Tab to cycle through visible monsters
-- [ ] **Targeting Line**: Line draws from player through cursor, stops at walls
-- [ ] **Info Panel**: Shows target name, HP, distance, range, and controls
 - [ ] **State Stack**: Targeting pushes new state, ESC pops it correctly
 
 ---
 
-#### Task 3.2: Run Existing Tests
+#### Task 5.2: Run Existing Tests
 
 **Context**: Ensure no regressions in existing test suite
 
@@ -578,4 +1103,4 @@ For each visible state (bottom-to-top):
 ---
 
 **Last Updated**: 2025-10-09
-**Status**: 🚧 In Progress (Diagnostic Complete, Implementation Pending)
+**Status**: 🚧 In Progress (Testing Complete, Bugs Identified, Fixes Pending)
