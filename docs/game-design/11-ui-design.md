@@ -1,7 +1,7 @@
 # UI Design
 
-**Version**: 2.0
-**Last Updated**: 2025-10-05
+**Version**: 2.1
+**Last Updated**: 2025-10-09
 **Related Docs**: [Dungeon](./03-dungeon.md) | [Light Sources](./06-light-sources.md)
 
 ---
@@ -117,53 +117,94 @@
 
 ## 5. Layout
 
-**Responsive Design**: Fixed aspect ratio, scales to fit screen
+**Wide-Screen Design**: Optimized for modern 16:9+ monitors, responsive to narrow screens
+
+### Desktop Layout (>1200px wide)
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  TITLE BAR                                           [~] Debug    │
-│  Roguelike: The Quest for the Amulet          Seed: abc123def    │
-├──────────────────────────────────────────────────────────────────┤
-│  MESSAGE LOG (8 lines, scrolling, grouping, history modal)       │
-│  > You miss the Orc. (x2)                                        │
-│  > You hit the Orc for 5 damage.                                 │
-│  > The Orc attacks you for 3 damage!                             │
-│  > Your torch is getting dim...                                  │
-│  > You feel hungry.                                              │
-│  > You picked up 15 gold.                                        │
-│  > The Zombie attacks! (x3)                                      │
-│  >                                                               │
-├──────────────────────────────────┬────────────────────────────────┤
-│                                  │  STATS                         │
-│                                  │                                │
-│         DUNGEON VIEW (80x22)     │  HP:    24/30  ████████▒▒     │
-│                                  │  Str:   16/16                  │
-│                                  │  AC:    4                      │
-│  #################               │  Lvl:   3                      │
-│  #...............#      ######   │  XP:    156/300                │
-│  #...@...........+######+....#   │  Gold:  247                    │
-│  #...............#      #....#   │  Depth: 5                      │
-│  #...........O...#      #....#   │                                │
-│  #################      ######   │  HUNGER                        │
-│                                  │  [████████████▒▒]  Hungry      │
-│                                  │                                │
-│                                  │  LIGHT                         │
-│                                  │  Torch (dim)                   │
-│                                  │  ~45 turns left                │
-│                                  │                                │
-│                                  │  EQUIPPED                      │
-│                                  │  ────────────                  │
-│                                  │  Weapon:                       │
-│                                  │    Mace +1                     │
-│                                  │  Armor:                        │
-│                                  │    Chain Mail [4]              │
-│                                  │  Rings:                        │
-│                                  │    Protection +1               │
-│                                  │    [empty]                     │
-├──────────────────────────────────┴────────────────────────────────┤
-│  📍 Item here! │ [g]et item  [o]pen door  [i]nventory  [?]help   │
-└──────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STATS BAR (Full Width, Single Row with 4 Panels)                                   │
+│  ──────────────────────────────────────────────────────────────────────────────────  │
+│  ┌────────────────┬─────────────────┬──────────────────────┬───────────────────┐    │
+│  │ COMBAT         │ RESOURCES       │ EQUIPMENT            │ STATUS            │    │
+│  │ HP: 24/30 ⚠️   │ Gold: 247       │ Weapon: Mace +1      │ Confused (5)      │    │
+│  │ Str: 16/16     │ Hunger: Fed     │ Armor: Chain Mail +1 │ Hasted (10)       │    │
+│  │ AC: 4          │ Depth: 5        │ Left Hand: Ring +1   │                   │    │
+│  │ Lvl: 3         │ Turn: 523       │ Right Hand: (empty)  │                   │    │
+│  │ XP: 156/300    │ Torch: 458      │ Light: Torch (458)   │                   │    │
+│  └────────────────┴─────────────────┴──────────────────────┴───────────────────┘    │
+├────────────────────────────────────────────────┬──────────────────────────────────────┤
+│                                                │  MESSAGES (Vertical Scroll)          │
+│                                                │  ────────────────────────────         │
+│          DUNGEON VIEW (80x22)                  │  › You miss the Orc. (x2)            │
+│                                                │  › You hit the Orc for 5 damage.     │
+│                                                │  › The Orc attacks you for 3 damage! │
+│  #################                             │  › Your torch is getting dim...      │
+│  #...............#      ######                 │  › You feel hungry.                  │
+│  #...@...........+######+....#                 │  › You picked up 15 gold.            │
+│  #...............#      #....#                 │  › The Zombie attacks! (x3)          │
+│  #...........O...#      #....#                 │  › You descended to level 5.         │
+│  #################      ######                 │  › It's dark here! (no light)        │
+│                                                │  › ...                               │
+│                                                │  › (30 messages shown, scrollable)   │
+│                                                │                                      │
+├────────────────────────────────────────────────┴──────────────────────────────────────┤
+│  📍 Item here! │ [g]et item  [o]pen door  [i]nventory  [?]help  [~]debug             │
+└──────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Key Layout Features**:
+- **Stats Bar (Top)**: Single row with 4 distinct panels spanning full width
+  - **Combat Panel**: HP, Str, AC, Level, XP (color-coded HP: green/yellow/red)
+  - **Resources Panel**: Gold, Hunger, Depth, Turn, Torch (text-only display)
+  - **Equipment Panel**: All 5 slots with explicit labels (Weapon, Armor, Left Hand, Right Hand, Light Source)
+  - **Status Panel**: Active status effects with durations, or "None"
+- **Dungeon View (Left)**: 80×22 ASCII grid, gets maximum vertical space
+- **Messages (Right)**: Vertical sidebar (320px), shows last 30 messages with › prefix
+- **Command Bar (Bottom)**: Context-aware keybindings, spans full width
+
+### Mobile/Tablet Layout (<1200px wide)
+
+```
+┌────────────────────────────────┐
+│  STATS (2x2 Grid, Compact)     │
+│  ──────────────────────────────  │
+│  ┌──────────┬─────────────┐    │
+│  │ COMBAT   │ RESOURCES   │    │
+│  │ HP: 24/30│ Gold: 247   │    │
+│  │ Str: 16  │ Hunger: Fed │    │
+│  │ AC: 4    │ Depth: 5    │    │
+│  │ Lvl: 3   │ Turn: 523   │    │
+│  │ XP: 156  │ Torch: 458  │    │
+│  ├──────────┼─────────────┤    │
+│  │ EQUIP    │ STATUS      │    │
+│  │ Weapon:  │ Confused(5) │    │
+│  │  Mace +1 │ Hasted(10)  │    │
+│  │ Armor:   │             │    │
+│  │  Chain+1 │             │    │
+│  │ Light:   │             │    │
+│  │  Torch   │             │    │
+│  └──────────┴─────────────┘    │
+├────────────────────────────────┤
+│                                │
+│         DUNGEON VIEW           │
+│       (Maximum height)         │
+│                                │
+│  #################             │
+│  #...@...........#             │
+│  #...............#             │
+│  #################             │
+│                                │
+├────────────────────────────────┤
+│  MESSAGES (Bottom, Full Width) │
+│  › You hit the Orc.            │
+│  › Torch getting dim...        │
+├────────────────────────────────┤
+│  [g]et [i]nv [?]help           │
+└────────────────────────────────┘
+```
+
+**Mobile Priority**: Dungeon map gets majority of vertical space (4 panels arrange in 2x2 grid)
 
 ---
 
@@ -226,12 +267,30 @@
 
 ## 7. Responsive Design
 
-**Full-Width Layout**: Command bar spans browser width (max 1600px)
+**Wide-Screen First**: Optimized for 16:9+ monitors (max 1800px width)
 
-**Narrow Screens** (<1024px):
-- Stacked columns (dungeon above, stats below)
-- Adjustable font sizes
-- Scrollable message log
+**Breakpoint**: 1200px
+
+### Desktop (>1200px)
+- **Grid**: 2 columns (dungeon + messages sidebar)
+- **Stats Bar**: Full width at top, single row with 4 panels (Combat, Resources, Equipment, Status)
+- **Panel Layout**: Flexbox with equal-width panels (flex: 1)
+- **Dungeon**: Left column, gets all vertical space (grid row: `1fr`)
+- **Messages**: Right sidebar (320px fixed), vertical scroll (30 messages)
+- **Command Bar**: Full width bottom
+
+### Mobile/Tablet (<1200px)
+- **Grid**: Single column, stacked layout
+- **Priority**: **Dungeon map gets maximum height**
+- **Stats**: 4 panels in 2x2 grid (Combat | Resources on top, Equipment | Status on bottom)
+- **Dungeon**: Flexible height (`1fr` - takes all remaining space)
+- **Messages**: Stacked below dungeon (full width)
+- **Command Bar**: Bottom
+
+**Design Philosophy**:
+- Wide screens: Single-row 4-panel layout maximizes horizontal space, vertical messages sidebar
+- Narrow screens: **Map is most important** - 4 panels in compact 2x2 grid to maximize dungeon view
+- Text-only resource display (no bars) saves vertical space on all screen sizes
 
 ---
 
