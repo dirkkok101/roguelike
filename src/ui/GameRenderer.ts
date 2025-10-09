@@ -540,20 +540,6 @@ export class GameRenderer {
     const rightRingClass = equipment.rightRing?.cursed ? 'equipment-slot cursed' : equipment.rightRing ? 'equipment-slot' : 'equipment-slot empty'
     const rightRingCursed = equipment.rightRing?.cursed ? ' 🔒' : ''
 
-    // Light source slot
-    let lightSlot = 'Light Source: (empty)'
-    let lightClass = 'equipment-slot empty'
-    if (equipment.lightSource) {
-      if ('fuel' in equipment.lightSource && 'maxFuel' in equipment.lightSource) {
-        // Torch or Lantern
-        lightSlot = `Light Source: ${equipment.lightSource.name} (${equipment.lightSource.fuel}/${equipment.lightSource.maxFuel})`
-      } else {
-        // Artifact
-        lightSlot = `Light Source: ${equipment.lightSource.name} (∞)`
-      }
-      lightClass = 'equipment-slot'
-    }
-
     return `
       <div class="stats-panel equipment-section">
         <div class="stats-panel-header equipment-header">Equipment</div>
@@ -562,7 +548,6 @@ export class GameRenderer {
           <div class="${armorClass}">${armorSlot}${armorCursed}</div>
           <div class="${leftRingClass}">${leftRingSlot}${leftRingCursed}</div>
           <div class="${rightRingClass}">${rightRingSlot}${rightRingCursed}</div>
-          <div class="${lightClass}">${lightSlot}</div>
         </div>
       </div>
     `
