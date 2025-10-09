@@ -191,6 +191,8 @@ export class MonsterAIService {
     const level = state.levels.get(state.currentLevel)
     if (!level) return { type: 'wait' }
 
+    const playerPos = state.player.position
+
     // HIGHEST PRIORITY: Check for adjacent SCARE_MONSTER scrolls
     // Monsters will flee from scare scrolls before any other behavior
     const adjacentPositions = this.getAdjacentPositions(monster.position)
@@ -201,10 +203,20 @@ export class MonsterAIService {
       }
     }
 
+    // SECOND PRIORITY: Check if adjacent to player - attack if adjacent
+    // This happens before chase probability check (always attack when adjacent)
+    if (this.isAdjacent(monster.position, playerPos)) {
+      return { type: 'attack', target: playerPos }
+    }
+
     // Chase probability check (matches original Rogue ISMEAN behavior)
     // If monster has chaseChance < 1.0, roll to see if it pursues this turn
     // MEAN monsters in original Rogue had 67% chance to chase per turn
     const chaseChance = monster.aiProfile.chaseChance ?? 1.0
+    if (chaseChance === 0.0) {
+      // 0% chase chance - passive monster, never chases
+      return { type: 'wait' }
+    }
     if (chaseChance < 1.0) {
       if (!this.random.chance(chaseChance)) {
         // Failed chase roll - monster doesn't pursue this turn
@@ -212,7 +224,6 @@ export class MonsterAIService {
       }
     }
 
-    const playerPos = state.player.position
     const playerPosKey = `${playerPos.x},${playerPos.y}`
 
     // Check if player is visible
@@ -225,11 +236,6 @@ export class MonsterAIService {
     let targetPos: Position = canSeePlayer
       ? playerPos
       : (monster.lastKnownPlayerPosition ?? playerPos)
-
-    // Check if adjacent to player - attack if adjacent (even if can't see through wall)
-    if (this.isAdjacent(monster.position, playerPos)) {
-      return { type: 'attack', target: playerPos }
-    }
 
     // Determine behavior
     const behaviors = Array.isArray(monster.aiProfile.behavior)
