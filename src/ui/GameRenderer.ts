@@ -12,6 +12,7 @@ import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
 import { RingService } from '@services/RingService'
+import { type ITargetingState } from '@states/TargetSelectionState'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -75,7 +76,7 @@ export class GameRenderer {
     this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService, scoreCalculationService)
   }
 
-  private targetingState: import('@states/TargetSelectionState').ITargetingState | null = null // Store active targeting state
+  private targetingState: ITargetingState | null = null // Store active targeting state
 
   /**
    * Render complete game state
@@ -203,7 +204,7 @@ export class GameRenderer {
     return container
   }
 
-  private renderDungeon(state: GameState, targetingState: import('@states/TargetSelectionState').ITargetingState | null = null): void {
+  private renderDungeon(state: GameState, targetingState: ITargetingState | null = null): void {
     const level = state.levels.get(state.currentLevel)
     if (!level) return
 
@@ -640,7 +641,7 @@ export class GameRenderer {
    *
    * @param targetingState - The active targeting state
    */
-  renderTargetingOverlay(targetingState: import('@states/TargetSelectionState').ITargetingState): void {
+  renderTargetingOverlay(targetingState: ITargetingState): void {
     // Store targeting state so it can be used in next render() call
     this.targetingState = targetingState
 

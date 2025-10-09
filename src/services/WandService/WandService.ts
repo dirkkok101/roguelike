@@ -12,6 +12,7 @@ import {
 import { IdentificationService } from '@services/IdentificationService'
 import { IRandomService } from '@services/RandomService'
 import { CombatService } from '@services/CombatService'
+import { type TargetingService } from '@services/TargetingService'
 
 // ============================================================================
 // RESULT TYPE
@@ -34,7 +35,7 @@ export class WandService {
     private identificationService: IdentificationService,
     private random: IRandomService,
     private combatService: CombatService,
-    private targetingService?: import('@services/TargetingService').TargetingService
+    private targetingService?: TargetingService
   ) {}
 
   /**
