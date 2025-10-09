@@ -129,14 +129,14 @@ export class TargetSelectionState extends BaseState {
 
   /**
    * Render the targeting cursor and info
-   * First renders the full game (dungeon, stats, messages), then overlays targeting UI
+   * First stores targeting state, then renders the full game with targeting overlay
    */
   render(): void {
-    // Render base game first (dungeon, stats, messages)
-    this.gameRenderer.render(this.gameState)
-
-    // Then render targeting overlay on top (cursor, line, info panel)
+    // Store targeting state FIRST so GameRenderer can use it during render
     this.gameRenderer.renderTargetingOverlay(this)
+
+    // Then render base game with targeting overlay (dungeon, stats, messages, cursor, line)
+    this.gameRenderer.render(this.gameState)
   }
 
   /**
