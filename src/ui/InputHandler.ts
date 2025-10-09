@@ -465,6 +465,9 @@ export class InputHandler {
 
             // Use new in-game targeting if state manager and renderer available
             if (this.stateManager && this.gameRenderer) {
+              // Close wand selection modal first
+              this.modalController.hide()
+
               const targetingState = new TargetSelectionState(
                 this.targetingService,
                 this.gameRenderer,
