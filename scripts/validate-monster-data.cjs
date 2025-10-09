@@ -173,8 +173,10 @@ function validateMonsters() {
 
       if (monster.aiProfile.aggroRange === undefined) {
         errors.push(`${prefix}: Missing aiProfile.aggroRange`);
-      } else if (monster.aiProfile.aggroRange <= 0) {
-        errors.push(`${prefix}: Aggro range must be positive, got ${monster.aiProfile.aggroRange}`);
+      } else if (monster.aiProfile.aggroRange < 0) {
+        errors.push(`${prefix}: Aggro range must be non-negative, got ${monster.aiProfile.aggroRange}`);
+      } else if (monster.aiProfile.aggroRange === 0 && monster.aiProfile.behavior !== 'ERRATIC') {
+        errors.push(`${prefix}: Aggro range 0 is only valid for ERRATIC monsters (never wake from proximity)`);
       }
 
       if (monster.aiProfile.fleeThreshold === undefined) {
