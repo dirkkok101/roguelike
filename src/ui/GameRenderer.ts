@@ -75,6 +75,8 @@ export class GameRenderer {
     this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService, scoreCalculationService)
   }
 
+  private targetingState: any = null // Store active targeting state
+
   /**
    * Render complete game state
    */
@@ -117,7 +119,7 @@ export class GameRenderer {
       return // Don't render game when victory screen shown
     }
 
-    this.renderDungeon(state)
+    this.renderDungeon(state, this.targetingState)
     this.renderStats(state)
     this.renderMessages(state)
     this.commandBar.render(state)
@@ -201,7 +203,7 @@ export class GameRenderer {
     return container
   }
 
-  private renderDungeon(state: GameState): void {
+  private renderDungeon(state: GameState, targetingState: any = null): void {
     const level = state.levels.get(state.currentLevel)
     if (!level) return
 
@@ -209,6 +211,14 @@ export class GameRenderer {
     const isConfused = state.player.statusEffects.some((e) => e.type === StatusEffectType.CONFUSED)
     const isHasted = state.player.statusEffects.some((e) => e.type === StatusEffectType.HASTED)
     const canSeeInvisible = state.player.statusEffects.some((e) => e.type === StatusEffectType.SEE_INVISIBLE)
+
+    // Get targeting data if active
+    let targetingLine: Set<string> | null = null
+    let cursorPos: Position | null = null
+    if (targetingState) {
+      cursorPos = targetingState.getCursorPosition()
+      targetingLine = this.calculateTargetingLine(state.player.position, cursorPos, level)
+    }
 
     let html = '<pre class="dungeon-grid">'
 
@@ -286,6 +296,25 @@ export class GameRenderer {
         ) {
           char = '>'
           color = visState === 'visible' ? '#FFFF00' : '#707070' // Yellow if visible, gray if explored
+        }
+
+        // Targeting line (render before player but after entities)
+        if (targetingLine && targetingLine.has(`${x},${y}`) && !(x === state.player.position.x && y === state.player.position.y) && !(cursorPos && x === cursorPos.x && y === cursorPos.y)) {
+          char = '*'
+          color = '#FFFF00' // Yellow
+        }
+
+        // Targeting cursor (render before player)
+        if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
+          // Check if target is valid
+          const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
+          const key = `${cursorPos.x},${cursorPos.y}`
+          const inFOV = state.visibleCells.has(key)
+          const monster = level.monsters.find(m => m.position.x === cursorPos.x && m.position.y === cursorPos.y)
+          const isValid = inFOV && !!monster
+
+          char = 'X'
+          color = isValid ? '#00FF00' : '#FF0000' // Green if valid, red if invalid
         }
 
         // Player (always on top)
@@ -612,124 +641,18 @@ export class GameRenderer {
    * @param targetingState - The active targeting state
    */
   renderTargetingOverlay(targetingState: any): void {
+    // Store targeting state so it can be used in next render() call
+    this.targetingState = targetingState
+
+    // Render info panel showing target details
     const cursor = targetingState.getCursorPosition()
     const range = targetingState.getRange()
     const state = targetingState.getGameState()
-    const level = state.levels.get(state.currentLevel)
-
-    if (!level || !this.debugCanvas) return
-
-    const ctx = this.debugCanvas.getContext('2d')
-    if (!ctx) return
-
-    const cellSize = 16
-
-    // 1. Render line from player to cursor
-    this.renderTargetingLine(ctx, state, cursor, level, cellSize)
-
-    // 2. Render cursor at target position
-    this.renderTargetingCursor(ctx, state, cursor, range, cellSize)
-
-    // 3. Render info panel if cursor is on a monster
     this.renderTargetingInfo(state, cursor, range)
   }
 
   /**
-   * Render line from player to cursor position
-   */
-  private renderTargetingLine(
-    ctx: CanvasRenderingContext2D,
-    state: GameState,
-    cursor: Position,
-    level: Level,
-    cellSize: number
-  ): void {
-    // Calculate direction vector from player to cursor
-    const dx = cursor.x - state.player.position.x
-    const dy = cursor.y - state.player.position.y
-
-    // Normalize to get direction
-    const dist = Math.sqrt(dx * dx + dy * dy)
-    if (dist === 0) return
-
-    // Use castRay to get line path (from TargetingService logic)
-    // For now, draw a simple line - could enhance with castRay later
-    const positions: Position[] = []
-    const steps = Math.max(Math.abs(dx), Math.abs(dy))
-
-    for (let i = 0; i <= steps; i++) {
-      const t = steps === 0 ? 0 : i / steps
-      const x = Math.round(state.player.position.x + dx * t)
-      const y = Math.round(state.player.position.y + dy * t)
-      positions.push({ x, y })
-
-      // Stop at walls
-      if (x >= 0 && x < level.width && y >= 0 && y < level.height) {
-        const tile = level.tiles[y][x]
-        if (!tile.walkable && (x !== cursor.x || y !== cursor.y)) {
-          break
-        }
-      }
-    }
-
-    // Draw line segments
-    ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)' // Yellow semi-transparent
-    ctx.lineWidth = 2
-
-    for (let i = 0; i < positions.length - 1; i++) {
-      const pos = positions[i]
-      const nextPos = positions[i + 1]
-
-      ctx.beginPath()
-      ctx.moveTo(pos.x * cellSize + cellSize / 2, pos.y * cellSize + cellSize / 2)
-      ctx.lineTo(nextPos.x * cellSize + cellSize / 2, nextPos.y * cellSize + cellSize / 2)
-      ctx.stroke()
-    }
-  }
-
-  /**
-   * Render cursor at target position
-   */
-  private renderTargetingCursor(
-    ctx: CanvasRenderingContext2D,
-    state: GameState,
-    cursor: Position,
-    range: number,
-    cellSize: number
-  ): void {
-    const level = state.levels.get(state.currentLevel)
-    if (!level) return
-
-    // Check if cursor position is valid (in range, in FOV, has monster)
-    const distance = Math.abs(cursor.x - state.player.position.x) +
-                    Math.abs(cursor.y - state.player.position.y)
-    const inRange = distance <= range
-    const key = `${cursor.x},${cursor.y}`
-    const inFOV = state.visibleCells.has(key)
-    const monster = level.monsters.find(m => m.position.x === cursor.x && m.position.y === cursor.y)
-    const isValid = inRange && inFOV && !!monster
-
-    // Draw cursor box
-    ctx.strokeStyle = isValid ? 'rgba(0, 255, 0, 0.8)' : 'rgba(255, 0, 0, 0.8)'
-    ctx.lineWidth = 2
-    ctx.strokeRect(
-      cursor.x * cellSize + 2,
-      cursor.y * cellSize + 2,
-      cellSize - 4,
-      cellSize - 4
-    )
-
-    // Draw crosshair
-    ctx.beginPath()
-    ctx.moveTo(cursor.x * cellSize + cellSize / 2, cursor.y * cellSize + 4)
-    ctx.lineTo(cursor.x * cellSize + cellSize / 2, cursor.y * cellSize + cellSize - 4)
-    ctx.moveTo(cursor.x * cellSize + 4, cursor.y * cellSize + cellSize / 2)
-    ctx.lineTo(cursor.x * cellSize + cellSize - 4, cursor.y * cellSize + cellSize / 2)
-    ctx.stroke()
-  }
-
-  /**
-   * Render targeting info panel
+   * Render targeting info panel (DOM overlay with target details)
    */
   private renderTargetingInfo(state: GameState, cursor: Position, range: number): void {
     const level = state.levels.get(state.currentLevel)
@@ -822,5 +745,51 @@ export class GameRenderer {
     if (infoPanel) {
       infoPanel.remove()
     }
+
+    // Clear targeting state
+    this.targetingState = null
+  }
+
+  /**
+   * Calculate targeting line from start to end position
+   * Uses Bresenham-like algorithm to trace line until hitting wall
+   *
+   * @param start - Starting position (player)
+   * @param end - End position (cursor)
+   * @param level - Current dungeon level
+   * @returns Set of position keys representing the line path
+   */
+  private calculateTargetingLine(start: Position, end: Position, level: Level): Set<string> {
+    const line = new Set<string>()
+
+    // Calculate direction vector
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+
+    // Number of steps = max of absolute differences
+    const steps = Math.max(Math.abs(dx), Math.abs(dy))
+
+    // Calculate step increments
+    const xStep = steps === 0 ? 0 : dx / steps
+    const yStep = steps === 0 ? 0 : dy / steps
+
+    // Trace line from start to end
+    for (let i = 0; i <= steps; i++) {
+      const x = Math.round(start.x + xStep * i)
+      const y = Math.round(start.y + yStep * i)
+
+      // Add position to line
+      line.add(`${x},${y}`)
+
+      // Stop if we hit a wall (but not at the cursor position itself)
+      if (x >= 0 && x < level.width && y >= 0 && y < level.height) {
+        const tile = level.tiles[y][x]
+        if (!tile.walkable && (x !== end.x || y !== end.y)) {
+          break
+        }
+      }
+    }
+
+    return line
   }
 }
