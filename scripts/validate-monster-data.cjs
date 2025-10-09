@@ -23,6 +23,7 @@ const colors = {
 };
 
 // Valid special ability flags (must match SpecialAbilityFlag enum in src/types/core/core.ts)
+// Note: "teleport" flag exists in enum but is not data-driven (hardcoded in MonsterTurnService)
 const validSpecialFlags = [
   'rusts_armor',      // SpecialAbilityFlag.RUSTS_ARMOR
   'freezes',          // SpecialAbilityFlag.FREEZES
@@ -37,7 +38,6 @@ const validSpecialFlags = [
   'flying',           // SpecialAbilityFlag.FLYING
   'invisible',        // SpecialAbilityFlag.INVISIBLE
   'mean',             // SpecialAbilityFlag.MEAN
-  'teleport',         // SpecialAbilityFlag.TELEPORT
 ];
 
 const validBehaviors = [

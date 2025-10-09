@@ -209,7 +209,6 @@ export enum SpecialAbilityFlag {
   FLYING = 'flying',
   INVISIBLE = 'invisible',
   MEAN = 'mean',
-  TELEPORT = 'teleport',
 }
 
 export interface MonsterAIProfile {

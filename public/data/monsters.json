@@ -268,7 +268,7 @@
       "intelligence": 7,
       "aggroRange": 8,
       "fleeThreshold": 1.0,
-      "special": ["steals", "teleport"]
+      "special": ["steals"]
     }
   },
   {
@@ -288,7 +288,7 @@
       "aggroRange": 8,
       "fleeThreshold": 0.25,
       "chaseChance": 0.67,
-      "special": []
+      "special": ["mean"]
     }
   },
   {
@@ -366,7 +366,7 @@
       "aggroRange": 5,
       "fleeThreshold": 0.0,
       "chaseChance": 0.67,
-      "special": []
+      "special": ["mean"]
     }
   },
   {
@@ -502,7 +502,7 @@
       "aggroRange": 6,
       "fleeThreshold": 0.0,
       "chaseChance": 0.67,
-      "special": []
+      "special": ["mean"]
     }
   }
 ]
