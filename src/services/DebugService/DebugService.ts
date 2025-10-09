@@ -209,11 +209,23 @@ export class DebugService {
     }
 
     // Create monster using MonsterSpawnService
-    const monster = this.monsterSpawnService.createMonsterFromTemplate(
-      template,
-      spawnPos,
-      `debug-monster-${Date.now()}`
-    )
+    let monster
+    try {
+      monster = this.monsterSpawnService.createMonsterFromTemplate(
+        template,
+        spawnPos,
+        `debug-monster-${Date.now()}`
+      )
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const messages = this.messageService.addMessage(
+        state.messages,
+        `Failed to spawn ${template.name}: ${errorMessage}`,
+        'warning',
+        state.turnCount
+      )
+      return { ...state, messages }
+    }
 
     const updatedLevel: Level = {
       ...currentLevel,
