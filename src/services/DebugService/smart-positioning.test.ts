@@ -4,6 +4,7 @@ import { MockRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
 import { GameState, Level, Room, TileType } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 describe('DebugService - Smart Positioning', () => {
   let debugService: DebugService
@@ -44,7 +45,7 @@ describe('DebugService - Smart Positioning', () => {
     mockRandom = new MockRandom()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
-    const itemSpawnService = new ItemSpawnService(mockRandom)
+    const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
     debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom, true)
   })
 

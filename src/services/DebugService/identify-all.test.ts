@@ -4,6 +4,7 @@ import { MockRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
 import { GameState, PotionType, ScrollType, RingType, WandType } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 describe('DebugService - Identify All', () => {
   let originalFetch: typeof global.fetch
@@ -40,7 +41,7 @@ describe('DebugService - Identify All', () => {
     const mockRandom = new MockRandom()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
-    const itemSpawnService = new ItemSpawnService(mockRandom)
+    const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
     return new DebugService(new MessageService(), monsterSpawnService, itemSpawnService, mockRandom, isDevMode)
   }
 
@@ -52,7 +53,7 @@ describe('DebugService - Identify All', () => {
     const mockRandom = new MockRandom()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
-    const itemSpawnService = new ItemSpawnService(mockRandom)
+    const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
     debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, mockRandom, true)
 
     mockState = {

@@ -2,6 +2,7 @@ import { DungeonService } from './DungeonService'
 import { SeededRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemType, TileType } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 describe('DungeonService - Amulet Spawning', () => {
   let dungeonService: DungeonService
@@ -29,7 +30,7 @@ describe('DungeonService - Amulet Spawning', () => {
       getSpawnCount: jest.fn().mockReturnValue(5),
     }
 
-    dungeonService = new DungeonService(random, mockMonsterSpawnService as MonsterSpawnService)
+    dungeonService = new DungeonService(random, mockMonsterSpawnService as MonsterSpawnService, mockItemData)
   })
 
   test('spawns amulet on level 10', () => {

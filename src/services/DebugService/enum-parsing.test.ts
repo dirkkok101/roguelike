@@ -4,6 +4,7 @@ import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
 import { MockRandom } from '@services/RandomService'
 import { PotionType, ScrollType, RingType, WandType } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 describe('DebugService - Enum Parsing Helpers', () => {
   let originalFetch: typeof global.fetch
@@ -24,21 +25,6 @@ describe('DebugService - Enum Parsing Helpers', () => {
       aiProfile: { behavior: 'SIMPLE', intelligence: 4, aggroRange: 8, fleeThreshold: 0.2, special: [] },
     },
   ]
-
-  const mockItemData = {
-    potions: [
-      { type: 'HEAL', effect: 'restore_hp', power: '1d8', rarity: 'common' },
-    ],
-    scrolls: [
-      { type: 'IDENTIFY', effect: 'identify_item', power: '0', rarity: 'common' },
-    ],
-    rings: [
-      { type: 'PROTECTION', effect: 'modify_ac', power: '1', rarity: 'common' },
-    ],
-    wands: [
-      { type: 'MAGIC_MISSILE', effect: 'damage_projectile', power: '2d6', rarity: 'common' },
-    ],
-  }
 
   beforeAll(() => {
     originalFetch = global.fetch

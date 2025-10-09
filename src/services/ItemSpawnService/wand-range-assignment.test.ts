@@ -1,6 +1,7 @@
 import { ItemSpawnService } from './ItemSpawnService'
 import { SeededRandom } from '@services/RandomService'
 import { Room, Tile, TileType, WandType, ItemType, Wand } from '@game/core/core'
+import { mockItemData } from '@/test-utils'
 
 // ============================================================================
 // WAND RANGE ASSIGNMENT TESTS
@@ -48,7 +49,7 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
       // Arrange: Use seeded random to spawn many items
       // Wands are ~8% of spawns, so spawn 500 items to get good wand coverage
       const random = new SeededRandom('test-wand-ranges')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items
       const items = service.spawnItems(rooms, 500, tiles, [], 5)
@@ -77,7 +78,7 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
     it('should assign correct ranges for all wand types', () => {
       // Arrange: Spawn many items to get variety of wand types
       const random = new SeededRandom('test-wand-type-ranges')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act: Spawn many items
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -128,7 +129,7 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
     it('should assign range 8 to beam wands (LIGHTNING, FIRE, COLD)', () => {
       // Arrange
       const random = new SeededRandom('test-beam-wands')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -160,7 +161,7 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
     it('should assign range 5 to utility wands (HASTE_MONSTER, POLYMORPH)', () => {
       // Arrange
       const random = new SeededRandom('test-utility-wands')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
@@ -189,7 +190,7 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
     it('should assign appropriate moderate ranges (6-7) to other wands', () => {
       // Arrange
       const random = new SeededRandom('test-moderate-wands')
-      const service = new ItemSpawnService(random)
+      const service = new ItemSpawnService(random, mockItemData)
 
       // Act
       const items = service.spawnItems(rooms, 1000, tiles, [], 5)
