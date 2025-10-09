@@ -56,7 +56,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { CurseService } from '@services/CurseService'
 import { GoldService } from '@services/GoldService'
 import { TargetingService } from '@services/TargetingService'
-import { GameState, Scroll, ScrollType, TargetingMode } from '@game/core/core'
+import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { ModalController } from './ModalController'
 import { GameStateManager } from '@services/GameStateManager'
@@ -108,8 +108,8 @@ export class InputHandler {
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal
     private onReturnToMenu: () => void,
-    private stateManager?: GameStateManager,
-    private gameRenderer?: GameRenderer
+    private stateManager: GameStateManager,
+    private gameRenderer: GameRenderer
   ) {
     // Destructure services for convenient access
     this.movementService = services.movement
@@ -463,75 +463,42 @@ export class InputHandler {
             const wand = item as any // Cast to Wand (will have range property)
             const wandRange = wand.range || 5 // Default range if not set yet
 
-            // Use new in-game targeting if state manager and renderer available
-            if (this.stateManager && this.gameRenderer) {
-              // Close wand selection modal first
-              this.modalController.hide()
+            // Close wand selection modal first
+            this.modalController.hide()
 
-              const targetingState = new TargetSelectionState(
-                this.targetingService,
-                this.gameRenderer,
-                state,
-                wandRange,
-                (targetMonsterId) => {
-                  // Targeting confirmed
-                  if (targetMonsterId) {
-                    this.pendingCommand = new ZapWandCommand(
-                      item.id,
-                      this.inventoryService,
-                      this.wandService,
-                      this.messageService,
-                      this.turnService,
-                      this.statusEffectService,
-                      this.targetingService,
-                      targetMonsterId
-                    )
-                  }
-                  // Pop targeting state
-                  this.stateManager?.popState()
-                },
-                () => {
-                  // Targeting cancelled
-                  this.pendingCommand = null
-                  // Pop targeting state
-                  this.stateManager?.popState()
+            // Push targeting state for in-game targeting
+            const targetingState = new TargetSelectionState(
+              this.targetingService,
+              this.gameRenderer!,
+              state,
+              wandRange,
+              (targetMonsterId) => {
+                // Targeting confirmed
+                if (targetMonsterId) {
+                  this.pendingCommand = new ZapWandCommand(
+                    item.id,
+                    this.inventoryService,
+                    this.wandService,
+                    this.messageService,
+                    this.turnService,
+                    this.statusEffectService,
+                    this.targetingService,
+                    targetMonsterId
+                  )
                 }
-              )
-
-              // Push targeting state onto stack
-              this.stateManager.pushState(targetingState)
-            } else {
-              // Fallback to modal-based targeting (for backward compatibility)
-              const targetingRequest = {
-                mode: TargetingMode.MONSTER,
-                maxRange: wandRange,
-                requiresLOS: true,
+                // Pop targeting state
+                this.stateManager!.popState()
+              },
+              () => {
+                // Targeting cancelled
+                this.pendingCommand = null
+                // Pop targeting state
+                this.stateManager!.popState()
               }
+            )
 
-              this.modalController.showTargeting(
-                targetingRequest,
-                state,
-                (result) => {
-                  // Targeting confirmed
-                  if (result.success && result.targetMonsterId) {
-                    this.pendingCommand = new ZapWandCommand(
-                      item.id,
-                      this.inventoryService,
-                      this.wandService,
-                      this.messageService,
-                      this.turnService,
-                      this.statusEffectService,
-                      this.targetingService,
-                      result.targetMonsterId
-                    )
-                  }
-                },
-                () => {
-                  // Targeting cancelled - do nothing
-                  this.pendingCommand = null
-                }
-              )
-            }
+            // Push targeting state onto stack
+            this.stateManager!.pushState(targetingState)
           }
         })
         return null
