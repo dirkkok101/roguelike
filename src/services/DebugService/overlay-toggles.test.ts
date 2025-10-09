@@ -22,6 +22,9 @@ describe('DebugService - Overlay Toggles', () => {
       const result = debugService.toggleFOVDebug(mockState)
 
       expect(result.debug?.fovOverlay).toBe(true)
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].text).toBe('FOV debug overlay ENABLED')
+      expect(result.messages[0].type).toBe('info')
     })
 
     test('disables FOV overlay when enabled', () => {
@@ -29,6 +32,7 @@ describe('DebugService - Overlay Toggles', () => {
       const result = debugService.toggleFOVDebug(enabledState)
 
       expect(result.debug?.fovOverlay).toBe(false)
+      expect(result.messages[result.messages.length - 1].text).toBe('FOV debug overlay DISABLED')
     })
 
     test('preserves immutability', () => {
@@ -52,6 +56,9 @@ describe('DebugService - Overlay Toggles', () => {
       const result = debugService.togglePathDebug(mockState)
 
       expect(result.debug?.pathOverlay).toBe(true)
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].text).toBe('Pathfinding debug overlay ENABLED')
+      expect(result.messages[0].type).toBe('info')
     })
 
     test('disables pathfinding overlay when enabled', () => {
@@ -59,6 +66,7 @@ describe('DebugService - Overlay Toggles', () => {
       const result = debugService.togglePathDebug(enabledState)
 
       expect(result.debug?.pathOverlay).toBe(false)
+      expect(result.messages[result.messages.length - 1].text).toBe('Pathfinding debug overlay DISABLED')
     })
 
     test('preserves immutability', () => {
@@ -82,6 +90,9 @@ describe('DebugService - Overlay Toggles', () => {
       const result = debugService.toggleAIDebug(mockState)
 
       expect(result.debug?.aiOverlay).toBe(true)
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].text).toBe('AI debug overlay ENABLED')
+      expect(result.messages[0].type).toBe('info')
     })
 
     test('disables AI overlay when enabled', () => {
@@ -89,6 +100,7 @@ describe('DebugService - Overlay Toggles', () => {
       const result = debugService.toggleAIDebug(enabledState)
 
       expect(result.debug?.aiOverlay).toBe(false)
+      expect(result.messages[result.messages.length - 1].text).toBe('AI debug overlay DISABLED')
     })
 
     test('preserves immutability', () => {

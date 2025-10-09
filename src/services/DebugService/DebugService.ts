@@ -355,12 +355,21 @@ export class DebugService {
     if (!this.isEnabled()) return state
 
     const debug = state.debug || this.initializeDebugState()
+    const newFovOverlay = !debug.fovOverlay
+
+    // Add message
+    const message = newFovOverlay
+      ? 'FOV debug overlay ENABLED'
+      : 'FOV debug overlay DISABLED'
+
+    const messages = this.messageService.addMessage(state.messages, message, 'info', state.turnCount)
 
     return {
       ...state,
+      messages,
       debug: {
         ...debug,
-        fovOverlay: !debug.fovOverlay,
+        fovOverlay: newFovOverlay,
       },
     }
   }
@@ -372,12 +381,21 @@ export class DebugService {
     if (!this.isEnabled()) return state
 
     const debug = state.debug || this.initializeDebugState()
+    const newPathOverlay = !debug.pathOverlay
+
+    // Add message
+    const message = newPathOverlay
+      ? 'Pathfinding debug overlay ENABLED'
+      : 'Pathfinding debug overlay DISABLED'
+
+    const messages = this.messageService.addMessage(state.messages, message, 'info', state.turnCount)
 
     return {
       ...state,
+      messages,
       debug: {
         ...debug,
-        pathOverlay: !debug.pathOverlay,
+        pathOverlay: newPathOverlay,
       },
     }
   }
@@ -389,12 +407,21 @@ export class DebugService {
     if (!this.isEnabled()) return state
 
     const debug = state.debug || this.initializeDebugState()
+    const newAIOverlay = !debug.aiOverlay
+
+    // Add message
+    const message = newAIOverlay
+      ? 'AI debug overlay ENABLED'
+      : 'AI debug overlay DISABLED'
+
+    const messages = this.messageService.addMessage(state.messages, message, 'info', state.turnCount)
 
     return {
       ...state,
+      messages,
       debug: {
         ...debug,
-        aiOverlay: !debug.aiOverlay,
+        aiOverlay: newAIOverlay,
       },
     }
   }
