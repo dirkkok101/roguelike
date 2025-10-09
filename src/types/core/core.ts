@@ -217,6 +217,7 @@ export interface MonsterAIProfile {
   intelligence: number
   aggroRange: number
   fleeThreshold: number
+  chaseChance?: number // Probability to chase per turn (0.0-1.0, default 1.0). MEAN monsters use 0.67 (67% chance)
   special: SpecialAbilityFlag[]
 }
 
