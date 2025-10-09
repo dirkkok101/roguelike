@@ -296,6 +296,11 @@ body {
     grid-row: 4;
   }
 
+  /* Stack stats panels vertically on narrow screens */
+  .stats-row-1 {
+    flex-direction: column;
+  }
+
   .stats-row-2 {
     flex-direction: column;
   }
@@ -303,6 +308,15 @@ body {
   .equipment-section,
   .status-section {
     flex: 1;
+  }
+
+  /* Adjust font sizes for readability on small screens */
+  .stats-panel {
+    font-size: 0.9em;
+  }
+
+  .stats-panel-content {
+    gap: 8px;
   }
 }
 
