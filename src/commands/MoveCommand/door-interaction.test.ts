@@ -159,8 +159,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -203,8 +202,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -250,8 +248,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -297,8 +294,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -341,8 +337,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -384,8 +379,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -430,8 +424,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -475,8 +468,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -519,8 +511,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -564,8 +555,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -607,8 +597,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -655,8 +644,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -699,8 +687,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -746,8 +733,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -790,8 +776,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -839,8 +824,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -903,8 +887,7 @@ describe('MoveCommand - Door Interaction', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)

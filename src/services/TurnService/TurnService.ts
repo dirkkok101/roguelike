@@ -2,6 +2,8 @@ import { GameState, Player, StatusEffectType, Level, Position } from '@game/core
 import { StatusEffectService } from '@services/StatusEffectService'
 import { LevelService } from '@services/LevelService'
 import { RingService } from '@services/RingService'
+import { WanderingMonsterService } from '@services/WanderingMonsterService'
+import { MessageService } from '@services/MessageService'
 import { ENERGY_THRESHOLD, NORMAL_SPEED, HASTED_SPEED } from '../../constants/energy'
 
 // ============================================================================
@@ -32,7 +34,9 @@ export class TurnService {
   constructor(
     private statusEffectService: StatusEffectService,
     private levelService: LevelService,
-    private ringService?: RingService // Optional for backward compatibility
+    private ringService?: RingService, // Optional for backward compatibility
+    private wanderingMonsterService?: WanderingMonsterService, // Optional for backward compatibility
+    private messageService?: MessageService // Optional for backward compatibility
   ) {}
 
   /**
@@ -288,5 +292,79 @@ export class TurnService {
    */
   canPlayerAct(player: Player): boolean {
     return this.canAct(player)
+  }
+
+  // ============================================================================
+  // WANDERING MONSTER SPAWNS
+  // ============================================================================
+
+  /**
+   * Process wandering monster spawns for current level
+   * Should be called after monster turns have been processed
+   *
+   * Spawning Rules:
+   * - Base chance: 0.5% per turn (1 in 200)
+   * - Progressive increase: +0.01% per turn since last spawn
+   * - Maximum chance: 5% (prevents excessive spawning)
+   * - Max wanderers per level: 5
+   * - Cannot spawn in player's current room (authentic Rogue rule)
+   *
+   * @param state - Current game state
+   * @returns New GameState with potentially spawned wanderer
+   */
+  processWanderingSpawns(state: GameState): GameState {
+    // Early exit if service not injected (backward compatibility)
+    if (!this.wanderingMonsterService || !this.messageService) {
+      return state
+    }
+
+    const level = state.levels.get(state.currentLevel)
+    if (!level) {
+      return state
+    }
+
+    // Check if wanderer should spawn
+    const shouldSpawn = this.wanderingMonsterService.shouldSpawnWanderer(level, state.turnCount)
+    if (!shouldSpawn) {
+      return state
+    }
+
+    // Find valid spawn location
+    const spawnLocation = this.wanderingMonsterService.getSpawnLocation(level, state.player.position)
+    if (!spawnLocation) {
+      // No valid spawn location available
+      return state
+    }
+
+    // Spawn wanderer
+    const wanderer = this.wanderingMonsterService.spawnWanderer(level.depth, spawnLocation)
+
+    // Add wanderer to level monsters
+    const updatedMonsters = [...level.monsters, wanderer]
+
+    // Update level state
+    const updatedLevel = {
+      ...level,
+      monsters: updatedMonsters,
+      wanderingMonsterCount: (level.wanderingMonsterCount ?? 0) + 1,
+      lastWanderingSpawnTurn: state.turnCount,
+    }
+
+    const updatedLevels = new Map(state.levels)
+    updatedLevels.set(state.currentLevel, updatedLevel)
+
+    // Add atmospheric notification message
+    const updatedMessages = this.messageService.addMessage(
+      state.messages,
+      'You hear a faint noise in the distance...',
+      'info',
+      state.turnCount
+    )
+
+    return {
+      ...state,
+      levels: updatedLevels,
+      messages: updatedMessages,
+    }
   }
 }

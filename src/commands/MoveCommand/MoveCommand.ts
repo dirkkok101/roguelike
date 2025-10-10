@@ -16,6 +16,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
+import { MonsterAIService } from '@services/MonsterAIService'
 import { AttackCommand } from '../AttackCommand'
 
 // ============================================================================
@@ -36,7 +37,8 @@ export class MoveCommand implements ICommand {
     private regenerationService: RegenerationService,
     private notificationService: NotificationService,
     private turnService: TurnService,
-    private goldService: GoldService
+    private goldService: GoldService,
+    private monsterAIService?: MonsterAIService // Optional for backward compatibility
   ) {}
 
   execute(state: GameState): GameState {
@@ -148,8 +150,31 @@ export class MoveCommand implements ICommand {
   private performMovement(state: GameState, position: Position, level: Level): GameState {
     // 1. Move player
     let player = this.movementService.movePlayer(state.player, position)
+
+    // 1.1. Update position history for door slam detection (keep last 3 positions)
+    const currentHistory = state.positionHistory || []
+    const updatedPositionHistory = [...currentHistory, position].slice(-3)
+
+    // 1.2. Initialize message and level tracking
     let messages: (HungerMessage | LightMessage | RegenMessage)[] = []
     let updatedLevel = level
+
+    // 1.3. Detect door slam pattern and wake monsters
+    if (this.monsterAIService) {
+      const doorSlamResult = this.monsterAIService.detectDoorSlamAndWake(
+        updatedLevel,
+        position,
+        updatedPositionHistory
+      )
+
+      if (doorSlamResult.slamDetected && doorSlamResult.wokeMonsters.length > 0) {
+        updatedLevel = { ...updatedLevel, monsters: doorSlamResult.updatedMonsters }
+        messages.push({
+          text: 'Your loud entrance wakes the monsters!',
+          type: 'warning' as const,
+        })
+      }
+    }
 
     // 1.5. Check for gold pickup at new position (automatic, no turn cost)
     const goldAtPosition = level.gold.find(
@@ -281,6 +306,7 @@ export class MoveCommand implements ICommand {
       visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
       messages: finalMessages,
+      positionHistory: updatedPositionHistory,
     })
   }
 

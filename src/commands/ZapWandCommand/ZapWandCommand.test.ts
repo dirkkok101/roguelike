@@ -42,12 +42,12 @@ describe('ZapWandCommand', () => {
     statusEffectService = new StatusEffectService()
     combatService = new CombatService(mockRandom)
     levelService = new LevelService()
-    wandService = new WandService(identificationService, mockRandom, combatService, levelService)
-    messageService = new MessageService()
-    turnService = new TurnService(statusEffectService, levelService)
     const fovService = new FOVService(statusEffectService)
     const movementService = new MovementService(mockRandom, statusEffectService)
     targetingService = new TargetingService(fovService, movementService)
+    wandService = new WandService(identificationService, mockRandom, combatService, targetingService)
+    messageService = new MessageService()
+    turnService = new TurnService(statusEffectService, levelService)
   })
 
   function createTestPlayer(): Player {
@@ -188,7 +188,7 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      'monster-1' // Target monster
+      { x: 6, y: 5 } // Target position (monster location)
     )
     const result = command.execute(state)
 
@@ -259,7 +259,7 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      'monster-1' // Target monster
+      { x: 6, y: 5 } // Target position (monster location)
     )
     const result = command.execute(state)
 
@@ -284,7 +284,7 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      'monster-1'
+      { x: 6, y: 5 } // Target position (monster location)
     )
     const result = command.execute(state)
 

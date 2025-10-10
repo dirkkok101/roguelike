@@ -13,13 +13,13 @@ import { IGameState, Input } from '@game/core/core'
  * - exit() = no-op (override if state needs cleanup)
  *
  * Abstract Methods (must implement):
- * - update(deltaTime: number): Game tick logic
+ * - update(_deltaTime: number): Game tick logic
  * - render(): Drawing logic
- * - handleInput(input: Input): Input processing
+ * - handleInput(_input: Input): Input processing
  *
  * @example
  * class MainMenuState extends BaseState {
- *   update(deltaTime: number) {
+ *   update(_deltaTime: number) {
  *     // Menu doesn't need updates
  *   }
  *
@@ -27,7 +27,7 @@ import { IGameState, Input } from '@game/core/core'
  *     // Draw menu UI
  *   }
  *
- *   handleInput(input: Input) {
+ *   handleInput(_input: Input) {
  *     // Handle menu navigation
  *   }
  * }
@@ -37,9 +37,9 @@ import { IGameState, Input } from '@game/core/core'
  * class InventoryState extends BaseState {
  *   isTransparent() { return true } // Override to show game behind
  *
- *   update(deltaTime: number) { }
+ *   update(_deltaTime: number) { }
  *   render() { // Draw inventory overlay }
- *   handleInput(input: Input) { // Handle inventory commands }
+ *   handleInput(_input: Input) { // Handle inventory commands }
  * }
  */
 export abstract class BaseState implements IGameState {
@@ -65,7 +65,7 @@ export abstract class BaseState implements IGameState {
    *
    * @param deltaTime - Time elapsed since last update (in milliseconds)
    */
-  abstract update(deltaTime: number): void
+  abstract update(_deltaTime: number): void
 
   /**
    * Drawing logic - called for all visible states
@@ -79,7 +79,7 @@ export abstract class BaseState implements IGameState {
    *
    * @param input - Input event with key and modifiers
    */
-  abstract handleInput(input: Input): void
+  abstract handleInput(_input: Input): void
 
   /**
    * Should lower states in stack continue updating?

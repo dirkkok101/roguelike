@@ -79,7 +79,7 @@ describe('PotionService - Strength Potions', () => {
 
       expect(result.player.strength).toBe(17)
       expect(result.player.maxStrength).toBe(17)
-      expect(result.message).toBe('You feel stronger! (Strength: 17)')
+      expect(result.message).toBe('You feel stronger! (Max Strength: 17)')
       expect(result.death).toBe(false)
     })
 
@@ -98,6 +98,154 @@ describe('PotionService - Strength Potions', () => {
       const result = potionService.applyPotion(testPlayer, gainStrengthPotion, testState)
 
       expect(result.identified).toBe(true)
+    })
+
+    test('increases from 17 to 18 without adding percentile', () => {
+      const playerWith17Str = {
+        ...testPlayer,
+        strength: 17,
+        maxStrength: 17,
+        strengthPercentile: undefined,
+      }
+
+      const gainStrengthPotion: Potion = {
+        id: 'potion-3',
+        type: ItemType.POTION,
+        name: 'Potion of Gain Strength',
+        potionType: PotionType.GAIN_STRENGTH,
+        effect: 'Increases strength by 1',
+        power: '',
+        descriptorName: 'green potion',
+        isIdentified: false,
+      }
+
+      const result = potionService.applyPotion(playerWith17Str, gainStrengthPotion, testState)
+
+      expect(result.player.strength).toBe(18)
+      expect(result.player.maxStrength).toBe(18)
+      expect(result.player.strengthPercentile).toBeUndefined()
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18)')
+    })
+
+    test('adds exceptional strength percentile when at 18', () => {
+      const playerWith18Str = {
+        ...testPlayer,
+        strength: 18,
+        maxStrength: 18,
+        strengthPercentile: undefined,
+      }
+
+      const gainStrengthPotion: Potion = {
+        id: 'potion-3',
+        type: ItemType.POTION,
+        name: 'Potion of Gain Strength',
+        potionType: PotionType.GAIN_STRENGTH,
+        effect: 'Increases strength by 1',
+        power: '',
+        descriptorName: 'green potion',
+        isIdentified: false,
+      }
+
+      // Mock random to roll 7 for percentile
+      mockRandom.setValues([7])
+
+      const result = potionService.applyPotion(playerWith18Str, gainStrengthPotion, testState)
+
+      expect(result.player.strength).toBe(18)
+      expect(result.player.maxStrength).toBe(18)
+      expect(result.player.strengthPercentile).toBe(7)
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18/07)')
+    })
+
+    test('increases exceptional strength percentile by d10', () => {
+      const playerWithExceptionalStr = {
+        ...testPlayer,
+        strength: 18,
+        maxStrength: 18,
+        strengthPercentile: 50,
+      }
+
+      const gainStrengthPotion: Potion = {
+        id: 'potion-3',
+        type: ItemType.POTION,
+        name: 'Potion of Gain Strength',
+        potionType: PotionType.GAIN_STRENGTH,
+        effect: 'Increases strength by 1',
+        power: '',
+        descriptorName: 'green potion',
+        isIdentified: false,
+      }
+
+      // Mock random to roll 8 for increase
+      mockRandom.setValues([8])
+
+      const result = potionService.applyPotion(playerWithExceptionalStr, gainStrengthPotion, testState)
+
+      expect(result.player.strength).toBe(18)
+      expect(result.player.maxStrength).toBe(18)
+      expect(result.player.strengthPercentile).toBe(58) // 50 + 8
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18/58)')
+    })
+
+    test('caps exceptional strength percentile at 100', () => {
+      const playerNearMaxStr = {
+        ...testPlayer,
+        strength: 18,
+        maxStrength: 18,
+        strengthPercentile: 96,
+      }
+
+      const gainStrengthPotion: Potion = {
+        id: 'potion-3',
+        type: ItemType.POTION,
+        name: 'Potion of Gain Strength',
+        potionType: PotionType.GAIN_STRENGTH,
+        effect: 'Increases strength by 1',
+        power: '',
+        descriptorName: 'green potion',
+        isIdentified: false,
+      }
+
+      // Mock random to roll 10 (would exceed 100)
+      mockRandom.setValues([10])
+
+      const result = potionService.applyPotion(playerNearMaxStr, gainStrengthPotion, testState)
+
+      expect(result.player.strength).toBe(18)
+      expect(result.player.maxStrength).toBe(18)
+      expect(result.player.strengthPercentile).toBe(100) // Capped at 100
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18/100)')
+    })
+
+    test('handles damaged exceptional strength (current < max)', () => {
+      const damagedExceptionalPlayer = {
+        ...testPlayer,
+        strength: 16, // Drained from 18
+        maxStrength: 18,
+        strengthPercentile: 75,
+      }
+
+      const gainStrengthPotion: Potion = {
+        id: 'potion-3',
+        type: ItemType.POTION,
+        name: 'Potion of Gain Strength',
+        potionType: PotionType.GAIN_STRENGTH,
+        effect: 'Increases strength by 1',
+        power: '',
+        descriptorName: 'green potion',
+        isIdentified: false,
+      }
+
+      // Mock random to roll 5 for increase
+      mockRandom.setValues([5])
+
+      const result = potionService.applyPotion(damagedExceptionalPlayer, gainStrengthPotion, testState)
+
+      // Should increase percentile (max strength logic)
+      expect(result.player.strength).toBe(16) // Current remains unchanged
+      expect(result.player.maxStrength).toBe(18)
+      expect(result.player.strengthPercentile).toBe(80) // 75 + 5
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18/80)') // Shows max percentile, which increased
     })
   })
 

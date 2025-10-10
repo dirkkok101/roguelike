@@ -75,7 +75,7 @@ export class NewGameDialogState extends BaseState {
    * Game tick logic (dialog is static)
    * @param deltaTime - Unused for static dialog
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Dialog is static - no updates needed
   }
 
@@ -100,7 +100,7 @@ export class NewGameDialogState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
+  handleInput(_input: Input): void {
     // CharacterNameModal currently handles its own input via keydown listeners
     // Text input is handled natively by HTML input element
     // Enter key calls onStart callback

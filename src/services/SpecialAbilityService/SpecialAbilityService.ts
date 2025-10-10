@@ -14,6 +14,44 @@ export interface AbilityResult {
 export class SpecialAbilityService {
   constructor(private random: IRandomService) {}
 
+  // ============================================================================
+  // PRIVATE: Helper methods
+  // ============================================================================
+
+  /**
+   * Validate and fix strength percentile invariants
+   * - Percentile must be undefined when maxStrength !== 18
+   * - Percentile must be 1-100 when maxStrength === 18
+   * - Clamps invalid values to valid range
+   * Note: Percentile is tied to maxStrength, not current strength (for drain/restore mechanics)
+   */
+  private validateStrengthPercentile(player: Player): Player {
+    // If maxStrength is not 18, percentile must be undefined
+    if (player.maxStrength !== 18 && player.strengthPercentile !== undefined) {
+      return {
+        ...player,
+        strengthPercentile: undefined,
+      }
+    }
+
+    // If maxStrength is 18 with percentile, clamp to 1-100
+    if (player.maxStrength === 18 && player.strengthPercentile !== undefined) {
+      const clamped = Math.max(1, Math.min(100, player.strengthPercentile))
+      if (clamped !== player.strengthPercentile) {
+        return {
+          ...player,
+          strengthPercentile: clamped,
+        }
+      }
+    }
+
+    return player
+  }
+
+  // ============================================================================
+  // PUBLIC: Special ability implementations
+  // ============================================================================
+
   /**
    * Rust armor - Aquator ability
    * Reduces armor AC bonus by 1
@@ -93,6 +131,7 @@ export class SpecialAbilityService {
   /**
    * Drain strength - Rattlesnake ability
    * Permanently reduces player strength
+   * Handles exceptional strength (18/XX) by reducing percentile first
    */
   drainStrength(player: Player): AbilityResult {
     const messages: string[] = []
@@ -109,11 +148,39 @@ export class SpecialAbilityService {
 
     messages.push('You feel weaker!')
 
-    return {
-      player: {
+    let updatedPlayer: Player
+
+    // Handle exceptional strength (18/XX format)
+    if (player.strength === 18 && player.strengthPercentile !== undefined) {
+      // Drain percentile by d10 (1-10)
+      const drain = this.random.nextInt(1, 10)
+      const newPercentile = player.strengthPercentile - drain
+
+      if (newPercentile <= 0) {
+        // Percentile drained to 0 or below: reduce to Str 17, remove percentile
+        updatedPlayer = {
+          ...player,
+          strength: 17,
+          strengthPercentile: undefined,
+        }
+      } else {
+        // Reduce percentile but keep Str 18
+        updatedPlayer = {
+          ...player,
+          strengthPercentile: newPercentile,
+        }
+      }
+    } else {
+      // Normal strength or Str 18 without percentile: reduce by 1
+      updatedPlayer = {
         ...player,
         strength: player.strength - 1,
-      },
+      }
+    }
+
+    // Validate and fix any invariant violations
+    return {
+      player: this.validateStrengthPercentile(updatedPlayer),
       messages,
     }
   }

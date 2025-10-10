@@ -1,4 +1,4 @@
-import { GameState, StatusEffectType } from '@game/core/core'
+import { GameState, Position, ItemType, StatusEffectType, Level } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
 import { AssetLoaderService } from '@services/AssetLoaderService'
 import { HungerService } from '@services/HungerService'
@@ -15,6 +15,7 @@ import { PreferencesService } from '@services/PreferencesService'
 import { RingService } from '@services/RingService'
 import { CanvasGameRenderer } from './CanvasGameRenderer'
 import { AsciiDungeonRenderer } from './AsciiDungeonRenderer'
+import { type ITargetingState } from '@states/TargetSelectionState'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
 import { ContextualCommandBar } from './ContextualCommandBar'
@@ -31,6 +32,16 @@ export class GameRenderer {
   // Notification display durations (in milliseconds)
   private static readonly NOTIFICATION_DISPLAY_DURATION = 700 // Time before fade starts
   private static readonly NOTIFICATION_FADE_DURATION = 300 // Time to complete fade-out
+
+  // Display thresholds for color-coded warnings
+  private static readonly HP_THRESHOLDS = {
+    HEALTHY: 75,
+    WOUNDED: 50,
+    CRITICAL: 25,
+    BLINKING: 10,
+  }
+
+  private static readonly HUNGER_MAX = 1300
 
   private dungeonContainer: HTMLElement
   private statsContainer: HTMLElement
@@ -98,6 +109,8 @@ export class GameRenderer {
     this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService, scoreCalculationService)
   }
 
+  private targetingState: ITargetingState | null = null // Store active targeting state
+
   /**
    * Render complete game state
    */
@@ -143,7 +156,7 @@ export class GameRenderer {
       return // Don't render game when victory screen shown
     }
 
-    this.renderDungeon(state)
+    this.renderDungeon(state, this.targetingState)
     this.renderStats(state)
     this.renderMessages(state)
     this.commandBar.render(state)
@@ -330,16 +343,142 @@ export class GameRenderer {
     return container
   }
 
-  private renderDungeon(state: GameState): void {
+  private renderDungeon(state: GameState, targetingState: ITargetingState | null = null): void {
     // Render based on current mode preference
     if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
-      // Use sprite rendering
+      // Use sprite rendering (targeting overlay not yet implemented for sprites)
       this.canvasGameRenderer.render(state)
-    } else {
-      // Use ASCII rendering (either by preference or fallback if sprites unavailable)
-      const html = this.asciiRenderer.render(state)
-      this.dungeonContainer.innerHTML = html
+      // TODO: Add targeting overlay support for sprite mode
+      return
     }
+
+    // ASCII rendering mode with targeting overlay support
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return
+
+    // Check for SEE_INVISIBLE status effect
+    const canSeeInvisible = state.player.statusEffects.some((e) => e.type === StatusEffectType.SEE_INVISIBLE)
+
+    // Get targeting data if active
+    let targetingLine: Set<string> | null = null
+    let cursorPos: Position | null = null
+    if (targetingState) {
+      cursorPos = targetingState.getCursorPosition()
+      targetingLine = this.calculateTargetingLine(state.player.position, cursorPos, level)
+    }
+
+    let html = '<pre class="dungeon-grid">'
+
+    for (let y = 0; y < level.height; y++) {
+      for (let x = 0; x < level.width; x++) {
+        const pos: Position = { x, y }
+        const tile = level.tiles[y][x]
+        const visState = this.renderingService.getVisibilityState(
+          pos,
+          state.visibleCells,
+          level
+        )
+
+        // Check for entities at this position
+        let char = tile.char
+        let color = this.renderingService.getColorForTile(tile, visState)
+
+        // Items and gold (visible or detected in explored areas)
+        if (visState === 'visible' || visState === 'explored') {
+          // Gold piles (only if visible)
+          if (visState === 'visible') {
+            const gold = level.gold.find((g) => g.position.x === x && g.position.y === y)
+            if (gold) {
+              char = '$'
+              color = '#FFD700' // Gold
+            }
+          }
+
+          // Items (visible or detected)
+          const item = level.items.find((i) => i.position?.x === x && i.position?.y === y)
+          if (item) {
+            const isDetected = state.detectedMagicItems.has(item.id)
+            const isVisible = visState === 'visible'
+
+            // Render if visible OR if detected and in explored area
+            if (isVisible || isDetected) {
+              char = this.getItemSymbol(item.type)
+              color = isVisible ? this.getItemColor(item.type) : this.dimColor(this.getItemColor(item.type))
+            }
+          }
+
+          // Monsters (visible or detected in explored areas, render on top of items)
+          const monster = level.monsters.find((m) => m.position.x === x && m.position.y === y)
+          if (monster) {
+            const isDetected = state.detectedMonsters.has(monster.id)
+            const isVisible = visState === 'visible'
+            const canRenderInvisible = !monster.isInvisible || canSeeInvisible
+
+            // Render if (visible OR detected) AND (not invisible OR has SEE_INVISIBLE)
+            if ((isVisible || isDetected) && canRenderInvisible) {
+              char = monster.letter
+              color = isVisible
+                ? this.renderingService.getColorForEntity(monster, visState)
+                : this.dimColor(this.renderingService.getColorForEntity(monster, 'visible'))
+            }
+          }
+        }
+
+        // Stairs (visible or explored, render before player)
+        const config = { showItemsInMemory: false, showGoldInMemory: false }
+        if (
+          level.stairsUp &&
+          level.stairsUp.x === x &&
+          level.stairsUp.y === y &&
+          this.renderingService.shouldRenderEntity(pos, 'stairs', visState, config)
+        ) {
+          char = '<'
+          color = visState === 'visible' ? '#FFFF00' : '#707070' // Yellow if visible, gray if explored
+        }
+        if (
+          level.stairsDown &&
+          level.stairsDown.x === x &&
+          level.stairsDown.y === y &&
+          this.renderingService.shouldRenderEntity(pos, 'stairs', visState, config)
+        ) {
+          char = '>'
+          color = visState === 'visible' ? '#FFFF00' : '#707070' // Yellow if visible, gray if explored
+        }
+
+        // Targeting line (render before player but after entities)
+        if (targetingLine && targetingLine.has(`${x},${y}`) && !(x === state.player.position.x && y === state.player.position.y) && !(cursorPos && x === cursorPos.x && y === cursorPos.y)) {
+          char = '*'
+          color = '#FFFF00' // Yellow
+        }
+
+        // Targeting cursor (render before player)
+        if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
+          // Check if target is valid (position-based targeting)
+          // Valid if: in FOV + within range + walkable tile
+          const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
+          const key = `${cursorPos.x},${cursorPos.y}`
+          const inFOV = state.visibleCells.has(key)
+          const tile = level.tiles[cursorPos.y][cursorPos.x]
+          const inRange = targetingState ? distance <= targetingState.getRange() : false
+          const isValid = inFOV && inRange && tile.walkable
+
+          char = 'X'
+          color = isValid ? '#00FF00' : '#FF0000' // Green if valid, red if invalid
+        }
+
+        // Player (always on top)
+        if (pos.x === state.player.position.x && pos.y === state.player.position.y) {
+          char = '@'
+          color = '#00FFFF'
+        }
+
+        html += `<span style="color: ${color}">${char}</span>`
+      }
+      html += '\n'
+    }
+
+    html += '</pre>'
+    this.dungeonContainer.innerHTML = html
   }
 
   private renderStats(state: GameState): void {
@@ -348,35 +487,42 @@ export class GameRenderer {
     // HP color (green > yellow > red > blinking red)
     const hpPercent = (player.hp / player.maxHp) * 100
     const hpColor =
-      hpPercent >= 75
+      hpPercent >= GameRenderer.HP_THRESHOLDS.HEALTHY
         ? '#00FF00'
-        : hpPercent >= 50
+        : hpPercent >= GameRenderer.HP_THRESHOLDS.WOUNDED
         ? '#FFDD00'
-        : hpPercent >= 25
+        : hpPercent >= GameRenderer.HP_THRESHOLDS.CRITICAL
         ? '#FF8800'
         : '#FF0000'
-    const hpBlink = hpPercent < 10 ? 'animation: blink 1s infinite;' : ''
-    const hpWarning = hpPercent < 25 ? ' ⚠️' : ''
+    const hpBlinkClass = hpPercent < GameRenderer.HP_THRESHOLDS.BLINKING ? ' hp-critical-blink' : ''
+    const hpWarning = hpPercent < GameRenderer.HP_THRESHOLDS.CRITICAL ? ' ⚠️' : ''
 
     // Get XP progress for display
     const xpNeeded = this.levelingService.getXPForNextLevel(player.level)
     const xpDisplay = xpNeeded === Infinity ? `${player.xp} (MAX)` : `${player.xp}/${xpNeeded}`
-    const xpPercentage = xpNeeded === Infinity ? 100 : Math.min(100, (player.xp / xpNeeded) * 100)
 
     // Ring bonuses
     const strBonus = this.ringService.getStrengthBonus(player)
     const acBonus = this.ringService.getACBonus(player)
-    const strDisplay = strBonus !== 0 ? `${player.strength}(${strBonus > 0 ? '+' : ''}${strBonus})/${player.maxStrength}` : `${player.strength}/${player.maxStrength}`
+
+    // Format strength display with exceptional strength (18/XX) support
+    const formatStrength = (str: number, percentile: number | undefined): string => {
+      if (str === 18 && percentile !== undefined) {
+        return `18/${percentile.toString().padStart(2, '0')}`
+      }
+      return str.toString()
+    }
+
+    const currentStr = formatStrength(player.strength, player.strengthPercentile)
+    const maxStr = formatStrength(player.maxStrength, player.strengthPercentile)
+    const strDisplay = strBonus !== 0
+      ? `${currentStr}(${strBonus > 0 ? '+' : ''}${strBonus})/${maxStr}`
+      : `${currentStr}/${maxStr}`
+
     const acDisplay = acBonus !== 0 ? `${player.ac}(${acBonus > 0 ? '+' : ''}${acBonus})` : `${player.ac}`
 
-    // Inventory color
-    const invCount = player.inventory.length
-    const invColor =
-      invCount < 20 ? '#00FF00' : invCount < 24 ? '#FFDD00' : invCount < 26 ? '#FF8800' : '#FF0000'
-
     // Hunger bar
-    const hungerPercent = Math.min(100, (player.hunger / 1300) * 100)
-    const hungerBarClass = hungerPercent >= 50 ? 'hunger' : hungerPercent >= 25 ? 'hunger warning' : 'hunger critical'
+    const hungerPercent = Math.min(100, (player.hunger / GameRenderer.HUNGER_MAX) * 100)
     const hungerLabel = hungerPercent === 0 ? 'STARVING!' : hungerPercent < 10 ? 'Fainting' : hungerPercent < 25 ? 'Hungry' : 'Fed'
     const hungerWarning = hungerPercent < 25 ? ' 🍖' : ''
 
@@ -398,21 +544,14 @@ export class GameRenderer {
         lightLabel = '∞'
       }
     }
-    const lightBarClass = lightPercent >= 50 ? 'light' : lightPercent >= 20 ? 'light warning' : 'light critical'
 
     this.statsContainer.innerHTML = `
-      <style>
-        @keyframes blink {
-          0%, 50% { opacity: 1; }
-          51%, 100% { opacity: 0.3; }
-        }
-      </style>
       <!-- Single Row: 4 Panels Side-by-Side -->
       <div class="stats-row">
         <div class="stats-panel">
           <div class="stats-panel-header">Combat</div>
           <div class="stats-panel-content">
-            <div style="color: ${hpColor}; ${hpBlink}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
+            <div class="${hpBlinkClass}" style="color: ${hpColor}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
             <div>Str: ${strDisplay}</div>
             <div>AC: ${acDisplay}</div>
             <div>Lvl: ${player.level}</div>
@@ -452,6 +591,75 @@ export class GameRenderer {
 
     // Auto-scroll to bottom to show latest messages
     this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight
+  }
+
+  /**
+   * Dim a color for detected entities (not directly visible)
+   */
+  private dimColor(color: string): string {
+    // Convert hex to RGB, reduce brightness by 50%, return hex
+    const hex = color.replace('#', '')
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
+
+    const dimmedR = Math.floor(r * 0.5)
+    const dimmedG = Math.floor(g * 0.5)
+    const dimmedB = Math.floor(b * 0.5)
+
+    return `#${dimmedR.toString(16).padStart(2, '0')}${dimmedG.toString(16).padStart(2, '0')}${dimmedB.toString(16).padStart(2, '0')}`
+  }
+
+  /**
+   * Get display symbol for item type
+   */
+  private getItemSymbol(itemType: ItemType): string {
+    switch (itemType) {
+      case ItemType.POTION:
+        return '!'
+      case ItemType.SCROLL:
+        return '?'
+      case ItemType.RING:
+        return '='
+      case ItemType.WAND:
+        return '/'
+      case ItemType.FOOD:
+        return '%'
+      case ItemType.OIL_FLASK:
+        return '!'
+      case ItemType.WEAPON:
+        return ')'
+      case ItemType.ARMOR:
+        return '['
+      default:
+        return '?'
+    }
+  }
+
+  /**
+   * Get display color for item type
+   */
+  private getItemColor(itemType: ItemType): string {
+    switch (itemType) {
+      case ItemType.POTION:
+        return '#FF00FF' // Magenta
+      case ItemType.SCROLL:
+        return '#FFFFFF' // White
+      case ItemType.RING:
+        return '#FFD700' // Gold
+      case ItemType.WAND:
+        return '#00FFFF' // Cyan
+      case ItemType.FOOD:
+        return '#8B4513' // Brown
+      case ItemType.OIL_FLASK:
+        return '#FFA500' // Orange
+      case ItemType.WEAPON:
+        return '#C0C0C0' // Silver
+      case ItemType.ARMOR:
+        return '#C0C0C0' // Silver
+      default:
+        return '#FFFFFF'
+    }
   }
 
   /**
@@ -611,5 +819,166 @@ export class GameRenderer {
     this.debugOverlays.renderFOVOverlay(state, ctx, cellSize)
     this.debugOverlays.renderPathOverlay(state, ctx, cellSize)
     this.debugOverlays.renderAIOverlay(state, ctx, cellSize)
+  }
+
+  /**
+   * Render targeting overlay (cursor, line, info panel)
+   * Called when TargetSelectionState is active
+   *
+   * @param targetingState - The active targeting state
+   */
+  renderTargetingOverlay(targetingState: ITargetingState): void {
+    // Store targeting state so it can be used in next render() call
+    this.targetingState = targetingState
+
+    // Render info panel showing target details
+    const cursor = targetingState.getCursorPosition()
+    const range = targetingState.getRange()
+    const state = targetingState.getGameState()
+    this.renderTargetingInfo(state, cursor, range)
+  }
+
+  /**
+   * Render targeting info panel (DOM overlay with target details)
+   */
+  private renderTargetingInfo(state: GameState, cursor: Position, range: number): void {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return
+
+    // Check if cursor is on a monster
+    const monster = level.monsters.find(m => m.position.x === cursor.x && m.position.y === cursor.y)
+
+    // Calculate distance
+    const distance = Math.abs(cursor.x - state.player.position.x) +
+                    Math.abs(cursor.y - state.player.position.y)
+
+    // Check validity (position-based targeting)
+    // Valid if: in FOV + within range + walkable tile (monster not required)
+    const key = `${cursor.x},${cursor.y}`
+    const inFOV = state.visibleCells.has(key)
+    const tile = level.tiles[cursor.y][cursor.x]
+    const isValid = distance <= range && inFOV && tile.walkable
+
+    // Create or update info panel
+    let infoPanel = document.getElementById('targeting-info-panel')
+    if (!infoPanel) {
+      infoPanel = document.createElement('div')
+      infoPanel.id = 'targeting-info-panel'
+      infoPanel.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.85);
+        border: 2px solid ${isValid ? '#00ff00' : '#ff0000'};
+        color: white;
+        padding: 12px;
+        font-family: monospace;
+        font-size: 14px;
+        z-index: 1000;
+        min-width: 250px;
+        border-radius: 4px;
+      `
+      document.body.appendChild(infoPanel)
+    }
+
+    infoPanel.style.borderColor = isValid ? '#00ff00' : '#ff0000'
+
+    // Update content
+    let content = `<div style="margin-bottom: 8px;"><strong>Targeting Mode</strong></div>`
+
+    if (monster) {
+      content += `
+        <div style="color: ${isValid ? '#00ff00' : '#ff6666'};">
+          ${monster.name} (${monster.letter})
+        </div>
+        <div style="font-size: 12px; color: #aaa; margin-top: 4px;">
+          HP: ${monster.hp}/${monster.maxHp}<br>
+          Distance: ${distance} tiles<br>
+          Range: ${range} tiles
+        </div>
+      `
+      if (!isValid) {
+        if (distance > range) {
+          content += `<div style="color: #ff6666; margin-top: 6px;">⚠ Out of range!</div>`
+        } else if (!inFOV) {
+          content += `<div style="color: #ff6666; margin-top: 6px;">⚠ Not visible!</div>`
+        }
+      }
+    } else {
+      content += `
+        <div style="color: #888;">No target</div>
+        <div style="font-size: 12px; color: #aaa; margin-top: 4px;">
+          Distance: ${distance} tiles<br>
+          Range: ${range} tiles
+        </div>
+      `
+    }
+
+    content += `
+      <div style="border-top: 1px solid #444; margin-top: 10px; padding-top: 8px; font-size: 11px; color: #888;">
+        <div>hjkl/arrows: Move cursor</div>
+        <div>Tab: Cycle monsters</div>
+        <div>Enter: Confirm</div>
+        <div>ESC: Cancel</div>
+      </div>
+    `
+
+    infoPanel.innerHTML = content
+  }
+
+  /**
+   * Hide targeting info panel
+   */
+  hideTargetingInfo(): void {
+    const infoPanel = document.getElementById('targeting-info-panel')
+    if (infoPanel) {
+      infoPanel.remove()
+    }
+
+    // Clear targeting state
+    this.targetingState = null
+  }
+
+  /**
+   * Calculate targeting line from start to end position
+   * Uses Bresenham-like algorithm to trace line until hitting wall
+   *
+   * @param start - Starting position (player)
+   * @param end - End position (cursor)
+   * @param level - Current dungeon level
+   * @returns Set of position keys representing the line path
+   */
+  private calculateTargetingLine(start: Position, end: Position, level: Level): Set<string> {
+    const line = new Set<string>()
+
+    // Calculate direction vector
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+
+    // Number of steps = max of absolute differences
+    const steps = Math.max(Math.abs(dx), Math.abs(dy))
+
+    // Calculate step increments
+    const xStep = steps === 0 ? 0 : dx / steps
+    const yStep = steps === 0 ? 0 : dy / steps
+
+    // Trace line from start to end
+    for (let i = 0; i <= steps; i++) {
+      const x = Math.round(start.x + xStep * i)
+      const y = Math.round(start.y + yStep * i)
+
+      // Add position to line
+      line.add(`${x},${y}`)
+
+      // Stop if we hit a wall (but not at the cursor position itself)
+      if (x >= 0 && x < level.width && y >= 0 && y < level.height) {
+        const tile = level.tiles[y][x]
+        if (!tile.walkable && (x !== end.x || y !== end.y)) {
+          break
+        }
+      }
+    }
+
+    return line
   }
 }

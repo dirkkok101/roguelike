@@ -84,7 +84,12 @@ describe('MonsterSpawnService - Data Validation', () => {
 
     test('all monsters have valid aggro range', () => {
       monsters.forEach((monster) => {
-        expect(monster.aiProfile.aggroRange).toBeGreaterThan(0)
+        // ERRATIC monsters can have aggroRange 0 (never wake from proximity)
+        if (monster.aiProfile.behavior === 'ERRATIC') {
+          expect(monster.aiProfile.aggroRange).toBeGreaterThanOrEqual(0)
+        } else {
+          expect(monster.aiProfile.aggroRange).toBeGreaterThan(0)
+        }
         expect(monster.aiProfile.aggroRange).toBeLessThanOrEqual(20)
       })
     })

@@ -58,9 +58,15 @@ export class PlayingState extends BaseState {
   /**
    * Called when state becomes active
    * Render initial game state
+   * Also check for pending commands (from targeting, modals, etc.)
    */
   enter(): void {
     this.renderer.render(this.gameState)
+
+    // Check for pending commands when state becomes active
+    // This handles cases where a higher state (like TargetSelectionState) pops
+    // and leaves a pending command to execute
+    this.checkAndExecutePendingCommand()
   }
 
   /**
@@ -75,7 +81,7 @@ export class PlayingState extends BaseState {
    * Game tick logic (currently unused - game is turn-based, not frame-based)
    * @param deltaTime - Time since last update (unused)
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Turn-based game doesn't need frame updates
     // All logic is driven by player input in handleInput()
   }
@@ -97,11 +103,13 @@ export class PlayingState extends BaseState {
    * 4. Process monster turns if player exhausted energy
    * 5. Increment turn counter
    * 6. Auto-save
-   * 7. Re-render
+   *
+   * Note: Rendering is now handled by the main loop's renderAllVisibleStates()
+   * after handleInput() completes. This ensures correct state stack rendering.
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
+  handleInput(_input: Input): void {
     // Don't process input if death or victory screen is visible
     if (this.renderer.isDeathScreenVisible() || this.renderer.isVictoryScreenVisible()) {
       return
@@ -116,7 +124,7 @@ export class PlayingState extends BaseState {
 
     // Convert Input to KeyboardEvent for existing InputHandler
     // TODO: Phase 4 will refactor to use Input directly
-    const keyboardEvent = this.inputToKeyboardEvent(input)
+    const keyboardEvent = this.inputToKeyboardEvent(_input)
 
     // PHASE 1: Grant energy to all actors until player can act
     do {
@@ -137,14 +145,15 @@ export class PlayingState extends BaseState {
       // PHASE 3: Process monsters only if player exhausted energy
       if (!this.turnService.canPlayerAct(this.gameState.player)) {
         this.gameState = this.monsterTurnService.processMonsterTurns(this.gameState)
+        this.gameState = this.turnService.processWanderingSpawns(this.gameState)
         this.gameState = this.turnService.incrementTurn(this.gameState)
       }
 
       this.autoSaveMiddleware.afterTurn(this.gameState)
     }
 
-    // Always re-render (handles modal closes, inventory updates, etc.)
-    this.renderer.render(this.gameState)
+    // Rendering is now handled by main loop after handleInput() returns
+    // This allows the state stack to render correctly (base game + overlays)
   }
 
   /**
@@ -167,6 +176,40 @@ export class PlayingState extends BaseState {
    */
   getGameState(): GameState {
     return this.gameState
+  }
+
+  /**
+   * Check for and execute pending commands
+   * Called when state becomes active (via enter()) to handle commands
+   * left by states that popped themselves (like TargetSelectionState)
+   */
+  private checkAndExecutePendingCommand(): void {
+    // Create a dummy keyboard event to check for pending commands
+    const dummyEvent = new KeyboardEvent('keydown', { key: '' })
+    const command = this.inputHandler.handleKeyPress(dummyEvent, this.gameState)
+
+    if (command) {
+      // Execute the pending command and update game state
+      this.gameState = command.execute(this.gameState)
+
+      // Consume player energy after action
+      this.gameState = {
+        ...this.gameState,
+        player: this.turnService.consumePlayerEnergy(this.gameState.player),
+      }
+
+      // Process monsters only if player exhausted energy
+      if (!this.turnService.canPlayerAct(this.gameState.player)) {
+        this.gameState = this.monsterTurnService.processMonsterTurns(this.gameState)
+        this.gameState = this.turnService.processWanderingSpawns(this.gameState)
+        this.gameState = this.turnService.incrementTurn(this.gameState)
+      }
+
+      this.autoSaveMiddleware.afterTurn(this.gameState)
+
+      // Re-render after command execution
+      this.renderer.render(this.gameState)
+    }
   }
 
   /**

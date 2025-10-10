@@ -124,6 +124,33 @@ export class MonsterSpawnService {
   }
 
   /**
+   * Select monster template for a given depth
+   *
+   * Filters monsters appropriate for depth and selects one using weighted randomness.
+   * Used by wandering monster spawns and other special spawn scenarios.
+   *
+   * @param depth - Dungeon level (1-10)
+   * @returns Selected MonsterTemplate
+   * @throws Error if no templates available for depth (shouldn't happen with proper data)
+   */
+  selectMonsterForDepth(depth: number): MonsterTemplate {
+    // Ensure data is loaded
+    if (!this.dataLoaded) {
+      throw new Error('Monster data not loaded. Call loadMonsterData() first.')
+    }
+
+    // Filter monsters appropriate for this depth
+    const availableTemplates = this.filterMonstersByDepth(depth)
+
+    if (availableTemplates.length === 0) {
+      throw new Error(`No monsters available for depth ${depth}`)
+    }
+
+    // Select monster template with weighted randomness
+    return this.selectWeightedMonster(availableTemplates)
+  }
+
+  /**
    * Spawn monsters for a dungeon level
    *
    * Creates monsters appropriate for the given depth with weighted selection.

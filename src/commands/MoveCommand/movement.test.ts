@@ -139,8 +139,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -163,8 +162,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -187,8 +185,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -211,8 +208,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -237,8 +233,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -262,8 +257,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
       const down = new MoveCommand(
         'down',
@@ -278,8 +272,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       state = right.execute(state)
@@ -309,8 +302,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       command.execute(state)
@@ -334,8 +326,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -363,8 +354,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
       const left = new MoveCommand(
         'left',
@@ -379,8 +369,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState1 = up.execute(state)
@@ -407,8 +396,7 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = up.execute(state)

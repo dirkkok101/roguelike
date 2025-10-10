@@ -64,7 +64,7 @@ export class LeaderboardState extends BaseState {
    * Game tick logic (leaderboard is static)
    * @param deltaTime - Unused for static screen
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Leaderboard is static - no updates needed
   }
 
@@ -89,7 +89,7 @@ export class LeaderboardState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
+  handleInput(_input: Input): void {
     // LeaderboardScreen currently handles its own input via keydown listeners
     // This is a transition state - Phase 4 will refactor to handle input here
   }

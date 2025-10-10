@@ -240,7 +240,290 @@ if (chaseChance < 1.0) {
 
 ---
 
-### 1.8 Testing
+### 1.8 Running Detection
+
+**Mechanic**: Player running increases effective monster detection range
+
+**Implementation**:
+```typescript
+// In MonsterAIService.checkWakeUp()
+const baseAggroRange = monster.aiProfile.aggroRange
+const runningMultiplier = state.player.isRunning ? 1.5 : 1.0
+const effectiveAggroRange = Math.round(baseAggroRange * runningMultiplier)
+
+const distance = manhattanDistance(monster.position, state.player.position)
+if (distance <= effectiveAggroRange) {
+  // Wake monster
+  monster.isAsleep = false
+  monster.state = MonsterState.HUNTING
+}
+```
+
+**Effect**:
+- **Normal movement**: Base aggro range (e.g., Orc wakes at 5 tiles)
+- **Running**: Effective range × 1.5 (e.g., Orc wakes at 8 tiles when player running)
+- Rounding: `Math.round()` ensures integer tile distance (5 × 1.5 = 7.5 → 8 tiles)
+
+**Example**:
+| Monster | Base Aggro Range | Running Effective Range |
+|---------|------------------|-------------------------|
+| Snake | 5 tiles | 8 tiles (5 × 1.5 = 7.5 → 8) |
+| Dragon | 10 tiles | 15 tiles (10 × 1.5 = 15) |
+| Hobgoblin | 7 tiles | 11 tiles (7 × 1.5 = 10.5 → 11) |
+
+**Authentic Rogue**: Matches original 1980 Rogue where running made noise and woke monsters earlier
+
+**Tactical Implications**:
+- **Walking** (isRunning = false):
+  - Normal detection range
+  - Safe for sneaking past sleeping monsters
+  - Slower exploration
+  - Ideal for dense monster areas
+
+- **Running** (isRunning = true):
+  - 50% increased detection range
+  - Faster exploration
+  - Higher risk near sleeping monsters
+  - Good for cleared areas or escape
+
+**Ring of Stealth Interaction**:
+- Ring of Stealth prevents adjacent wake-ups even when running
+- Powerful combination for stealth runs
+- Still uses effective aggro range for non-adjacent monsters
+
+**Player State Tracking**:
+```typescript
+interface Player {
+  // ... existing fields
+  isRunning: boolean  // Set by MoveCommand based on input
+}
+```
+
+**Current Implementation Note**: `Player.isRunning` field exists, but actual running state tracking is deferred (requires Input system refactoring). Default value is `false`, so detection logic is in place but not yet activated by player actions.
+
+**See**:
+- Implementation: `src/services/MonsterAIService/MonsterAIService.ts:checkWakeUp()`
+- Tests: `src/services/MonsterAIService/running-detection.test.ts`
+- Game Design: [Monsters - Running Detection](./game-design/04-monsters.md#running-detection)
+
+---
+
+### 1.9 Door Slam Wake Mechanic
+
+**Mechanic**: Leaving a doorway and immediately returning wakes monsters in connected rooms
+
+**Pattern Detection**:
+```typescript
+// In MoveCommand.detectDoorSlam()
+if (positionHistory.length < 3) return false
+
+const currentPos = positionHistory[2]  // position N (most recent)
+const twoMovesAgo = positionHistory[0]  // position N-2
+
+// Check if returned to same position
+if (currentPos.x !== twoMovesAgo.x || currentPos.y !== twoMovesAgo.y) {
+  return false
+}
+
+// Check if position is a doorway
+const doorAtPosition = level.doors.find(
+  (door) => door.position.x === currentPos.x && door.position.y === currentPos.y
+)
+
+return doorAtPosition !== undefined
+```
+
+**Wake Implementation**:
+```typescript
+// In MonsterAIService.wakeRoomMonsters()
+wakeRoomMonsters(level: Level, roomIds: number[]): {
+  updatedMonsters: Monster[]
+  wokeMonsters: Monster[]
+} {
+  const wokeMonsters: Monster[] = []
+  const roomsToWake = new Set(roomIds)
+
+  const updatedMonsters = level.monsters.map((monster) => {
+    if (!monster.isAsleep) return monster
+
+    const monsterRoom = this.findMonsterRoom(monster, level.rooms)
+    if (monsterRoom && roomsToWake.has(monsterRoom.id)) {
+      const wokeMonster = {
+        ...monster,
+        isAsleep: false,
+        state: MonsterState.HUNTING,
+      }
+      wokeMonsters.push(wokeMonster)
+      return wokeMonster
+    }
+
+    return monster
+  })
+
+  return { updatedMonsters, wokeMonsters }
+}
+```
+
+**Position History Tracking**:
+```typescript
+interface GameState {
+  // ... existing fields
+  positionHistory?: Position[]  // Last 3 player positions
+}
+
+// In MoveCommand.performMovement()
+const updatedPositionHistory = [...currentHistory, position].slice(-3)
+```
+
+**Authentic Rogue**: In original 1980 Rogue, slamming doors (leaving and re-entering) created noise that woke nearby monsters
+
+**Workflow**:
+1. Player moves to door position (5,5) — stored in history
+2. Player moves away from door (4,5) — stored in history
+3. Player returns to door (5,5) — pattern detected!
+4. MoveCommand calls `monsterAIService.wakeRoomMonsters(door.connectsRooms)`
+5. All sleeping monsters in connected rooms wake (SLEEPING → HUNTING)
+6. Message: "Your loud entrance wakes the monsters!" (warning type)
+
+**Tactical Use Cases**:
+
+**Intentional Wake**:
+```
+Room A    Door    Corridor
+[zzz]  →  [#]  →  [@]
+Monster   Player
+sleeping  position
+```
+Player can door slam to wake monsters without entering room, then use ranged attacks or prepared position.
+
+**Accidental Wake** (avoid):
+```
+Turn N-2: [@] at door
+Turn N-1: [@] moved left (accidental)
+Turn N:   [@] moved right back to door (oops - door slam!)
+```
+
+**Selective Room Waking**:
+- Only wakes monsters in rooms connected by that specific door
+- Monsters in other rooms remain asleep
+- Example: Door connects rooms 0 and 1, monster in room 2 stays asleep
+
+**Design Rationale**:
+- Adds tactical depth (player can choose when to wake monsters)
+- Prevents accidental spam (requires exact 3-move pattern)
+- Authentic mechanic (matches original Rogue behavior)
+- Room-based targeting (prevents global wake-up)
+
+**See**:
+- Implementation: `src/commands/MoveCommand/MoveCommand.ts:detectDoorSlam()`
+- MonsterAI Wake: `src/services/MonsterAIService/MonsterAIService.ts:wakeRoomMonsters()`
+- Tests: `src/commands/MoveCommand/door-slam-detection.test.ts`
+- Game Design: [Monsters - Door Slam](./game-design/04-monsters.md#door-slam-wake-mechanic)
+
+---
+
+### 1.10 Wandering Monster Integration
+
+**Mechanic**: Monsters spawn progressively as player stays on level (time pressure)
+
+**AI Integration**: Wandering monsters spawn in WANDERING state (not sleeping)
+
+**Spawn Service**:
+- **WanderingMonsterService** handles spawn logic, location selection, chance calculation
+- **TurnService** calls wandering spawn check after monster turns
+- **MonsterAIService** processes WANDERING state behavior
+
+**Wanderer Characteristics**:
+```typescript
+// Spawned by WanderingMonsterService
+{
+  id: 'wanderer-3-4728',
+  name: 'Hobgoblin',
+  isAsleep: false,           // Wanderers spawn awake
+  state: MonsterState.WANDERING,  // Not hunting yet
+  // ... other monster properties
+}
+```
+
+**State Transitions for Wanderers**:
+```
+WANDERING → HUNTING: Player enters aggro range or attacks
+HUNTING → FLEEING: HP drops below flee threshold
+```
+
+**WANDERING Behavior**:
+- Moves randomly (not pursuing player)
+- Similar to ERRATIC but can transition to HUNTING
+- Checks aggro range each turn
+- Converts to HUNTING when player detected
+
+**Decision Logic**:
+```typescript
+// In MonsterAIService.decideAction()
+if (monster.state === MonsterState.WANDERING) {
+  // Check if player in aggro range
+  const distance = manhattanDistance(monster.position, state.player.position)
+  const effectiveRange = monster.aiProfile.aggroRange * (state.player.isRunning ? 1.5 : 1.0)
+
+  if (distance <= effectiveRange) {
+    monster.state = MonsterState.HUNTING
+    return this.executeBehavior(monster, state)  // Start hunting
+  }
+
+  // Still wandering - move randomly
+  return this.wanderBehavior(monster, level)
+}
+```
+
+**Wander Behavior Implementation**:
+```typescript
+private wanderBehavior(monster: Monster, level: Level): MonsterAction {
+  const directions = [
+    { x: 0, y: -1 },  // up
+    { x: 0, y: 1 },   // down
+    { x: -1, y: 0 },  // left
+    { x: 1, y: 0 },   // right
+  ]
+
+  const randomDir = this.random.pickRandom(directions)
+  const target = {
+    x: monster.position.x + randomDir.x,
+    y: monster.position.y + randomDir.y,
+  }
+
+  const tile = level.tiles[target.y]?.[target.x]
+  if (tile?.walkable) {
+    return { type: 'move', target }
+  }
+
+  return { type: 'wait' }
+}
+```
+
+**Spawn Timing**:
+- Checked once per turn in TurnService after monster turns
+- Progressive chance: 0.5% base + 0.01% per turn since last spawn
+- Maximum 5 wanderers per level
+- See [WanderingMonsterService](./services/WanderingMonsterService.md) for full spawn algorithm
+
+**Tactical Implications**:
+- Wanderers add time pressure (can't rest indefinitely)
+- Fast exploration reduces wanderer encounters
+- Wanderers patrol randomly until player detected
+- Creates dynamic encounters (not just room monsters)
+
+**Performance**: Wanderers use same AI behaviors as room monsters (no additional overhead)
+
+**See**:
+- Spawn Logic: `src/services/WanderingMonsterService/WanderingMonsterService.ts`
+- Integration: `src/services/TurnService/TurnService.ts`
+- AI Behavior: `src/services/MonsterAIService/MonsterAIService.ts:wanderBehavior()`
+- Game Design: [Monsters - Wandering Spawns](./game-design/04-monsters.md#wandering-monster-spawns)
+- Service Docs: [WanderingMonsterService](./services/WanderingMonsterService.md)
+
+---
+
+### 1.11 Testing
 
 See [Testing Strategy](./testing-strategy.md) - `MonsterAIService/` folder
 - `smart-behavior.test.ts` - A* pathfinding AI tests
@@ -249,6 +532,15 @@ See [Testing Strategy](./testing-strategy.md) - `MonsterAIService/` folder
 - `thief-behavior.test.ts` - Steal and flee tests
 - `wake-conditions.test.ts` - Sleep/wake mechanics
 - `state-transitions.test.ts` - State machine tests
+- `running-detection.test.ts` - Running increases detection range
+- `aggro-range.test.ts` - Authentic Rogue aggro range validation
+
+See [MoveCommand Tests](./testing-strategy.md#movecommand-tests)
+- `door-slam-detection.test.ts` - Door slam pattern detection and monster waking
+
+See [WanderingMonsterService Tests](./testing-strategy.md#wanderingmonsterservice-tests)
+- `spawn-chance.test.ts` - Progressive spawn chance calculation
+- `spawn-location.test.ts` - Valid location selection, player room exclusion
 
 **Dependencies**: PathfindingService, RandomService
 

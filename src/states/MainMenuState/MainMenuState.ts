@@ -63,7 +63,7 @@ export class MainMenuState extends BaseState {
    * Game tick logic (menu doesn't need updates)
    * @param deltaTime - Unused for static menu
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Menu is static - no updates needed
   }
 
@@ -83,7 +83,7 @@ export class MainMenuState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
+  handleInput(_input: Input): void {
     // MainMenu currently handles its own input via keydown listeners
     // This is a transition state - Phase 4 will refactor to handle input here
 

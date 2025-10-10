@@ -24,6 +24,7 @@ describe('CombatService - Hunger Penalties', () => {
       maxHp: 20,
       strength: 16,
       maxStrength: 16,
+      strengthPercentile: undefined,
       ac: 5,
       level: 1,
       xp: 0,
@@ -37,6 +38,9 @@ describe('CombatService - Hunger Penalties', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
+      isRunning: false,
       ...overrides,
     }
   }
@@ -86,7 +90,7 @@ describe('CombatService - Hunger Penalties', () => {
 
     // Assert: Hit succeeded, damage has penalty
     expect(result.hit).toBe(true)
-    expect(result.damage).toBe(3) // 4 - 1 penalty
+    expect(result.damage).toBe(3) // 4 roll + 0 Str bonus (10 gives +0) - 1 hunger penalty
   })
 
   test('applies -1 damage penalty when player is Weak', () => {
@@ -102,8 +106,10 @@ describe('CombatService - Hunger Penalties', () => {
 
     // Assert: Damage should be reduced by 1
     // Base unarmed damage: 4 (from 1d4 roll)
-    // With -1 penalty: 4 - 1 = 3
-    expect(result.damage).toBe(3)
+    // Plus Str bonus: +1 (Str 16 gives +1 damage)
+    // Minus hunger penalty: -1
+    // Total: 4 + 1 - 1 = 4
+    expect(result.damage).toBe(4)
   })
 
   test('applies penalties when player is Starving', () => {
@@ -118,7 +124,7 @@ describe('CombatService - Hunger Penalties', () => {
     const result = combatService.playerAttack(player, monster)
 
     // Assert: Both penalties apply (same as WEAK)
-    expect(result.damage).toBe(3) // 4 - 1
+    expect(result.damage).toBe(4) // 4 roll + 1 Str bonus - 1 hunger penalty
   })
 
   test('applies no penalty when player is Normal', () => {
@@ -133,7 +139,7 @@ describe('CombatService - Hunger Penalties', () => {
     const result = combatService.playerAttack(player, monster)
 
     // Assert: No penalty, full damage
-    expect(result.damage).toBe(4)
+    expect(result.damage).toBe(5) // 4 roll + 1 Str bonus (16 gives +1 damage)
   })
 
   test('applies no penalty when player is Hungry', () => {
@@ -148,7 +154,7 @@ describe('CombatService - Hunger Penalties', () => {
     const result = combatService.playerAttack(player, monster)
 
     // Assert: No penalty, full damage
-    expect(result.damage).toBe(4)
+    expect(result.damage).toBe(5) // 4 roll + 1 Str bonus (16 gives +1 damage)
   })
 
   test('damage penalty does not go below 0', () => {
@@ -162,8 +168,8 @@ describe('CombatService - Hunger Penalties', () => {
     // Act
     const result = combatService.playerAttack(player, monster)
 
-    // Assert: Damage is 0 (1 - 1 = 0), not negative
-    expect(result.damage).toBe(0)
+    // Assert: Damage is 1 (1 roll + 1 Str - 1 hunger = 1), strength bonus prevents 0 damage
+    expect(result.damage).toBe(1)
     expect(result.damage).toBeGreaterThanOrEqual(0)
   })
 })

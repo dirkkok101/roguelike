@@ -32,8 +32,7 @@ import { ModalController } from '@ui/ModalController'
 export class InventoryState extends BaseState {
   constructor(
     private modalController: ModalController,
-    private gameState: GameState,
-    private onClose: () => void
+    private gameState: GameState
   ) {
     super()
   }
@@ -59,7 +58,7 @@ export class InventoryState extends BaseState {
    * Game tick logic (inventory is static)
    * @param deltaTime - Unused for static display
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Inventory is static - no updates needed
   }
 
@@ -86,7 +85,7 @@ export class InventoryState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
+  handleInput(_input: Input): void {
     // ModalController currently handles its own input via keydown listeners
     // When ESC is pressed, it will call onClose callback
     // This is a transition state - Phase 4 will refactor to handle input here

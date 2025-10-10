@@ -1,4 +1,4 @@
-import { Monster, GameState, Position, MonsterBehavior, MonsterState } from '@game/core/core'
+import { Monster, GameState, Position, MonsterBehavior, MonsterState, Level, Room } from '@game/core/core'
 import { PathfindingService } from '@services/PathfindingService'
 import { IRandomService } from '@services/RandomService'
 import { FOVService } from '@services/FOVService'
@@ -93,6 +93,9 @@ export class MonsterAIService {
 
   /**
    * Check if monster should wake up
+   *
+   * Running Detection: If player is running, effective aggro range is increased by 50%
+   * (authentic Rogue mechanic - running makes more noise, easier to detect)
    */
   checkWakeUp(monster: Monster, state: GameState): Monster {
     // Already awake
@@ -103,8 +106,13 @@ export class MonsterAIService {
     const playerPos = state.player.position
     const distToPlayer = this.distance(monster.position, playerPos)
 
-    // Wake up if player within aggro range
-    if (distToPlayer <= monster.aiProfile.aggroRange) {
+    // Calculate effective aggro range (increased if player is running)
+    const baseAggroRange = monster.aiProfile.aggroRange
+    const runningMultiplier = state.player.isRunning ? 1.5 : 1.0
+    const effectiveAggroRange = Math.round(baseAggroRange * runningMultiplier)
+
+    // Wake up if player within effective aggro range
+    if (distToPlayer <= effectiveAggroRange) {
       return {
         ...monster,
         isAsleep: false,
@@ -116,7 +124,147 @@ export class MonsterAIService {
   }
 
   /**
+   * Wake all sleeping monsters in specified rooms (door slam mechanic)
+   *
+   * Authentic Rogue behavior: When player "slams" a door (leaves and immediately returns),
+   * all sleeping monsters in the connected rooms wake up and start hunting.
+   *
+   * @param level Current level
+   * @param roomIds Array of room IDs to wake monsters in (typically 2 from door.connectsRooms)
+   * @returns Object with updated monsters array and list of woken monsters
+   */
+  wakeRoomMonsters(level: Level, roomIds: number[]): {
+    updatedMonsters: Monster[]
+    wokeMonsters: Monster[]
+  } {
+    const wokeMonsters: Monster[] = []
+    const roomsToWake = new Set(roomIds)
+
+    // Find all sleeping monsters in the specified rooms
+    const updatedMonsters = level.monsters.map((monster) => {
+      // Skip if already awake
+      if (!monster.isAsleep) return monster
+
+      // Check if monster is in any of the rooms
+      const monsterRoom = this.findMonsterRoom(monster, level.rooms)
+      if (monsterRoom && roomsToWake.has(monsterRoom.id)) {
+        // Wake monster
+        const wokeMonster = {
+          ...monster,
+          isAsleep: false,
+          state: MonsterState.HUNTING,
+        }
+        wokeMonsters.push(wokeMonster)
+        return wokeMonster
+      }
+
+      return monster
+    })
+
+    return { updatedMonsters, wokeMonsters }
+  }
+
+  /**
+   * Detect door slam pattern and wake monsters if detected
+   *
+   * Door slam pattern: Player returned to same doorway position within 2 moves
+   * (position N-2 == position N, where N is current)
+   *
+   * Authentic Rogue behavior: Leaving and immediately re-entering a room via doorway
+   * wakes all sleeping monsters in the connected rooms.
+   *
+   * @param level Current level
+   * @param position Current player position
+   * @param positionHistory Last 3 player positions (for pattern detection)
+   * @returns Object with slam detection status, updated monsters, and woke monsters
+   */
+  detectDoorSlamAndWake(
+    level: Level,
+    position: Position,
+    positionHistory: Position[]
+  ): {
+    slamDetected: boolean
+    updatedMonsters: Monster[]
+    wokeMonsters: Monster[]
+  } {
+    // Need at least 3 positions to detect pattern
+    if (positionHistory.length < 3) {
+      return {
+        slamDetected: false,
+        updatedMonsters: level.monsters,
+        wokeMonsters: [],
+      }
+    }
+
+    const currentPos = positionHistory[2] // position N (most recent)
+    const twoMovesAgo = positionHistory[0] // position N-2
+
+    // Check if returned to same position
+    if (currentPos.x !== twoMovesAgo.x || currentPos.y !== twoMovesAgo.y) {
+      return {
+        slamDetected: false,
+        updatedMonsters: level.monsters,
+        wokeMonsters: [],
+      }
+    }
+
+    // Check if current position is a doorway
+    const doorAtPosition = this.findDoorAtPosition(level.doors, position)
+
+    if (!doorAtPosition) {
+      return {
+        slamDetected: false,
+        updatedMonsters: level.monsters,
+        wokeMonsters: [],
+      }
+    }
+
+    // Door slam detected! Wake monsters in connected rooms
+    const wakeResult = this.wakeRoomMonsters(level, doorAtPosition.connectsRooms)
+
+    return {
+      slamDetected: true,
+      updatedMonsters: wakeResult.updatedMonsters,
+      wokeMonsters: wakeResult.wokeMonsters,
+    }
+  }
+
+  /**
+   * Find door at specific position
+   * @param doors Array of doors in the level
+   * @param position Position to check
+   * @returns Door at position, or undefined if no door found
+   */
+  private findDoorAtPosition(doors: any[], position: Position) {
+    return doors.find(
+      (door) => door.position.x === position.x && door.position.y === position.y
+    )
+  }
+
+  /**
+   * Find which room a monster is currently in
+   * @param monster Monster to check
+   * @param rooms Array of rooms in the level
+   * @returns Room the monster is in, or null if not in any room
+   */
+  private findMonsterRoom(monster: Monster, rooms: Room[]): Room | null {
+    for (const room of rooms) {
+      if (
+        monster.position.x >= room.x &&
+        monster.position.x < room.x + room.width &&
+        monster.position.y >= room.y &&
+        monster.position.y < room.y + room.height
+      ) {
+        return room
+      }
+    }
+    return null
+  }
+
+  /**
    * Update monster state based on conditions (FSM)
+   *
+   * Running Detection: If player is running, effective aggro range is increased by 50%
    */
   updateMonsterState(monster: Monster, state: GameState): Monster {
     const level = state.levels.get(state.currentLevel)
@@ -125,8 +273,13 @@ export class MonsterAIService {
     const playerPos = state.player.position
     const distToPlayer = this.distance(monster.position, playerPos)
 
-    // Check if player is in aggro range
-    const inAggroRange = distToPlayer <= monster.aiProfile.aggroRange
+    // Calculate effective aggro range (increased if player is running)
+    const baseAggroRange = monster.aiProfile.aggroRange
+    const runningMultiplier = state.player.isRunning ? 1.5 : 1.0
+    const effectiveAggroRange = Math.round(baseAggroRange * runningMultiplier)
+
+    // Check if player is in effective aggro range
+    const inAggroRange = distToPlayer <= effectiveAggroRange
 
     // Calculate HP percentage for COWARD check
     const hpPercent = monster.hp / monster.maxHp
@@ -150,14 +303,14 @@ export class MonsterAIService {
       case MonsterState.HUNTING:
         // Flee if COWARD and HP low
         if (
-          monster.aiProfile.behavior === MonsterBehavior.COWARD &&
+          this.hasBehavior(monster, MonsterBehavior.COWARD) &&
           hpPercent < monster.aiProfile.fleeThreshold
         ) {
           return { ...monster, state: MonsterState.FLEEING }
         }
         // Flee if THIEF and hasStolen
         if (
-          monster.aiProfile.behavior === MonsterBehavior.THIEF &&
+          this.hasBehavior(monster, MonsterBehavior.THIEF) &&
           monster.hasStolen
         ) {
           return { ...monster, state: MonsterState.FLEEING }
@@ -167,7 +320,7 @@ export class MonsterAIService {
       case MonsterState.FLEEING:
         // Stop fleeing if HP recovered (for COWARD)
         if (
-          monster.aiProfile.behavior === MonsterBehavior.COWARD &&
+          this.hasBehavior(monster, MonsterBehavior.COWARD) &&
           hpPercent >= monster.aiProfile.fleeThreshold + 0.1
         ) {
           return { ...monster, state: MonsterState.HUNTING }
@@ -237,12 +390,10 @@ export class MonsterAIService {
       ? playerPos
       : (monster.lastKnownPlayerPosition ?? playerPos)
 
-    // Determine behavior
-    const behaviors = Array.isArray(monster.aiProfile.behavior)
-      ? monster.aiProfile.behavior
-      : [monster.aiProfile.behavior]
-
-    const primaryBehavior = behaviors[0]
+    // Determine primary behavior
+    const primaryBehavior = Array.isArray(monster.aiProfile.behavior)
+      ? monster.aiProfile.behavior[0]
+      : monster.aiProfile.behavior
 
     switch (primaryBehavior) {
       case MonsterBehavior.SMART:
@@ -540,5 +691,21 @@ export class MonsterAIService {
       { x: pos.x - 1, y: pos.y }, // Left
       { x: pos.x + 1, y: pos.y }, // Right
     ]
+  }
+
+  /**
+   * Check if monster has a specific behavior
+   *
+   * Handles both single behavior and multiple behaviors (array).
+   *
+   * @param monster Monster to check
+   * @param behavior Behavior to look for
+   * @returns True if monster has the specified behavior
+   */
+  hasBehavior(monster: Monster, behavior: MonsterBehavior): boolean {
+    const behaviors = Array.isArray(monster.aiProfile.behavior)
+      ? monster.aiProfile.behavior
+      : [monster.aiProfile.behavior]
+    return behaviors.includes(behavior)
   }
 }

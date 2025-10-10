@@ -43,6 +43,7 @@ import { PreferencesService } from '@services/PreferencesService'
 import { TargetingService } from '@services/TargetingService'
 import { AssetLoaderService } from '@services/AssetLoaderService'
 import { TerrainSpriteService } from '@services/TerrainSpriteService'
+import { WanderingMonsterService } from '@services/WanderingMonsterService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -58,12 +59,13 @@ import { PlayingState } from '@states/PlayingState'
 // Initialize game asynchronously to load item data
 async function initializeGame() {
   // Load item data from JSON
-  let itemData: ItemData | undefined
+  let itemData: ItemData
   try {
     itemData = await loadItemData()
     console.log('Items loaded from items.json')
   } catch (error) {
-    console.warn('Failed to load items.json, using hardcoded items:', error)
+    console.error('Failed to load items.json:', error)
+    throw error // Fatal error - game cannot proceed without item data
   }
 
   // Generate unique seed for new games (will be overridden when loading saves)
@@ -143,7 +145,8 @@ async function initializeGame() {
   const pathfindingService = new PathfindingService(levelService)
   const monsterAIService = new MonsterAIService(pathfindingService, random, fovService, levelService)
   const specialAbilityService = new SpecialAbilityService(random)
-  const turnService = new TurnService(statusEffectService, levelService, ringService)
+  const wanderingMonsterService = new WanderingMonsterService(monsterSpawnService, random)
+  const turnService = new TurnService(statusEffectService, levelService, ringService, wanderingMonsterService, messageService)
   const goldService = new GoldService(random)
   const monsterTurnService = new MonsterTurnService(
     random,
@@ -167,9 +170,9 @@ async function initializeGame() {
     dungeonService,
     curseService
   )
-  const wandService = new WandService(identificationService, random, combatService)
   const targetingService = new TargetingService(fovService, movementService)
-  const modalController = new ModalController(identificationService, curseService, targetingService)
+  const wandService = new WandService(identificationService, random, combatService, targetingService)
+  const modalController = new ModalController(identificationService, curseService)
 
   // Dungeon configuration
   // Note: Dungeon is larger than viewport (80×22) to enable camera scrolling
@@ -199,6 +202,7 @@ async function initializeGame() {
   // Create new random service with game-specific seed
   const gameRandom = new SeededRandom(gameSeed)
   const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
+  const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
 
   // Generate procedural dungeon using DungeonService
   const level = gameDungeonService.generateLevel(1, dungeonConfig)
@@ -221,20 +225,35 @@ async function initializeGame() {
     isPermanent: false,
   }
 
+  // Create starting leather armor (matching original Rogue 1980)
+  const leatherArmor = gameItemSpawnService.createStartingLeatherArmor(startPos)
+
+  // Roll for exceptional strength (1% chance, matching original Rogue 1980)
+  const exceptionalRoll = gameRandom.nextInt(1, 100)
+  let startingStrength = 16
+  let strengthPercentile: number | undefined = undefined
+
+  if (exceptionalRoll === 1) {
+    // 1% chance for exceptional strength (18/XX)
+    startingStrength = 18
+    strengthPercentile = gameRandom.nextInt(1, 100)
+  }
+
   const player = {
     position: startPos,
     hp: 12,
     maxHp: 12,
-    strength: 16,
-    maxStrength: 16,
-    ac: 4,
+    strength: startingStrength,
+    maxStrength: startingStrength,
+    strengthPercentile,
+    ac: 8, // With starting leather armor equipped (AC 8)
     level: 1,
     xp: 0,
     gold: 0,
     hunger: 1300,
     equipment: {
       weapon: null,
-      armor: null,
+      armor: leatherArmor, // Start with leather armor equipped
       leftRing: null,
       rightRing: null,
       lightSource: torch,
@@ -242,6 +261,7 @@ async function initializeGame() {
     inventory: [],
     statusEffects: [],
     energy: 100, // Start with full energy (can act immediately)
+    isRunning: false, // Not running initially
   }
 
   // Compute initial FOV
@@ -260,18 +280,30 @@ async function initializeGame() {
   // Generate item names for this game
   const itemNameMap = identificationService.generateItemNames()
 
+  // Build initial messages
+  const initialMessages: Array<{ text: string; type: 'info' | 'combat' | 'warning' | 'critical'; turn: number }> = [
+    {
+      text: 'Welcome to the dungeon. You are equipped with leather armor and a torch. Find the Amulet of Yendor!',
+      type: 'info',
+      turn: 0,
+    },
+  ]
+
+  // Add exceptional strength message if rolled
+  if (strengthPercentile !== undefined) {
+    initialMessages.push({
+      text: `You feel unusually strong! (Str 18/${strengthPercentile.toString().padStart(2, '0')})`,
+      type: 'info',
+      turn: 0,
+    })
+  }
+
   return {
     player,
     currentLevel: 1,
     levels: new Map([[1, level]]),
     visibleCells,
-    messages: [
-      {
-        text: 'Welcome to the dungeon. Find the Amulet of Yendor!',
-        type: 'info',
-        turn: 0,
-      },
-    ],
+    messages: initialMessages,
     turnCount: 0,
     seed: gameSeed,
     gameId: 'game-' + Date.now(),
@@ -284,6 +316,7 @@ async function initializeGame() {
     detectedMonsters: new Set(),
     detectedMagicItems: new Set(),
     debug: debugService.initializeDebugState(),
+    positionHistory: [], // Track last 3 positions for door slam detection
     // Run statistics (initialized to 0)
     monstersKilled: 0,
     itemsFound: 0,
@@ -321,6 +354,7 @@ async function initializeGame() {
     // Create new game with specified seed
     const gameRandom = new SeededRandom(seed)
     const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
+    const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
 
     const level = gameDungeonService.generateLevel(1, dungeonConfig)
     const startRoom = level.rooms[0]
@@ -341,20 +375,35 @@ async function initializeGame() {
       isPermanent: false,
     }
 
+    // Create starting leather armor (matching original Rogue 1980)
+    const leatherArmor = gameItemSpawnService.createStartingLeatherArmor(startPos)
+
+    // Roll for exceptional strength (1% chance, matching original Rogue 1980)
+    const exceptionalRoll = gameRandom.nextInt(1, 100)
+    let startingStrength = 16
+    let strengthPercentile: number | undefined = undefined
+
+    if (exceptionalRoll === 1) {
+      // 1% chance for exceptional strength (18/XX)
+      startingStrength = 18
+      strengthPercentile = gameRandom.nextInt(1, 100)
+    }
+
     const player = {
       position: startPos,
       hp: 12,
       maxHp: 12,
-      strength: 16,
-      maxStrength: 16,
-      ac: 4,
+      strength: startingStrength,
+      maxStrength: startingStrength,
+      strengthPercentile,
+      ac: 8, // With starting leather armor equipped (AC 8)
       level: 1,
       xp: 0,
       gold: 0,
       hunger: 1300,
       equipment: {
         weapon: null,
-        armor: null,
+        armor: leatherArmor, // Start with leather armor equipped
         leftRing: null,
         rightRing: null,
         lightSource: torch,
@@ -362,6 +411,7 @@ async function initializeGame() {
       inventory: [],
       statusEffects: [],
       energy: 100, // Start with full energy (can act immediately)
+      isRunning: false, // Not running initially
     }
 
     const visibleCells = fovService.computeFOV(
@@ -377,18 +427,30 @@ async function initializeGame() {
 
     const itemNameMap = identificationService.generateItemNames()
 
+    // Build initial messages
+    const initialMessages: Array<{ text: string; type: 'info' | 'combat' | 'warning' | 'critical'; turn: number }> = [
+      {
+        text: 'Welcome to the dungeon. You are equipped with leather armor and a torch. Find the Amulet of Yendor!',
+        type: 'info',
+        turn: 0,
+      },
+    ]
+
+    // Add exceptional strength message if rolled
+    if (strengthPercentile !== undefined) {
+      initialMessages.push({
+        text: `You feel unusually strong! (Str 18/${strengthPercentile.toString().padStart(2, '0')})`,
+        type: 'info',
+        turn: 0,
+      })
+    }
+
     const replayState: GameState = {
       player,
       currentLevel: 1,
       levels: new Map([[1, level]]),
       visibleCells,
-      messages: [
-        {
-          text: 'Welcome to the dungeon. Find the Amulet of Yendor!',
-          type: 'info',
-          turn: 0,
-        },
-      ],
+      messages: initialMessages,
       turnCount: 0,
       seed,
       gameId: 'game-' + Date.now(),
@@ -401,6 +463,7 @@ async function initializeGame() {
       detectedMonsters: new Set(),
       detectedMagicItems: new Set(),
       debug: debugService.initializeDebugState(),
+      positionHistory: [], // Track last 3 positions for door slam detection
       monstersKilled: 0,
       itemsFound: 0,
       itemsUsed: 0,
@@ -472,7 +535,9 @@ async function initializeGame() {
       modalController,
       renderer.getMessageHistoryModal(),
       renderer.getHelpModal(),
-      returnToMenu
+      returnToMenu,
+      stateManager,
+      renderer
     )
 
     // Render initial state
@@ -520,6 +585,10 @@ async function initializeGame() {
           alt: event.altKey,
         }
         currentState.handleInput(input)
+
+        // Render all visible states after input is processed
+        // This ensures transparent states (targeting, inventory) show correctly
+        renderAllVisibleStates()
       }
     }
     document.addEventListener('keydown', currentKeydownHandler)

@@ -792,4 +792,27 @@ export class ItemSpawnService {
       fuelAmount: oilFlask.fuelAmount,
     } as OilFlask
   }
+
+  /**
+   * Create starting leather armor (always identified, uncursed, no bonus)
+   * Used for new character initialization
+   */
+  createStartingLeatherArmor(position: Position): Armor {
+    const leatherTemplate = this.armorTemplates.find((t) => t.name === 'Leather Armor')
+    if (!leatherTemplate) {
+      throw new Error('Leather Armor template not found')
+    }
+
+    const itemId = `starting-leather-${Date.now()}`
+    return {
+      id: itemId,
+      name: leatherTemplate.name,
+      type: ItemType.ARMOR,
+      identified: true, // Starting equipment is always identified
+      position,
+      ac: leatherTemplate.ac,
+      bonus: 0, // No enchantment on starting equipment
+      cursed: false, // Starting equipment is never cursed
+    } as Armor
+  }
 }

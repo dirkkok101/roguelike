@@ -1,6 +1,7 @@
 import {
   GameState,
   Monster,
+  MonsterBehavior,
   MonsterState,
   Position,
   SpecialAbilityFlag,
@@ -184,7 +185,7 @@ export class MonsterTurnService {
     updatedLevels.set(state.currentLevel, updatedLevel)
 
     // Check if monster is GREEDY and just moved onto gold
-    if (this.abilityService.hasSpecial(monster, 'greedy')) {
+    if (this.aiService.hasBehavior(monster, MonsterBehavior.GREEDY)) {
       // Check for gold at new position
       const goldHere = level.gold.find(
         (g) => g.position.x === target.x && g.position.y === target.y

@@ -21,6 +21,7 @@ describe('CombatService - Equipment Bonuses', () => {
       maxHp: 20,
       strength: 16,
       maxStrength: 16,
+      strengthPercentile: undefined,
       ac: 10,
       level: 1,
       xp: 0,
@@ -34,6 +35,9 @@ describe('CombatService - Equipment Bonuses', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
+      isRunning: false,
     }
   }
 
@@ -88,12 +92,13 @@ describe('CombatService - Equipment Bonuses', () => {
       player.equipment.leftRing = ring
 
       // Mock roll for hit (d20) and damage (1d4 unarmed)
-      mockRandom.setValues([10, 3]) // Hit roll, then damage roll
+      mockRandom.setValues([17, 3]) // Hit roll, then damage roll
 
       const result = service.playerAttack(player, monster)
 
-      // With strength 16 + 2 from ring = 18, level 1: modifier = 19
-      // Roll 10 + modifier 19 - AC 8 = 21, which is >= 10, so should hit
+      // NEW FORMULA: Str 16 + 2 from ring = 18, gives +1 to-hit (not +18!)
+      // Roll + (level + str_to_hit_bonus - AC) >= 10
+      // 17 + (1 + 1 - 8) = 17 - 6 = 11 >= 10, so should hit
       expect(result.hit).toBe(true)
     })
 
@@ -103,9 +108,10 @@ describe('CombatService - Equipment Bonuses', () => {
       const ring = createRing('ring-1', RingType.ADD_STRENGTH, 2)
       player.equipment.rightRing = ring
 
-      mockRandom.setValues([10, 3])
+      mockRandom.setValues([17, 3])
 
       const result = service.playerAttack(player, monster)
+      // Str 18 gives +1 to-hit: 17 + (1 + 1 - 8) = 11 >= 10
       expect(result.hit).toBe(true)
     })
 
@@ -117,12 +123,13 @@ describe('CombatService - Equipment Bonuses', () => {
       player.equipment.leftRing = leftRing
       player.equipment.rightRing = rightRing
 
-      mockRandom.setValues([5, 3]) // Lower base roll
+      mockRandom.setValues([16, 3]) // Need higher roll with correct formula
 
       const result = service.playerAttack(player, monster)
 
-      // With strength 16 + 2 + 3 = 21, level 1: modifier = 22
-      // Roll 5 + modifier 22 - AC 8 = 19, which is >= 10, so should hit
+      // NEW FORMULA: Str 16 + 2 + 3 = 21, gives +1 to-hit (Str 19-21)
+      // Roll + (level + str_to_hit_bonus - AC) >= 10
+      // 16 + (1 + 1 - 8) = 16 - 6 = 10 >= 10, so should hit
       expect(result.hit).toBe(true)
     })
   })
@@ -213,12 +220,13 @@ describe('CombatService - Equipment Bonuses', () => {
       const player = createTestPlayer()
       const monster = createTestMonster()
 
-      mockRandom.setValues([10, 3])
+      mockRandom.setValues([17, 3])
 
       const result = service.playerAttack(player, monster)
 
-      // With strength 16, level 1: modifier = 17
-      // Roll 10 + modifier 17 - AC 8 = 19, which is >= 10, so should hit
+      // NEW FORMULA: Str 16 gives +0 to-hit (not +16!)
+      // Roll + (level + str_to_hit_bonus - AC) >= 10
+      // 17 + (1 + 0 - 8) = 17 - 7 = 10 >= 10, so should hit
       expect(result.hit).toBe(true)
     })
 
@@ -246,7 +254,9 @@ describe('CombatService - Equipment Bonuses', () => {
       player.equipment.rightRing = protectionRing
 
       // Test player attack (uses strength bonus)
-      mockRandom.setValues([10, 3])
+      // Str 16 + 2 from ring = 18, gives +1 to-hit
+      // Roll + (1 + 1 - 8) >= 10, so roll >= 16
+      mockRandom.setValues([17, 3])
       const playerResult = service.playerAttack(player, monster)
       expect(playerResult.hit).toBe(true)
 
@@ -264,8 +274,9 @@ describe('CombatService - Equipment Bonuses', () => {
       player.equipment.leftRing = regenRing
       player.equipment.rightRing = searchRing
 
-      // Should work same as no rings
-      mockRandom.setValues([10, 3])
+      // Should work same as no rings (Str 16 gives +0 to-hit)
+      // Roll + (1 + 0 - 8) >= 10, so roll >= 17
+      mockRandom.setValues([17, 3])
       const playerResult = service.playerAttack(player, monster)
       expect(playerResult.hit).toBe(true)
 

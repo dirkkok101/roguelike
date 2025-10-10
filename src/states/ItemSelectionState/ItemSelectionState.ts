@@ -1,6 +1,5 @@
 import { BaseState } from '@states/BaseState'
 import { Input, GameState, Item } from '@game/core/core'
-import { ModalController } from '@ui/ModalController'
 
 /**
  * ItemFilter function type - returns true if item should be shown
@@ -57,12 +56,9 @@ export type ItemSelectionCallback = (item: Item) => void
  */
 export class ItemSelectionState extends BaseState {
   constructor(
-    private modalController: ModalController,
     private gameState: GameState,
     private prompt: string,
-    private filter: ItemFilter,
-    private onSelect: ItemSelectionCallback,
-    private onCancel: () => void
+    private filter: ItemFilter
   ) {
     super()
   }
@@ -94,7 +90,7 @@ export class ItemSelectionState extends BaseState {
    * Game tick logic (selection is static)
    * @param deltaTime - Unused for static display
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Item selection is static - no updates needed
   }
 
@@ -119,7 +115,7 @@ export class ItemSelectionState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
+  handleInput(_input: Input): void {
     // ModalController currently handles its own input via keydown listeners
     // When an item is selected, it will call onSelect callback
     // When ESC is pressed, it will call onCancel callback

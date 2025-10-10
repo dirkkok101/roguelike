@@ -56,9 +56,12 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { CurseService } from '@services/CurseService'
 import { GoldService } from '@services/GoldService'
 import { TargetingService } from '@services/TargetingService'
-import { GameState, Scroll, ScrollType, TargetingMode } from '@game/core/core'
+import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { ModalController } from './ModalController'
+import { GameStateManager } from '@services/GameStateManager'
+import { GameRenderer } from '@ui/GameRenderer'
+import { TargetSelectionState } from '@states/TargetSelectionState'
 
 // ============================================================================
 // INPUT HANDLER - Keyboard input to commands
@@ -104,7 +107,9 @@ export class InputHandler {
     private modalController: ModalController,
     private messageHistoryModal: any, // MessageHistoryModal
     private helpModal: any, // HelpModal
-    private onReturnToMenu: () => void
+    private onReturnToMenu: () => void,
+    private stateManager: GameStateManager,
+    private gameRenderer: GameRenderer
   ) {
     // Destructure services for convenient access
     this.movementService = services.movement
@@ -454,39 +459,45 @@ export class InputHandler {
         event.preventDefault()
         this.modalController.showItemSelection('wand', 'Zap which wand?', state, (item) => {
           if (item) {
-            // After wand selected, show targeting modal
+            // After wand selected, push targeting state
             const wand = item as any // Cast to Wand (will have range property)
             const wandRange = wand.range || 5 // Default range if not set yet
 
-            const targetingRequest = {
-              mode: TargetingMode.MONSTER,
-              maxRange: wandRange,
-              requiresLOS: true,
-            }
+            // Close wand selection modal first
+            this.modalController.hide()
 
-            this.modalController.showTargeting(
-              targetingRequest,
+            // Push targeting state for in-game targeting
+            const targetingState = new TargetSelectionState(
+              this.targetingService,
+              this.gameRenderer!,
               state,
-              (result) => {
-                // Targeting confirmed
-                if (result.success && result.targetMonsterId) {
-                  this.pendingCommand = new ZapWandCommand(
-                    item.id,
-                    this.inventoryService,
-                    this.wandService,
-                    this.messageService,
-                    this.turnService,
-                    this.statusEffectService,
-                    this.targetingService,
-                    result.targetMonsterId
-                  )
-                }
+              wandRange,
+              (targetPosition) => {
+                // Targeting confirmed - fire wand at target position
+                // WandService will handle projectile logic to find what gets hit
+                this.pendingCommand = new ZapWandCommand(
+                  item.id,
+                  this.inventoryService,
+                  this.wandService,
+                  this.messageService,
+                  this.turnService,
+                  this.statusEffectService,
+                  this.targetingService,
+                  targetPosition
+                )
+                // Pop targeting state
+                this.stateManager!.popState()
               },
               () => {
-                // Targeting cancelled - do nothing
+                // Targeting cancelled
                 this.pendingCommand = null
+                // Pop targeting state
+                this.stateManager!.popState()
               }
             )
+
+            // Push targeting state onto stack
+            this.stateManager!.pushState(targetingState)
           }
         })
         return null
