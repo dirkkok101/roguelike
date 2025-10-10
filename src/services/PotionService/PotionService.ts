@@ -98,7 +98,12 @@ export class PotionService {
       case PotionType.RESTORE_STRENGTH:
         {
           updatedPlayer = this.applyRestoreStrength(player)
-          message = `Your strength is restored. (Strength: ${updatedPlayer.strength})`
+          // Format strength display with exceptional strength support
+          const strDisplay =
+            updatedPlayer.strength === 18 && updatedPlayer.strengthPercentile !== undefined
+              ? `18/${updatedPlayer.strengthPercentile.toString().padStart(2, '0')}`
+              : `${updatedPlayer.strength}`
+          message = `Your strength is restored. (Strength: ${strDisplay})`
         }
         break
 

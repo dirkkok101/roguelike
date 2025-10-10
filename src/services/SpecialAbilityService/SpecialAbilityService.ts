@@ -93,6 +93,7 @@ export class SpecialAbilityService {
   /**
    * Drain strength - Rattlesnake ability
    * Permanently reduces player strength
+   * Handles exceptional strength (18/XX) by reducing percentile first
    */
   drainStrength(player: Player): AbilityResult {
     const messages: string[] = []
@@ -109,12 +110,41 @@ export class SpecialAbilityService {
 
     messages.push('You feel weaker!')
 
-    return {
-      player: {
-        ...player,
-        strength: player.strength - 1,
-      },
-      messages,
+    // Handle exceptional strength (18/XX format)
+    if (player.strength === 18 && player.strengthPercentile !== undefined) {
+      // Drain percentile by d10 (1-10)
+      const drain = this.random.nextInt(1, 10)
+      const newPercentile = player.strengthPercentile - drain
+
+      if (newPercentile <= 0) {
+        // Percentile drained to 0 or below: reduce to Str 17, remove percentile
+        return {
+          player: {
+            ...player,
+            strength: 17,
+            strengthPercentile: undefined,
+          },
+          messages,
+        }
+      } else {
+        // Reduce percentile but keep Str 18
+        return {
+          player: {
+            ...player,
+            strengthPercentile: newPercentile,
+          },
+          messages,
+        }
+      }
+    } else {
+      // Normal strength or Str 18 without percentile: reduce by 1
+      return {
+        player: {
+          ...player,
+          strength: player.strength - 1,
+        },
+        messages,
+      }
     }
   }
 
