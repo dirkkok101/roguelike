@@ -518,6 +518,32 @@ npm run type-check   # TypeScript validation
 
 ---
 
+## Rendering Modes
+
+The game supports two rendering modes that can be toggled at runtime:
+
+### Sprite Mode (Default)
+- Modern graphical rendering using AngbandTK Gervais 32×32 tileset
+- Hardware-accelerated Canvas 2D rendering
+- Full color sprites with opacity-based visibility
+- Target: 200-300 FPS performance
+
+### ASCII Mode (Classic)
+- Traditional text-based rendering (`<pre>` element with colored spans)
+- Better accessibility for screen readers
+- Lower resource usage for older devices
+- Classic roguelike aesthetic
+
+### Toggle Controls
+- **`T`** - Toggle between Sprite and ASCII rendering modes
+- Preference saved automatically to localStorage
+- Instant switch (no page reload required)
+- Visual feedback: overlay notification + game log message
+
+**Implementation Details**: [Core Systems - Sprite Rendering](./docs/systems-core.md#sprite-rendering-system)
+
+---
+
 ## Debug Tools
 
 Debug mode enabled in development:
@@ -547,8 +573,8 @@ See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 
 ---
 
-**Last Updated**: 2025-10-09
+**Last Updated**: 2025-10-10
 **Developer**: Dirk Kok
 **Repository**: https://github.com/dirkkok101/roguelike
 
-**Note**: Game now uses sprite-based rendering (AngbandTK tileset) instead of ASCII. All core game logic remains unchanged.
+**Note**: Game supports dual rendering modes (Sprite + ASCII). Toggle with `T` key during gameplay. Preference persists to localStorage.

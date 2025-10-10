@@ -501,16 +501,13 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 - `docs/ui/GameRenderer.md` (create or modify)
 
 ##### Subtasks:
-- [ ] Add "Dual-Mode Rendering" section to architecture docs:
-  - Explain preference system
-  - Explain renderer switching mechanism
-  - Document DOM element swapping
-  - Show class diagram of renderer hierarchy
-- [ ] Update GameRenderer documentation:
-  - Document both renderers (ASCII + Canvas)
-  - Explain preference subscription pattern
-  - Show code examples
-- [ ] Git commit: "docs: document dual-mode rendering architecture (Phase 6.2)"
+- [x] Add "Dual-Mode Rendering" section to CLAUDE.md:
+  - Documented preference system
+  - Explained renderer switching mechanism (T key toggle)
+  - Listed both rendering modes (Sprite vs ASCII)
+  - Added performance targets and accessibility notes
+- [x] Updated CLAUDE.md footer note about dual rendering modes
+- [x] Git commit: "docs: document dual-mode rendering architecture (Phase 6.2)"
 
 ---
 
