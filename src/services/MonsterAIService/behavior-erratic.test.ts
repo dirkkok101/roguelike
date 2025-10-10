@@ -27,6 +27,7 @@ describe('MonsterAIService - ERRATIC Behavior', () => {
       id: 'bat',
       letter: 'B',
       name: 'Bat',
+      spriteName: 'Bat',
       position: { x: 5, y: 5 },
       hp: 5,
       maxHp: 5,

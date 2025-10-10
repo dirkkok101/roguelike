@@ -32,6 +32,7 @@ describe('MonsterAIService - COWARD Behavior', () => {
       id: 'vampire',
       letter: 'V',
       name: 'Vampire',
+      spriteName: 'Vampire',
       position: { x: 5, y: 5 },
       hp: 20,
       maxHp: 20,

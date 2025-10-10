@@ -2,41 +2,49 @@
   "weapons": [
     {
       "name": "Mace",
+      "spriteName": "Mace",
       "damage": "2d4",
       "rarity": "common"
     },
     {
       "name": "Long Sword",
+      "spriteName": "Long Sword",
       "damage": "1d12",
       "rarity": "uncommon"
     },
     {
       "name": "Short Sword",
+      "spriteName": "Short Sword",
       "damage": "1d8",
       "rarity": "common"
     },
     {
       "name": "Two-Handed Sword",
+      "spriteName": "Zweihander",
       "damage": "3d6",
       "rarity": "rare"
     },
     {
       "name": "Dagger",
+      "spriteName": "Dagger",
       "damage": "1d6",
       "rarity": "common"
     },
     {
       "name": "Spear",
+      "spriteName": "Spear",
       "damage": "2d3",
       "rarity": "common"
     },
     {
       "name": "Battle Axe",
+      "spriteName": "Battle Axe",
       "damage": "2d8",
       "rarity": "uncommon"
     },
     {
       "name": "Flail",
+      "spriteName": "Flail",
       "damage": "2d5",
       "rarity": "uncommon"
     }
@@ -44,36 +52,43 @@
   "armor": [
     {
       "name": "Leather Armor",
+      "spriteName": "Hard Leather Armour",
       "ac": 8,
       "rarity": "common"
     },
     {
       "name": "Studded Leather",
+      "spriteName": "Studded Leather Armour",
       "ac": 7,
       "rarity": "common"
     },
     {
       "name": "Ring Mail",
+      "spriteName": "Metal Scale Mail",
       "ac": 7,
       "rarity": "common"
     },
     {
       "name": "Chain Mail",
+      "spriteName": "Chain Mail",
       "ac": 5,
       "rarity": "uncommon"
     },
     {
       "name": "Banded Mail",
+      "spriteName": "Augmented Chain Mail",
       "ac": 4,
       "rarity": "uncommon"
     },
     {
       "name": "Splint Mail",
+      "spriteName": "Partial Plate Armour",
       "ac": 4,
       "rarity": "uncommon"
     },
     {
       "name": "Plate Mail",
+      "spriteName": "Full Plate Armour",
       "ac": 3,
       "rarity": "rare"
     }
@@ -82,6 +97,7 @@
     {
       "type": "torch",
       "name": "Torch",
+      "spriteName": "Wooden Torch",
       "radius": 2,
       "fuel": 500,
       "isPermanent": false,
@@ -90,6 +106,7 @@
     {
       "type": "lantern",
       "name": "Lantern",
+      "spriteName": "Lantern",
       "radius": 2,
       "fuel": 500,
       "isPermanent": false,
@@ -98,6 +115,7 @@
     {
       "type": "artifact",
       "name": "Phial of Galadriel",
+      "spriteName": "Phial",
       "radius": 3,
       "isPermanent": true,
       "rarity": "legendary"
@@ -105,6 +123,7 @@
     {
       "type": "artifact",
       "name": "Star of Elendil",
+      "spriteName": "Star",
       "radius": 2,
       "isPermanent": true,
       "rarity": "legendary"
@@ -113,6 +132,7 @@
   "potions": [
     {
       "type": "HEAL",
+      "spriteName": "potion",
       "effect": "restore_hp",
       "power": "1d8",
       "rarity": "common",
@@ -120,6 +140,7 @@
     },
     {
       "type": "EXTRA_HEAL",
+      "spriteName": "potion",
       "effect": "restore_hp_extra",
       "power": "2d8+2",
       "rarity": "uncommon",
@@ -127,6 +148,7 @@
     },
     {
       "type": "GAIN_STRENGTH",
+      "spriteName": "potion",
       "effect": "gain_strength",
       "power": "1",
       "rarity": "uncommon",
@@ -134,6 +156,7 @@
     },
     {
       "type": "RESTORE_STRENGTH",
+      "spriteName": "potion",
       "effect": "restore_strength",
       "power": "0",
       "rarity": "common",
@@ -141,6 +164,7 @@
     },
     {
       "type": "POISON",
+      "spriteName": "potion",
       "effect": "poison",
       "power": "1d6",
       "rarity": "common",
@@ -148,6 +172,7 @@
     },
     {
       "type": "CONFUSION",
+      "spriteName": "potion",
       "effect": "confuse_self",
       "power": "0",
       "rarity": "uncommon",
@@ -155,6 +180,7 @@
     },
     {
       "type": "BLINDNESS",
+      "spriteName": "potion",
       "effect": "blind_self",
       "power": "0",
       "rarity": "uncommon",
@@ -162,6 +188,7 @@
     },
     {
       "type": "HASTE_SELF",
+      "spriteName": "potion",
       "effect": "haste",
       "power": "0",
       "rarity": "rare",
@@ -169,6 +196,7 @@
     },
     {
       "type": "DETECT_MONSTERS",
+      "spriteName": "potion",
       "effect": "detect_monsters",
       "power": "0",
       "rarity": "uncommon",
@@ -176,6 +204,7 @@
     },
     {
       "type": "DETECT_MAGIC",
+      "spriteName": "potion",
       "effect": "detect_magic",
       "power": "0",
       "rarity": "uncommon",
@@ -183,6 +212,7 @@
     },
     {
       "type": "RAISE_LEVEL",
+      "spriteName": "potion",
       "effect": "raise_level",
       "power": "1",
       "rarity": "legendary",
@@ -190,6 +220,7 @@
     },
     {
       "type": "SEE_INVISIBLE",
+      "spriteName": "potion",
       "effect": "see_invisible",
       "power": "0",
       "rarity": "uncommon",
@@ -197,6 +228,7 @@
     },
     {
       "type": "LEVITATION",
+      "spriteName": "potion",
       "effect": "levitate",
       "power": "0",
       "rarity": "uncommon",
@@ -206,66 +238,77 @@
   "scrolls": [
     {
       "type": "IDENTIFY",
+      "spriteName": "Identify Rune",
       "effect": "identify_item",
       "rarity": "common",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "ENCHANT_WEAPON",
+      "spriteName": "Enchant Weapon To-Hit",
       "effect": "enchant_weapon",
       "rarity": "uncommon",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "ENCHANT_ARMOR",
+      "spriteName": "Enchant Armour",
       "effect": "enchant_armor",
       "rarity": "uncommon",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "MAGIC_MAPPING",
+      "spriteName": "Magic Mapping",
       "effect": "reveal_map",
       "rarity": "uncommon",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "TELEPORTATION",
+      "spriteName": "Teleportation",
       "effect": "teleport_self",
       "rarity": "common",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "REMOVE_CURSE",
+      "spriteName": "Remove Curse",
       "effect": "remove_curse",
       "rarity": "uncommon",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "CREATE_MONSTER",
+      "spriteName": "scroll",
       "effect": "spawn_monster",
       "rarity": "uncommon",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "SCARE_MONSTER",
+      "spriteName": "scroll",
       "effect": "scare_adjacent",
       "rarity": "rare",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "LIGHT",
+      "spriteName": "scroll",
       "effect": "light_room",
       "rarity": "common",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "SLEEP",
+      "spriteName": "scroll",
       "effect": "sleep_monsters",
       "rarity": "rare",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
       "type": "HOLD_MONSTER",
+      "spriteName": "scroll",
       "effect": "hold_monster",
       "rarity": "rare",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
@@ -274,6 +317,7 @@
   "rings": [
     {
       "type": "PROTECTION",
+      "spriteName": "Ring",
       "effect": "ac_bonus",
       "power": "1d3",
       "hungerModifier": 1.5,
@@ -282,6 +326,7 @@
     },
     {
       "type": "REGENERATION",
+      "spriteName": "Ring",
       "effect": "regen_hp",
       "power": "1",
       "hungerModifier": 2.0,
@@ -290,6 +335,7 @@
     },
     {
       "type": "SEARCHING",
+      "spriteName": "Ring",
       "effect": "auto_search",
       "power": "0",
       "hungerModifier": 1.5,
@@ -298,6 +344,7 @@
     },
     {
       "type": "SEE_INVISIBLE",
+      "spriteName": "Ring",
       "effect": "see_invisible",
       "power": "0",
       "hungerModifier": 1.5,
@@ -306,6 +353,7 @@
     },
     {
       "type": "SLOW_DIGESTION",
+      "spriteName": "Ring",
       "effect": "reduce_hunger",
       "power": "0",
       "hungerModifier": 0.5,
@@ -314,6 +362,7 @@
     },
     {
       "type": "ADD_STRENGTH",
+      "spriteName": "Ring",
       "effect": "strength_bonus",
       "power": "1d3",
       "hungerModifier": 1.5,
@@ -322,6 +371,7 @@
     },
     {
       "type": "SUSTAIN_STRENGTH",
+      "spriteName": "Ring",
       "effect": "sustain_str",
       "power": "0",
       "hungerModifier": 1.5,
@@ -330,6 +380,7 @@
     },
     {
       "type": "DEXTERITY",
+      "spriteName": "Ring",
       "effect": "dex_bonus",
       "power": "1d3",
       "hungerModifier": 1.5,
@@ -338,6 +389,7 @@
     },
     {
       "type": "TELEPORTATION",
+      "spriteName": "Ring",
       "effect": "random_teleport",
       "power": "0",
       "hungerModifier": 1.5,
@@ -346,6 +398,7 @@
     },
     {
       "type": "STEALTH",
+      "spriteName": "Ring",
       "effect": "stealth",
       "power": "0",
       "hungerModifier": 1.5,
@@ -356,6 +409,7 @@
   "wands": [
     {
       "type": "LIGHTNING",
+      "spriteName": "wand",
       "damage": "6d6",
       "charges": "3d3",
       "rarity": "uncommon",
@@ -363,6 +417,7 @@
     },
     {
       "type": "FIRE",
+      "spriteName": "wand",
       "damage": "6d6",
       "charges": "3d3",
       "rarity": "uncommon",
@@ -370,6 +425,7 @@
     },
     {
       "type": "COLD",
+      "spriteName": "wand",
       "damage": "6d6",
       "charges": "3d3",
       "rarity": "uncommon",
@@ -377,6 +433,7 @@
     },
     {
       "type": "MAGIC_MISSILE",
+      "spriteName": "wand",
       "damage": "2d6",
       "charges": "4d4",
       "rarity": "common",
@@ -384,6 +441,7 @@
     },
     {
       "type": "SLEEP",
+      "spriteName": "wand",
       "damage": "0",
       "charges": "3d3",
       "rarity": "uncommon",
@@ -391,6 +449,7 @@
     },
     {
       "type": "HASTE_MONSTER",
+      "spriteName": "wand",
       "damage": "0",
       "charges": "3d3",
       "rarity": "rare",
@@ -398,6 +457,7 @@
     },
     {
       "type": "SLOW_MONSTER",
+      "spriteName": "wand",
       "damage": "0",
       "charges": "3d3",
       "rarity": "uncommon",
@@ -405,6 +465,7 @@
     },
     {
       "type": "POLYMORPH",
+      "spriteName": "wand",
       "damage": "0",
       "charges": "3d3",
       "rarity": "rare",
@@ -412,6 +473,7 @@
     },
     {
       "type": "TELEPORT_AWAY",
+      "spriteName": "wand",
       "damage": "0",
       "charges": "3d3",
       "rarity": "uncommon",
@@ -419,6 +481,7 @@
     },
     {
       "type": "CANCELLATION",
+      "spriteName": "wand",
       "damage": "0",
       "charges": "3d3",
       "rarity": "rare",
@@ -428,6 +491,7 @@
   "food": [
     {
       "name": "Food Ration",
+      "spriteName": "Ration of Food",
       "nutrition": "1300",
       "rarity": "common"
     }
@@ -435,6 +499,7 @@
   "consumables": [
     {
       "name": "Oil Flask",
+      "spriteName": "Flask of oil",
       "type": "lantern_fuel",
       "fuelAmount": 500,
       "rarity": "uncommon"

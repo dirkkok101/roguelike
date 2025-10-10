@@ -74,6 +74,7 @@ describe('MonsterAIService - Door Slam Detection', () => {
       id: monsterId,
       letter: 'O',
       name: 'Orc',
+      spriteName: 'Orc',
       position,
       hp: 10,
       maxHp: 10,

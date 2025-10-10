@@ -14,6 +14,12 @@ Classic dungeon crawler with permadeath, procedural generation, turn-based gamep
 - Permadeath - when you die, the run is over
 - Turn-based combat with hunger and resource management
 
+🎨 **Dual Rendering Modes**
+- **Sprite Mode** (default) - Modern graphical tiles (Angband TK tileset), hardware-accelerated
+- **ASCII Mode** - Classic text-based rendering, better accessibility and lower resource usage
+- Toggle instantly during gameplay with `T` key
+- Preference saved automatically to localStorage
+
 💡 **Dynamic Lighting System**
 - Field of view based on light source radius
 - Torches, lanterns, and artifact lights
@@ -68,12 +74,13 @@ npm run preview
 ## Controls
 
 **Movement**: Arrow keys or numpad (8-direction movement)
-**Actions**:
+
+**Game Actions**:
 - `i` - Inventory
 - `e` - Eat/quaff
 - `w` - Wield weapon
 - `W` - Wear armor
-- `T` - Take off armor
+- `t` - Take off equipment
 - `P` - Put on ring
 - `R` - Remove ring
 - `r` - Read scroll
@@ -83,6 +90,9 @@ npm run preview
 - `.` - Rest (heal until full HP or interrupted)
 - `<` - Go up stairs
 - `>` - Go down stairs
+
+**Display**:
+- `T` - Toggle rendering mode (Sprite ↔ ASCII)
 - `~` - Toggle debug console (dev mode)
 
 ---

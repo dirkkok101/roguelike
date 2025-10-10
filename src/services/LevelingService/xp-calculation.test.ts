@@ -44,6 +44,7 @@ describe('LevelingService - XP Calculation', () => {
       id: 'monster-1',
       letter: 'B',
       name: 'Bat',
+      spriteName: 'Bat',
       position: { x: 10, y: 10 },
       hp: 5,
       maxHp: 5,

@@ -109,6 +109,7 @@ describe('ContextService - Context Detection', () => {
       const item: Item = {
         id: 'item-1',
         name: 'test item',
+      spriteName: 'test item',
         type: ItemType.POTION,
         identified: false,
         position: { x: 10, y: 10 },
@@ -130,6 +131,7 @@ describe('ContextService - Context Detection', () => {
       const weapon: Item = {
         id: 'weapon-1',
         name: 'sword',
+      spriteName: 'sword',
         type: ItemType.WEAPON,
         identified: true,
         position: { x: 10, y: 10 },
@@ -150,6 +152,7 @@ describe('ContextService - Context Detection', () => {
       const armor: Item = {
         id: 'armor-1',
         name: 'plate mail',
+      spriteName: 'plate mail',
         type: ItemType.ARMOR,
         identified: true,
         position: { x: 10, y: 10 },
@@ -170,6 +173,7 @@ describe('ContextService - Context Detection', () => {
       const ring: Item = {
         id: 'ring-1',
         name: 'ruby ring',
+      spriteName: 'ruby ring',
         type: ItemType.RING,
         identified: false,
         position: { x: 10, y: 10 },
@@ -190,6 +194,7 @@ describe('ContextService - Context Detection', () => {
       const ring: Item = {
         id: 'ring-1',
         name: 'Ring of SLOW_DIGESTION +2',
+      spriteName: 'Ring of SLOW_DIGESTION +2',
         type: ItemType.RING,
         identified: false,
         position: { x: 10, y: 10 },
@@ -322,6 +327,7 @@ describe('ContextService - Context Detection', () => {
         id: 'monster-1',
         letter: 'O',
         name: 'Orc',
+      spriteName: 'Orc',
         position: { x: 10, y: 9 },
         hp: 10,
         maxHp: 10,
@@ -360,6 +366,7 @@ describe('ContextService - Context Detection', () => {
         id: 'monster-1',
         letter: 'O',
         name: 'Orc',
+      spriteName: 'Orc',
         position: { x: 10, y: 9 },
         hp: 10,
         maxHp: 10,
@@ -439,6 +446,7 @@ describe('ContextService - Context Detection', () => {
       const item: Item = {
         id: 'item-1',
         name: 'sword',
+      spriteName: 'sword',
         type: ItemType.WEAPON,
         identified: true,
         position: { x: 10, y: 10 },
@@ -459,6 +467,7 @@ describe('ContextService - Context Detection', () => {
       const item: Item = {
         id: 'item-1',
         name: 'ring',
+      spriteName: 'ring',
         type: ItemType.RING,
         identified: false,
         position: { x: 10, y: 10 },
@@ -503,6 +512,7 @@ describe('ContextService - Context Detection', () => {
       const item: Item = {
         id: 'item-1',
         name: 'potion',
+      spriteName: 'potion',
         type: ItemType.POTION,
         identified: false,
         position: { x: 10, y: 10 },

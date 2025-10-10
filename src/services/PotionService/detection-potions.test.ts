@@ -66,6 +66,7 @@ describe('PotionService - Detection Potions', () => {
       id: 'monster-1',
       letter: 'O',
       name: 'Orc',
+      spriteName: 'Orc',
       position: { x: 10, y: 10 },
       hp: 15,
       maxHp: 15,
@@ -92,6 +93,7 @@ describe('PotionService - Detection Potions', () => {
       id: 'monster-2',
       letter: 'K',
       name: 'Kobold',
+      spriteName: 'Kobold',
       position: { x: 15, y: 15 },
       hp: 10,
       maxHp: 10,
@@ -182,6 +184,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -203,6 +206,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -224,6 +228,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -246,6 +251,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -267,6 +273,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -285,6 +292,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -303,6 +311,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -324,6 +333,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -350,6 +360,7 @@ describe('PotionService - Detection Potions', () => {
           id: `monster-${i}`,
           letter: 'G',
           name: 'Goblin',
+      spriteName: 'Goblin',
           position: { x: i * 5, y: i * 2 },
           hp: 8,
           maxHp: 8,
@@ -377,6 +388,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Detect Monsters',
+      spriteName: 'Potion of Detect Monsters',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -400,6 +412,7 @@ describe('PotionService - Detection Potions', () => {
         {
           id: 'potion-heal',
           name: 'Potion of Healing',
+      spriteName: 'Potion of Healing',
           type: ItemType.POTION,
           identified: false,
           position: { x: 10, y: 10 },
@@ -411,6 +424,7 @@ describe('PotionService - Detection Potions', () => {
         {
           id: 'scroll-identify',
           name: 'Scroll of Identify',
+      spriteName: 'Scroll of Identify',
           type: ItemType.SCROLL,
           identified: false,
           position: { x: 15, y: 15 },
@@ -421,6 +435,7 @@ describe('PotionService - Detection Potions', () => {
         {
           id: 'ring-protection',
           name: 'Ring of Protection',
+      spriteName: 'Ring of Protection',
           type: ItemType.RING,
           identified: false,
           position: { x: 20, y: 20 },
@@ -433,6 +448,7 @@ describe('PotionService - Detection Potions', () => {
         {
           id: 'wand-lightning',
           name: 'Wand of Lightning',
+      spriteName: 'Wand of Lightning',
           type: ItemType.WAND,
           identified: false,
           position: { x: 25, y: 5 },
@@ -446,6 +462,7 @@ describe('PotionService - Detection Potions', () => {
         {
           id: 'weapon-sword',
           name: 'Long Sword',
+      spriteName: 'Long Sword',
           type: ItemType.WEAPON,
           identified: true,
           position: { x: 30, y: 10 },
@@ -459,6 +476,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -484,6 +502,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -505,6 +524,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -527,6 +547,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -550,6 +571,7 @@ describe('PotionService - Detection Potions', () => {
         {
           id: 'weapon-sword',
           name: 'Long Sword',
+      spriteName: 'Long Sword',
           type: ItemType.WEAPON,
           identified: true,
           position: { x: 10, y: 10 },
@@ -559,6 +581,7 @@ describe('PotionService - Detection Potions', () => {
         {
           id: 'armor-plate',
           name: 'Plate Mail',
+      spriteName: 'Plate Mail',
           type: ItemType.ARMOR,
           identified: true,
           position: { x: 15, y: 15 },
@@ -568,6 +591,7 @@ describe('PotionService - Detection Potions', () => {
         {
           id: 'food-ration',
           name: 'Food Ration',
+      spriteName: 'Food Ration',
           type: ItemType.FOOD,
           identified: true,
           position: { x: 20, y: 20 },
@@ -578,6 +602,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -599,6 +624,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -617,6 +643,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -635,6 +662,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
@@ -656,6 +684,7 @@ describe('PotionService - Detection Potions', () => {
       const potion: Potion = {
         id: 'potion-detect',
         name: 'Potion of Detect Magic',
+      spriteName: 'Potion of Detect Magic',
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },

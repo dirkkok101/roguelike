@@ -32,6 +32,7 @@ describe('MonsterAIService - THIEF Behavior', () => {
       id: 'leprechaun',
       letter: 'L',
       name: 'Leprechaun',
+      spriteName: 'Leprechaun',
       position: { x: 5, y: 5 },
       hp: 8,
       maxHp: 8,

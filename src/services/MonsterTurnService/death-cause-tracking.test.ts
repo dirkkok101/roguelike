@@ -72,6 +72,7 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
     return {
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       position: { x: 10, y: 11 },
       hp: 10,
       maxHp: 10,
@@ -162,7 +163,8 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
 
   test('sets deathCause when player killed by monster', () => {
     const player = createTestPlayer()
-    const monster = createTestMonster({ name: 'Zombie', position: { x: 10, y: 11 } })
+    const monster = createTestMonster({ name: 'Zombie',
+      spriteName: 'Zombie', position: { x: 10, y: 11 } })
     const state = createTestState(player, [monster])
     state.player.hp = 1 // Set low HP after state creation
 
@@ -180,6 +182,7 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
     const player = createTestPlayer()
     const dragon = createTestMonster({
       name: 'Dragon',
+      spriteName: 'Dragon',
       letter: 'D',
       position: { x: 10, y: 11 },
       damage: '3d8',
@@ -234,8 +237,10 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
 
   test('tracks correct monster when multiple monsters present', () => {
     const player = createTestPlayer()
-    const troll = createTestMonster({ name: 'Troll', position: { x: 10, y: 11 } })
-    const zombie = createTestMonster({ name: 'Zombie', position: { x: 10, y: 9 } })
+    const troll = createTestMonster({ name: 'Troll',
+      spriteName: 'Troll', position: { x: 10, y: 11 } })
+    const zombie = createTestMonster({ name: 'Zombie',
+      spriteName: 'Zombie', position: { x: 10, y: 9 } })
     const state = createTestState(player, [troll, zombie])
     state.player.hp = 1
 
@@ -250,8 +255,10 @@ describe('MonsterTurnService - Death Cause Tracking', () => {
 
   test('stops processing monsters after player dies', () => {
     const player = createTestPlayer()
-    const firstMonster = createTestMonster({ name: 'Killer', position: { x: 10, y: 11 } })
-    const secondMonster = createTestMonster({ name: 'NotReached', position: { x: 10, y: 9 } })
+    const firstMonster = createTestMonster({ name: 'Killer',
+      spriteName: 'Killer', position: { x: 10, y: 11 } })
+    const secondMonster = createTestMonster({ name: 'NotReached',
+      spriteName: 'NotReached', position: { x: 10, y: 9 } })
     const state = createTestState(player, [firstMonster, secondMonster])
     state.player.hp = 1
 

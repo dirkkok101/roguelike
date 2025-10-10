@@ -16,6 +16,7 @@ describe('DebugService - Smart Positioning', () => {
     {
       letter: 'D',
       name: 'Dragon',
+      spriteName: 'Dragon',
       hp: '10d8',
       ac: -1,
       damage: '1d8+3d10',

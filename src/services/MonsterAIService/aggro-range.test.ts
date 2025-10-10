@@ -21,6 +21,7 @@ describe('MonsterAIService - Aggro Range (Authentic Rogue)', () => {
       id: 'test',
       letter: 'T',
       name: 'Test',
+      spriteName: 'Test',
       position: { x: 10, y: 10 },
       hp: 20,
       maxHp: 20,

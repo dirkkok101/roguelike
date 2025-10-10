@@ -51,6 +51,7 @@ describe('TargetingService - Wand Target Validation', () => {
     id,
     letter: 'K',
     name: 'Kobold',
+      spriteName: 'Kobold',
     position: { x, y },
     hp: 10,
     maxHp: 10,

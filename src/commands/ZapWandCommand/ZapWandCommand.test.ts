@@ -84,6 +84,7 @@ describe('ZapWandCommand', () => {
       id,
       type: ItemType.WAND,
       name: 'Wand',
+      spriteName: 'Wand',
       wandType: type,
       charges: 10,
       currentCharges,
@@ -99,6 +100,7 @@ describe('ZapWandCommand', () => {
       id: 'monster-1',
       letter: 'B',
       name: 'Bat',
+      spriteName: 'Bat',
       position: { x: 6, y: 5 },
       hp: 10,
       maxHp: 10,
@@ -224,6 +226,7 @@ describe('ZapWandCommand', () => {
       id: 'potion-1',
       type: ItemType.POTION,
       name: 'Potion',
+      spriteName: 'Potion',
       identified: false,
     }
     player.inventory = [notWand]

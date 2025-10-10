@@ -1,5 +1,6 @@
 import { GameState, Position, ItemType, StatusEffectType, Level } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
+import { AssetLoaderService } from '@services/AssetLoaderService'
 import { HungerService } from '@services/HungerService'
 import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
@@ -12,6 +13,8 @@ import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
 import { RingService } from '@services/RingService'
+import { CanvasGameRenderer } from './CanvasGameRenderer'
+import { AsciiDungeonRenderer } from './AsciiDungeonRenderer'
 import { type ITargetingState } from '@states/TargetSelectionState'
 import { DebugConsole } from './DebugConsole'
 import { DebugOverlays } from './DebugOverlays'
@@ -26,6 +29,16 @@ import { DeathScreen } from './DeathScreen'
 // ============================================================================
 
 export class GameRenderer {
+  // Canvas rendering constants
+  private static readonly TILE_SIZE = 32  // Sprite tile size (always 32×32)
+
+  // Notification display durations (in milliseconds)
+  private static readonly NOTIFICATION_DISPLAY_DURATION = 700 // Time before fade starts
+  private static readonly NOTIFICATION_FADE_DURATION = 300 // Time to complete fade-out
+
+  // CSS class name for mode change notification overlay
+  private static readonly MODE_CHANGE_NOTIFICATION_CLASS = 'mode-change-notification'
+
   // Display thresholds for color-coded warnings
   private static readonly HP_THRESHOLDS = {
     HEALTHY: 75,
@@ -47,12 +60,19 @@ export class GameRenderer {
   private helpModal: HelpModal
   private victoryScreen: VictoryScreen
   private deathScreen: DeathScreen
+  private canvasGameRenderer: CanvasGameRenderer | null = null
+  private dungeonCanvas: HTMLCanvasElement | null = null
+  private asciiRenderer: AsciiDungeonRenderer
+  private currentRenderMode: 'ascii' | 'sprites' = 'sprites'
+  private currentGameState: GameState | null = null
+  private canvasNeedsResize = true // Flag to resize canvas on first render (after DOM is constructed)
 
   constructor(
     private renderingService: RenderingService,
+    private assetLoaderService: AssetLoaderService,
     _hungerService: HungerService,
     private levelingService: LevelingService,
-    debugService: DebugService,
+    private debugService: DebugService,
     contextService: ContextService,
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
@@ -60,25 +80,35 @@ export class GameRenderer {
     leaderboardService: LeaderboardService,
     leaderboardStorageService: LeaderboardStorageService,
     scoreCalculationService: ScoreCalculationService,
-    _preferencesService: PreferencesService,
+    private preferencesService: PreferencesService,
     private ringService: RingService,
     private onReturnToMenu: () => void,
     private onStartNewGame: (characterName: string) => void,
     private onReplaySeed: (seed: string, characterName: string) => void,
-    _config = {
+    config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
       showItemsInMemory: false,
       showGoldInMemory: false,
     }
   ) {
-    // Config will be used in future phases for customizable rendering
+    // FUTURE: Config parameter will be used for customizable rendering options
+    // Initialize ASCII renderer (always available)
+    this.asciiRenderer = new AsciiDungeonRenderer(renderingService)
+
+    // Load initial render mode from preferences
+    const prefs = this.preferencesService.getPreferences()
+    this.currentRenderMode = prefs.renderMode
+
+    // Subscribe to preference changes
+    this.preferencesService.subscribe(this.handlePreferenceChange.bind(this))
+
     // Create UI structure
     this.dungeonContainer = this.createDungeonView()
     this.statsContainer = this.createStatsView()
     this.messagesContainer = this.createMessagesView()
-    this.debugConsole = new DebugConsole(debugService)
-    this.debugOverlays = new DebugOverlays(debugService)
+    this.debugConsole = new DebugConsole(this.debugService)
+    this.debugOverlays = new DebugOverlays(this.debugService)
     this.commandBar = new ContextualCommandBar(contextService)
     this.messageHistoryModal = new MessageHistoryModal()
     this.helpModal = new HelpModal(contextService)
@@ -92,11 +122,16 @@ export class GameRenderer {
    * Render complete game state
    */
   render(state: GameState): void {
+    // Store current game state for re-rendering after mode changes
+    this.currentGameState = state
+
     // Check for death before rendering
     if (state.isGameOver && !state.hasWon && !this.deathScreen.isVisible()) {
       // Permadeath: Delete save immediately when player dies
       this.localStorageService.deleteSave(state.gameId)
-      console.log('Save deleted (permadeath)')
+      if (this.debugService.isEnabled()) {
+        console.log('[GameRenderer] Save deleted (permadeath)')
+      }
 
       // Calculate comprehensive death statistics via DeathService
       const stats = this.deathService.calculateDeathStats(state)
@@ -140,6 +175,70 @@ export class GameRenderer {
 
     // Render debug overlays (on canvas if available)
     this.renderDebugOverlays(state)
+  }
+
+  /**
+   * Handle preference changes (e.g., render mode toggle)
+   */
+  private handlePreferenceChange(prefs: { renderMode: 'ascii' | 'sprites' }): void {
+    const oldMode = this.currentRenderMode
+    const newMode = prefs.renderMode
+
+    // Skip if mode hasn't changed
+    if (oldMode === newMode) {
+      return
+    }
+
+    // Update current render mode
+    this.currentRenderMode = newMode
+
+    // Log mode change (debug only)
+    if (this.debugService.isEnabled()) {
+      console.log(`[GameRenderer] Render mode changed: ${oldMode} → ${newMode}`)
+    }
+
+    // Show visual feedback overlay
+    this.showModeChangeNotification(newMode)
+
+    // Handle DOM swapping
+    this.switchRenderMode(newMode)
+
+    // Re-render with current game state if available
+    if (this.currentGameState) {
+      this.renderDungeon(this.currentGameState)
+    }
+  }
+
+  /**
+   * Show brief overlay notification when render mode changes
+   */
+  private showModeChangeNotification(mode: 'ascii' | 'sprites'): void {
+    const overlay = document.createElement('div')
+    overlay.className = GameRenderer.MODE_CHANGE_NOTIFICATION_CLASS
+    overlay.textContent = mode === 'sprites' ? 'SPRITE MODE' : 'ASCII MODE'
+
+    document.body.appendChild(overlay)
+
+    // Fade out and remove after display duration
+    setTimeout(() => {
+      overlay.style.opacity = '0'
+      setTimeout(() => overlay.remove(), GameRenderer.NOTIFICATION_FADE_DURATION)
+    }, GameRenderer.NOTIFICATION_DISPLAY_DURATION)
+  }
+
+  /**
+   * Switch rendering mode by managing DOM elements
+   */
+  private switchRenderMode(mode: 'ascii' | 'sprites'): void {
+    // Clear container
+    this.dungeonContainer.innerHTML = ''
+
+    // Add appropriate element for new mode
+    if (mode === 'sprites' && this.canvasGameRenderer && this.dungeonCanvas) {
+      // Reattach canvas element (it was removed when innerHTML was cleared)
+      this.dungeonContainer.appendChild(this.dungeonCanvas)
+    }
+    // For ASCII mode, renderDungeon will handle innerHTML
   }
 
   /**
@@ -197,6 +296,48 @@ export class GameRenderer {
     const container = document.createElement('div')
     container.id = 'dungeon'
     container.className = 'dungeon-view'
+
+    // Create canvas for sprite-based rendering
+    const canvas = document.createElement('canvas')
+    canvas.id = 'dungeon-canvas'
+    canvas.className = 'dungeon-canvas'
+    // Don't set width/height here - let CanvasGameRenderer calculate responsive dimensions
+
+    // Store canvas reference for mode switching
+    this.dungeonCanvas = canvas
+
+    // IMPORTANT: Append canvas to container BEFORE creating CanvasGameRenderer
+    // so it can access parentElement to calculate responsive dimensions
+    if (this.currentRenderMode === 'sprites' && this.assetLoaderService.isLoaded()) {
+      container.appendChild(canvas)
+    }
+
+    // Initialize CanvasGameRenderer if tileset is loaded
+    // Let it calculate responsive viewport based on container size
+    if (this.assetLoaderService.isLoaded()) {
+      this.canvasGameRenderer = new CanvasGameRenderer(
+        this.renderingService,
+        this.assetLoaderService,
+        canvas,
+        {
+          tileWidth: GameRenderer.TILE_SIZE,
+          tileHeight: GameRenderer.TILE_SIZE,
+          // Don't specify gridWidth/gridHeight - let it auto-calculate from container size
+          enableSmoothing: false,
+          enableDirtyRectangles: true,
+          exploredOpacity: 0.5,
+          detectedOpacity: 0.6,
+        }
+      )
+      if (this.debugService.isEnabled()) {
+        console.log('[GameRenderer] CanvasGameRenderer initialized')
+      }
+    } else {
+      if (this.debugService.isEnabled()) {
+        console.warn('[GameRenderer] Tileset not loaded, will fall back to ASCII rendering')
+      }
+    }
+
     return container
   }
 
@@ -215,19 +356,51 @@ export class GameRenderer {
   }
 
   private renderDungeon(state: GameState, targetingState: ITargetingState | null = null): void {
+    // Sprite rendering mode
+    if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
+      // Resize canvas on first render (after DOM is constructed and container has dimensions)
+      if (this.canvasNeedsResize) {
+        this.canvasGameRenderer.resize()
+        this.canvasNeedsResize = false
+      }
+
+      // Use sprite rendering
+      this.canvasGameRenderer.render(state)
+
+      // Graceful degradation: Targeting not yet supported in sprite mode
+      if (targetingState) {
+        if (this.debugService.isEnabled()) {
+          console.warn('[GameRenderer] Targeting overlay not yet supported in sprite mode')
+        }
+      }
+      return
+    }
+
+    // ASCII rendering mode
+    if (targetingState) {
+      // Targeting requires custom overlay rendering
+      this.renderDungeonWithTargeting(state, targetingState)
+    } else {
+      // Standard rendering via AsciiDungeonRenderer
+      const html = this.asciiRenderer.render(state)
+      this.dungeonContainer.innerHTML = html
+    }
+  }
+
+  /**
+   * Render dungeon with targeting overlay (ASCII mode only)
+   * Separate method for rendering targeting line and cursor
+   */
+  private renderDungeonWithTargeting(state: GameState, targetingState: ITargetingState): void {
     const level = state.levels.get(state.currentLevel)
     if (!level) return
 
     // Check for SEE_INVISIBLE status effect
     const canSeeInvisible = state.player.statusEffects.some((e) => e.type === StatusEffectType.SEE_INVISIBLE)
 
-    // Get targeting data if active
-    let targetingLine: Set<string> | null = null
-    let cursorPos: Position | null = null
-    if (targetingState) {
-      cursorPos = targetingState.getCursorPosition()
-      targetingLine = this.calculateTargetingLine(state.player.position, cursorPos, level)
-    }
+    // Get targeting data
+    const cursorPos = targetingState.getCursorPosition()
+    const targetingLine = this.calculateTargetingLine(state.player.position, cursorPos, level)
 
     let html = '<pre class="dungeon-grid">'
 
@@ -308,20 +481,20 @@ export class GameRenderer {
         }
 
         // Targeting line (render before player but after entities)
-        if (targetingLine && targetingLine.has(`${x},${y}`) && !(x === state.player.position.x && y === state.player.position.y) && !(cursorPos && x === cursorPos.x && y === cursorPos.y)) {
+        if (targetingLine.has(`${x},${y}`) && !(x === state.player.position.x && y === state.player.position.y) && !(x === cursorPos.x && y === cursorPos.y)) {
           char = '*'
           color = '#FFFF00' // Yellow
         }
 
         // Targeting cursor (render before player)
-        if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
+        if (pos.x === cursorPos.x && pos.y === cursorPos.y) {
           // Check if target is valid (position-based targeting)
           // Valid if: in FOV + within range + walkable tile
           const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
           const key = `${cursorPos.x},${cursorPos.y}`
           const inFOV = state.visibleCells.has(key)
           const tile = level.tiles[cursorPos.y][cursorPos.x]
-          const inRange = targetingState ? distance <= targetingState.getRange() : false
+          const inRange = distance <= targetingState.getRange()
           const isValid = inFOV && inRange && tile.walkable
 
           char = 'X'
@@ -651,14 +824,16 @@ export class GameRenderer {
   private createDebugCanvas(): HTMLCanvasElement {
     const canvas = document.createElement('canvas')
     canvas.id = 'debug-canvas'
-    canvas.width = 80 * 16 // 80 cells × 16px cell size
-    canvas.height = 22 * 16 // 22 cells × 16px cell size
+    // Size will be set when renderer is available
+    canvas.width = 800
+    canvas.height = 600
     canvas.style.cssText = `
       position: absolute;
       top: 0;
       left: 0;
       pointer-events: none;
       z-index: 10;
+      display: none; // Hide until properly sized
     `
     return canvas
   }

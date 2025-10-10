@@ -5,6 +5,9 @@ import { InputHandler } from '@ui/InputHandler'
 import { MonsterTurnService } from '@services/MonsterTurnService'
 import { TurnService } from '@services/TurnService'
 import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
+import { ToggleRenderModeCommand } from '@commands/ToggleRenderModeCommand'
+import { PreferencesService } from '@services/PreferencesService'
+import { MessageService } from '@services/MessageService'
 
 /**
  * PlayingState - Main gameplay state
@@ -32,6 +35,7 @@ import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
  */
 export class PlayingState extends BaseState {
   private gameState: GameState
+  private toggleRenderModeCommand: ToggleRenderModeCommand
 
   constructor(
     initialState: GameState,
@@ -39,10 +43,16 @@ export class PlayingState extends BaseState {
     private inputHandler: InputHandler,
     private monsterTurnService: MonsterTurnService,
     private turnService: TurnService,
-    private autoSaveMiddleware: AutoSaveMiddleware
+    private autoSaveMiddleware: AutoSaveMiddleware,
+    preferencesService: PreferencesService,
+    messageService: MessageService
   ) {
     super()
     this.gameState = initialState
+    this.toggleRenderModeCommand = new ToggleRenderModeCommand(
+      preferencesService,
+      messageService
+    )
   }
 
   /**
@@ -102,6 +112,13 @@ export class PlayingState extends BaseState {
   handleInput(_input: Input): void {
     // Don't process input if death or victory screen is visible
     if (this.renderer.isDeathScreenVisible() || this.renderer.isVictoryScreenVisible()) {
+      return
+    }
+
+    // Handle render mode toggle (free action - doesn't consume turn)
+    if (_input.key === 'T') {
+      this.gameState = this.toggleRenderModeCommand.execute(this.gameState)
+      this.renderer.render(this.gameState)
       return
     }
 

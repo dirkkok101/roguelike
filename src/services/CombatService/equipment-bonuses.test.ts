@@ -46,6 +46,7 @@ describe('CombatService - Equipment Bonuses', () => {
       id: 'bat-1',
       letter: 'B',
       name: 'Bat',
+      spriteName: 'Bat',
       position: { x: 1, y: 1 },
       hp: 5,
       maxHp: 5,

@@ -251,6 +251,7 @@ export class MonsterSpawnService {
       const requiredFields = [
         'letter',
         'name',
+        'spriteName',
         'hp',
         'ac',
         'damage',
@@ -449,6 +450,7 @@ export class MonsterSpawnService {
       id,
       letter: template.letter,
       name: template.name,
+      spriteName: template.spriteName,
       position,
       hp,
       maxHp: hp,

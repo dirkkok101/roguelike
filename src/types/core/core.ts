@@ -151,6 +151,7 @@ export interface Monster {
   id: string
   letter: string
   name: string
+  spriteName: string // Sprite name for tileset lookup
   position: Position
   hp: number
   maxHp: number
@@ -233,6 +234,7 @@ export interface MonsterAIProfile {
 export interface MonsterTemplate {
   letter: string // Monster display character ('B', 'K', 'D', etc.)
   name: string // Display name ("Bat", "Kobold", "Dragon")
+  spriteName: string // Sprite name for tileset lookup ("Fruit bat", "Water elemental", etc.)
   hp: string // HP dice notation ("1d8", "10d8", etc.)
   ac: number // Armor class (lower = harder to hit)
   damage: string // Damage dice notation ("1d2", "1d8+3d10", etc.)
@@ -337,18 +339,21 @@ export enum ItemType {
 }
 
 export interface Weapon extends Item {
+  spriteName: string // Sprite name for tileset lookup
   damage: string
   bonus: number
   cursed?: boolean // Cursed weapons cannot be unwielded
 }
 
 export interface Armor extends Item {
+  spriteName: string // Sprite name for tileset lookup
   ac: number
   bonus: number
   cursed?: boolean // Cursed armor cannot be removed
 }
 
 export interface Ring extends Item {
+  spriteName: string // Sprite name for tileset lookup
   ringType: RingType
   effect: string
   bonus: number
@@ -371,6 +376,7 @@ export enum RingType {
 }
 
 export interface Potion extends Item {
+  spriteName: string // Sprite name for tileset lookup
   potionType: PotionType
   effect: string
   power: string // dice notation for healing, etc.
@@ -394,6 +400,7 @@ export enum PotionType {
 }
 
 export interface Scroll extends Item {
+  spriteName: string // Sprite name for tileset lookup
   scrollType: ScrollType
   effect: string
   labelName: string // e.g., "scroll labeled XYZZY"
@@ -415,6 +422,7 @@ export enum ScrollType {
 }
 
 export interface Wand extends Item {
+  spriteName: string // Sprite name for tileset lookup
   wandType: WandType
   damage: string // dice notation for damage wands
   charges: number // max charges
@@ -437,15 +445,18 @@ export enum WandType {
 }
 
 export interface Food extends Item {
+  spriteName: string // Sprite name for tileset lookup
   nutrition: number // hunger units restored
 }
 
 export interface OilFlask extends Item {
+  spriteName: string // Sprite name for tileset lookup
   fuelAmount: number // fuel units provided (typically 500)
 }
 
 export interface Torch extends Item {
   type: ItemType.TORCH
+  spriteName: string // Sprite name for tileset lookup
   fuel: number
   maxFuel: number
   radius: number
@@ -454,6 +465,7 @@ export interface Torch extends Item {
 
 export interface Lantern extends Item {
   type: ItemType.LANTERN
+  spriteName: string // Sprite name for tileset lookup
   fuel: number
   maxFuel: number
   radius: number
@@ -462,6 +474,7 @@ export interface Lantern extends Item {
 
 export interface Artifact extends Item {
   type: ItemType.TORCH // Artifacts are magical torches
+  spriteName: string // Sprite name for tileset lookup
   radius: number
   isPermanent: true
   // No fuel properties - artifacts never run out

@@ -65,6 +65,7 @@ describe('MonsterAIService - Running Detection', () => {
       id: 'test-monster',
       letter: 'O',
       name: 'Orc',
+      spriteName: 'Orc',
       position,
       hp: 8,
       maxHp: 8,

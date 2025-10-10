@@ -28,6 +28,7 @@ describe('MonsterAIService - Chase Probability', () => {
       id: 'test-monster',
       letter: 'H',
       name: 'Hobgoblin',
+      spriteName: 'Hobgoblin',
       position: { x: 5, y: 5 },
       hp: 10,
       maxHp: 10,
@@ -282,6 +283,7 @@ describe('MonsterAIService - Chase Probability', () => {
       const scareScroll = {
         id: 'scare-1',
         name: 'Scroll of Scare Monster',
+      spriteName: 'Scroll of Scare Monster',
         type: 'SCROLL' as const,
         identified: true,
         position: { x: 6, y: 5 }, // Adjacent to monster

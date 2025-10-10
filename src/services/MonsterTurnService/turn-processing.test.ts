@@ -111,6 +111,7 @@ describe('MonsterTurnService - Turn Processing', () => {
       id: 'monster-1',
       letter: 'M',
       name: 'Monster',
+      spriteName: 'Monster',
       position: { x: 5, y: 5 },
       hp: 10,
       maxHp: 10,

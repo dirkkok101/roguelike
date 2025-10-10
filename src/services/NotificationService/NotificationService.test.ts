@@ -108,6 +108,7 @@ describe('NotificationService - Auto-Notifications', () => {
       const item: Item = {
         id: 'item-1',
         name: 'ruby ring',
+      spriteName: 'ruby ring',
         type: ItemType.RING,
         identified: false,
         position: { x: 10, y: 10 },
@@ -148,6 +149,7 @@ describe('NotificationService - Auto-Notifications', () => {
       const item1: Item = {
         id: 'item-1',
         name: 'potion',
+      spriteName: 'potion',
         type: ItemType.POTION,
         identified: false,
         position: { x: 10, y: 10 },
@@ -155,6 +157,7 @@ describe('NotificationService - Auto-Notifications', () => {
       const item2: Item = {
         id: 'item-2',
         name: 'scroll',
+      spriteName: 'scroll',
         type: ItemType.SCROLL,
         identified: false,
         position: { x: 10, y: 10 },
@@ -173,6 +176,7 @@ describe('NotificationService - Auto-Notifications', () => {
       const item: Item = {
         id: 'item-1',
         name: 'emerald',
+      spriteName: 'emerald',
         type: ItemType.RING,
         identified: false,
         position: { x: 10, y: 10 },
@@ -191,6 +195,7 @@ describe('NotificationService - Auto-Notifications', () => {
       const item: Item = {
         id: 'item-1',
         name: 'sword',
+      spriteName: 'sword',
         type: ItemType.WEAPON,
         identified: true,
         position: { x: 10, y: 10 },
@@ -211,6 +216,7 @@ describe('NotificationService - Auto-Notifications', () => {
       const item: Item = {
         id: 'item-1',
         name: 'ring',
+      spriteName: 'ring',
         type: ItemType.RING,
         identified: false,
         position: { x: 10, y: 10 },
@@ -231,6 +237,7 @@ describe('NotificationService - Auto-Notifications', () => {
       const item: Item = {
         id: 'item-1',
         name: 'ring',
+      spriteName: 'ring',
         type: ItemType.RING,
         identified: false,
         position: { x: 10, y: 10 },
@@ -338,6 +345,7 @@ describe('NotificationService - Auto-Notifications', () => {
         id: 'monster-1',
         letter: 'O',
         name: 'Orc',
+      spriteName: 'Orc',
         position: { x: 10, y: 9 },
         hp: 10,
         maxHp: 10,
@@ -374,6 +382,7 @@ describe('NotificationService - Auto-Notifications', () => {
         id: 'monster-1',
         letter: 'O',
         name: 'Orc',
+      spriteName: 'Orc',
         position: { x: 10, y: 9 },
         hp: 10,
         maxHp: 10,

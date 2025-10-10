@@ -842,6 +842,7 @@ describe('MoveCommand - Door Interaction', () => {
         id: 'monster-1',
         letter: 'Z',
         name: 'Zombie',
+      spriteName: 'Zombie',
         position: { x: 3, y: 3 },
         hp: 10,
         maxHp: 10,

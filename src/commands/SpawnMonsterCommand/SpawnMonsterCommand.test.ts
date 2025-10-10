@@ -16,6 +16,7 @@ describe('SpawnMonsterCommand', () => {
     {
       letter: 'A',
       name: 'Aquator',
+      spriteName: 'Aquator',
       hp: '5d8',
       ac: 2,
       damage: '0d0',
@@ -29,6 +30,7 @@ describe('SpawnMonsterCommand', () => {
     {
       letter: 'B',
       name: 'Bat',
+      spriteName: 'Bat',
       hp: '1d8',
       ac: 3,
       damage: '1d2',
@@ -42,6 +44,7 @@ describe('SpawnMonsterCommand', () => {
     {
       letter: 'D',
       name: 'Dragon',
+      spriteName: 'Dragon',
       hp: '10d8',
       ac: -1,
       damage: '1d8',
@@ -55,6 +58,7 @@ describe('SpawnMonsterCommand', () => {
     {
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       hp: '6d8',
       ac: 4,
       damage: '1d8',

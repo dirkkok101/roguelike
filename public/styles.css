@@ -63,10 +63,17 @@ body {
   background: #000000;
   border: 1px solid #444;
   padding: 15px;
-  overflow: auto;
+  overflow: hidden; /* Changed from auto to hidden - no scrollbars */
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
+  align-items: center; /* Center canvas vertically */
+  justify-content: center; /* Center canvas horizontally */
+}
+
+#dungeon-canvas {
+  display: block;
+  image-rendering: pixelated; /* Crisp pixel art */
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 
 /* Make dungeon grid scale better */
@@ -480,4 +487,25 @@ body {
   font-family: monospace;
   font-weight: bold;
   color: #fff;
+}
+
+/* ============================================================================
+   MODE CHANGE NOTIFICATION
+   ============================================================================ */
+
+.mode-change-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 1rem 2rem;
+  border: 2px solid #44ff44;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  font-family: monospace;
+  z-index: 9999;
+  transition: opacity 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }

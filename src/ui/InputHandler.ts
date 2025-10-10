@@ -772,6 +772,8 @@ export class InputHandler {
         }
         return null
 
+      // NOTE: 'T' key is handled in PlayingState.ts for ToggleRenderModeCommand
+      // (free action that doesn't consume a turn - switches between sprite/ASCII rendering)
       default:
         return null
     }

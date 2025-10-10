@@ -27,6 +27,7 @@ describe('MonsterAIService - SMART Behavior', () => {
       id: 'smart-monster',
       letter: 'S',
       name: 'Smart Monster',
+      spriteName: 'Smart Monster',
       position: { x: 1, y: 1 },
       hp: 10,
       maxHp: 10,

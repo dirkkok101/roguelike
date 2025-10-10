@@ -16,6 +16,7 @@ describe('SpecialAbilityService - Regeneration', () => {
       id: 'troll',
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       position: { x: 5, y: 5 },
       hp: 10,
       maxHp: 20,

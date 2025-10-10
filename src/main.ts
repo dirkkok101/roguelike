@@ -41,6 +41,8 @@ import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
 import { TargetingService } from '@services/TargetingService'
+import { AssetLoaderService } from '@services/AssetLoaderService'
+import { TerrainSpriteService } from '@services/TerrainSpriteService'
 import { WanderingMonsterService } from '@services/WanderingMonsterService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
@@ -80,6 +82,34 @@ async function initializeGame() {
   } catch (error) {
     console.error('Failed to load monsters.json:', error)
     throw error // Fatal error - game cannot proceed without monster data
+  }
+
+  // Load terrain sprite mappings (data-driven approach)
+  const terrainSpriteService = new TerrainSpriteService()
+  try {
+    await terrainSpriteService.loadTerrainSprites()
+    console.log('Terrain sprites loaded from terrain-sprites.json')
+  } catch (error) {
+    console.error('Failed to load terrain sprites:', error)
+    // Non-fatal error - will fall back to CHAR_TO_ANGBAND
+  }
+
+  // Load tileset early (Gervais 32×32 sprite sheet)
+  const assetLoaderService = new AssetLoaderService(terrainSpriteService)
+  try {
+    await assetLoaderService.loadTileset(
+      '/assets/tilesets/gervais/32x32.png',
+      [
+        '/assets/tilesets/gervais/graf-dvg.prf',
+        '/assets/tilesets/gervais/flvr-dvg.prf',
+        '/assets/tilesets/gervais/xtra-dvg.prf',
+      ],
+      32
+    )
+    console.log('Tileset loaded successfully (Gervais 32×32)')
+  } catch (error) {
+    console.warn('Failed to load tileset, will fall back to ASCII rendering:', error)
+    // Non-fatal error - game can proceed with ASCII rendering
   }
 
   // Create ItemSpawnService (needed by DebugService)
@@ -145,13 +175,14 @@ async function initializeGame() {
   const modalController = new ModalController(identificationService, curseService)
 
   // Dungeon configuration
+  // Note: Dungeon is larger than viewport (80×22) to enable camera scrolling
   const dungeonConfig = {
-    width: 80,
-    height: 22,
-    minRooms: 4,
-    maxRooms: 9,
+    width: 100,
+    height: 50,
+    minRooms: 6,
+    maxRooms: 12,
     minRoomSize: 3,
-    maxRoomSize: 8,
+    maxRoomSize: 10,
     minSpacing: 2,
     loopChance: 0.25,
   }
@@ -449,6 +480,7 @@ async function initializeGame() {
     // Initialize renderer and inputHandler with all callbacks
     renderer = new GameRenderer(
       renderingService,
+      assetLoaderService,
       hungerService,
       levelingService,
       debugService,
@@ -522,7 +554,9 @@ async function initializeGame() {
       inputHandler,
       monsterTurnService,
       turnService,
-      autoSaveMiddleware
+      autoSaveMiddleware,
+      preferencesService,
+      messageService
     )
 
     // Clear any existing states and push PlayingState

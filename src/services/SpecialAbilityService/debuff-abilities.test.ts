@@ -39,6 +39,7 @@ describe('SpecialAbilityService - Debuff Abilities', () => {
       id: 'test-monster',
       letter: 'T',
       name: 'Test Monster',
+      spriteName: 'Test Monster',
       position: { x: 1, y: 1 },
       hp: 10,
       maxHp: 10,
@@ -68,6 +69,7 @@ describe('SpecialAbilityService - Debuff Abilities', () => {
       const armor: Armor = {
         id: 'plate-mail',
         name: 'Plate Mail',
+      spriteName: 'Plate Mail',
         type: 'ARMOR',
         identified: true,
         acBonus: 6,
@@ -91,6 +93,7 @@ describe('SpecialAbilityService - Debuff Abilities', () => {
       const armor: Armor = {
         id: 'plate-mail',
         name: 'Plate Mail',
+      spriteName: 'Plate Mail',
         type: 'ARMOR',
         identified: true,
         acBonus: 6,
@@ -123,6 +126,7 @@ describe('SpecialAbilityService - Debuff Abilities', () => {
       const armor: Armor = {
         id: 'plate-mail',
         name: 'Plate Mail',
+      spriteName: 'Plate Mail',
         type: 'ARMOR',
         identified: true,
         acBonus: 6,
@@ -143,6 +147,7 @@ describe('SpecialAbilityService - Debuff Abilities', () => {
       const armor: Armor = {
         id: 'plate-mail',
         name: 'Plate Mail',
+      spriteName: 'Plate Mail',
         type: 'ARMOR',
         identified: true,
         acBonus: 6,

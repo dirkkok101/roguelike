@@ -157,6 +157,7 @@ describe('TargetSelectionState - Cursor Movement', () => {
         id: 'monster-1',
         letter: 'O',
         name: 'Orc',
+      spriteName: 'Orc',
         position: { x: 12, y: 10 },
         hp: 10,
         maxHp: 10,

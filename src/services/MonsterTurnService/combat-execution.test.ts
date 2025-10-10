@@ -110,6 +110,7 @@ describe('MonsterTurnService - Combat Execution', () => {
       id: 'monster-1',
       letter: 'M',
       name: 'Monster',
+      spriteName: 'Monster',
       position: { x: 5, y: 5 },
       hp: 10,
       maxHp: 10,
@@ -224,6 +225,7 @@ describe('MonsterTurnService - Combat Execution', () => {
   test('uses breath weapon for Dragon', () => {
     const dragon = createTestMonster({
       name: 'Dragon',
+      spriteName: 'Dragon',
       position: { x: 10, y: 11 },
       damage: '1d8',
     })
