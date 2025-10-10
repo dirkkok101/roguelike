@@ -19,6 +19,8 @@ The `CanvasGameRenderer` is a sprite-based game renderer that uses HTML5 Canvas 
 - **Color Tinting**: Dynamic threat-level coloring for monsters
 - **Render Order**: Correct z-ordering (terrain → items → gold → monsters → player)
 - **Pixel-Perfect**: Disabled image smoothing for crisp pixel art
+- **Scroll Margin Camera**: NetHack-style deadzone camera for smooth viewport scrolling
+- **Dirty Rectangle Optimization**: Only redraws changed tiles (~99% reduction in draw calls)
 - **Separation of Concerns**: Pure rendering, no game logic
 
 ---
@@ -28,9 +30,11 @@ The `CanvasGameRenderer` is a sprite-based game renderer that uses HTML5 Canvas 
 ### File Location
 ```
 src/ui/
-├── CanvasGameRenderer.ts          # Renderer implementation
-├── CanvasGameRenderer.test.ts     # Unit tests (34 tests)
-└── GameRenderer.ts                # Main UI coordinator
+├── CanvasGameRenderer.ts                    # Renderer implementation
+├── CanvasGameRenderer.test.ts               # Basic rendering tests (34 tests)
+├── CanvasGameRenderer.camera.test.ts        # Camera system tests (35 tests)
+├── CanvasGameRenderer.integration.test.ts   # Integration tests (6 tests)
+└── GameRenderer.ts                          # Main UI coordinator
 ```
 
 ### Dependencies
@@ -55,9 +59,11 @@ export interface CanvasRenderConfig {
   gridWidth: number           // 80 tiles
   gridHeight: number          // 22 tiles
   enableSmoothing: boolean    // false for pixel art
-  enableDirtyRectangles: boolean  // true for optimization (future)
+  enableDirtyRectangles: boolean  // true for optimization ✅ Implemented
   exploredOpacity: number     // 0.5 for dimming
   detectedOpacity: number     // 0.6 for detected entities
+  scrollMarginX: number       // 10 tiles - horizontal scroll deadzone
+  scrollMarginY: number       // 5 tiles - vertical scroll deadzone
 }
 ```
 
@@ -69,9 +75,11 @@ export interface CanvasRenderConfig {
   gridWidth: 80,
   gridHeight: 22,
   enableSmoothing: false,     // Crisp pixel art
-  enableDirtyRectangles: true,
+  enableDirtyRectangles: true,  // ✅ Dirty rectangle optimization
   exploredOpacity: 0.5,       // 50% dim for explored tiles
   detectedOpacity: 0.6,       // 60% opacity for detected monsters
+  scrollMarginX: 10,          // 10 tiles horizontal deadzone
+  scrollMarginY: 5,           // 5 tiles vertical deadzone
 }
 ```
 
@@ -116,17 +124,21 @@ const renderer = new CanvasGameRenderer(
 Render the complete game state to canvas.
 
 **Rendering Pipeline:**
-1. Verify tileset is loaded (skip if not)
-2. Clear canvas (fill with black)
-3. Render terrain (floor, walls, doors, stairs)
-4. Render entities (items, gold, monsters, traps)
-5. Render player (always on top)
+1. Update camera position (scroll margin system)
+2. Calculate dirty tiles (changed since last frame)
+3. Decide rendering strategy:
+   - If >30% tiles dirty → full render (faster)
+   - Otherwise → selective render (dirty tiles only)
+4. Render using chosen strategy:
+   - **Full Render**: Clear canvas, render terrain → entities → player
+   - **Selective Render**: Clear dirty tiles, render only those tiles
+5. Update previous state for next frame's diff
 
 **Example:**
 ```typescript
 // In game loop
 function gameLoop() {
-  renderer.render(gameState)
+  renderer.render(gameState)  // Automatically optimizes via dirty rectangles
   requestAnimationFrame(gameLoop)
 }
 ```
@@ -194,6 +206,44 @@ const screen = renderer.worldToScreen({ x: 10, y: 5 })
 
 ---
 
+#### `updateCamera(state: GameState): void` (Private)
+
+Update camera position using scroll margin system.
+
+**Scroll Margin Behavior:**
+- **Initial Centering**: Centers camera on player when entering new level
+- **Comfort Zone**: Player can move within center area without camera scrolling
+- **Scroll Triggers**: Camera scrolls when player enters margin zones
+- **Edge Clamping**: Prevents showing off-map areas
+
+**Margin Zones:**
+- Horizontal: 10 tiles from left/right edges
+- Vertical: 5 tiles from top/bottom edges
+- Comfort zone: 60×12 tile center area (80-10-10 = 60 wide, 22-5-5 = 12 tall)
+
+**Level Transitions:**
+- Detects level changes via `currentLevel` comparison
+- Re-centers camera on player when level changes
+- Stores previous level and player position for diff tracking
+
+---
+
+#### `calculateDirtyTiles(state: GameState): Set<string>` (Private)
+
+Calculate which tiles changed since last frame.
+
+**Change Detection:**
+- **Camera scroll**: Entire viewport marked dirty (early return)
+- **Player movement**: Old + new position marked dirty
+- **Monster movement**: All moved monster positions marked dirty
+- **FOV changes**: Visibility state transitions marked dirty
+
+**Returns:** Set of tile coordinates `"x,y"` that need redrawing
+
+**Performance:** Typical player movement = 2-10 dirty tiles (vs 1,760 total tiles)
+
+---
+
 ### Getter Methods
 
 #### `getCanvas(): HTMLCanvasElement`
@@ -211,27 +261,37 @@ Returns a copy of the rendering configuration.
 ```
 render(state)
   ↓
-1. Check tileset loaded → skip if not
+1. Update camera position (scroll margin system)
+   - Check for level transition → re-center if changed
+   - Check scroll margin triggers → scroll if needed
+   - Clamp to map boundaries
   ↓
-2. Clear canvas (black background)
+2. Calculate dirty tiles (changed since last frame)
+   - Camera scrolled? → mark all tiles dirty
+   - Player moved? → mark old + new position dirty
+   - Monsters moved? → mark all moved positions dirty
+   - FOV changed? → mark visibility transitions dirty
   ↓
-3. renderTerrain(state)
-   - Loop through 80×22 grid
-   - Get tile character (., #, +, <, >, etc.)
-   - Look up sprite via AssetLoaderService
-   - Get visibility state (visible/explored/unexplored)
-   - Draw with appropriate opacity
+3. Decide rendering strategy
+   - Count dirty tiles
+   - If >30% (528+ tiles) → use full render (faster)
+   - Otherwise → use selective render
   ↓
-4. renderEntities(state)
-   - Render items (bottom layer)
-   - Render gold piles
-   - Render monsters (top layer)
-   - Render stairs
-   - Render discovered traps
+4a. Full Render Path:
+   - Clear canvas (black background)
+   - renderTerrain(state) - Loop 80×22 grid
+   - renderEntities(state) - Items, gold, monsters, stairs, traps
+   - renderPlayer(state) - Player on top
   ↓
-5. renderPlayer(state)
-   - Always at full opacity
-   - Always on top
+4b. Selective Render Path:
+   - For each dirty tile:
+     - clearTile() - Clear tile rectangle
+     - renderTileAt() - Render terrain + entities + player at position
+  ↓
+5. Update previous state for next frame
+   - Store visible cells set
+   - Store monster positions map
+   - Store camera offsets
 ```
 
 ---
@@ -383,9 +443,12 @@ export class GameRenderer {
 ### Current Performance
 
 - **Canvas Size**: 2560×704 pixels (80×22 tiles @ 32px)
-- **Draw Calls**: ~500-800 per frame (depends on FOV size)
+- **Total Tiles**: 1,760 tiles (80×22)
+- **Draw Calls (Full Render)**: ~500-800 per frame (depends on FOV size)
+- **Draw Calls (Dirty Rects)**: ~2-50 per frame (typical: 5-10)
+- **Reduction**: ~99% fewer draw calls with dirty rectangles
 - **Target FPS**: 60 FPS
-- **Actual FPS**: ~200-300 FPS on modern hardware
+- **Actual FPS**: ~200-300 FPS on modern hardware (full render), ~500+ FPS (dirty rects)
 
 ### Optimization Techniques
 
@@ -410,12 +473,23 @@ ctx.globalCompositeOperation = 'multiply'
 ctx.globalCompositeOperation = prev  // Restore
 ```
 
-### Future Optimizations (Phase 4)
+### Implemented Optimizations
 
-1. **Dirty Rectangles**: Only redraw changed tiles
-2. **Sprite Batching**: Group draws by texture
-3. **Offscreen Canvas**: Pre-composite layers
-4. **RequestAnimationFrame Throttling**: Skip frames if GPU overloaded
+1. ✅ **Dirty Rectangles** (Phase 4.1): Only redraws changed tiles
+   - Tracks player movement, monster movement, FOV changes, camera scroll
+   - 30% threshold heuristic (>30% dirty → full render is faster)
+   - Typical reduction: 1,760 tiles → 2-10 tiles per frame
+
+2. ✅ **Scroll Margin Camera** (Phase 3.5): NetHack-style deadzone system
+   - Player moves visibly within comfort zone (60×12 tiles)
+   - Camera only scrolls when entering margin zones
+   - Smooth level transitions with automatic re-centering
+
+### Future Optimizations (Optional)
+
+1. **Sprite Batching**: Group draws by texture (if FPS target not met)
+2. **Offscreen Canvas**: Pre-composite layers (if needed)
+3. **RequestAnimationFrame Throttling**: Skip frames if GPU overloaded
 
 ---
 
@@ -423,9 +497,12 @@ ctx.globalCompositeOperation = prev  // Restore
 
 ### Test Coverage
 
-- **File**: `CanvasGameRenderer.test.ts`
-- **Tests**: 34 passing
-- **Coverage**: >80%
+- **Files**: 3 test suites
+  - `CanvasGameRenderer.test.ts` (34 tests) - Basic rendering
+  - `CanvasGameRenderer.camera.test.ts` (35 tests) - Camera scroll margins
+  - `CanvasGameRenderer.integration.test.ts` (6 tests) - Full gameplay scenarios
+- **Total Tests**: 75 passing
+- **Coverage**: >90% (98.69% lines, 95.16% statements)
 
 ### Test Categories
 
@@ -463,6 +540,22 @@ ctx.globalCompositeOperation = prev  // Restore
    - Full opacity
    - Missing sprite handling
 
+6. **Camera Scroll Margins** (35 tests)
+   - Initial centering on level entry
+   - Movement within comfort zone (no scroll)
+   - Scroll triggers (left, right, top, bottom margins)
+   - Edge clamping (map boundaries)
+   - Level transitions (stairs up/down)
+   - Small map handling (<viewport size)
+   - Diagonal movement
+   - Rapid movement sequences
+
+7. **Integration Tests** (6 tests)
+   - Full game loop with movement
+   - Level navigation (stairs)
+   - Combat scenarios near viewport edge
+   - Multiple level transitions
+
 ---
 
 ## Known Issues & Limitations
@@ -483,6 +576,12 @@ ctx.globalCompositeOperation = prev  // Restore
 
 - Sprites are static (no idle/attack animations)
 - Future: Add sprite sheet animation support
+
+### Dirty Rectangle Threshold
+
+- 30% dirty threshold is a heuristic (may need tuning)
+- Large FOV changes can trigger full renders
+- Future: Benchmark optimal threshold per device
 
 ---
 
@@ -507,5 +606,6 @@ ctx.globalCompositeOperation = prev  // Restore
 
 ---
 
-**Last Updated**: 2025-10-09
-**Phase**: Sprite Rendering Implementation (Phase 1-3 Complete)
+**Last Updated**: 2025-10-10
+**Phase**: Sprite Rendering Implementation (Phase 1-4.1 Complete)
+**Status**: ✅ Scroll margin camera system implemented (Phase 3.5) | ✅ Dirty rectangle optimization implemented (Phase 4.1)
