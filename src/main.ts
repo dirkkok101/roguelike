@@ -200,7 +200,7 @@ async function initializeGame() {
     strength: 16,
     maxStrength: 16,
     strengthPercentile: undefined, // No exceptional strength yet (will add 1% chance later)
-    ac: 4,
+    ac: 10, // Unarmored (matching original Rogue 1980)
     level: 1,
     xp: 0,
     gold: 0,
@@ -323,7 +323,7 @@ async function initializeGame() {
       strength: 16,
       maxStrength: 16,
       strengthPercentile: undefined, // No exceptional strength yet (will add 1% chance later)
-      ac: 4,
+      ac: 10, // Unarmored (matching original Rogue 1980)
       level: 1,
       xp: 0,
       gold: 0,

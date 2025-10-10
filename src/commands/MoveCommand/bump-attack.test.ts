@@ -102,7 +102,8 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         maxHp: 30,
         strength: 16,
         maxStrength: 16,
-        ac: 4,
+        strengthPercentile: undefined,
+        ac: 10, // Unarmored (matching original Rogue 1980)
         level: 1,
         xp: 0,
         gold: 0,
@@ -282,8 +283,10 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
       const newState = command.execute(state)
 
       // Monster should still exist but wounded
+      // Damage: 3 from roll + 1 from Str 16 bonus = 4 total
+      // HP: 10 - 4 = 6
       expect(newState.levels.get(1)!.monsters).toHaveLength(1)
-      expect(newState.levels.get(1)!.monsters[0].hp).toBe(7)
+      expect(newState.levels.get(1)!.monsters[0].hp).toBe(6)
     })
 
     test('generates miss message on miss', () => {
