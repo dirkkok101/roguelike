@@ -113,7 +113,165 @@ notifications.forEach(msg => {
 
 ---
 
-### 6. Resource Warnings
+### 6. Monster Sighting Messages
+
+#### `checkMonsterSightings(state: GameState): string[]`
+Generates "You see..." messages when monsters first enter player's FOV.
+
+**Parameters**:
+- `state`: Current game state (with updated visibleCells)
+
+**Returns**: Array of sighting message strings
+
+**Tracking**:
+```typescript
+interface NotificationContext {
+  // ... existing fields
+  monstersSeen: Set<string>    // Track first sightings (monster IDs)
+  lastLevelSeen?: number       // Reset monstersSeen when level changes
+}
+```
+
+**Logic**:
+1. Check if player changed levels → clear `monstersSeen` set
+2. Find monsters in `visibleCells` that haven't been seen yet
+3. Generate sighting message based on count (1, 2, or 3+)
+4. Mark monsters as seen (add IDs to `monstersSeen`)
+
+**Message Formats**:
+
+**Single Monster**:
+```typescript
+"You see a Dragon!"
+"You see an Orc!"
+```
+
+**Two Monsters**:
+```typescript
+"You see a Bat and an Orc!"
+"You see a Dragon and a Hobgoblin!"
+```
+
+**Three or More Monsters**:
+```typescript
+"You see a Snake, a Hobgoblin, and a Troll!"
+"You see an Orc, a Bat, and a Dragon!"
+```
+
+**Deduplication**:
+- Each monster tracked by ID in `monstersSeen` set
+- No repeat sighting messages for same monster
+- Reset when player changes levels (new dungeon = new context)
+
+**Example**:
+```typescript
+// First time Dragon enters FOV
+const sightings = service.checkMonsterSightings(state)
+// Returns: ["You see a Dragon!"]
+
+// Next turn (Dragon still visible)
+const sightings2 = service.checkMonsterSightings(state)
+// Returns: [] (already seen)
+
+// Player goes to next level
+const sightings3 = service.checkMonsterSightings(stateLevel2)
+// monstersSeen cleared, new sightings can occur
+```
+
+**Integration**:
+```typescript
+// Called after FOV update in MoveCommand
+const sightings = this.notificationService.checkMonsterSightings(stateWithFOV)
+sightings.forEach(msg => {
+  messages = this.messageService.addMessage(messages, msg, 'info', state.turnCount)
+})
+```
+
+---
+
+### 7. Wake-Up Messages
+
+#### `checkWakeUpMessages(currentMonsters: Monster[], previousMonsters: Monster[]): string[]`
+Generates wake-up messages when sleeping monsters transition to awake state.
+
+**Parameters**:
+- `currentMonsters`: Monster array after AI processing
+- `previousMonsters`: Monster array before AI processing
+
+**Returns**: Array of wake-up message strings
+
+**Detection**:
+```typescript
+// Find monsters that just woke up
+const wokeUpMonsters = currentMonsters.filter((currentMonster) => {
+  const previousMonster = previousStates.get(currentMonster.id)
+  if (!previousMonster) return false
+
+  // Detect transition from asleep to awake
+  return previousMonster.isAsleep && !currentMonster.isAsleep
+})
+```
+
+**Message Formats**:
+
+**Single Monster**:
+```typescript
+"The Dragon wakes up!"
+"The Orc wakes up!"
+```
+
+**Two Monsters**:
+```typescript
+"The Bat and Orc wake up!"
+"The Dragon and Hobgoblin wake up!"
+```
+
+**Three or More Monsters**:
+```typescript
+"The Snake, Hobgoblin, and Troll wake up!"
+"The Orc, Bat, and Dragon wake up!"
+```
+
+**Example**:
+```typescript
+// Before monster AI processing
+const previousMonsters = level.monsters.map(m => ({ ...m }))  // Deep copy
+
+// After monster AI processing (monsters woke up from aggro range)
+const currentMonsters = updatedLevel.monsters
+
+// Generate wake-up messages
+const wakeMessages = service.checkWakeUpMessages(currentMonsters, previousMonsters)
+// Returns: ["The Orc and Hobgoblin wake up!"]
+```
+
+**Integration**:
+```typescript
+// In TurnService or MonsterTurnService
+const previousMonsters = level.monsters.map(m => ({ ...m }))
+
+// Process monster AI (may wake monsters)
+const updatedMonsters = monsterAIService.processMonsterTurns(level.monsters, state)
+
+// Check for wake-ups
+const wakeMessages = notificationService.checkWakeUpMessages(updatedMonsters, previousMonsters)
+
+wakeMessages.forEach(msg => {
+  messages = messageService.addMessage(messages, msg, 'info', state.turnCount)
+})
+```
+
+**Use Cases**:
+1. **Proximity Wake**: Player moves within aggro range
+2. **Running Detection**: Player running increases effective range
+3. **Door Slam**: Player slams door, waking connected room monsters
+4. **Wandering Spawn**: Wandering monster spawns awake (no wake message needed)
+
+**Note**: Door slam wake has custom message: `"Your loud entrance wakes the monsters!"` (handled in MoveCommand, not this method)
+
+---
+
+### 8. Resource Warnings
 
 **No Food + Hungry**:
 ```typescript
@@ -136,6 +294,8 @@ interface NotificationContext {
   lastItemSeen?: string
   lastGoldSeen?: number
   recentNotifications: Set<string>  // Deduplication keys
+  monstersSeen: Set<string>  // Track first sightings (monster IDs)
+  lastLevelSeen?: number  // Track level changes to reset monstersSeen
 }
 ```
 
@@ -306,6 +466,8 @@ private context: NotificationContext = {
 **Test Files**:
 - `item-notifications.test.ts` - Item/gold detection
 - `monster-proximity.test.ts` - Adjacent monster alerts
+- `monster-sighting.test.ts` - Monster first sighting messages
+- `wake-up-messages.test.ts` - Monster wake-up notifications
 - `deduplication.test.ts` - Context tracking and reset
 - `resource-warnings.test.ts` - Inventory/food warnings
 

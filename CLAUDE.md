@@ -233,7 +233,16 @@ Three states:
 
 7 behaviors: SMART, SIMPLE, GREEDY, ERRATIC, THIEF, STATIONARY, COWARD
 
+**Wake Mechanics** (authentic 1980 Rogue):
+- **Aggro ranges**: 3-5 (simple), 6-8 (smart), 8-10 (boss) tiles
+- **Running detection**: Effective range × 1.5 when player running
+- **Door slam wake**: Returning to doorway wakes connected room monsters
+- **Wandering spawns**: Progressive spawn chance (0.5% base, max 5 per level)
+- **Monster sightings**: "You see a Dragon!" messages
+- **Wake-up messages**: "The Orc wakes up!" notifications
+
 **Details**: [Advanced Systems - Monster AI](./docs/systems-advanced.md#monster-ai)
+**Services**: [MonsterAIService](./docs/services/MonsterAIService.md) | [WanderingMonsterService](./docs/services/WanderingMonsterService.md) | [NotificationService](./docs/services/NotificationService.md)
 
 ---
 

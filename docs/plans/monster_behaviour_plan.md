@@ -514,12 +514,12 @@ interface Level {
 ## 7. Documentation Updates
 
 **Files to Update**:
-- [ ] Create `docs/services/WanderingMonsterService.md` - Full service documentation
-- [ ] Update `docs/game-design/04-monsters.md` - Add wandering spawns, running detection, door slam
-- [ ] Update `docs/systems-advanced.md#monster-ai` - Add wake mechanics details
-- [ ] Update `docs/services/MonsterAIService.md` - Document running detection and door slam
-- [ ] Update `docs/services/NotificationService.md` - Document monster sighting messages
-- [ ] Update `CLAUDE.md` - No new patterns, but mention wandering spawns in Quick Links
+- [x] Create `docs/services/WanderingMonsterService.md` - Full service documentation
+- [x] Update `docs/game-design/04-monsters.md` - Add wandering spawns, running detection, door slam
+- [x] Update `docs/systems-advanced.md#monster-ai` - Add wake mechanics details
+- [x] Update `docs/services/MonsterAIService.md` - Document running detection and door slam
+- [x] Update `docs/services/NotificationService.md` - Document monster sighting messages
+- [x] Update `CLAUDE.md` - No new patterns, but mention wandering spawns in Quick Links
 
 ---
 
