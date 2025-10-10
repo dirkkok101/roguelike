@@ -462,7 +462,7 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 - `README.md` (modify)
 
 ##### Subtasks:
-- [ ] Add "Render Mode Toggle" section to user docs:
+- [x] Add "Render Mode Toggle" section to user docs (added to README.md Features and Controls):
   ```markdown
   ## Rendering Modes
 
@@ -486,9 +486,9 @@ Add a user preference toggle that allows switching between ASCII text rendering 
   - Your preference is saved automatically
   - Works seamlessly during active gameplay
   ```
-- [ ] Update README.md with feature mention
-- [ ] Add screenshots of both modes (optional)
-- [ ] Git commit: "docs: add render mode toggle user guide (Phase 6.1)"
+- [x] Update README.md with feature mention
+- [ ] Add screenshots of both modes (optional - deferred)
+- [x] Git commit: "docs: add render mode toggle user guide (Phase 6.1)"
 
 ---
 
