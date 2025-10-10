@@ -40,8 +40,14 @@ export class CombatService {
       damageModifier = penalties.damagePenalty
     }
 
+    // Calculate strength to-hit bonus (matching original Rogue 1980)
+    const strToHitBonus = this.getStrengthToHitBonus(
+      effectiveStrength,
+      player.strengthPercentile
+    )
+
     const hit = this.calculateHit(
-      player.level + effectiveStrength + toHitModifier,
+      player.level + strToHitBonus + toHitModifier,
       monster.ac
     )
 
