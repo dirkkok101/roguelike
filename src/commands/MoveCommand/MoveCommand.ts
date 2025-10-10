@@ -159,18 +159,16 @@ export class MoveCommand implements ICommand {
     let messages: (HungerMessage | LightMessage | RegenMessage)[] = []
     let updatedLevel = level
 
-    // 1.3. Detect door slam pattern (returning to same doorway position)
-    const doorAtPosition = level.doors.find(
-      (door) => door.position.x === position.x && door.position.y === position.y
-    )
-    const doorSlammed = this.detectDoorSlam(updatedPositionHistory, level)
-    if (doorSlammed && doorAtPosition && this.monsterAIService) {
-      // Wake monsters in connected rooms
-      const wakeResult = this.monsterAIService.wakeRoomMonsters(updatedLevel, doorAtPosition.connectsRooms)
-      updatedLevel = { ...updatedLevel, monsters: wakeResult.updatedMonsters }
+    // 1.3. Detect door slam pattern and wake monsters
+    if (this.monsterAIService) {
+      const doorSlamResult = this.monsterAIService.detectDoorSlamAndWake(
+        updatedLevel,
+        position,
+        updatedPositionHistory
+      )
 
-      // Add wake message if any monsters woke
-      if (wakeResult.wokeMonsters.length > 0) {
+      if (doorSlamResult.slamDetected && doorSlamResult.wokeMonsters.length > 0) {
+        updatedLevel = { ...updatedLevel, monsters: doorSlamResult.updatedMonsters }
         messages.push({
           text: 'Your loud entrance wakes the monsters!',
           type: 'warning' as const,
@@ -310,33 +308,6 @@ export class MoveCommand implements ICommand {
       messages: finalMessages,
       positionHistory: updatedPositionHistory,
     })
-  }
-
-  /**
-   * Detect door slam pattern: player returned to same doorway position within 2 moves
-   * Pattern: position N-2 == position N (current) AND position is a doorway
-   * @param positionHistory Last 3 player positions
-   * @param level Current level (for door lookup)
-   * @returns True if door slam detected
-   */
-  private detectDoorSlam(positionHistory: Position[], level: Level): boolean {
-    // Need at least 3 positions to detect pattern
-    if (positionHistory.length < 3) return false
-
-    const currentPos = positionHistory[2] // position N (most recent)
-    const twoMovesAgo = positionHistory[0] // position N-2
-
-    // Check if returned to same position
-    if (currentPos.x !== twoMovesAgo.x || currentPos.y !== twoMovesAgo.y) {
-      return false
-    }
-
-    // Check if current position is a doorway
-    const doorAtPosition = level.doors.find(
-      (door) => door.position.x === currentPos.x && door.position.y === currentPos.y
-    )
-
-    return doorAtPosition !== undefined
   }
 
 }

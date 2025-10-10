@@ -113,7 +113,8 @@ describe('MonsterAIService - Running Detection', () => {
         equipment: {
           weapon: null,
           armor: null,
-          rings: [],
+          leftRing: null,
+          rightRing: null,
           lightSource: null,
         },
         inventory: [],
