@@ -63,7 +63,14 @@ export class CombatService {
 
     const weapon = player.equipment.weapon
     const baseDamage = this.calculatePlayerDamage(player, weapon)
-    const damage = Math.max(0, baseDamage + damageModifier) // Don't go negative
+
+    // Apply strength damage bonus (matching original Rogue 1980)
+    const strDamageBonus = this.getStrengthDamageBonus(
+      effectiveStrength,
+      player.strengthPercentile
+    )
+
+    const damage = Math.max(0, baseDamage + strDamageBonus + damageModifier) // Don't go negative
     const newHp = Math.max(0, monster.hp - damage)
     const killed = newHp === 0
 
