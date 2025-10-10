@@ -268,7 +268,7 @@ export class CanvasGameRenderer {
 
     // Render monsters (top layer)
     for (const monster of level.monsters) {
-      // Pass monster name for Angband tileset lookup
+      // Use monster name for Angband tileset lookup (e.g., 'Troll' → 'Forest troll')
       this.renderEntity(state, level, monster.position, monster.name, 'monster', renderConfig)
     }
 

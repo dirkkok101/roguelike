@@ -103,7 +103,7 @@ export class AssetLoaderService {
   /**
    * Get sprite coordinates for a game character/entity
    *
-   * @param char - Character to look up (e.g., '@', 'A', '#', '.')
+   * @param char - Character or monster name to look up (e.g., '@', 'A', '#', '.', 'Troll')
    * @returns Tile coordinate or null if not found
    */
   getSprite(char: string): TileCoordinate | null {
@@ -112,21 +112,48 @@ export class AssetLoaderService {
       return null
     }
 
-    // Try direct lookup first (for monster letters A-Z, etc.)
-    let sprite = this.currentTileset.config.tiles.get(char)
-    if (sprite) return sprite
+    let sprite: TileCoordinate | null = null
 
-    // Try mapping to Angband feature names
-    const featureNames = CHAR_TO_ANGBAND[char]
-    if (featureNames) {
-      // Try each feature name with different conditions
-      const conditions = ['torch', 'lit', 'los', '*', ''] // Common conditions in .prf files
+    // For multi-character strings, assume it's a monster name
+    if (char.length > 1) {
+      // Try looking up as "monster:Name" in tileset
+      sprite = this.currentTileset.config.tiles.get(char)
+      if (sprite) return sprite
 
-      for (const featureName of featureNames) {
-        for (const condition of conditions) {
-          const key = condition ? `${featureName}:${condition}` : featureName
-          sprite = this.currentTileset.config.tiles.get(key)
+      // Try with common Angband monster prefixes as fallbacks
+      const prefixes = ['', 'Forest ', 'Stone ', 'Cave ', 'Hill ', 'Mountain ', 'Snow ', 'Scruffy little ']
+      const suffixes = ['', ' scavenger', ' chieftain']
+
+      for (const prefix of prefixes) {
+        for (const suffix of suffixes) {
+          const variant = `${prefix}${char}${suffix}`
+          // Try exact case
+          sprite = this.currentTileset.config.tiles.get(variant)
           if (sprite) return sprite
+
+          // Try lowercase
+          const lowercaseVariant = variant.toLowerCase()
+          sprite = this.currentTileset.config.tiles.get(lowercaseVariant)
+          if (sprite) return sprite
+        }
+      }
+    } else {
+      // Single character - try direct lookup first (for monster letters A-Z, etc.)
+      sprite = this.currentTileset.config.tiles.get(char)
+      if (sprite) return sprite
+
+      // Try mapping to Angband feature names
+      const featureNames = CHAR_TO_ANGBAND[char]
+      if (featureNames) {
+        // Try each feature name with different conditions
+        const conditions = ['torch', 'lit', 'los', '*', ''] // Common conditions in .prf files
+
+        for (const featureName of featureNames) {
+          for (const condition of conditions) {
+            const key = condition ? `${featureName}:${condition}` : featureName
+            sprite = this.currentTileset.config.tiles.get(key)
+            if (sprite) return sprite
+          }
         }
       }
     }
@@ -134,7 +161,7 @@ export class AssetLoaderService {
     // Debug: Log missing sprite (only once per character)
     if (!this.missingSprites.has(char)) {
       this.missingSprites.add(char)
-      console.warn(`[AssetLoader] Sprite not found for '${char}' (code: ${char.charCodeAt(0)})`)
+      console.warn(`[AssetLoader] Sprite not found for '${char}'`)
       // Log a few example keys to help debugging
       const examples = Array.from(this.currentTileset.config.tiles.keys()).slice(0, 20)
       console.log('[AssetLoader] Example sprite keys:', examples.join(', '))
