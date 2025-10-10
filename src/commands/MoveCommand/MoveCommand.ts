@@ -16,6 +16,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
+import { MonsterAIService } from '@services/MonsterAIService'
 import { AttackCommand } from '../AttackCommand'
 
 // ============================================================================
@@ -36,7 +37,8 @@ export class MoveCommand implements ICommand {
     private regenerationService: RegenerationService,
     private notificationService: NotificationService,
     private turnService: TurnService,
-    private goldService: GoldService
+    private goldService: GoldService,
+    private monsterAIService?: MonsterAIService // Optional for backward compatibility
   ) {}
 
   execute(state: GameState): GameState {
@@ -153,15 +155,28 @@ export class MoveCommand implements ICommand {
     const currentHistory = state.positionHistory || []
     const updatedPositionHistory = [...currentHistory, position].slice(-3)
 
-    // 1.2. Detect door slam pattern (returning to same doorway position)
-    const doorSlammed = this.detectDoorSlam(updatedPositionHistory, level)
-    if (doorSlammed) {
-      // TODO (Task 5.2): Wake monsters in connected rooms
-      console.log('[DOOR SLAM] Player returned to doorway - monsters should wake!')
-    }
-
+    // 1.2. Initialize message and level tracking
     let messages: (HungerMessage | LightMessage | RegenMessage)[] = []
     let updatedLevel = level
+
+    // 1.3. Detect door slam pattern (returning to same doorway position)
+    const doorAtPosition = level.doors.find(
+      (door) => door.position.x === position.x && door.position.y === position.y
+    )
+    const doorSlammed = this.detectDoorSlam(updatedPositionHistory, level)
+    if (doorSlammed && doorAtPosition && this.monsterAIService) {
+      // Wake monsters in connected rooms
+      const wokeMonsters = this.monsterAIService.wakeRoomMonsters(updatedLevel, doorAtPosition.connectsRooms)
+      updatedLevel = { ...updatedLevel, monsters: updatedLevel.monsters } // Ensure immutability
+
+      // Add wake message if any monsters woke
+      if (wokeMonsters.length > 0) {
+        messages.push({
+          text: 'Your loud entrance wakes the monsters!',
+          type: 'warning' as const,
+        })
+      }
+    }
 
     // 1.5. Check for gold pickup at new position (automatic, no turn cost)
     const goldAtPosition = level.gold.find(

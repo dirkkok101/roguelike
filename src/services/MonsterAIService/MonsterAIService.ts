@@ -1,4 +1,4 @@
-import { Monster, GameState, Position, MonsterBehavior, MonsterState } from '@game/core/core'
+import { Monster, GameState, Position, MonsterBehavior, MonsterState, Level, Room } from '@game/core/core'
 import { PathfindingService } from '@services/PathfindingService'
 import { IRandomService } from '@services/RandomService'
 import { FOVService } from '@services/FOVService'
@@ -121,6 +121,67 @@ export class MonsterAIService {
     }
 
     return monster
+  }
+
+  /**
+   * Wake all sleeping monsters in specified rooms (door slam mechanic)
+   *
+   * Authentic Rogue behavior: When player "slams" a door (leaves and immediately returns),
+   * all sleeping monsters in the connected rooms wake up and start hunting.
+   *
+   * @param level Current level
+   * @param roomIds Array of room IDs to wake monsters in (typically 2 from door.connectsRooms)
+   * @returns Array of monsters that were woken (for message generation)
+   */
+  wakeRoomMonsters(level: Level, roomIds: number[]): Monster[] {
+    const wokeMonsters: Monster[] = []
+    const roomsToWake = new Set(roomIds)
+
+    // Find all sleeping monsters in the specified rooms
+    const updatedMonsters = level.monsters.map((monster) => {
+      // Skip if already awake
+      if (!monster.isAsleep) return monster
+
+      // Check if monster is in any of the rooms
+      const monsterRoom = this.findMonsterRoom(monster, level.rooms)
+      if (monsterRoom && roomsToWake.has(monsterRoom.id)) {
+        // Wake monster
+        const wokeMonster = {
+          ...monster,
+          isAsleep: false,
+          state: MonsterState.HUNTING,
+        }
+        wokeMonsters.push(wokeMonster)
+        return wokeMonster
+      }
+
+      return monster
+    })
+
+    // Update level.monsters with woken monsters
+    level.monsters = updatedMonsters
+
+    return wokeMonsters
+  }
+
+  /**
+   * Find which room a monster is currently in
+   * @param monster Monster to check
+   * @param rooms Array of rooms in the level
+   * @returns Room the monster is in, or null if not in any room
+   */
+  private findMonsterRoom(monster: Monster, rooms: Room[]): Room | null {
+    for (const room of rooms) {
+      if (
+        monster.position.x >= room.x &&
+        monster.position.x < room.x + room.width &&
+        monster.position.y >= room.y &&
+        monster.position.y < room.y + room.height
+      ) {
+        return room
+      }
+    }
+    return null
   }
 
   /**

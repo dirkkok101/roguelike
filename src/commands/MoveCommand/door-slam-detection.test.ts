@@ -16,6 +16,9 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { RingService } from '@services/RingService'
 import { LevelService } from '@services/LevelService'
 import { IdentificationService } from '@services/IdentificationService'
+import { MonsterAIService } from '@services/MonsterAIService'
+import { PathfindingService } from '@services/PathfindingService'
+import { FOVService } from '@services/FOVService'
 import {
   GameState,
   Level,
@@ -25,6 +28,9 @@ import {
   Position,
   ItemType,
   Torch,
+  Monster,
+  MonsterBehavior,
+  MonsterState,
 } from '@game/core/core'
 
 describe('MoveCommand - Door Slam Detection', () => {
@@ -41,6 +47,7 @@ describe('MoveCommand - Door Slam Detection', () => {
   let notificationService: NotificationService
   let turnService: TurnService
   let goldService: GoldService
+  let monsterAIService: MonsterAIService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
@@ -48,6 +55,7 @@ describe('MoveCommand - Door Slam Detection', () => {
     const ringService = new RingService(mockRandom)
     const levelService = new LevelService()
     const identificationService = new IdentificationService(mockRandom)
+    const pathfindingService = new PathfindingService(levelService)
 
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
@@ -61,6 +69,7 @@ describe('MoveCommand - Door Slam Detection', () => {
     notificationService = new NotificationService(identificationService)
     turnService = new TurnService(statusEffectService, levelService, ringService, undefined, messageService)
     goldService = new GoldService(mockRandom)
+    monsterAIService = new MonsterAIService(pathfindingService, mockRandom, fovService, levelService)
   })
 
   function createLevel(doors: Door[]): Level {
@@ -170,30 +179,63 @@ describe('MoveCommand - Door Slam Detection', () => {
     }
   }
 
+  function createSleepingMonster(position: Position, roomId: number): Monster {
+    return {
+      id: `monster-room-${roomId}`,
+      letter: 'O',
+      name: 'Orc',
+      position,
+      hp: 10,
+      maxHp: 10,
+      ac: 6,
+      damage: '1d8',
+      xpValue: 5,
+      level: 2,
+      speed: 10,
+      aiProfile: {
+        behavior: MonsterBehavior.SIMPLE,
+        intelligence: 5,
+        aggroRange: 5,
+        fleeThreshold: 0.25,
+        chaseChance: 1.0,
+        special: [],
+      },
+      isAsleep: true,
+      isAwake: false,
+      state: MonsterState.SLEEPING,
+      visibleCells: new Set(),
+      currentPath: null,
+      hasStolen: false,
+      energy: 0,
+      isInvisible: false,
+      statusEffects: [],
+    }
+  }
+
   describe('door slam pattern detection', () => {
-    test('detects door slam: player returns to doorway after 2 moves', () => {
+    test('detects door slam: wakes sleeping monsters in connected rooms', () => {
       const doorPos: Position = { x: 5, y: 5 }
       const door: Door = {
         position: doorPos,
         state: DoorState.OPEN,
         discovered: true,
         orientation: 'horizontal',
-        connectsRooms: [1, 2],
+        connectsRooms: [0, 1], // Connects room 0 and room 1
       }
+
+      // Create monster in room 0 (id=1 based on room order)
+      const monster = createSleepingMonster({ x: 4, y: 4 }, 1)
       const level = createLevel([door])
+      level.monsters = [monster]
 
       // Position history: door → left
-      // Player is currently at { x: 4, y: 5 } (left of door)
-      // Moving 'right' will take them back to door at { x: 5, y: 5 }
       const positionHistory: Position[] = [
         { x: 5, y: 5 }, // N-2: at door
-        { x: 4, y: 5 }, // N-1: moved left (current position)
+        { x: 4, y: 5 }, // N-1: moved left
       ]
 
-      // Player is currently left of door
       const currentPos: Position = { x: 4, y: 5 }
       const state = createGameState(currentPos, positionHistory, level)
-      const consoleSpy = jest.spyOn(console, 'log')
 
       // Move right back to door (slam!)
       const moveCommand = new MoveCommand(
@@ -209,17 +251,26 @@ describe('MoveCommand - Door Slam Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        monsterAIService // Pass monster AI service
       )
 
-      moveCommand.execute(state)
+      const result = moveCommand.execute(state)
 
-      // Door slam detected
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[DOOR SLAM] Player returned to doorway - monsters should wake!'
+      // Check that wake message was generated
+      const wakeMessage = result.messages.find((msg) =>
+        msg.text.includes('Your loud entrance wakes the monsters!')
       )
+      expect(wakeMessage).toBeDefined()
+      expect(wakeMessage?.type).toBe('warning')
 
-      consoleSpy.mockRestore()
+      // Check that monster in room 1 was woken
+      const resultLevel = result.levels.get(1)
+      expect(resultLevel).toBeDefined()
+      const wokeMonster = resultLevel!.monsters.find((m) => m.id === 'monster-room-1')
+      expect(wokeMonster).toBeDefined()
+      expect(wokeMonster!.isAsleep).toBe(false)
+      expect(wokeMonster!.state).toBe(MonsterState.HUNTING)
     })
 
     test('no slam: player returns to non-doorway position', () => {

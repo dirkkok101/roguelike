@@ -304,20 +304,23 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 
 #### Task 5.2: Wake Monsters on Door Slam
 
-**Context**: Door slam wakes all monsters in adjacent room
+**Context**: Door slam wakes all monsters in connected rooms
 
 **Files to modify**:
 - `src/services/MonsterAIService/MonsterAIService.ts`
+- `src/commands/MoveCommand/MoveCommand.ts`
 
 ##### Subtasks:
-- [ ] Implement `wakeRoomMonsters(level: Level, roomId: number): Monster[]`
-- [ ] Find all monsters in specified room
-- [ ] Set state = HUNTING for all monsters in room
-- [ ] Return list of woken monsters
-- [ ] Generate notification: "Your loud entrance wakes the monsters!"
-- [ ] Call from MoveCommand when doorSlammed flag set
-- [ ] Write tests for door slam wake mechanic
-- [ ] Git commit: "feat: door slam wakes monsters in room (Phase 5.2)"
+- [x] Implement `wakeRoomMonsters(level: Level, roomIds: number[]): Monster[]`
+- [x] Implement `findMonsterRoom()` helper to locate monster's room
+- [x] Find all sleeping monsters in specified rooms
+- [x] Set state = HUNTING for all sleeping monsters in rooms
+- [x] Return list of woken monsters for message generation
+- [x] Inject MonsterAIService into MoveCommand (optional for backward compat)
+- [x] Call wakeRoomMonsters() from MoveCommand when door slam detected
+- [x] Generate notification: "Your loud entrance wakes the monsters!"
+- [x] Update door slam test to verify monster waking (6 tests, all passing)
+- [x] Git commit: "feat: door slam wakes monsters in connected rooms (Phase 5.2)"
 
 ---
 
