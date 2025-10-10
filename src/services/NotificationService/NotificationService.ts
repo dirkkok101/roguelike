@@ -71,7 +71,6 @@ export class NotificationService {
         const displayName = this.identificationService.getDisplayName(item, state)
         const notification = `You see ${this.getArticle(displayName)} ${displayName} here.`
         notifications.push(notification)
-        console.log(`[NOTIFICATION] ${notification}`)
         this.context.recentNotifications.add(key)
         this.context.lastItemSeen = item.id
       }
@@ -80,7 +79,6 @@ export class NotificationService {
       if (!this.context.recentNotifications.has(key)) {
         const notification = `You see several items here. Press [,] to pick up.`
         notifications.push(notification)
-        console.log(`[NOTIFICATION] ${notification}`)
         this.context.recentNotifications.add(key)
       }
     }
@@ -95,7 +93,6 @@ export class NotificationService {
       if (!this.context.recentNotifications.has(key)) {
         const notification = `You see ${goldHere.amount} gold piece${goldHere.amount !== 1 ? 's' : ''} here.`
         notifications.push(notification)
-        console.log(`[NOTIFICATION] ${notification}`)
         this.context.recentNotifications.add(key)
         this.context.lastGoldSeen = goldHere.amount
       }

@@ -273,6 +273,61 @@ describe('MoveCommand - Door Slam Detection', () => {
       expect(wokeMonster!.state).toBe(MonsterState.HUNTING)
     })
 
+    test('door slam only wakes monsters in connected rooms, not all rooms', () => {
+      const doorPos: Position = { x: 7, y: 7 }
+      const door: Door = {
+        position: doorPos,
+        state: DoorState.OPEN,
+        discovered: true,
+        orientation: 'horizontal',
+        connectsRooms: [0, 1], // Only wake rooms 0 and 1
+      }
+
+      // Create monsters in different rooms
+      const monsterInRoom1 = createSleepingMonster({ x: 3, y: 3 }, 1) // Room 0 (id=1)
+      const monsterInRoom2 = createSleepingMonster({ x: 11, y: 11 }, 2) // Room 1 (id=2) - should NOT wake
+
+      const level = createLevel([door])
+      level.monsters = [monsterInRoom1, monsterInRoom2]
+
+      const positionHistory: Position[] = [
+        { x: 7, y: 7 }, // N-2: at door
+        { x: 6, y: 7 }, // N-1: moved left
+      ]
+
+      const currentPos: Position = { x: 6, y: 7 }
+      const state = createGameState(currentPos, positionHistory, level)
+
+      const moveCommand = new MoveCommand(
+        'right',
+        movementService,
+        lightingService,
+        fovService,
+        messageService,
+        combatService,
+        levelingService,
+        doorService,
+        hungerService,
+        regenerationService,
+        notificationService,
+        turnService,
+        goldService,
+        monsterAIService
+      )
+
+      const result = moveCommand.execute(state)
+      const resultLevel = result.levels.get(1)
+      expect(resultLevel).toBeDefined()
+
+      // Monster in room 1 (connected) should be awake
+      const monster1 = resultLevel!.monsters.find((m) => m.id === 'monster-room-1')
+      expect(monster1!.isAsleep).toBe(false)
+
+      // Monster in room 2 (NOT connected) should still be asleep
+      const monster2 = resultLevel!.monsters.find((m) => m.id === 'monster-room-2')
+      expect(monster2!.isAsleep).toBe(true)
+    })
+
     test('no slam: player returns to non-doorway position', () => {
       const level = createLevel([]) // No doors
 

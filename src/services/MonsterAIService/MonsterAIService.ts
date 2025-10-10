@@ -131,9 +131,12 @@ export class MonsterAIService {
    *
    * @param level Current level
    * @param roomIds Array of room IDs to wake monsters in (typically 2 from door.connectsRooms)
-   * @returns Array of monsters that were woken (for message generation)
+   * @returns Object with updated monsters array and list of woken monsters
    */
-  wakeRoomMonsters(level: Level, roomIds: number[]): Monster[] {
+  wakeRoomMonsters(level: Level, roomIds: number[]): {
+    updatedMonsters: Monster[]
+    wokeMonsters: Monster[]
+  } {
     const wokeMonsters: Monster[] = []
     const roomsToWake = new Set(roomIds)
 
@@ -158,10 +161,7 @@ export class MonsterAIService {
       return monster
     })
 
-    // Update level.monsters with woken monsters
-    level.monsters = updatedMonsters
-
-    return wokeMonsters
+    return { updatedMonsters, wokeMonsters }
   }
 
   /**

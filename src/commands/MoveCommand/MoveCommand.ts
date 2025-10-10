@@ -166,11 +166,11 @@ export class MoveCommand implements ICommand {
     const doorSlammed = this.detectDoorSlam(updatedPositionHistory, level)
     if (doorSlammed && doorAtPosition && this.monsterAIService) {
       // Wake monsters in connected rooms
-      const wokeMonsters = this.monsterAIService.wakeRoomMonsters(updatedLevel, doorAtPosition.connectsRooms)
-      updatedLevel = { ...updatedLevel, monsters: updatedLevel.monsters } // Ensure immutability
+      const wakeResult = this.monsterAIService.wakeRoomMonsters(updatedLevel, doorAtPosition.connectsRooms)
+      updatedLevel = { ...updatedLevel, monsters: wakeResult.updatedMonsters }
 
       // Add wake message if any monsters woke
-      if (wokeMonsters.length > 0) {
+      if (wakeResult.wokeMonsters.length > 0) {
         messages.push({
           text: 'Your loud entrance wakes the monsters!',
           type: 'warning' as const,
