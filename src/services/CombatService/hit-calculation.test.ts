@@ -21,6 +21,7 @@ describe('CombatService - Hit Calculation', () => {
       maxHp: 20,
       strength: 16,
       maxStrength: 16,
+      strengthPercentile: undefined,
       ac: 5,
       level: 1,
       xp: 0,
@@ -34,6 +35,9 @@ describe('CombatService - Hit Calculation', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
+      isRunning: false,
     }
   }
 
@@ -71,9 +75,12 @@ describe('CombatService - Hit Calculation', () => {
       const player = createTestPlayer()
       const monster = createTestMonster()
 
-      // Roll 10, level 1 + strength 16 = 17, AC 6
-      // 10 + (17 - 6) = 10 + 11 = 21 >= 10 = HIT
-      mockRandom.setValues([10, 3]) // roll for hit, roll for damage
+      // NEW FORMULA: Str 16 gives +0 to-hit (not +16!)
+      // Roll + (level + str_to_hit_bonus - AC) >= 10
+      // Roll + (1 + 0 - 6) >= 10
+      // Roll + (-5) >= 10
+      // Roll >= 15
+      mockRandom.setValues([15, 3]) // roll for hit, roll for damage
 
       const result = service.playerAttack(player, monster)
 

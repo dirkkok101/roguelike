@@ -134,6 +134,7 @@ export interface Player {
   maxHp: number
   strength: number
   maxStrength: number
+  strengthPercentile?: number // Exceptional strength percentile (1-100, only when strength=18)
   ac: number
   level: number
   xp: number

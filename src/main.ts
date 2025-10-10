@@ -171,6 +171,7 @@ async function initializeGame() {
   // Create new random service with game-specific seed
   const gameRandom = new SeededRandom(gameSeed)
   const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
+  const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
 
   // Generate procedural dungeon using DungeonService
   const level = gameDungeonService.generateLevel(1, dungeonConfig)
@@ -193,20 +194,35 @@ async function initializeGame() {
     isPermanent: false,
   }
 
+  // Create starting leather armor (matching original Rogue 1980)
+  const leatherArmor = gameItemSpawnService.createStartingLeatherArmor(startPos)
+
+  // Roll for exceptional strength (1% chance, matching original Rogue 1980)
+  const exceptionalRoll = gameRandom.nextInt(1, 100)
+  let startingStrength = 16
+  let strengthPercentile: number | undefined = undefined
+
+  if (exceptionalRoll === 1) {
+    // 1% chance for exceptional strength (18/XX)
+    startingStrength = 18
+    strengthPercentile = gameRandom.nextInt(1, 100)
+  }
+
   const player = {
     position: startPos,
     hp: 12,
     maxHp: 12,
-    strength: 16,
-    maxStrength: 16,
-    ac: 4,
+    strength: startingStrength,
+    maxStrength: startingStrength,
+    strengthPercentile,
+    ac: 8, // With starting leather armor equipped (AC 8)
     level: 1,
     xp: 0,
     gold: 0,
     hunger: 1300,
     equipment: {
       weapon: null,
-      armor: null,
+      armor: leatherArmor, // Start with leather armor equipped
       leftRing: null,
       rightRing: null,
       lightSource: torch,
@@ -233,18 +249,30 @@ async function initializeGame() {
   // Generate item names for this game
   const itemNameMap = identificationService.generateItemNames()
 
+  // Build initial messages
+  const initialMessages: Array<{ text: string; type: 'info' | 'combat' | 'warning' | 'critical'; turn: number }> = [
+    {
+      text: 'Welcome to the dungeon. You are equipped with leather armor and a torch. Find the Amulet of Yendor!',
+      type: 'info',
+      turn: 0,
+    },
+  ]
+
+  // Add exceptional strength message if rolled
+  if (strengthPercentile !== undefined) {
+    initialMessages.push({
+      text: `You feel unusually strong! (Str 18/${strengthPercentile.toString().padStart(2, '0')})`,
+      type: 'info',
+      turn: 0,
+    })
+  }
+
   return {
     player,
     currentLevel: 1,
     levels: new Map([[1, level]]),
     visibleCells,
-    messages: [
-      {
-        text: 'Welcome to the dungeon. Find the Amulet of Yendor!',
-        type: 'info',
-        turn: 0,
-      },
-    ],
+    messages: initialMessages,
     turnCount: 0,
     seed: gameSeed,
     gameId: 'game-' + Date.now(),
@@ -295,6 +323,7 @@ async function initializeGame() {
     // Create new game with specified seed
     const gameRandom = new SeededRandom(seed)
     const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
+    const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
 
     const level = gameDungeonService.generateLevel(1, dungeonConfig)
     const startRoom = level.rooms[0]
@@ -315,20 +344,35 @@ async function initializeGame() {
       isPermanent: false,
     }
 
+    // Create starting leather armor (matching original Rogue 1980)
+    const leatherArmor = gameItemSpawnService.createStartingLeatherArmor(startPos)
+
+    // Roll for exceptional strength (1% chance, matching original Rogue 1980)
+    const exceptionalRoll = gameRandom.nextInt(1, 100)
+    let startingStrength = 16
+    let strengthPercentile: number | undefined = undefined
+
+    if (exceptionalRoll === 1) {
+      // 1% chance for exceptional strength (18/XX)
+      startingStrength = 18
+      strengthPercentile = gameRandom.nextInt(1, 100)
+    }
+
     const player = {
       position: startPos,
       hp: 12,
       maxHp: 12,
-      strength: 16,
-      maxStrength: 16,
-      ac: 4,
+      strength: startingStrength,
+      maxStrength: startingStrength,
+      strengthPercentile,
+      ac: 8, // With starting leather armor equipped (AC 8)
       level: 1,
       xp: 0,
       gold: 0,
       hunger: 1300,
       equipment: {
         weapon: null,
-        armor: null,
+        armor: leatherArmor, // Start with leather armor equipped
         leftRing: null,
         rightRing: null,
         lightSource: torch,
@@ -352,18 +396,30 @@ async function initializeGame() {
 
     const itemNameMap = identificationService.generateItemNames()
 
+    // Build initial messages
+    const initialMessages: Array<{ text: string; type: 'info' | 'combat' | 'warning' | 'critical'; turn: number }> = [
+      {
+        text: 'Welcome to the dungeon. You are equipped with leather armor and a torch. Find the Amulet of Yendor!',
+        type: 'info',
+        turn: 0,
+      },
+    ]
+
+    // Add exceptional strength message if rolled
+    if (strengthPercentile !== undefined) {
+      initialMessages.push({
+        text: `You feel unusually strong! (Str 18/${strengthPercentile.toString().padStart(2, '0')})`,
+        type: 'info',
+        turn: 0,
+      })
+    }
+
     const replayState: GameState = {
       player,
       currentLevel: 1,
       levels: new Map([[1, level]]),
       visibleCells,
-      messages: [
-        {
-          text: 'Welcome to the dungeon. Find the Amulet of Yendor!',
-          type: 'info',
-          turn: 0,
-        },
-      ],
+      messages: initialMessages,
       turnCount: 0,
       seed,
       gameId: 'game-' + Date.now(),

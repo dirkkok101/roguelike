@@ -366,7 +366,21 @@ export class GameRenderer {
     // Ring bonuses
     const strBonus = this.ringService.getStrengthBonus(player)
     const acBonus = this.ringService.getACBonus(player)
-    const strDisplay = strBonus !== 0 ? `${player.strength}(${strBonus > 0 ? '+' : ''}${strBonus})/${player.maxStrength}` : `${player.strength}/${player.maxStrength}`
+
+    // Format strength display with exceptional strength (18/XX) support
+    const formatStrength = (str: number, percentile: number | undefined): string => {
+      if (str === 18 && percentile !== undefined) {
+        return `18/${percentile.toString().padStart(2, '0')}`
+      }
+      return str.toString()
+    }
+
+    const currentStr = formatStrength(player.strength, player.strengthPercentile)
+    const maxStr = formatStrength(player.maxStrength, player.strengthPercentile)
+    const strDisplay = strBonus !== 0
+      ? `${currentStr}(${strBonus > 0 ? '+' : ''}${strBonus})/${maxStr}`
+      : `${currentStr}/${maxStr}`
+
     const acDisplay = acBonus !== 0 ? `${player.ac}(${acBonus > 0 ? '+' : ''}${acBonus})` : `${player.ac}`
 
     // Hunger bar

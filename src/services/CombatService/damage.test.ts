@@ -21,6 +21,7 @@ describe('CombatService - Damage Calculation', () => {
       maxHp: 20,
       strength: 16,
       maxStrength: 16,
+      strengthPercentile: undefined,
       ac: 5,
       level: 1,
       xp: 0,
@@ -34,6 +35,9 @@ describe('CombatService - Damage Calculation', () => {
         lightSource: null,
       },
       inventory: [],
+      statusEffects: [],
+      energy: 100,
+      isRunning: false,
     }
   }
 
@@ -76,7 +80,7 @@ describe('CombatService - Damage Calculation', () => {
       const result = service.playerAttack(player, monster)
 
       expect(result.hit).toBe(true)
-      expect(result.damage).toBe(3)
+      expect(result.damage).toBe(4) // 3 from 1d4 + 1 Str bonus (16 gives +1 damage)
     })
 
     test('weapon damage uses weapon dice', () => {
@@ -96,7 +100,7 @@ describe('CombatService - Damage Calculation', () => {
 
       const result = service.playerAttack(player, monster)
 
-      expect(result.damage).toBe(8)
+      expect(result.damage).toBe(9) // 8 from 1d12 + 1 Str bonus (16 gives +1 damage)
     })
 
     test('weapon bonus adds to damage', () => {
@@ -116,7 +120,7 @@ describe('CombatService - Damage Calculation', () => {
 
       const result = service.playerAttack(player, monster)
 
-      expect(result.damage).toBe(7) // 5 + 2 bonus
+      expect(result.damage).toBe(8) // 5 roll + 2 weapon bonus + 1 Str bonus (16 gives +1 damage)
     })
 
     test('different weapons have different damage', () => {
