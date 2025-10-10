@@ -111,9 +111,9 @@ success = to_hit >= defense_target
 
 ##### Subtasks:
 - [x] Add `strengthPercentile?: number` field to `Player` interface (0-100, only used when strength is 18)
-- [ ] Update player initialization in `main.ts` to set `strengthPercentile: undefined` (will add random chance later)
-- [ ] Ensure immutability preserved in all player updates
-- [ ] Git commit: "feat: add exceptional strength percentile to Player type (Phase 1.1)"
+- [x] Update player initialization in `main.ts` to set `strengthPercentile: undefined` (will add random chance later)
+- [x] Ensure immutability preserved in all player updates
+- [x] Git commit: "feat: add exceptional strength percentile to Player type (Phase 1.1)"
 
 ---
 
@@ -126,17 +126,17 @@ success = to_hit >= defense_target
 - `src/services/CombatService/strength-bonuses.test.ts`
 
 ##### Subtasks:
-- [ ] Add private method `getStrengthToHitBonus(strength: number, percentile?: number): number`
+- [x] Add private method `getStrengthToHitBonus(strength: number, percentile?: number): number`
   - Returns +0 for Str 7-16
   - Returns +1 for Str 17-18
   - Returns +2 for Str 18/51-100
   - Returns +3 for Str 18/100
   - Returns -1 for Str ≤6
-- [ ] Add private method `getStrengthDamageBonus(strength: number, percentile?: number): number`
+- [x] Add private method `getStrengthDamageBonus(strength: number, percentile?: number): number`
   - Implement full damage bonus table (see Research Summary above)
-- [ ] Write comprehensive tests for all strength ranges
-- [ ] Test edge cases: Str 6, 7, 15, 16, 17, 18, 18/01, 18/50, 18/51, 18/100
-- [ ] Git commit: "feat: implement strength to-hit and damage bonus calculations (Phase 1.2)"
+- [x] Write comprehensive tests for all strength ranges
+- [x] Test edge cases: Str 6, 7, 15, 16, 17, 18, 18/01, 18/50, 18/51, 18/100
+- [x] Git commit: "feat: implement strength to-hit and damage bonus calculations (Phase 1.2)"
 
 ---
 
@@ -153,7 +153,7 @@ success = to_hit >= defense_target
 - `src/services/CombatService/hit-calculation.test.ts`
 
 ##### Subtasks:
-- [ ] Update `playerAttack()` method:
+- [x] Update `playerAttack()` method:
   ```typescript
   // OLD:
   const hit = this.calculateHit(
@@ -171,11 +171,11 @@ success = to_hit >= defense_target
     monster.ac
   )
   ```
-- [ ] Update all hit calculation tests to reflect new bonuses
-- [ ] Add test: Str 16 player should have same to-hit as Str 10 player (both +0)
-- [ ] Add test: Str 17 player should have +1 to-hit bonus
-- [ ] Add test: Str 18/100 player should have +3 to-hit bonus
-- [ ] Git commit: "fix: correct player attack to-hit calculation to use strength bonus (Phase 2.1)"
+- [x] Update all hit calculation tests to reflect new bonuses
+- [x] Add test: Str 16 player should have same to-hit as Str 10 player (both +0)
+- [x] Add test: Str 17 player should have +1 to-hit bonus
+- [x] Add test: Str 18/100 player should have +3 to-hit bonus
+- [x] Git commit: "fix: correct player attack to-hit calculation to use strength bonus (Phase 2.1)"
 
 ---
 
@@ -188,8 +188,8 @@ success = to_hit >= defense_target
 - `src/services/CombatService/damage.test.ts`
 
 ##### Subtasks:
-- [ ] Update `calculatePlayerDamage()` method to accept player parameter
-- [ ] Add strength damage bonus to final damage calculation:
+- [x] Update `calculatePlayerDamage()` method to accept player parameter
+- [x] Add strength damage bonus to final damage calculation:
   ```typescript
   private calculatePlayerDamage(player: Player, weapon: Weapon | null): number {
     const strengthBonus = this.ringService.getStrengthBonus(player)
@@ -210,12 +210,12 @@ success = to_hit >= defense_target
     return baseDamage + strDamageBonus
   }
   ```
-- [ ] Update `playerAttack()` to pass player to `calculatePlayerDamage()`
-- [ ] Add test: Str 16 player deals +1 damage
-- [ ] Add test: Str 18 player deals +2 damage
-- [ ] Add test: Str 18/100 player deals +6 damage
-- [ ] Add test: Str 6 player deals -1 damage (minimum 0)
-- [ ] Git commit: "feat: add strength damage bonus to player attacks (Phase 2.2)"
+- [x] Update `playerAttack()` to pass player to `calculatePlayerDamage()`
+- [x] Add test: Str 16 player deals +1 damage
+- [x] Add test: Str 18 player deals +2 damage
+- [x] Add test: Str 18/100 player deals +6 damage
+- [x] Add test: Str 6 player deals -1 damage (minimum 0)
+- [x] Git commit: "feat: add strength damage bonus to player attacks (Phase 2.2)"
 
 ---
 
