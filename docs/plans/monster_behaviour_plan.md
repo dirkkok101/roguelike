@@ -254,11 +254,11 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 - `src/commands/MoveCommand/MoveCommand.ts`
 
 ##### Subtasks:
-- [ ] Add `isRunning: boolean` to Player interface
-- [ ] MoveCommand sets `isRunning = true` if shift held or repeat-move active
-- [ ] Reset `isRunning = false` on stop/combat/trap
-- [ ] Handle edge cases (combat interrupts running)
-- [ ] Git commit: "feat: add running state tracking to Player (Phase 4.1)"
+- [x] Add `isRunning: boolean` to Player interface
+- [ ] MoveCommand sets `isRunning = true` if shift held or repeat-move active (DEFERRED: requires Input refactoring)
+- [ ] Reset `isRunning = false` on stop/combat/trap (DEFERRED: requires Input refactoring)
+- [ ] Handle edge cases (combat interrupts running) (DEFERRED: requires Input refactoring)
+- [x] Git commit: "feat: add isRunning field to Player interface (Phase 4.1 partial)"
 
 ---
 

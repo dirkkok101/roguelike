@@ -143,6 +143,7 @@ export interface Player {
   inventory: Item[]
   statusEffects: StatusEffect[]
   energy: number // Energy for turn system (0-199 typical range)
+  isRunning: boolean // Track if player is running (increases monster detection range)
 }
 
 export interface Monster {
