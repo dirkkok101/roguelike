@@ -270,12 +270,12 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 - `src/services/MonsterAIService/MonsterAIService.ts`
 
 ##### Subtasks:
-- [ ] In `checkWakeUp()`, check if player.isRunning
-- [ ] If running: effective aggro range = aggroRange * 1.5 (50% farther detection)
-- [ ] Alternative: 100% wake chance if player running within aggro range (no roll)
-- [ ] Implement whichever matches Rogue source behavior
-- [ ] Write tests for running detection
-- [ ] Git commit: "feat: running increases monster detection range (Phase 4.2)"
+- [x] In `checkWakeUp()`, check if player.isRunning
+- [x] If running: effective aggro range = aggroRange * 1.5 (50% farther detection)
+- [x] Alternative: 100% wake chance if player running within aggro range (no roll)
+- [x] Implement whichever matches Rogue source behavior
+- [x] Write tests for running detection
+- [x] Git commit: "feat: running increases monster detection range (Phase 4.2)"
 
 ---
 

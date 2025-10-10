@@ -93,6 +93,9 @@ export class MonsterAIService {
 
   /**
    * Check if monster should wake up
+   *
+   * Running Detection: If player is running, effective aggro range is increased by 50%
+   * (authentic Rogue mechanic - running makes more noise, easier to detect)
    */
   checkWakeUp(monster: Monster, state: GameState): Monster {
     // Already awake
@@ -103,8 +106,13 @@ export class MonsterAIService {
     const playerPos = state.player.position
     const distToPlayer = this.distance(monster.position, playerPos)
 
-    // Wake up if player within aggro range
-    if (distToPlayer <= monster.aiProfile.aggroRange) {
+    // Calculate effective aggro range (increased if player is running)
+    const baseAggroRange = monster.aiProfile.aggroRange
+    const runningMultiplier = state.player.isRunning ? 1.5 : 1.0
+    const effectiveAggroRange = Math.round(baseAggroRange * runningMultiplier)
+
+    // Wake up if player within effective aggro range
+    if (distToPlayer <= effectiveAggroRange) {
       return {
         ...monster,
         isAsleep: false,
@@ -117,6 +125,8 @@ export class MonsterAIService {
 
   /**
    * Update monster state based on conditions (FSM)
+   *
+   * Running Detection: If player is running, effective aggro range is increased by 50%
    */
   updateMonsterState(monster: Monster, state: GameState): Monster {
     const level = state.levels.get(state.currentLevel)
@@ -125,8 +135,13 @@ export class MonsterAIService {
     const playerPos = state.player.position
     const distToPlayer = this.distance(monster.position, playerPos)
 
-    // Check if player is in aggro range
-    const inAggroRange = distToPlayer <= monster.aiProfile.aggroRange
+    // Calculate effective aggro range (increased if player is running)
+    const baseAggroRange = monster.aiProfile.aggroRange
+    const runningMultiplier = state.player.isRunning ? 1.5 : 1.0
+    const effectiveAggroRange = Math.round(baseAggroRange * runningMultiplier)
+
+    // Check if player is in effective aggro range
+    const inAggroRange = distToPlayer <= effectiveAggroRange
 
     // Calculate HP percentage for COWARD check
     const hpPercent = monster.hp / monster.maxHp
