@@ -60,6 +60,7 @@ describe('AttackCommand', () => {
       id: 'test-monster',
       letter: 'T',
       name: 'Test Monster',
+      spriteName: 'Test Monster',
       position: { x: 6, y: 5 },
       hp,
       maxHp: 10,

@@ -19,6 +19,7 @@ describe('MonsterSpawnService - Monster Creation', () => {
     return {
       letter: 'K',
       name: 'Kobold',
+      spriteName: 'Kobold',
       hp: '1d8',
       ac: 7,
       damage: '1d4',

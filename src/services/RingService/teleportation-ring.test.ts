@@ -81,6 +81,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },
@@ -114,6 +115,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },
@@ -147,6 +149,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },
@@ -189,6 +192,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },
@@ -216,6 +220,7 @@ describe('RingService - TELEPORTATION Ring', () => {
             id: 'monster-1',
             letter: 'O',
             name: 'Orc',
+      spriteName: 'Orc',
             position: { x: 1, y: 1 },
             hp: 10,
             maxHp: 10,
@@ -260,6 +265,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },
@@ -293,6 +299,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },
@@ -370,6 +377,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },
@@ -414,6 +422,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },
@@ -437,6 +446,7 @@ describe('RingService - TELEPORTATION Ring', () => {
       const teleportRing: Ring = {
         id: 'ring-1',
         name: 'Ring of Teleportation (cursed)',
+      spriteName: 'Ring of Teleportation (cursed)',
         type: ItemType.RING,
         identified: true,
         position: { x: 0, y: 0 },

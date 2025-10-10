@@ -45,6 +45,7 @@ describe('CanvasGameRenderer', () => {
     const mockTileset: Tileset = {
       config: {
         name: 'Test Tileset',
+      spriteName: 'Test Tileset',
         tileWidth: 32,
         tileHeight: 32,
         imageUrl: '/test/32x32.png',
@@ -324,6 +325,7 @@ describe('CanvasGameRenderer', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 5, y: 5 },
         hp: 10,
@@ -364,6 +366,7 @@ describe('CanvasGameRenderer', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 5, y: 5 },
         hp: 10,
@@ -408,6 +411,7 @@ describe('CanvasGameRenderer', () => {
       level.items.push({
         id: 'item-1',
         name: 'Potion of Healing',
+      spriteName: 'Potion of Healing',
         type: 'POTION',
         identified: false,
         position: { x: 3, y: 3 },
@@ -437,6 +441,7 @@ describe('CanvasGameRenderer', () => {
       level.items.push({
         id: 'item-1',
         name: 'Potion of Healing',
+      spriteName: 'Potion of Healing',
         type: 'POTION',
         identified: false,
         position: { x: 3, y: 3 },
@@ -608,6 +613,7 @@ describe('CanvasGameRenderer', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 5, y: 5 },
         hp: 10,

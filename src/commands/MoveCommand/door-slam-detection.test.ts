@@ -118,6 +118,7 @@ describe('MoveCommand - Door Slam Detection', () => {
     const torch: Torch = {
       id: 'test-torch',
       name: 'Torch',
+      spriteName: 'Torch',
       type: ItemType.TORCH,
       identified: true,
       position: playerPosition,
@@ -184,6 +185,7 @@ describe('MoveCommand - Door Slam Detection', () => {
       id: `monster-room-${roomId}`,
       letter: 'O',
       name: 'Orc',
+      spriteName: 'Orc',
       position,
       hp: 10,
       maxHp: 10,

@@ -212,6 +212,7 @@ describe('Integration: Service Initialization', () => {
         id: 'test-monster',
         letter: 'T',
         name: 'Test Monster',
+      spriteName: 'Test Monster',
         position: { x: 5, y: 5 },
         hp: 10,
         maxHp: 10,

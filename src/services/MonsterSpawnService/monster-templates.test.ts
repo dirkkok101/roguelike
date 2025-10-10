@@ -7,6 +7,7 @@ const mockMonsterData = [
   {
     letter: 'A',
     name: 'Aquator',
+      spriteName: 'Aquator',
     hp: '5d8',
     ac: 2,
     damage: '0d0',
@@ -20,6 +21,7 @@ const mockMonsterData = [
   {
     letter: 'B',
     name: 'Bat',
+      spriteName: 'Bat',
     hp: '1d8',
     ac: 3,
     damage: '1d2',
@@ -33,6 +35,7 @@ const mockMonsterData = [
   {
     letter: 'C',
     name: 'Centaur',
+      spriteName: 'Centaur',
     hp: '4d8',
     ac: 4,
     damage: '1d2+1d5+1d5',
@@ -46,6 +49,7 @@ const mockMonsterData = [
   {
     letter: 'D',
     name: 'Dragon',
+      spriteName: 'Dragon',
     hp: '10d8',
     ac: -1,
     damage: '1d8+3d10',
@@ -59,6 +63,7 @@ const mockMonsterData = [
   {
     letter: 'E',
     name: 'Emu',
+      spriteName: 'Emu',
     hp: '1d8',
     ac: 7,
     damage: '1d2',
@@ -72,6 +77,7 @@ const mockMonsterData = [
   {
     letter: 'F',
     name: 'Venus Flytrap',
+      spriteName: 'Venus Flytrap',
     hp: '8d8',
     ac: 3,
     damage: '1d6',
@@ -85,6 +91,7 @@ const mockMonsterData = [
   {
     letter: 'G',
     name: 'Griffin',
+      spriteName: 'Griffin',
     hp: '13d8',
     ac: 2,
     damage: '4d3+3d5',
@@ -98,6 +105,7 @@ const mockMonsterData = [
   {
     letter: 'H',
     name: 'Hobgoblin',
+      spriteName: 'Hobgoblin',
     hp: '1d8',
     ac: 5,
     damage: '1d8',
@@ -111,6 +119,7 @@ const mockMonsterData = [
   {
     letter: 'I',
     name: 'Ice Monster',
+      spriteName: 'Ice Monster',
     hp: '1d8',
     ac: 9,
     damage: '0d0',
@@ -124,6 +133,7 @@ const mockMonsterData = [
   {
     letter: 'J',
     name: 'Jabberwock',
+      spriteName: 'Jabberwock',
     hp: '15d8',
     ac: 6,
     damage: '2d12+2d4',
@@ -137,6 +147,7 @@ const mockMonsterData = [
   {
     letter: 'K',
     name: 'Kestrel',
+      spriteName: 'Kestrel',
     hp: '1d8',
     ac: 7,
     damage: '1d4',
@@ -150,6 +161,7 @@ const mockMonsterData = [
   {
     letter: 'L',
     name: 'Leprechaun',
+      spriteName: 'Leprechaun',
     hp: '3d8',
     ac: 8,
     damage: '1d1',
@@ -163,6 +175,7 @@ const mockMonsterData = [
   {
     letter: 'M',
     name: 'Medusa',
+      spriteName: 'Medusa',
     hp: '8d8',
     ac: 2,
     damage: '3d4+3d4+2d5',
@@ -176,6 +189,7 @@ const mockMonsterData = [
   {
     letter: 'N',
     name: 'Nymph',
+      spriteName: 'Nymph',
     hp: '3d8',
     ac: 9,
     damage: '0d0',
@@ -189,6 +203,7 @@ const mockMonsterData = [
   {
     letter: 'O',
     name: 'Orc',
+      spriteName: 'Orc',
     hp: '1d8',
     ac: 6,
     damage: '1d8',
@@ -202,6 +217,7 @@ const mockMonsterData = [
   {
     letter: 'P',
     name: 'Phantom',
+      spriteName: 'Phantom',
     hp: '8d8',
     ac: 3,
     damage: '4d4',
@@ -215,6 +231,7 @@ const mockMonsterData = [
   {
     letter: 'Q',
     name: 'Quagga',
+      spriteName: 'Quagga',
     hp: '3d8',
     ac: 3,
     damage: '1d5+1d5',
@@ -228,6 +245,7 @@ const mockMonsterData = [
   {
     letter: 'R',
     name: 'Rattlesnake',
+      spriteName: 'Rattlesnake',
     hp: '2d8',
     ac: 3,
     damage: '1d6',
@@ -241,6 +259,7 @@ const mockMonsterData = [
   {
     letter: 'S',
     name: 'Snake',
+      spriteName: 'Snake',
     hp: '1d8',
     ac: 5,
     damage: '1d3',
@@ -254,6 +273,7 @@ const mockMonsterData = [
   {
     letter: 'T',
     name: 'Troll',
+      spriteName: 'Troll',
     hp: '6d8',
     ac: 4,
     damage: '1d8+1d8',
@@ -267,6 +287,7 @@ const mockMonsterData = [
   {
     letter: 'U',
     name: 'Ur-vile',
+      spriteName: 'Ur-vile',
     hp: '7d8',
     ac: -2,
     damage: '1d9+1d9+2d9',
@@ -280,6 +301,7 @@ const mockMonsterData = [
   {
     letter: 'V',
     name: 'Vampire',
+      spriteName: 'Vampire',
     hp: '8d8',
     ac: 1,
     damage: '1d10',
@@ -293,6 +315,7 @@ const mockMonsterData = [
   {
     letter: 'W',
     name: 'Wraith',
+      spriteName: 'Wraith',
     hp: '5d8',
     ac: 4,
     damage: '1d6',
@@ -306,6 +329,7 @@ const mockMonsterData = [
   {
     letter: 'X',
     name: 'Xeroc',
+      spriteName: 'Xeroc',
     hp: '7d8',
     ac: 7,
     damage: '4d4',
@@ -319,6 +343,7 @@ const mockMonsterData = [
   {
     letter: 'Y',
     name: 'Yeti',
+      spriteName: 'Yeti',
     hp: '4d8',
     ac: 6,
     damage: '1d6+1d6',
@@ -332,6 +357,7 @@ const mockMonsterData = [
   {
     letter: 'Z',
     name: 'Zombie',
+      spriteName: 'Zombie',
     hp: '2d8',
     ac: 8,
     damage: '1d8',
@@ -529,6 +555,7 @@ describe('MonsterSpawnService - getMonsterByLetter', () => {
       expect(dragon).toMatchObject({
         letter: 'D',
         name: 'Dragon',
+      spriteName: 'Dragon',
         hp: '10d8',
         ac: -1,
         damage: '1d8+3d10',
@@ -542,6 +569,7 @@ describe('MonsterSpawnService - getMonsterByLetter', () => {
       expect(aquator).toMatchObject({
         letter: 'A',
         name: 'Aquator',
+      spriteName: 'Aquator',
         level: 5,
       })
     })

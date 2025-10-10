@@ -136,6 +136,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
       id: 'test-monster',
       letter: 'O',
       name: 'Orc',
+      spriteName: 'Orc',
       position: { x: 6, y: 5 },
       hp: 10,
       maxHp: 10,

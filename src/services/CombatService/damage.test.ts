@@ -46,6 +46,7 @@ describe('CombatService - Damage Calculation', () => {
       id: 'test-monster',
       letter: 'T',
       name: 'Test Monster',
+      spriteName: 'Test Monster',
       position: { x: 1, y: 1 },
       hp: 10,
       maxHp: 10,
@@ -87,6 +88,7 @@ describe('CombatService - Damage Calculation', () => {
       const weapon: Weapon = {
         id: 'longsword',
         name: 'Long Sword',
+      spriteName: 'Long Sword',
         type: 'WEAPON',
         identified: true,
         damage: '1d12',
@@ -107,6 +109,7 @@ describe('CombatService - Damage Calculation', () => {
       const weapon: Weapon = {
         id: 'longsword+2',
         name: 'Long Sword +2',
+      spriteName: 'Long Sword +2',
         type: 'WEAPON',
         identified: true,
         damage: '1d12',
@@ -127,6 +130,7 @@ describe('CombatService - Damage Calculation', () => {
       const mace: Weapon = {
         id: 'mace',
         name: 'Mace',
+      spriteName: 'Mace',
         type: 'WEAPON',
         identified: true,
         damage: '2d4',

@@ -27,6 +27,7 @@ describe('MonsterAIService - GREEDY Behavior', () => {
       id: 'orc',
       letter: 'O',
       name: 'Orc',
+      spriteName: 'Orc',
       position: { x: 5, y: 5 },
       hp: 10,
       maxHp: 10,

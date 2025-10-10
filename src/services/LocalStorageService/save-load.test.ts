@@ -72,6 +72,7 @@ describe('LocalStorageService - Save/Load', () => {
       id: 'test-monster-1',
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       position: { x: 10, y: 10 },
       hp: 15,
       maxHp: 15,

@@ -12,6 +12,7 @@ describe('DebugService - State Management', () => {
     {
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       hp: '6d8',
       ac: 4,
       damage: '1d8+1d8+2d6',

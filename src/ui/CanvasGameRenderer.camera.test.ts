@@ -46,6 +46,7 @@ describe('CanvasGameRenderer - Camera Scroll Margin System', () => {
     jest.spyOn(assetLoader, 'getCurrentTileset').mockReturnValue({
       config: {
         name: 'Test',
+      spriteName: 'Test',
         tileWidth: 32,
         tileHeight: 32,
         imageUrl: 'test.png',
@@ -606,6 +607,7 @@ describe('CanvasGameRenderer - Camera Scroll Margin System', () => {
         {
           id: 'test-monster-1',
           name: 'Kobold',
+      spriteName: 'Kobold',
           letter: 'K',
           position: { x: 52, y: 26 },
           hp: 5,
@@ -684,6 +686,7 @@ describe('CanvasGameRenderer - Camera Scroll Margin System', () => {
         {
           id: 'test-monster-1',
           name: 'Kobold',
+      spriteName: 'Kobold',
           letter: 'K',
           position: { x: 52, y: 26 },
           hp: 5,
@@ -731,6 +734,7 @@ describe('CanvasGameRenderer - Camera Scroll Margin System', () => {
         {
           id: 'test-item-1',
           name: 'Sword',
+      spriteName: 'Sword',
           type: 'WEAPON',
           position: { x: 51, y: 25 },
         } as any,
@@ -857,6 +861,7 @@ describe('CanvasGameRenderer - Camera Scroll Margin System', () => {
         {
           id: 'test-monster-1',
           name: 'Kobold',
+      spriteName: 'Kobold',
           letter: 'K',
           position: { x: 52, y: 26 },
           hp: 5,
@@ -903,6 +908,7 @@ describe('CanvasGameRenderer - Camera Scroll Margin System', () => {
         {
           id: 'test-item-1',
           name: 'Sword',
+      spriteName: 'Sword',
           type: 'WEAPON',
           position: { x: 55, y: 28 },
         } as any,

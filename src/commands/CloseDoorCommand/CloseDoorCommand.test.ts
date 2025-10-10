@@ -58,6 +58,7 @@ describe('CloseDoorCommand', () => {
       id: 'test-monster',
       letter: 'T',
       name: 'Test Monster',
+      spriteName: 'Test Monster',
       position,
       hp: 10,
       maxHp: 10,

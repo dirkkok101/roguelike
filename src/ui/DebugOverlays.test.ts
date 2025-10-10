@@ -18,6 +18,7 @@ describe('DebugOverlays', () => {
     {
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       hp: '6d8',
       ac: 4,
       damage: '1d8',

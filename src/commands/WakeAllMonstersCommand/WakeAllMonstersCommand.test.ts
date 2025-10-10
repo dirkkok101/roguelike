@@ -17,6 +17,7 @@ describe('WakeAllMonstersCommand', () => {
     {
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       hp: '6d8',
       ac: 4,
       damage: '1d8',
@@ -79,6 +80,7 @@ describe('WakeAllMonstersCommand', () => {
           id: 'monster1',
           letter: 'O',
           name: 'Orc',
+      spriteName: 'Orc',
           position: { x: 2, y: 2 },
           hp: 10,
           maxHp: 10,

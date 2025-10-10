@@ -59,6 +59,7 @@ function createTestMonster(id: string, x: number, y: number, speed: number, ener
     id,
     letter: 'T',
     name: 'Test Monster',
+      spriteName: 'Test Monster',
     position: { x, y },
     hp: 10,
     maxHp: 10,

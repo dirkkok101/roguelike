@@ -50,6 +50,7 @@ describe('CombatService - Hunger Penalties', () => {
       id: 'test-monster',
       letter: 'T',
       name: 'Test Monster',
+      spriteName: 'Test Monster',
       position: { x: 1, y: 1 },
       hp: 10,
       maxHp: 10,

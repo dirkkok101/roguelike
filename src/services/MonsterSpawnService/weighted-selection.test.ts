@@ -19,6 +19,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
         {
           letter: 'K',
           name: 'Kobold',
+      spriteName: 'Kobold',
           hp: '1d8',
           ac: 7,
           damage: '1d4',
@@ -38,6 +39,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
         {
           letter: 'O',
           name: 'Orc',
+      spriteName: 'Orc',
           hp: '2d8',
           ac: 6,
           damage: '1d6',
@@ -57,6 +59,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
         {
           letter: 'T',
           name: 'Troll',
+      spriteName: 'Troll',
           hp: '5d8',
           ac: 4,
           damage: '2d6',
@@ -76,6 +79,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
         {
           letter: 'D',
           name: 'Dragon',
+      spriteName: 'Dragon',
           hp: '10d10',
           ac: 3,
           damage: '3d10',

@@ -13,6 +13,7 @@ describe('DebugService - Identify All', () => {
     {
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       hp: '6d8',
       ac: 4,
       damage: '1d8+1d8+2d6',

@@ -18,6 +18,7 @@ describe('LightingService - God Mode Integration', () => {
     {
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       hp: '6d8',
       ac: 4,
       damage: '1d8',
@@ -81,6 +82,7 @@ describe('LightingService - God Mode Integration', () => {
           lightSource: {
             id: 'torch-1',
             name: 'Torch',
+      spriteName: 'Torch',
             type: ItemType.TORCH,
             radius: 2,
             fuel: 250,
@@ -146,6 +148,7 @@ describe('LightingService - God Mode Integration', () => {
           lightSource: {
             id: 'torch-1',
             name: 'Torch',
+      spriteName: 'Torch',
             type: ItemType.TORCH,
             radius: 2,
             fuel: 250,
@@ -210,6 +213,7 @@ describe('LightingService - God Mode Integration', () => {
           lightSource: {
             id: 'torch-1',
             name: 'Torch',
+      spriteName: 'Torch',
             type: ItemType.TORCH,
             radius: 2,
             fuel: 250,
@@ -250,6 +254,7 @@ describe('LightingService - God Mode Integration', () => {
           lightSource: {
             id: 'artifact-1',
             name: 'Eternal Flame',
+      spriteName: 'Eternal Flame',
             type: ItemType.ARTIFACT,
             radius: 3,
             isPermanent: true, // Permanent light
@@ -313,6 +318,7 @@ describe('LightingService - God Mode Integration', () => {
           lightSource: {
             id: 'torch-1',
             name: 'Torch',
+      spriteName: 'Torch',
             type: ItemType.TORCH,
             radius: 2,
             fuel: 51, // Will tick down to 50, triggering warning in normal mode
@@ -378,6 +384,7 @@ describe('LightingService - God Mode Integration', () => {
           lightSource: {
             id: 'torch-1',
             name: 'Torch',
+      spriteName: 'Torch',
             type: ItemType.TORCH,
             radius: 2,
             fuel: 51, // Will tick down to 50, triggering warning

@@ -39,6 +39,7 @@ describe('SpecialAbilityService - Ability Orchestration', () => {
       id: 'test-monster',
       letter: 'T',
       name: 'Test Monster',
+      spriteName: 'Test Monster',
       position: { x: 1, y: 1 },
       hp: 10,
       maxHp: 10,
@@ -104,6 +105,7 @@ describe('SpecialAbilityService - Ability Orchestration', () => {
       const armor: Armor = {
         id: 'plate',
         name: 'Plate',
+      spriteName: 'Plate',
         type: 'ARMOR',
         identified: true,
         acBonus: 6,

@@ -24,6 +24,7 @@ describe('MonsterSpawnService - Data Loading', () => {
         {
           letter: 'K',
           name: 'Kobold',
+      spriteName: 'Kobold',
           hp: '1d8',
           ac: 7,
           damage: '1d4',
@@ -87,6 +88,7 @@ describe('MonsterSpawnService - Data Loading', () => {
         {
           letter: 'K',
           name: 'Kobold',
+      spriteName: 'Kobold',
           // Missing hp field
           ac: 7,
         },
@@ -108,6 +110,7 @@ describe('MonsterSpawnService - Data Loading', () => {
         {
           letter: 'K',
           name: 'Kobold',
+      spriteName: 'Kobold',
           hp: '1d8',
           ac: 7,
           damage: '1d4',

@@ -172,6 +172,7 @@ describe('Integration: Game Loop', () => {
       id: `monster-${position.x}-${position.y}`,
       letter: 'O',
       name: 'Orc',
+      spriteName: 'Orc',
       position,
       hp: 15,
       maxHp: 15,

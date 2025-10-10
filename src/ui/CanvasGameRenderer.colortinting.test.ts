@@ -45,6 +45,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
     const mockTileset: Tileset = {
       config: {
         name: 'Test Tileset',
+      spriteName: 'Test Tileset',
         tileWidth: 32,
         tileHeight: 32,
         imageUrl: '/test/32x32.png',
@@ -74,6 +75,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 5, y: 5 },
         hp: 5,
@@ -119,6 +121,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Orc',
+      spriteName: 'Orc',
         letter: 'O',
         position: { x: 5, y: 5 },
         hp: 15,
@@ -164,6 +167,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Dragon',
+      spriteName: 'Dragon',
         letter: 'D',
         position: { x: 5, y: 5 },
         hp: 50,
@@ -209,6 +213,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 5, y: 5 },
         hp: 5,
@@ -253,6 +258,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 5, y: 5 },
         hp: 5,
@@ -307,6 +313,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.items.push({
         id: 'item-1',
         name: 'Potion of Healing',
+      spriteName: 'Potion of Healing',
         type: 'POTION',
         identified: false,
         position: { x: 3, y: 3 },
@@ -340,6 +347,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 2, y: 2 },
         hp: 5,
@@ -358,6 +366,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-2',
         name: 'Dragon',
+      spriteName: 'Dragon',
         letter: 'D',
         position: { x: 7, y: 7 },
         hp: 50,
@@ -407,6 +416,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 5, y: 5 },
         hp: 5,
@@ -453,6 +463,7 @@ describe('CanvasGameRenderer - Color Tinting', () => {
       level.monsters.push({
         id: 'monster-1',
         name: 'Bat',
+      spriteName: 'Bat',
         letter: 'B',
         position: { x: 5, y: 5 },
         hp: 5,

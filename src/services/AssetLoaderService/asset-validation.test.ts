@@ -1,7 +1,12 @@
 import { AssetLoaderService } from './AssetLoaderService'
-import { loadItemData } from '../../data/ItemDataLoader'
+import { loadItemData, ItemData } from '../../data/ItemDataLoader'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { SeededRandom } from '@services/RandomService'
+
+// Mock loadItemData to avoid real fetch in tests
+jest.mock('../../data/ItemDataLoader', () => ({
+  loadItemData: jest.fn(),
+}))
 
 // ============================================================================
 // ASSET VALIDATION TESTS - Verify all game entities have sprite mappings
@@ -13,6 +18,35 @@ describe('AssetLoaderService - Asset Validation', () => {
   let originalFetch: typeof global.fetch
 
   beforeAll(async () => {
+    // Mock loadItemData to avoid real fetch in tests
+    ;(loadItemData as jest.Mock).mockResolvedValue({
+      weapons: [
+        { name: 'Mace', spriteName: 'Mace', damage: '2d4', rarity: 'common' },
+        { name: 'Long sword', spriteName: 'Long sword', damage: '1d8+1', rarity: 'common' },
+      ],
+      armor: [
+        { name: 'Leather armor', spriteName: 'Leather armour', ac: 2, rarity: 'common' },
+        { name: 'Ring mail', spriteName: 'Ring mail', ac: 3, rarity: 'common' },
+      ],
+      lightSources: [],
+      potions: [
+        { type: 'HEALING', spriteName: 'Potion of healing', effect: 'heal', power: '1d8', rarity: 'common', descriptors: ['red', 'blue'] },
+      ],
+      scrolls: [
+        { type: 'IDENTIFY', spriteName: 'Scroll of identify', effect: 'identify', rarity: 'common', labels: ['ZELGO MER'] },
+      ],
+      rings: [
+        { type: 'STRENGTH', spriteName: 'Ring of strength', effect: 'add_strength', power: '+1', hungerModifier: 0, rarity: 'common', materials: ['gold', 'silver'] },
+      ],
+      wands: [
+        { type: 'LIGHTNING', spriteName: 'Wand of lightning', damage: '6d6', charges: '3d8', rarity: 'rare', woods: ['oak', 'pine'] },
+      ],
+      food: [
+        { name: 'Ration of food', spriteName: 'Ration of food', nutrition: '900', rarity: 'common' },
+      ],
+      consumables: [],
+    } as ItemData)
+
     // Mock fetch for monster data loading
     originalFetch = global.fetch
     global.fetch = jest.fn().mockResolvedValue({
@@ -155,10 +189,11 @@ describe('AssetLoaderService - Asset Validation', () => {
       const validSprites: string[] = []
 
       // Get all monster templates
-      const monsterTemplates = (monsterSpawnService as any).monsters
+      const monsterTemplates = (monsterSpawnService as any).monsterTemplates
 
       for (const monster of monsterTemplates) {
-        const sprite = assetLoader.getSprite(monster.name)
+        // Look up by spriteName (the key used in tileset mapping)
+        const sprite = assetLoader.getSprite(monster.spriteName)
 
         if (!sprite) {
           missingSprites.push(`${monster.name} (${monster.letter})`)
@@ -204,14 +239,17 @@ describe('AssetLoaderService - Asset Validation', () => {
 
       for (const category of itemCategories) {
         for (const item of category.items) {
-          // Try to get sprite by first character of item name
-          const firstChar = item.name[0]
+          // Get item identifier (name for weapons/armor/food, type for potions/scrolls/rings/wands)
+          const itemId = (item as any).name || (item as any).type || 'unknown'
+
+          // Try to get sprite by first character of item identifier
+          const firstChar = itemId[0]
           const sprite = assetLoader.getSprite(firstChar)
 
           if (!sprite) {
-            missingSprites.push(`${item.name} [${category.name}] (${firstChar})`)
+            missingSprites.push(`${itemId} [${category.name}] (${firstChar})`)
           } else {
-            validSprites.push(item.name)
+            validSprites.push(itemId)
           }
         }
       }

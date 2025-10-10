@@ -27,6 +27,7 @@ describe('MonsterAIService - STATIONARY Behavior', () => {
       id: 'venus-flytrap',
       letter: 'V',
       name: 'Venus Flytrap',
+      spriteName: 'Venus Flytrap',
       position: { x: 5, y: 5 },
       hp: 15,
       maxHp: 15,

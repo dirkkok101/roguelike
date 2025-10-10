@@ -34,6 +34,7 @@ describe('TurnService - Wandering Monster Spawns', () => {
     jest.spyOn(monsterSpawnService, 'selectMonsterForDepth').mockReturnValue({
       letter: 'O',
       name: 'Orc',
+      spriteName: 'Orc',
       hp: '1d8',
       ac: 6,
       damage: '1d8',
@@ -128,6 +129,7 @@ describe('TurnService - Wandering Monster Spawns', () => {
       player: {
         id: 'player-1',
         name: 'Player',
+      spriteName: 'Player',
         position: { x: 5, y: 5 },
         hp: 20,
         maxHp: 20,
