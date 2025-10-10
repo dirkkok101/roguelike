@@ -608,6 +608,7 @@ async function initializeGame() {
     if (renderer) {
       renderer.hideDeathScreen()
       renderer.hideVictoryScreen()
+      renderer.cleanupResizeHandler()
     }
 
     // Clean up game event listeners
