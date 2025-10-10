@@ -75,26 +75,26 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 - `src/services/PreferencesService/preferences.test.ts` (modify)
 
 ##### Subtasks:
-- [ ] Add `renderMode: 'ascii' | 'sprites'` to `UserPreferences` interface:
+- [x] Add `renderMode: 'ascii' | 'sprites'` to `UserPreferences` interface:
   ```typescript
   export interface UserPreferences {
     // ... existing fields (showTutorial, difficulty, etc.)
     renderMode: 'ascii' | 'sprites'  // Default: 'sprites'
   }
   ```
-- [ ] Add default value in `getDefaultPreferences()`:
+- [x] Add default value in `getDefaultPreferences()`:
   ```typescript
   renderMode: 'sprites'  // Default to new sprite rendering
   ```
-- [ ] Update `savePreferences()` to persist render mode
-- [ ] Update `loadPreferences()` to restore render mode
-- [ ] Add validation for render mode (must be 'ascii' or 'sprites')
-- [ ] Write tests:
+- [x] Update `savePreferences()` to persist render mode
+- [x] Update `loadPreferences()` to restore render mode
+- [x] Add validation for render mode (must be 'ascii' or 'sprites')
+- [x] Write tests:
   - Default preference is 'sprites'
   - Can save and load 'ascii' mode
   - Can save and load 'sprites' mode
   - Invalid render mode falls back to 'sprites'
-- [ ] Git commit: "feat: add renderMode to user preferences (Phase 1.1)"
+- [x] Git commit: "feat: add renderMode to user preferences (Phase 1.1)"
 
 ---
 
