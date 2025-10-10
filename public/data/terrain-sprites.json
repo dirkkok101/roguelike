@@ -1,0 +1,80 @@
+{
+  "floor": {
+    "char": ".",
+    "spriteName": "FLOOR",
+    "walkable": true,
+    "description": "Stone floor",
+    "variants": {
+      "torch": "FLOOR:torch",
+      "lit": "FLOOR:lit",
+      "los": "FLOOR:los",
+      "dark": "FLOOR:dark",
+      "default": "FLOOR:torch"
+    }
+  },
+  "wall": {
+    "char": "#",
+    "spriteName": "GRANITE",
+    "walkable": false,
+    "description": "Granite wall",
+    "variants": {
+      "torch": "GRANITE:torch",
+      "lit": "GRANITE:lit",
+      "los": "GRANITE:los",
+      "dark": "GRANITE:dark",
+      "default": "GRANITE:torch"
+    }
+  },
+  "doorClosed": {
+    "char": "+",
+    "spriteName": "CLOSED",
+    "walkable": false,
+    "description": "Closed door",
+    "variants": {
+      "torch": "CLOSED:torch",
+      "lit": "CLOSED:lit",
+      "los": "CLOSED:los",
+      "dark": "CLOSED:dark",
+      "default": "CLOSED:torch"
+    }
+  },
+  "doorOpen": {
+    "char": "'",
+    "spriteName": "OPEN",
+    "walkable": true,
+    "description": "Open door",
+    "variants": {
+      "torch": "OPEN:torch",
+      "lit": "OPEN:lit",
+      "los": "OPEN:los",
+      "dark": "OPEN:dark",
+      "default": "OPEN:torch"
+    }
+  },
+  "stairsUp": {
+    "char": "<",
+    "spriteName": "LESS",
+    "walkable": true,
+    "description": "Stairs up",
+    "variants": {
+      "torch": "LESS:torch",
+      "lit": "LESS:lit",
+      "los": "LESS:los",
+      "dark": "LESS:dark",
+      "default": "LESS:torch"
+    }
+  },
+  "stairsDown": {
+    "char": ">",
+    "spriteName": "MORE",
+    "walkable": true,
+    "description": "Stairs down",
+    "variants": {
+      "torch": "MORE:torch",
+      "lit": "MORE:lit",
+      "los": "MORE:los",
+      "dark": "MORE:dark",
+      "default": "MORE:torch"
+    }
+  }
+}

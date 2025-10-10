@@ -1,22 +1,15 @@
 import { Tileset, TilesetConfig, TileCoordinate } from '@assets/assets'
 import { parsePrfFile, buildLookupMap } from '@utils/prfParser'
+import { TerrainSpriteService } from '@services/TerrainSpriteService'
 
 // ============================================================================
 // ASSET LOADER SERVICE - Load sprite sheets and .prf tile mappings
 // ============================================================================
 
-// Character to Angband feature name mapping
+// Character to Angband feature name mapping (DEPRECATED - use TerrainSpriteService)
+// Kept for backwards compatibility and item lookups
 const CHAR_TO_ANGBAND: Record<string, string[]> = {
   '@': ['<player>'], // Player character
-  '.': ['FLOOR'], // Floor
-  '#': ['GRANITE', 'PERM'], // Walls
-  '+': ['CLOSED'], // Closed door
-  "'": ['OPEN'], // Open door (single quote)
-  '<': ['LESS'], // Up stairs
-  '>': ['MORE'], // Down stairs
-  '^': ['trap'], // Trap
-  '%': ['RUBBLE'], // Rubble
-  '*': ['MAGMA', 'QUARTZ'], // Veins
   '$': ['gold'], // Gold
   '!': ['potion'], // Potion
   '?': ['scroll'], // Scroll
@@ -24,6 +17,7 @@ const CHAR_TO_ANGBAND: Record<string, string[]> = {
   '/': ['wand', 'staff'], // Wand/Staff
   ')': ['sword', 'weapon'], // Weapon
   '[': ['armor'], // Armor
+  // Terrain characters now handled by TerrainSpriteService
   // Monster letters will be looked up directly
 }
 
@@ -31,6 +25,11 @@ export class AssetLoaderService {
   private tilesets: Map<string, Tileset> = new Map()
   private currentTileset: Tileset | null = null
   private missingSprites: Set<string> = new Set()
+  private terrainSpriteService: TerrainSpriteService
+
+  constructor(terrainSpriteService: TerrainSpriteService) {
+    this.terrainSpriteService = terrainSpriteService
+  }
 
   /**
    * Load a tileset from PNG + .prf files
@@ -151,18 +150,21 @@ export class AssetLoaderService {
       sprite = this.currentTileset.config.tiles.get(char)
       if (sprite) return sprite
 
-      // Try mapping to Angband feature names
+      // Try TerrainSpriteService for terrain characters (data-driven)
+      if (this.terrainSpriteService.isLoaded()) {
+        const terrainSpriteName = this.terrainSpriteService.getSpriteNameWithLighting(char, 'torch')
+        if (terrainSpriteName) {
+          sprite = this.currentTileset.config.tiles.get(terrainSpriteName)
+          if (sprite) return sprite
+        }
+      }
+
+      // Try CHAR_TO_ANGBAND for item characters only
       const featureNames = CHAR_TO_ANGBAND[char]
       if (featureNames) {
-        // Try each feature name with different conditions
-        const conditions = ['torch', 'lit', 'los', '*', ''] // Common conditions in .prf files
-
         for (const featureName of featureNames) {
-          for (const condition of conditions) {
-            const key = condition ? `${featureName}:${condition}` : featureName
-            sprite = this.currentTileset.config.tiles.get(key)
-            if (sprite) return sprite
-          }
+          sprite = this.currentTileset.config.tiles.get(featureName)
+          if (sprite) return sprite
         }
       }
     }

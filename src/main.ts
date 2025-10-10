@@ -42,6 +42,7 @@ import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
 import { TargetingService } from '@services/TargetingService'
 import { AssetLoaderService } from '@services/AssetLoaderService'
+import { TerrainSpriteService } from '@services/TerrainSpriteService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -81,8 +82,18 @@ async function initializeGame() {
     throw error // Fatal error - game cannot proceed without monster data
   }
 
+  // Load terrain sprite mappings (data-driven approach)
+  const terrainSpriteService = new TerrainSpriteService()
+  try {
+    await terrainSpriteService.loadTerrainSprites()
+    console.log('Terrain sprites loaded from terrain-sprites.json')
+  } catch (error) {
+    console.error('Failed to load terrain sprites:', error)
+    // Non-fatal error - will fall back to CHAR_TO_ANGBAND
+  }
+
   // Load tileset early (Gervais 32×32 sprite sheet)
-  const assetLoaderService = new AssetLoaderService()
+  const assetLoaderService = new AssetLoaderService(terrainSpriteService)
   try {
     await assetLoaderService.loadTileset(
       '/assets/tilesets/gervais/32x32.png',

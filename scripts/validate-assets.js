@@ -147,7 +147,32 @@ console.log('\n🔍 Validating Asset Mappings...\n')
 console.log('━'.repeat(60))
 
 // ============================================================================
-// 1. Terrain Characters
+// 1. Load terrain-sprites.json
+// ============================================================================
+
+console.log('\n📦 LOADING TERRAIN SPRITE MAPPINGS')
+console.log('─'.repeat(60))
+
+const terrainSpritesPath = path.join(__dirname, '../public/data/terrain-sprites.json')
+let terrainSpritesData = null
+let terrainMap = new Map()
+
+try {
+  const terrainContent = fs.readFileSync(terrainSpritesPath, 'utf8')
+  terrainSpritesData = JSON.parse(terrainContent)
+
+  // Build char-to-sprite map
+  for (const [key, config] of Object.entries(terrainSpritesData)) {
+    terrainMap.set(config.char, config)
+  }
+
+  console.log(`✅ Loaded terrain-sprites.json (${Object.keys(terrainSpritesData).length} terrain types)`)
+} catch (err) {
+  console.log(`❌ Failed to load terrain-sprites.json: ${err.message}`)
+}
+
+// ============================================================================
+// 2. Terrain Characters
 // ============================================================================
 
 console.log('\n📦 TERRAIN CHARACTERS')
@@ -168,11 +193,11 @@ const terrainChars = [
 
 let terrainMissing = 0
 terrainChars.forEach(({ char, name, required }) => {
-  const hasMappings = CHAR_TO_ANGBAND[char]
-  const status = hasMappings ? '✅' : (required ? '❌' : '⚠️ ')
-  const mappings = hasMappings ? CHAR_TO_ANGBAND[char].join(', ') : 'NOT MAPPED'
+  const config = terrainMap.get(char)
+  const status = config ? '✅' : (required ? '❌' : '⚠️ ')
+  const mappings = config ? `${config.spriteName} (${config.variants ? 'with lighting variants' : 'no variants'})` : 'NOT MAPPED'
   console.log(`${status} '${char}' ${name.padEnd(20)} → ${mappings}`)
-  if (!hasMappings && required) terrainMissing++
+  if (!config && required) terrainMissing++
 })
 
 // ============================================================================
@@ -278,7 +303,60 @@ if (monstersMissing > 0) {
 }
 
 // ============================================================================
-// 5. Summary
+// 5. Terrain Sprite Validation
+// ============================================================================
+
+console.log('\n📦 TERRAIN SPRITE VALIDATION')
+console.log('─'.repeat(60))
+
+let terrainSpritesMapped = 0
+let terrainSpritesMissing = 0
+const missingTerrainSprites = []
+
+if (terrainSpritesData) {
+  console.log(`\nValidating ${Object.keys(terrainSpritesData).length} terrain types from terrain-sprites.json`)
+  console.log(`Checking if sprite names exist in .prf files\n`)
+
+  for (const [key, config] of Object.entries(terrainSpritesData)) {
+    // Check if base sprite name exists
+    const baseSprite = spriteMap.get(config.spriteName)
+
+    if (baseSprite || (config.variants && spriteMap.get(config.variants.default))) {
+      const coordStr = baseSprite
+        ? `0x${baseSprite.x.toString(16).toUpperCase().padStart(2, '0')}:0x${baseSprite.y.toString(16).toUpperCase().padStart(2, '0')}`
+        : 'variant'
+      console.log(`✅ '${config.char}' ${config.description.padEnd(20)} → "${config.spriteName}" ${coordStr}`)
+      terrainSpritesMapped++
+
+      // Check lighting variants if present
+      if (config.variants) {
+        const variantKeys = Object.keys(config.variants).filter(k => k !== 'default')
+        const variantsFound = variantKeys.filter(k => spriteMap.get(config.variants[k]))
+        if (variantsFound.length === variantKeys.length) {
+          console.log(`   ✅ All ${variantKeys.length} lighting variants found`)
+        } else {
+          console.log(`   ⚠️  Only ${variantsFound.length}/${variantKeys.length} lighting variants found`)
+        }
+      }
+    } else {
+      console.log(`❌ '${config.char}' ${config.description.padEnd(20)} → "${config.spriteName}" NOT FOUND`)
+      missingTerrainSprites.push(config)
+      terrainSpritesMissing++
+    }
+  }
+} else {
+  console.log('⚠️  Skipping terrain sprite validation (terrain-sprites.json not loaded)')
+}
+
+if (terrainSpritesMissing > 0) {
+  console.log(`\n⚠️  ${terrainSpritesMissing} terrain sprites missing from .prf files:`)
+  missingTerrainSprites.forEach(config => {
+    console.log(`   - ${config.description} (${config.spriteName})`)
+  })
+}
+
+// ============================================================================
+// 6. Summary
 // ============================================================================
 
 console.log('\n' + '━'.repeat(60))
@@ -286,9 +364,10 @@ console.log('📊 VALIDATION SUMMARY')
 console.log('━'.repeat(60))
 
 const totalRequired = terrainChars.filter(c => c.required).length + itemChars.filter(c => c.required).length
-const totalMissing = terrainMissing + itemsMissing + monstersMissing
+const totalMissing = terrainMissing + itemsMissing + monstersMissing + terrainSpritesMissing
 
 console.log(`\nTerrain characters: ${terrainChars.length - terrainMissing}/${terrainChars.length} mapped`)
+console.log(`Terrain sprites: ${terrainSpritesMapped}/${terrainSpritesData ? Object.keys(terrainSpritesData).length : 0} validated`)
 console.log(`Item characters: ${itemChars.length - itemsMissing}/${itemChars.length} mapped`)
 console.log(`Monsters: ${monstersMapped}/${monstersData.length} mapped`)
 console.log(`Total sprite entries in .prf files: ${spriteMap.size}`)
