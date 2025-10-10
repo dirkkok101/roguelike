@@ -344,28 +344,45 @@ export class GameRenderer {
   }
 
   private renderDungeon(state: GameState, targetingState: ITargetingState | null = null): void {
-    // Render based on current mode preference
+    // Sprite rendering mode
     if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
-      // Use sprite rendering (targeting overlay not yet implemented for sprites)
+      // Use sprite rendering
       this.canvasGameRenderer.render(state)
-      // TODO: Add targeting overlay support for sprite mode
+
+      // Graceful degradation: Targeting not yet supported in sprite mode
+      if (targetingState) {
+        if (this.debugService.isEnabled()) {
+          console.warn('[GameRenderer] Targeting overlay not yet supported in sprite mode')
+        }
+      }
       return
     }
 
-    // ASCII rendering mode with targeting overlay support
+    // ASCII rendering mode
+    if (targetingState) {
+      // Targeting requires custom overlay rendering
+      this.renderDungeonWithTargeting(state, targetingState)
+    } else {
+      // Standard rendering via AsciiDungeonRenderer
+      const html = this.asciiRenderer.render(state)
+      this.dungeonContainer.innerHTML = html
+    }
+  }
+
+  /**
+   * Render dungeon with targeting overlay (ASCII mode only)
+   * Separate method for rendering targeting line and cursor
+   */
+  private renderDungeonWithTargeting(state: GameState, targetingState: ITargetingState): void {
     const level = state.levels.get(state.currentLevel)
     if (!level) return
 
     // Check for SEE_INVISIBLE status effect
     const canSeeInvisible = state.player.statusEffects.some((e) => e.type === StatusEffectType.SEE_INVISIBLE)
 
-    // Get targeting data if active
-    let targetingLine: Set<string> | null = null
-    let cursorPos: Position | null = null
-    if (targetingState) {
-      cursorPos = targetingState.getCursorPosition()
-      targetingLine = this.calculateTargetingLine(state.player.position, cursorPos, level)
-    }
+    // Get targeting data
+    const cursorPos = targetingState.getCursorPosition()
+    const targetingLine = this.calculateTargetingLine(state.player.position, cursorPos, level)
 
     let html = '<pre class="dungeon-grid">'
 
@@ -446,20 +463,20 @@ export class GameRenderer {
         }
 
         // Targeting line (render before player but after entities)
-        if (targetingLine && targetingLine.has(`${x},${y}`) && !(x === state.player.position.x && y === state.player.position.y) && !(cursorPos && x === cursorPos.x && y === cursorPos.y)) {
+        if (targetingLine.has(`${x},${y}`) && !(x === state.player.position.x && y === state.player.position.y) && !(x === cursorPos.x && y === cursorPos.y)) {
           char = '*'
           color = '#FFFF00' // Yellow
         }
 
         // Targeting cursor (render before player)
-        if (cursorPos && pos.x === cursorPos.x && pos.y === cursorPos.y) {
+        if (pos.x === cursorPos.x && pos.y === cursorPos.y) {
           // Check if target is valid (position-based targeting)
           // Valid if: in FOV + within range + walkable tile
           const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
           const key = `${cursorPos.x},${cursorPos.y}`
           const inFOV = state.visibleCells.has(key)
           const tile = level.tiles[cursorPos.y][cursorPos.x]
-          const inRange = targetingState ? distance <= targetingState.getRange() : false
+          const inRange = distance <= targetingState.getRange()
           const isValid = inFOV && inRange && tile.walkable
 
           char = 'X'
