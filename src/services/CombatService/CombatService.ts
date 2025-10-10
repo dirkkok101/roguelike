@@ -166,4 +166,89 @@ export class CombatService {
     // Unarmed: 1d4
     return this.random.roll('1d4')
   }
+
+  /**
+   * Calculate strength to-hit bonus (Original Rogue 1980)
+   *
+   * @param strength - Base strength value (3-31)
+   * @param percentile - Exceptional strength percentile (1-100, only for Str 18)
+   * @returns To-hit modifier
+   *
+   * Table:
+   * Str ≤6: -1
+   * Str 7-16: +0
+   * Str 17-18: +1
+   * Str 18/51-100: +2
+   * Str 18/100: +3
+   * Str 19+: +1
+   */
+  private getStrengthToHitBonus(strength: number, percentile?: number): number {
+    // Weak strength penalty
+    if (strength <= 6) return -1
+
+    // No bonus for average strength
+    if (strength < 17) return 0
+
+    // Exceptional strength (18/XX)
+    if (strength === 18 && percentile !== undefined && percentile > 0) {
+      if (percentile >= 100) return +3
+      if (percentile >= 51) return +2
+      return +1  // 1-50
+    }
+
+    // Normal high strength (17, 18 without percentile, 19+)
+    return +1
+  }
+
+  /**
+   * Calculate strength damage bonus (Original Rogue 1980)
+   *
+   * @param strength - Base strength value (3-31)
+   * @param percentile - Exceptional strength percentile (1-100, only for Str 18)
+   * @returns Damage modifier
+   *
+   * Table:
+   * Str ≤6: -1
+   * Str 7-15: +0
+   * Str 16-17: +1
+   * Str 18: +2
+   * Str 18/01-50: +3
+   * Str 18/51-75: +4
+   * Str 18/76-90: +5
+   * Str 18/91-100: +6
+   * Str 19-21: +3
+   * Str 22-30: +5
+   * Str 31: +6
+   */
+  private getStrengthDamageBonus(strength: number, percentile?: number): number {
+    // Weak strength penalty
+    if (strength <= 6) return -1
+
+    // No bonus for average strength
+    if (strength < 16) return 0
+
+    // Normal bonus (16-17)
+    if (strength === 16 || strength === 17) return +1
+
+    // Exceptional strength (18/XX)
+    if (strength === 18) {
+      // With percentile
+      if (percentile !== undefined && percentile > 0) {
+        if (percentile >= 91) return +6
+        if (percentile >= 76) return +5
+        if (percentile >= 51) return +4
+        return +3  // 1-50
+      }
+      // Base 18 with no percentile
+      return +2
+    }
+
+    // Higher strength ranges
+    if (strength >= 19 && strength <= 21) return +3
+    if (strength >= 22 && strength <= 30) return +5
+    if (strength === 31) return +6
+
+    // Undefined behavior above 31, return 0
+    return 0
+  }
 }
