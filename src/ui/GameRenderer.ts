@@ -242,6 +242,9 @@ export class GameRenderer {
     if (mode === 'sprites' && this.canvasGameRenderer && this.dungeonCanvas) {
       // Reattach canvas element (it was removed when innerHTML was cleared)
       this.dungeonContainer.appendChild(this.dungeonCanvas)
+
+      // Trigger resize to recalculate dimensions for new mode
+      this.canvasGameRenderer.resize()
     }
     // For ASCII mode, renderDungeon will handle innerHTML
   }
