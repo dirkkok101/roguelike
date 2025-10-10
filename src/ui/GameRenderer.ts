@@ -41,6 +41,8 @@ export class GameRenderer {
   private deathScreen: DeathScreen
   private canvasGameRenderer: CanvasGameRenderer | null = null
   private asciiRenderer: AsciiDungeonRenderer
+  private currentRenderMode: 'ascii' | 'sprites' = 'sprites'
+  private currentGameState: GameState | null = null
 
   constructor(
     private renderingService: RenderingService,
@@ -55,7 +57,7 @@ export class GameRenderer {
     leaderboardService: LeaderboardService,
     leaderboardStorageService: LeaderboardStorageService,
     scoreCalculationService: ScoreCalculationService,
-    _preferencesService: PreferencesService,
+    private preferencesService: PreferencesService,
     private ringService: RingService,
     private onReturnToMenu: () => void,
     private onStartNewGame: (characterName: string) => void,
@@ -70,6 +72,13 @@ export class GameRenderer {
     // Config will be used in future phases for customizable rendering
     // Initialize ASCII renderer (always available)
     this.asciiRenderer = new AsciiDungeonRenderer(renderingService)
+
+    // Load initial render mode from preferences
+    const prefs = this.preferencesService.getPreferences()
+    this.currentRenderMode = prefs.renderMode
+
+    // Subscribe to preference changes
+    this.preferencesService.subscribe(this.handlePreferenceChange.bind(this))
 
     // Create UI structure
     this.dungeonContainer = this.createDungeonView()
@@ -88,6 +97,9 @@ export class GameRenderer {
    * Render complete game state
    */
   render(state: GameState): void {
+    // Store current game state for re-rendering after mode changes
+    this.currentGameState = state
+
     // Check for death before rendering
     if (state.isGameOver && !state.hasWon && !this.deathScreen.isVisible()) {
       // Permadeath: Delete save immediately when player dies
@@ -136,6 +148,51 @@ export class GameRenderer {
 
     // Render debug overlays (on canvas if available)
     this.renderDebugOverlays(state)
+  }
+
+  /**
+   * Handle preference changes (e.g., render mode toggle)
+   */
+  private handlePreferenceChange(prefs: { renderMode: 'ascii' | 'sprites' }): void {
+    const oldMode = this.currentRenderMode
+    const newMode = prefs.renderMode
+
+    // Skip if mode hasn't changed
+    if (oldMode === newMode) {
+      return
+    }
+
+    // Update current render mode
+    this.currentRenderMode = newMode
+
+    // Log mode change
+    console.log(`[GameRenderer] Render mode changed: ${oldMode} → ${newMode}`)
+
+    // Handle DOM swapping
+    this.switchRenderMode(newMode)
+
+    // Re-render with current game state if available
+    if (this.currentGameState) {
+      this.renderDungeon(this.currentGameState)
+    }
+  }
+
+  /**
+   * Switch rendering mode by managing DOM elements
+   */
+  private switchRenderMode(mode: 'ascii' | 'sprites'): void {
+    // Clear container
+    this.dungeonContainer.innerHTML = ''
+
+    // Add appropriate element for new mode
+    if (mode === 'sprites' && this.canvasGameRenderer) {
+      // Find or recreate canvas element
+      const canvas = document.getElementById('dungeon-canvas') as HTMLCanvasElement
+      if (canvas) {
+        this.dungeonContainer.appendChild(canvas)
+      }
+    }
+    // For ASCII mode, renderDungeon will handle innerHTML
   }
 
   /**
@@ -200,7 +257,6 @@ export class GameRenderer {
     canvas.width = 2560  // 80 tiles × 32px
     canvas.height = 704  // 22 tiles × 32px
     canvas.className = 'dungeon-canvas'
-    container.appendChild(canvas)
 
     // Initialize CanvasGameRenderer if tileset is loaded
     if (this.assetLoaderService.isLoaded()) {
@@ -224,6 +280,12 @@ export class GameRenderer {
       console.warn('[GameRenderer] Tileset not loaded, will fall back to ASCII rendering')
     }
 
+    // Add the appropriate element based on initial render mode
+    if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
+      container.appendChild(canvas)
+    }
+    // ASCII rendering will use innerHTML, no element needed initially
+
     return container
   }
 
@@ -242,15 +304,15 @@ export class GameRenderer {
   }
 
   private renderDungeon(state: GameState): void {
-    // Use sprite-based rendering if CanvasGameRenderer is available
-    if (this.canvasGameRenderer) {
+    // Render based on current mode preference
+    if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
+      // Use sprite rendering
       this.canvasGameRenderer.render(state)
-      return
+    } else {
+      // Use ASCII rendering (either by preference or fallback if sprites unavailable)
+      const html = this.asciiRenderer.render(state)
+      this.dungeonContainer.innerHTML = html
     }
-
-    // Fall back to ASCII rendering if tileset not loaded
-    const html = this.asciiRenderer.render(state)
-    this.dungeonContainer.innerHTML = html
   }
 
   private renderStats(state: GameState): void {
