@@ -272,6 +272,54 @@ export class GameRenderer {
   }
 
   /**
+   * Setup window resize handler with debouncing
+   * Only resizes canvas in sprite mode (ASCII mode uses natural HTML reflow)
+   */
+  private setupResizeHandler(): void {
+    this.resizeHandler = () => {
+      // Debounce resize events (avoid excessive redraws during drag)
+      if (this.resizeDebounceTimer !== null) {
+        window.clearTimeout(this.resizeDebounceTimer)
+      }
+
+      this.resizeDebounceTimer = window.setTimeout(() => {
+        // Only resize if in sprite mode with canvas renderer
+        if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
+          if (this.debugService.isEnabled()) {
+            console.log('[GameRenderer] Window resized, recalculating canvas dimensions')
+          }
+
+          // Recalculate canvas dimensions based on new container size
+          this.canvasGameRenderer.resize()
+
+          // Re-render with current game state to update viewport
+          if (this.currentGameState) {
+            this.renderDungeon(this.currentGameState)
+          }
+        }
+        // ASCII mode doesn't need resize - HTML naturally reflows
+      }, 250) // 250ms debounce delay
+    }
+
+    window.addEventListener('resize', this.resizeHandler)
+  }
+
+  /**
+   * Cleanup resize handler to prevent memory leaks
+   * Called when returning to menu
+   */
+  public cleanupResizeHandler(): void {
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler)
+      this.resizeHandler = null
+    }
+    if (this.resizeDebounceTimer !== null) {
+      window.clearTimeout(this.resizeDebounceTimer)
+      this.resizeDebounceTimer = null
+    }
+  }
+
+  /**
    * Get root container
    */
   getContainer(): HTMLElement {
