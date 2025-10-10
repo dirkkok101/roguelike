@@ -199,6 +199,7 @@ async function initializeGame() {
     maxHp: 12,
     strength: 16,
     maxStrength: 16,
+    strengthPercentile: undefined, // No exceptional strength yet (will add 1% chance later)
     ac: 4,
     level: 1,
     xp: 0,
@@ -321,6 +322,7 @@ async function initializeGame() {
       maxHp: 12,
       strength: 16,
       maxStrength: 16,
+      strengthPercentile: undefined, // No exceptional strength yet (will add 1% chance later)
       ac: 4,
       level: 1,
       xp: 0,
