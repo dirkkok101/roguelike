@@ -11,6 +11,7 @@ describe('MonsterSpawnService - createMonsterFromTemplate', () => {
     {
       letter: 'T',
       name: 'Troll',
+      spriteName: 'Troll',
       hp: '6d8',
       ac: 4,
       damage: '1d8',
@@ -30,6 +31,7 @@ describe('MonsterSpawnService - createMonsterFromTemplate', () => {
     {
       letter: 'D',
       name: 'Dragon',
+      spriteName: 'Ancient dragon',
       hp: '10d8',
       ac: -1,
       damage: '1d8+3d10',
