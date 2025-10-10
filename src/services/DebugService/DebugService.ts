@@ -3,8 +3,6 @@ import {
   Level,
   DebugState,
   Position,
-  Monster,
-  MonsterBehavior,
   MonsterState,
   PotionType,
   ScrollType,
@@ -721,45 +719,6 @@ export class DebugService {
     }
 
     return positions
-  }
-
-  /**
-   * Helper: Find nearby empty tile for spawning (legacy method, kept for compatibility)
-   * @deprecated Use findSpawnPosition() instead for smart positioning
-   */
-  private findNearbyEmptyTile(level: Level, center: Position): Position | null {
-    const offsets = [
-      { x: 0, y: 0 },
-      { x: 1, y: 0 },
-      { x: -1, y: 0 },
-      { x: 0, y: 1 },
-      { x: 0, y: -1 },
-      { x: 1, y: 1 },
-      { x: -1, y: -1 },
-      { x: 1, y: -1 },
-      { x: -1, y: 1 },
-    ]
-
-    for (const offset of offsets) {
-      const pos = { x: center.x + offset.x, y: center.y + offset.y }
-
-      // Check bounds
-      if (pos.x < 0 || pos.x >= level.width || pos.y < 0 || pos.y >= level.height) {
-        continue
-      }
-
-      // Check walkable
-      const tile = level.tiles[pos.y][pos.x]
-      if (!tile.walkable) continue
-
-      // Check no monster
-      const hasMonster = level.monsters.some((m) => m.position.x === pos.x && m.position.y === pos.y)
-      if (hasMonster) continue
-
-      return pos
-    }
-
-    return null
   }
 
   // ============================================================================

@@ -34,12 +34,6 @@ export class GameRenderer {
     BLINKING: 10,
   }
 
-  private static readonly INVENTORY_THRESHOLDS = {
-    NORMAL: 20,
-    WARNING: 24,
-    CRITICAL: 26,
-  }
-
   private static readonly HUNGER_MAX = 1300
 
   private dungeonContainer: HTMLElement
@@ -368,7 +362,6 @@ export class GameRenderer {
     // Get XP progress for display
     const xpNeeded = this.levelingService.getXPForNextLevel(player.level)
     const xpDisplay = xpNeeded === Infinity ? `${player.xp} (MAX)` : `${player.xp}/${xpNeeded}`
-    const xpPercentage = xpNeeded === Infinity ? 100 : Math.min(100, (player.xp / xpNeeded) * 100)
 
     // Ring bonuses
     const strBonus = this.ringService.getStrengthBonus(player)
@@ -376,20 +369,8 @@ export class GameRenderer {
     const strDisplay = strBonus !== 0 ? `${player.strength}(${strBonus > 0 ? '+' : ''}${strBonus})/${player.maxStrength}` : `${player.strength}/${player.maxStrength}`
     const acDisplay = acBonus !== 0 ? `${player.ac}(${acBonus > 0 ? '+' : ''}${acBonus})` : `${player.ac}`
 
-    // Inventory color
-    const invCount = player.inventory.length
-    const invColor =
-      invCount < GameRenderer.INVENTORY_THRESHOLDS.NORMAL
-        ? '#00FF00'
-        : invCount < GameRenderer.INVENTORY_THRESHOLDS.WARNING
-        ? '#FFDD00'
-        : invCount < GameRenderer.INVENTORY_THRESHOLDS.CRITICAL
-        ? '#FF8800'
-        : '#FF0000'
-
     // Hunger bar
     const hungerPercent = Math.min(100, (player.hunger / GameRenderer.HUNGER_MAX) * 100)
-    const hungerBarClass = hungerPercent >= 50 ? 'hunger' : hungerPercent >= 25 ? 'hunger warning' : 'hunger critical'
     const hungerLabel = hungerPercent === 0 ? 'STARVING!' : hungerPercent < 10 ? 'Fainting' : hungerPercent < 25 ? 'Hungry' : 'Fed'
     const hungerWarning = hungerPercent < 25 ? ' 🍖' : ''
 
@@ -411,7 +392,6 @@ export class GameRenderer {
         lightLabel = '∞'
       }
     }
-    const lightBarClass = lightPercent >= 50 ? 'light' : lightPercent >= 20 ? 'light warning' : 'light critical'
 
     this.statsContainer.innerHTML = `
       <!-- Single Row: 4 Panels Side-by-Side -->

@@ -71,7 +71,7 @@ export class PlayingState extends BaseState {
    * Game tick logic (currently unused - game is turn-based, not frame-based)
    * @param deltaTime - Time since last update (unused)
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Turn-based game doesn't need frame updates
     // All logic is driven by player input in handleInput()
   }
@@ -99,7 +99,7 @@ export class PlayingState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
+  handleInput(_input: Input): void {
     // Don't process input if death or victory screen is visible
     if (this.renderer.isDeathScreenVisible() || this.renderer.isVictoryScreenVisible()) {
       return
@@ -107,7 +107,7 @@ export class PlayingState extends BaseState {
 
     // Convert Input to KeyboardEvent for existing InputHandler
     // TODO: Phase 4 will refactor to use Input directly
-    const keyboardEvent = this.inputToKeyboardEvent(input)
+    const keyboardEvent = this.inputToKeyboardEvent(_input)
 
     // PHASE 1: Grant energy to all actors until player can act
     do {

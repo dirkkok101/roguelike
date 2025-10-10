@@ -303,14 +303,14 @@ export class MonsterAIService {
       case MonsterState.HUNTING:
         // Flee if COWARD and HP low
         if (
-          monster.aiProfile.behavior === MonsterBehavior.COWARD &&
+          this.hasBehavior(monster, MonsterBehavior.COWARD) &&
           hpPercent < monster.aiProfile.fleeThreshold
         ) {
           return { ...monster, state: MonsterState.FLEEING }
         }
         // Flee if THIEF and hasStolen
         if (
-          monster.aiProfile.behavior === MonsterBehavior.THIEF &&
+          this.hasBehavior(monster, MonsterBehavior.THIEF) &&
           monster.hasStolen
         ) {
           return { ...monster, state: MonsterState.FLEEING }
@@ -320,7 +320,7 @@ export class MonsterAIService {
       case MonsterState.FLEEING:
         // Stop fleeing if HP recovered (for COWARD)
         if (
-          monster.aiProfile.behavior === MonsterBehavior.COWARD &&
+          this.hasBehavior(monster, MonsterBehavior.COWARD) &&
           hpPercent >= monster.aiProfile.fleeThreshold + 0.1
         ) {
           return { ...monster, state: MonsterState.HUNTING }
@@ -390,12 +390,10 @@ export class MonsterAIService {
       ? playerPos
       : (monster.lastKnownPlayerPosition ?? playerPos)
 
-    // Determine behavior
-    const behaviors = Array.isArray(monster.aiProfile.behavior)
-      ? monster.aiProfile.behavior
-      : [monster.aiProfile.behavior]
-
-    const primaryBehavior = behaviors[0]
+    // Determine primary behavior
+    const primaryBehavior = Array.isArray(monster.aiProfile.behavior)
+      ? monster.aiProfile.behavior[0]
+      : monster.aiProfile.behavior
 
     switch (primaryBehavior) {
       case MonsterBehavior.SMART:
@@ -693,5 +691,21 @@ export class MonsterAIService {
       { x: pos.x - 1, y: pos.y }, // Left
       { x: pos.x + 1, y: pos.y }, // Right
     ]
+  }
+
+  /**
+   * Check if monster has a specific behavior
+   *
+   * Handles both single behavior and multiple behaviors (array).
+   *
+   * @param monster Monster to check
+   * @param behavior Behavior to look for
+   * @returns True if monster has the specified behavior
+   */
+  hasBehavior(monster: Monster, behavior: MonsterBehavior): boolean {
+    const behaviors = Array.isArray(monster.aiProfile.behavior)
+      ? monster.aiProfile.behavior
+      : [monster.aiProfile.behavior]
+    return behaviors.includes(behavior)
   }
 }

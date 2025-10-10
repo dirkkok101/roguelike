@@ -60,7 +60,7 @@ export class VictoryScreenState extends BaseState {
    * Game tick logic (victory screen is static)
    * @param deltaTime - Unused for static screen
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Victory screen is static - no updates needed
   }
 
@@ -79,7 +79,7 @@ export class VictoryScreenState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
+  handleInput(_input: Input): void {
     // VictoryScreen currently handles its own input via keydown listeners
     // Commands: n=new game, l=leaderboard, q=quit
     // This is a transition state - Phase 4 will refactor to handle input here

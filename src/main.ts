@@ -57,12 +57,13 @@ import { PlayingState } from '@states/PlayingState'
 // Initialize game asynchronously to load item data
 async function initializeGame() {
   // Load item data from JSON
-  let itemData: ItemData | undefined
+  let itemData: ItemData
   try {
     itemData = await loadItemData()
     console.log('Items loaded from items.json')
   } catch (error) {
-    console.warn('Failed to load items.json, using hardcoded items:', error)
+    console.error('Failed to load items.json:', error)
+    throw error // Fatal error - game cannot proceed without item data
   }
 
   // Generate unique seed for new games (will be overridden when loading saves)

@@ -51,7 +51,7 @@ export class DungeonService {
   constructor(
     private random: IRandomService,
     monsterSpawnService: MonsterSpawnService,
-    itemData?: ItemData
+    itemData: ItemData
   ) {
     this.roomGenerationService = new RoomGenerationService(random)
     this.corridorGenerationService = new CorridorGenerationService(random)

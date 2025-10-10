@@ -81,7 +81,6 @@ export type TargetCancelCallback = () => void
 export class TargetSelectionState extends BaseState implements ITargetingState {
   private cursorPosition: Position
   private visibleMonsters: Monster[] = []
-  private currentTargetIndex: number = 0
 
   constructor(
     private targetingService: TargetingService,
@@ -123,7 +122,6 @@ export class TargetSelectionState extends BaseState implements ITargetingState {
       )
       if (nearestMonster) {
         this.cursorPosition = { ...nearestMonster.position }
-        this.currentTargetIndex = 0
         return
       }
     }
@@ -176,7 +174,7 @@ export class TargetSelectionState extends BaseState implements ITargetingState {
    * Game tick logic (targeting is static, could animate cursor)
    * @param deltaTime - Time since last update
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     // Targeting is turn-based, no frame updates needed
     // Could add cursor blinking animation here in future
   }
@@ -211,8 +209,8 @@ export class TargetSelectionState extends BaseState implements ITargetingState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(input: Input): void {
-    switch (input.key) {
+  handleInput(_input: Input): void {
+    switch (_input.key) {
       // Vim-style movement keys
       case 'h': // Left
         this.moveCursor(-1, 0)
@@ -261,7 +259,7 @@ export class TargetSelectionState extends BaseState implements ITargetingState {
 
       // Cycle monsters
       case 'Tab':
-        if (input.shift) {
+        if (_input.shift) {
           this.cycleMonster('prev')
         } else {
           this.cycleMonster('next')
@@ -324,26 +322,6 @@ export class TargetSelectionState extends BaseState implements ITargetingState {
   }
 
   /**
-   * Validate if current cursor position is a valid target
-   */
-  private isValidTarget(): boolean {
-    const monster = this.getMonsterAtCursor()
-    if (!monster) return false
-
-    // Check range using Manhattan distance (consistent with TargetingService)
-    const distance = this.targetingService.distance(
-      this.gameState.player.position,
-      this.cursorPosition
-    )
-
-    if (distance > this.range) return false
-
-    // Check if monster is in FOV
-    const key = `${this.cursorPosition.x},${this.cursorPosition.y}`
-    return this.gameState.visibleCells.has(key)
-  }
-
-  /**
    * Move cursor in a direction
    * @param dx - X offset (-1, 0, 1)
    * @param dy - Y offset (-1, 0, 1)
@@ -395,8 +373,6 @@ export class TargetSelectionState extends BaseState implements ITargetingState {
 
     if (nextMonster) {
       this.cursorPosition = { ...nextMonster.position }
-      // Update index for tracking
-      this.currentTargetIndex = this.visibleMonsters.findIndex((m) => m.id === nextMonster.id)
     }
   }
 
