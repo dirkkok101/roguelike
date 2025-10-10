@@ -269,7 +269,6 @@ export class CanvasGameRenderer {
       // Center camera on player for new level
       this.cameraOffsetX = playerPos.x - Math.floor(this.config.gridWidth / 2)
       this.cameraOffsetY = playerPos.y - Math.floor(this.config.gridHeight / 2)
-      this.isFirstRender = false
       this.previousLevel = state.currentLevel
     } else {
       // 2. Scroll margin mode (normal gameplay)
@@ -304,9 +303,6 @@ export class CanvasGameRenderer {
     } else {
       this.cameraOffsetY = Math.max(0, Math.min(this.cameraOffsetY, mapHeight - this.config.gridHeight))
     }
-
-    // Store for next frame
-    this.previousPlayerPos = { ...playerPos }
   }
 
   /**
@@ -323,6 +319,16 @@ export class CanvasGameRenderer {
 
     // Update camera position using scroll margin system
     this.updateCamera(state)
+
+    // DEBUG: Log camera and viewport state
+    const playerPos = state.player.position
+    const playerScreen = this.worldToScreen(playerPos)
+    const level = state.levels.get(state.currentLevel)
+    const mapSize = level ? `${level.tiles[0]?.length || 0}×${level.tiles.length || 0}` : 'unknown'
+
+    console.log(`[Render] Player: world(${playerPos.x},${playerPos.y}) → screen(${playerScreen.x},${playerScreen.y})`)
+    console.log(`[Render] Camera: offset(${this.cameraOffsetX},${this.cameraOffsetY}) viewport(${this.config.gridWidth}×${this.config.gridHeight}) map(${mapSize})`)
+    console.log(`[Render] Viewport bounds: world X[${this.cameraOffsetX} to ${this.cameraOffsetX + this.config.gridWidth}], Y[${this.cameraOffsetY} to ${this.cameraOffsetY + this.config.gridHeight}]`)
 
     // Calculate which tiles need to be redrawn (dirty rectangle optimization)
     const dirtyTiles = this.calculateDirtyTiles(state)
@@ -385,6 +391,14 @@ export class CanvasGameRenderer {
     // Update camera offsets
     this.previousCameraOffsetX = this.cameraOffsetX
     this.previousCameraOffsetY = this.cameraOffsetY
+
+    // Update player position (for next frame's dirty rectangle calculation)
+    this.previousPlayerPos = { ...state.player.position }
+
+    // Reset first render flag after rendering is complete
+    if (this.isFirstRender) {
+      this.isFirstRender = false
+    }
   }
 
   /**
@@ -452,7 +466,6 @@ export class CanvasGameRenderer {
         this.drawTile(worldX, worldY, sprite, opacity)
       }
     }
-
   }
 
   /**
@@ -726,13 +739,6 @@ export class CanvasGameRenderer {
     // Convert grid coordinates to screen coordinates
     const screen = this.worldToScreen({ x, y })
 
-    // Debug: Log first few draw calls WITH image state
-    if (this.drawCallCount < 3) {
-      console.log(`[CanvasGameRenderer] drawTile(${x}, ${y}) sprite=(${sprite.x}, ${sprite.y}) screen=(${screen.x}, ${screen.y}) opacity=${opacity}`)
-      console.log(`[CanvasGameRenderer] image.complete=${tileset.image.complete}, image.width=${tileset.image.width}, image.height=${tileset.image.height}, image.naturalWidth=${tileset.image.naturalWidth}, image.naturalHeight=${tileset.image.naturalHeight}`)
-      this.drawCallCount++
-    }
-
     // Set opacity
     const previousAlpha = this.ctx.globalAlpha
     this.ctx.globalAlpha = opacity
@@ -763,8 +769,6 @@ export class CanvasGameRenderer {
     this.ctx.globalAlpha = previousAlpha
   }
 
-  private drawCallCount = 0
-
   /**
    * Convert world (grid) coordinates to screen (pixel) coordinates
    *
@@ -790,5 +794,44 @@ export class CanvasGameRenderer {
    */
   getConfig(): CanvasRenderConfig {
     return { ...this.config }
+  }
+
+  /**
+   * Resize canvas to fit container (call after canvas is added to DOM)
+   * Recalculates responsive dimensions based on current container size
+   */
+  resize(): void {
+    // Recalculate responsive dimensions
+    const newDimensions = this.calculateResponsiveDimensions(
+      this.config.tileWidth,
+      this.config.tileHeight
+    )
+
+    // Check if dimensions changed
+    if (newDimensions.gridWidth === this.config.gridWidth &&
+        newDimensions.gridHeight === this.config.gridHeight) {
+      // No change needed
+      return
+    }
+
+    // Update config with new dimensions
+    this.config.gridWidth = newDimensions.gridWidth
+    this.config.gridHeight = newDimensions.gridHeight
+
+    // Recalculate scroll margins based on new viewport size
+    this.config.scrollMarginX = Math.min(10, Math.floor(newDimensions.gridWidth / 8))
+    this.config.scrollMarginY = Math.min(5, Math.floor(newDimensions.gridHeight / 4))
+
+    // Resize canvas element
+    this.canvasElement.width = this.config.gridWidth * this.config.tileWidth
+    this.canvasElement.height = this.config.gridHeight * this.config.tileHeight
+
+    console.log(
+      `[CanvasGameRenderer] Canvas resized: ${this.canvasElement.width}×${this.canvasElement.height}px ` +
+        `(${this.config.gridWidth}×${this.config.gridHeight} tiles @ ${this.config.tileWidth}px)`
+    )
+
+    // Recenter camera on player (will be adjusted on next render)
+    this.isFirstRender = true
   }
 }

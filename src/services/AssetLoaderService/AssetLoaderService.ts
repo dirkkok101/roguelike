@@ -155,7 +155,9 @@ export class AssetLoaderService {
         const terrainSpriteName = this.terrainSpriteService.getSpriteNameWithLighting(char, 'torch')
         if (terrainSpriteName) {
           sprite = this.currentTileset.config.tiles.get(terrainSpriteName)
-          if (sprite) return sprite
+          if (sprite) {
+            return sprite
+          }
         }
       }
 

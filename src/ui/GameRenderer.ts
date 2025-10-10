@@ -30,11 +30,7 @@ import { DeathScreen } from './DeathScreen'
 
 export class GameRenderer {
   // Canvas rendering constants
-  private static readonly TILE_SIZE = 32
-  private static readonly GRID_WIDTH = 80
-  private static readonly GRID_HEIGHT = 22
-  private static readonly CANVAS_WIDTH = GameRenderer.GRID_WIDTH * GameRenderer.TILE_SIZE // 2560px
-  private static readonly CANVAS_HEIGHT = GameRenderer.GRID_HEIGHT * GameRenderer.TILE_SIZE // 704px
+  private static readonly TILE_SIZE = 32  // Sprite tile size (always 32×32)
 
   // Notification display durations (in milliseconds)
   private static readonly NOTIFICATION_DISPLAY_DURATION = 700 // Time before fade starts
@@ -69,6 +65,7 @@ export class GameRenderer {
   private asciiRenderer: AsciiDungeonRenderer
   private currentRenderMode: 'ascii' | 'sprites' = 'sprites'
   private currentGameState: GameState | null = null
+  private canvasNeedsResize = true // Flag to resize canvas on first render (after DOM is constructed)
 
   constructor(
     private renderingService: RenderingService,
@@ -303,14 +300,20 @@ export class GameRenderer {
     // Create canvas for sprite-based rendering
     const canvas = document.createElement('canvas')
     canvas.id = 'dungeon-canvas'
-    canvas.width = GameRenderer.CANVAS_WIDTH
-    canvas.height = GameRenderer.CANVAS_HEIGHT
     canvas.className = 'dungeon-canvas'
+    // Don't set width/height here - let CanvasGameRenderer calculate responsive dimensions
 
     // Store canvas reference for mode switching
     this.dungeonCanvas = canvas
 
+    // IMPORTANT: Append canvas to container BEFORE creating CanvasGameRenderer
+    // so it can access parentElement to calculate responsive dimensions
+    if (this.currentRenderMode === 'sprites' && this.assetLoaderService.isLoaded()) {
+      container.appendChild(canvas)
+    }
+
     // Initialize CanvasGameRenderer if tileset is loaded
+    // Let it calculate responsive viewport based on container size
     if (this.assetLoaderService.isLoaded()) {
       this.canvasGameRenderer = new CanvasGameRenderer(
         this.renderingService,
@@ -319,8 +322,7 @@ export class GameRenderer {
         {
           tileWidth: GameRenderer.TILE_SIZE,
           tileHeight: GameRenderer.TILE_SIZE,
-          gridWidth: GameRenderer.GRID_WIDTH,
-          gridHeight: GameRenderer.GRID_HEIGHT,
+          // Don't specify gridWidth/gridHeight - let it auto-calculate from container size
           enableSmoothing: false,
           enableDirtyRectangles: true,
           exploredOpacity: 0.5,
@@ -335,12 +337,6 @@ export class GameRenderer {
         console.warn('[GameRenderer] Tileset not loaded, will fall back to ASCII rendering')
       }
     }
-
-    // Add the appropriate element based on initial render mode
-    if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
-      container.appendChild(canvas)
-    }
-    // ASCII rendering will use innerHTML, no element needed initially
 
     return container
   }
@@ -362,6 +358,12 @@ export class GameRenderer {
   private renderDungeon(state: GameState, targetingState: ITargetingState | null = null): void {
     // Sprite rendering mode
     if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
+      // Resize canvas on first render (after DOM is constructed and container has dimensions)
+      if (this.canvasNeedsResize) {
+        this.canvasGameRenderer.resize()
+        this.canvasNeedsResize = false
+      }
+
       // Use sprite rendering
       this.canvasGameRenderer.render(state)
 
@@ -822,14 +824,16 @@ export class GameRenderer {
   private createDebugCanvas(): HTMLCanvasElement {
     const canvas = document.createElement('canvas')
     canvas.id = 'debug-canvas'
-    canvas.width = 80 * 16 // 80 cells × 16px cell size
-    canvas.height = 22 * 16 // 22 cells × 16px cell size
+    // Size will be set when renderer is available
+    canvas.width = 800
+    canvas.height = 600
     canvas.style.cssText = `
       position: absolute;
       top: 0;
       left: 0;
       pointer-events: none;
       z-index: 10;
+      display: none; // Hide until properly sized
     `
     return canvas
   }

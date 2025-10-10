@@ -63,10 +63,17 @@ body {
   background: #000000;
   border: 1px solid #444;
   padding: 15px;
-  overflow: auto;
+  overflow: hidden; /* Changed from auto to hidden - no scrollbars */
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
+  align-items: center; /* Center canvas vertically */
+  justify-content: center; /* Center canvas horizontally */
+}
+
+#dungeon-canvas {
+  display: block;
+  image-rendering: pixelated; /* Crisp pixel art */
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 
 /* Make dungeon grid scale better */
