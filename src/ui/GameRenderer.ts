@@ -29,9 +29,19 @@ import { DeathScreen } from './DeathScreen'
 // ============================================================================
 
 export class GameRenderer {
+  // Canvas rendering constants
+  private static readonly TILE_SIZE = 32
+  private static readonly GRID_WIDTH = 80
+  private static readonly GRID_HEIGHT = 22
+  private static readonly CANVAS_WIDTH = GameRenderer.GRID_WIDTH * GameRenderer.TILE_SIZE // 2560px
+  private static readonly CANVAS_HEIGHT = GameRenderer.GRID_HEIGHT * GameRenderer.TILE_SIZE // 704px
+
   // Notification display durations (in milliseconds)
   private static readonly NOTIFICATION_DISPLAY_DURATION = 700 // Time before fade starts
   private static readonly NOTIFICATION_FADE_DURATION = 300 // Time to complete fade-out
+
+  // CSS class name for mode change notification overlay
+  private static readonly MODE_CHANGE_NOTIFICATION_CLASS = 'mode-change-notification'
 
   // Display thresholds for color-coded warnings
   private static readonly HP_THRESHOLDS = {
@@ -122,7 +132,9 @@ export class GameRenderer {
     if (state.isGameOver && !state.hasWon && !this.deathScreen.isVisible()) {
       // Permadeath: Delete save immediately when player dies
       this.localStorageService.deleteSave(state.gameId)
-      console.log('Save deleted (permadeath)')
+      if (this.debugService.isEnabled()) {
+        console.log('[GameRenderer] Save deleted (permadeath)')
+      }
 
       // Calculate comprehensive death statistics via DeathService
       const stats = this.deathService.calculateDeathStats(state)
@@ -205,7 +217,7 @@ export class GameRenderer {
    */
   private showModeChangeNotification(mode: 'ascii' | 'sprites'): void {
     const overlay = document.createElement('div')
-    overlay.className = 'mode-change-notification'
+    overlay.className = GameRenderer.MODE_CHANGE_NOTIFICATION_CLASS
     overlay.textContent = mode === 'sprites' ? 'SPRITE MODE' : 'ASCII MODE'
 
     document.body.appendChild(overlay)
@@ -291,8 +303,8 @@ export class GameRenderer {
     // Create canvas for sprite-based rendering
     const canvas = document.createElement('canvas')
     canvas.id = 'dungeon-canvas'
-    canvas.width = 2560  // 80 tiles × 32px
-    canvas.height = 704  // 22 tiles × 32px
+    canvas.width = GameRenderer.CANVAS_WIDTH
+    canvas.height = GameRenderer.CANVAS_HEIGHT
     canvas.className = 'dungeon-canvas'
 
     // Store canvas reference for mode switching
@@ -305,19 +317,23 @@ export class GameRenderer {
         this.assetLoaderService,
         canvas,
         {
-          tileWidth: 32,
-          tileHeight: 32,
-          gridWidth: 80,
-          gridHeight: 22,
+          tileWidth: GameRenderer.TILE_SIZE,
+          tileHeight: GameRenderer.TILE_SIZE,
+          gridWidth: GameRenderer.GRID_WIDTH,
+          gridHeight: GameRenderer.GRID_HEIGHT,
           enableSmoothing: false,
           enableDirtyRectangles: true,
           exploredOpacity: 0.5,
           detectedOpacity: 0.6,
         }
       )
-      console.log('[GameRenderer] CanvasGameRenderer initialized')
+      if (this.debugService.isEnabled()) {
+        console.log('[GameRenderer] CanvasGameRenderer initialized')
+      }
     } else {
-      console.warn('[GameRenderer] Tileset not loaded, will fall back to ASCII rendering')
+      if (this.debugService.isEnabled()) {
+        console.warn('[GameRenderer] Tileset not loaded, will fall back to ASCII rendering')
+      }
     }
 
     // Add the appropriate element based on initial render mode
