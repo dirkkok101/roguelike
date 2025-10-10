@@ -137,6 +137,15 @@ export class AssetLoaderService {
           if (sprite) return sprite
         }
       }
+
+      // Last resort: Try suffix matching (e.g., "Bat" matches "Fruit bat")
+      // This handles cases where monsters.json has simple names but .prf has variants
+      const lowerName = char.toLowerCase()
+      for (const [key, coord] of this.currentTileset.config.tiles.entries()) {
+        if (key.toLowerCase().endsWith(lowerName) || key.toLowerCase().endsWith(` ${lowerName}`)) {
+          return coord
+        }
+      }
     } else {
       // Single character - try direct lookup first (for monster letters A-Z, etc.)
       sprite = this.currentTileset.config.tiles.get(char)
