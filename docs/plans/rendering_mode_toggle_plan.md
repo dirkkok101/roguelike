@@ -138,10 +138,10 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 - `src/ui/AsciiDungeonRenderer.ts` (extract if needed)
 
 ##### Subtasks:
-- [ ] Audit GameRenderer.ts for old ASCII rendering code
-- [ ] Check if ASCII rendering still works with current GameState
-- [ ] Fix any broken ASCII rendering logic (FOV, colors, entities)
-- [ ] Extract ASCII rendering to separate class if appropriate:
+- [x] Audit GameRenderer.ts for old ASCII rendering code
+- [x] Check if ASCII rendering still works with current GameState
+- [x] Fix any broken ASCII rendering logic (FOV, colors, entities)
+- [x] Extract ASCII rendering to separate class if appropriate:
   ```typescript
   export class AsciiDungeonRenderer {
     render(state: GameState): string {
@@ -149,9 +149,9 @@ Add a user preference toggle that allows switching between ASCII text rendering 
     }
   }
   ```
-- [ ] Ensure ASCII renderer respects same visibility rules as sprites
-- [ ] Test ASCII rendering manually in browser
-- [ ] Git commit: "fix: restore and update ASCII rendering (Phase 2.1)"
+- [x] Ensure ASCII renderer respects same visibility rules as sprites
+- [x] Test ASCII rendering manually in browser (deferred to Phase 5.2)
+- [x] Git commit: "fix: restore and update ASCII rendering (Phase 2.1)"
 
 ---
 
