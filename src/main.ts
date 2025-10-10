@@ -171,6 +171,7 @@ async function initializeGame() {
   // Create new random service with game-specific seed
   const gameRandom = new SeededRandom(gameSeed)
   const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
+  const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
 
   // Generate procedural dungeon using DungeonService
   const level = gameDungeonService.generateLevel(1, dungeonConfig)
@@ -193,6 +194,9 @@ async function initializeGame() {
     isPermanent: false,
   }
 
+  // Create starting leather armor (matching original Rogue 1980)
+  const leatherArmor = gameItemSpawnService.createStartingLeatherArmor(startPos)
+
   const player = {
     position: startPos,
     hp: 12,
@@ -200,14 +204,14 @@ async function initializeGame() {
     strength: 16,
     maxStrength: 16,
     strengthPercentile: undefined, // No exceptional strength yet (will add 1% chance later)
-    ac: 10, // Unarmored (matching original Rogue 1980)
+    ac: 8, // With starting leather armor equipped (AC 8)
     level: 1,
     xp: 0,
     gold: 0,
     hunger: 1300,
     equipment: {
       weapon: null,
-      armor: null,
+      armor: leatherArmor, // Start with leather armor equipped
       leftRing: null,
       rightRing: null,
       lightSource: torch,
@@ -241,7 +245,7 @@ async function initializeGame() {
     visibleCells,
     messages: [
       {
-        text: 'Welcome to the dungeon. Find the Amulet of Yendor!',
+        text: 'Welcome to the dungeon. You are equipped with leather armor and a torch. Find the Amulet of Yendor!',
         type: 'info',
         turn: 0,
       },
@@ -296,6 +300,7 @@ async function initializeGame() {
     // Create new game with specified seed
     const gameRandom = new SeededRandom(seed)
     const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
+    const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
 
     const level = gameDungeonService.generateLevel(1, dungeonConfig)
     const startRoom = level.rooms[0]
@@ -316,6 +321,9 @@ async function initializeGame() {
       isPermanent: false,
     }
 
+    // Create starting leather armor (matching original Rogue 1980)
+    const leatherArmor = gameItemSpawnService.createStartingLeatherArmor(startPos)
+
     const player = {
       position: startPos,
       hp: 12,
@@ -323,14 +331,14 @@ async function initializeGame() {
       strength: 16,
       maxStrength: 16,
       strengthPercentile: undefined, // No exceptional strength yet (will add 1% chance later)
-      ac: 10, // Unarmored (matching original Rogue 1980)
+      ac: 8, // With starting leather armor equipped (AC 8)
       level: 1,
       xp: 0,
       gold: 0,
       hunger: 1300,
       equipment: {
         weapon: null,
-        armor: null,
+        armor: leatherArmor, // Start with leather armor equipped
         leftRing: null,
         rightRing: null,
         lightSource: torch,
@@ -361,7 +369,7 @@ async function initializeGame() {
       visibleCells,
       messages: [
         {
-          text: 'Welcome to the dungeon. Find the Amulet of Yendor!',
+          text: 'Welcome to the dungeon. You are equipped with leather armor and a torch. Find the Amulet of Yendor!',
           type: 'info',
           turn: 0,
         },
