@@ -168,6 +168,9 @@ export class GameRenderer {
     // Log mode change
     console.log(`[GameRenderer] Render mode changed: ${oldMode} → ${newMode}`)
 
+    // Show visual feedback overlay
+    this.showModeChangeNotification(newMode)
+
     // Handle DOM swapping
     this.switchRenderMode(newMode)
 
@@ -175,6 +178,23 @@ export class GameRenderer {
     if (this.currentGameState) {
       this.renderDungeon(this.currentGameState)
     }
+  }
+
+  /**
+   * Show brief overlay notification when render mode changes
+   */
+  private showModeChangeNotification(mode: 'ascii' | 'sprites'): void {
+    const overlay = document.createElement('div')
+    overlay.className = 'mode-change-notification'
+    overlay.textContent = mode === 'sprites' ? 'SPRITE MODE' : 'ASCII MODE'
+
+    document.body.appendChild(overlay)
+
+    // Fade out and remove after 1 second
+    setTimeout(() => {
+      overlay.style.opacity = '0'
+      setTimeout(() => overlay.remove(), 300)
+    }, 700)
   }
 
   /**

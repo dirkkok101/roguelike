@@ -362,8 +362,8 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 - `public/styles.css` (modify - optional)
 
 ##### Subtasks:
-- [ ] Message already added by command (via MessageService)
-- [ ] Optional: Add brief overlay notification:
+- [x] Message already added by command (via MessageService)
+- [x] Optional: Add brief overlay notification:
   ```typescript
   private showModeChangeNotification(mode: 'ascii' | 'sprites'): void {
     const overlay = document.createElement('div')
@@ -379,7 +379,7 @@ Add a user preference toggle that allows switching between ASCII text rendering 
     }, 700)
   }
   ```
-- [ ] Optional CSS for overlay:
+- [x] Optional CSS for overlay:
   ```css
   .mode-change-notification {
     position: fixed;
@@ -396,7 +396,7 @@ Add a user preference toggle that allows switching between ASCII text rendering 
     transition: opacity 0.3s;
   }
   ```
-- [ ] Git commit: "feat: add visual feedback for render mode toggle (Phase 4.2)"
+- [x] Git commit: "feat: add visual feedback for render mode toggle (Phase 4.2)"
 
 ---
 
