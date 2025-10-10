@@ -283,6 +283,9 @@ export interface GameState {
   // Targeting state (active during target selection)
   targeting?: TargetingState // Active targeting state (optional)
 
+  // Position history for door slam detection (tracks last 3 positions)
+  positionHistory?: Position[] // Track player movement pattern (max length 3)
+
   // Death details (populated only on death)
   deathDetails?: {
     finalBlow: {

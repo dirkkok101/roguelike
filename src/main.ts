@@ -256,6 +256,7 @@ async function initializeGame() {
     detectedMonsters: new Set(),
     detectedMagicItems: new Set(),
     debug: debugService.initializeDebugState(),
+    positionHistory: [], // Track last 3 positions for door slam detection
     // Run statistics (initialized to 0)
     monstersKilled: 0,
     itemsFound: 0,
@@ -374,6 +375,7 @@ async function initializeGame() {
       detectedMonsters: new Set(),
       detectedMagicItems: new Set(),
       debug: debugService.initializeDebugState(),
+      positionHistory: [], // Track last 3 positions for door slam detection
       monstersKilled: 0,
       itemsFound: 0,
       itemsUsed: 0,

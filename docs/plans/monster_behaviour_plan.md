@@ -289,13 +289,16 @@ Enhance monster behavior to match authentic 1980 Rogue mechanics, adding wanderi
 
 **Files to modify**:
 - `src/commands/MoveCommand/MoveCommand.ts`
+- `src/types/core/core.ts`
 
 ##### Subtasks:
-- [ ] Track last 2 player positions in GameState
-- [ ] Detect pattern: position N-2 == position N (returned to same tile within 2 moves)
-- [ ] Check if position is doorway (door at position)
-- [ ] If pattern matches, set `doorSlammed: boolean` flag
-- [ ] Git commit: "feat: detect door slam pattern (Phase 5.1)"
+- [x] Track last 3 player positions in GameState (positionHistory field)
+- [x] Update MoveCommand to append to position history after each move
+- [x] Detect pattern: position N-2 == position N (returned to same tile within 2 moves)
+- [x] Check if position is doorway (door at position)
+- [x] Implement `detectDoorSlam()` method in MoveCommand
+- [x] Write comprehensive tests (6 tests, all passing)
+- [x] Git commit: "feat: detect door slam pattern (Phase 5.1)"
 
 ---
 
