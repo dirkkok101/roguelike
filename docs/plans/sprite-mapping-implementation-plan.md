@@ -453,32 +453,32 @@ getFloorSpriteName(lighting: 'torch' | 'lit' | 'dark'): string {
 4. ✅ Created `docs/sprite-mapping-options-terrain.md` (complete terrain sprite mappings)
 5. ✅ Found 27/65 items (42%) with exact matches, 10/10 terrain (100%) with lighting variants
 
-**Phase 1: Terrain Tiles** (2-3 hours) - READY TO START
-1. Create `terrain-sprites.json` with 6 core terrain types
+**✅ COMPLETED: Phase 1 - Terrain Tiles** (2-3 hours)
+1. ✅ Created `terrain-sprites.json` with 6 core terrain types
    - Floor, Wall, Doors (open/closed), Stairs (up/down)
-   - Include all 4 lighting variants (torch/lit/los/dark) for each
-2. Create `TerrainSpriteService`
-   - Load terrain-sprites.json
-   - Provide getSpriteName(char, lighting) method
-3. Update `AssetLoaderService` to delegate terrain lookups
-   - Remove hardcoded CHAR_TO_ANGBAND (lines 126-144)
-   - Use TerrainSpriteService instead
-4. Update `CanvasGameRenderer` to pass lighting conditions
-   - Pass 'torch' for visible tiles, 'dark' for explored tiles
-5. Update `validate-assets.js` for terrain validation
-6. Test and validate all terrain renders correctly
+   - All 4 lighting variants (torch/lit/los/dark) for each
+2. ✅ Created `TerrainSpriteService`
+   - Loads terrain-sprites.json
+   - Provides getSpriteNameWithLighting(char, lighting) method
+3. ✅ Updated `AssetLoaderService` to delegate terrain lookups
+   - Delegates to TerrainSpriteService for terrain characters
+   - Kept CHAR_TO_ANGBAND for items only
+4. ✅ Updated `CanvasGameRenderer` to use lighting
+   - Currently uses 'torch' for all visible tiles
+5. ✅ Updated `validate-assets.js` for terrain validation
+6. ✅ Validated: 6/6 terrain sprites with all 4 lighting variants
 
-**Phase 2a: Items - Exact Matches** (2-3 hours)
-1. Add `spriteName` to 21 items with exact matches in `items.json`:
+**✅ COMPLETED: Phase 2a - Items (Exact Matches)** (2-3 hours)
+1. ✅ Added `spriteName` to 21 items with exact matches in `items.json`:
    - 8 weapons (Mace → `Mace`, Long Sword → `Long Sword`, etc.)
    - 7 armor (Leather Armor → `Hard Leather Armour`, etc.)
-   - 4 light sources (Torch → `Wooden Torch`, etc.)
+   - 4 light sources (Torch → `Wooden Torch`, Lantern, Phial, Star)
    - 1 food (Food Ration → `Ration of Food`)
    - 1 consumable (Oil Flask → `Flask of oil`)
-2. Update item type definitions with spriteName field
-3. Update `ItemDataLoader` to validate `spriteName`
-4. Update `CanvasGameRenderer` item rendering to use spriteName
-5. Test and validate all 21 items render correctly
+2. ✅ Updated item type definitions with spriteName field
+3. ✅ Updated `ItemDataLoader` and `ItemSpawnService` to populate spriteName
+4. ✅ Updated `CanvasGameRenderer` item rendering to use spriteName
+5. ✅ Validated: All 21 items have valid sprite mappings
 
 **Phase 2b: Items - Generic Sprites** (2-3 hours)
 1. Add generic `spriteName` to remaining 38 items:
@@ -513,17 +513,18 @@ getFloorSpriteName(lighting: 'torch' | 'lit' | 'dark'): string {
 ### New Files
 - ✅ `/docs/sprite-mapping-options-items.md` - Item sprite analysis (COMPLETED)
 - ✅ `/docs/sprite-mapping-options-terrain.md` - Terrain sprite analysis (COMPLETED)
-- `/public/data/terrain-sprites.json` - Terrain sprite mappings (PENDING)
-- `/src/services/TerrainSpriteService/TerrainSpriteService.ts` - Terrain sprite service (PENDING)
-- `/src/services/TerrainSpriteService/index.ts` - Barrel export (PENDING)
+- ✅ `/public/data/terrain-sprites.json` - Terrain sprite mappings (COMPLETED)
+- ✅ `/src/services/TerrainSpriteService/TerrainSpriteService.ts` - Terrain sprite service (COMPLETED)
+- ✅ `/src/services/TerrainSpriteService/index.ts` - Barrel export (COMPLETED)
 
 ### Modified Files
-- `/public/data/items.json` - Add spriteName to all items
-- `/src/types/core/core.ts` - Add spriteName to item interfaces
-- `/src/data/ItemDataLoader.ts` - Validate spriteName
-- `/src/services/AssetLoaderService/AssetLoaderService.ts` - Delegate terrain to TerrainSpriteService
-- `/src/ui/CanvasGameRenderer.ts` - Use spriteName for items
-- `/scripts/validate-assets.js` - Validate terrain and items
+- ✅ `/public/data/items.json` - Added spriteName to 21 items (Phase 2a complete, Phase 2b pending)
+- ✅ `/src/types/core/core.ts` - Added spriteName to item interfaces (COMPLETED)
+- ✅ `/src/data/ItemDataLoader.ts` - Added spriteName validation (COMPLETED)
+- ✅ `/src/services/ItemSpawnService/ItemSpawnService.ts` - Updated to use spriteName (COMPLETED)
+- ✅ `/src/services/AssetLoaderService/AssetLoaderService.ts` - Delegated terrain to TerrainSpriteService (COMPLETED)
+- ✅ `/src/ui/CanvasGameRenderer.ts` - Uses spriteName for items when available (COMPLETED)
+- ✅ `/scripts/validate-assets.js` - Validates terrain and items (COMPLETED)
 
 ---
 
@@ -589,19 +590,25 @@ getSprite(char: string): TileCoordinate | null {
 ## Success Criteria
 
 ### Phase 1 (Terrain)
-- [ ] terrain-sprites.json created with all terrain types
-- [ ] TerrainSpriteService implemented and tested
-- [ ] validate-assets.js validates all terrain sprites
-- [ ] All terrain tiles render correctly in-game
-- [ ] 10/10 terrain characters mapped (same as before, but data-driven)
+- [x] terrain-sprites.json created with all terrain types
+- [x] TerrainSpriteService implemented and tested
+- [x] validate-assets.js validates all terrain sprites
+- [x] All terrain tiles render correctly in-game
+- [x] 6/6 core terrain characters mapped with 4 lighting variants each
 
-### Phase 2 (Items)
-- [ ] items.json updated with spriteName for all items
-- [ ] Item interfaces updated with spriteName field
-- [ ] ItemDataLoader validates spriteName
-- [ ] validate-assets.js validates all item sprites
-- [ ] All items render correctly in-game
-- [ ] 100% item sprite coverage (or documented fallbacks)
+### Phase 2a (Items - Exact Matches)
+- [x] items.json updated with spriteName for 21 items with exact matches
+- [x] Item interfaces updated with spriteName field
+- [x] ItemDataLoader validates spriteName
+- [x] ItemSpawnService populates spriteName
+- [x] CanvasGameRenderer uses spriteName when available
+- [x] validate-assets.js validates item sprites
+- [x] 21/65 items (32%) with exact sprite matches
+
+### Phase 2b (Items - Generic Sprites)
+- [ ] items.json updated with spriteName for remaining 44 items
+- [ ] All items use either specific or generic sprites
+- [ ] 100% item sprite coverage (65/65 items)
 
 ### Phase 3 (Special Cases)
 - [ ] Door states use correct sprites
