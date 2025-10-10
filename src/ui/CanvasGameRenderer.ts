@@ -37,6 +37,12 @@ export class CanvasGameRenderer {
   private previousLevel: number | null = null
   private previousPlayerPos: Position | null = null
 
+  // Dirty rectangle tracking for performance optimization
+  private previousVisibleCells: Set<string> | null = null
+  private previousMonsterPositions: Map<string, Position> = new Map()
+  private previousCameraOffsetX = 0
+  private previousCameraOffsetY = 0
+
   /**
    * Calculate responsive viewport dimensions based on container size and tile size
    *
@@ -153,6 +159,101 @@ export class CanvasGameRenderer {
   }
 
   /**
+   * Calculate which tiles have changed since last frame (dirty rectangle optimization)
+   *
+   * @param state - Current game state
+   * @returns Set of tile positions that need redrawing (in world coordinates)
+   */
+  private calculateDirtyTiles(state: GameState): Set<string> {
+    const dirtyTiles = new Set<string>()
+
+    // If dirty rectangles disabled or first render, mark all tiles as dirty
+    if (!this.config.enableDirtyRectangles || this.isFirstRender) {
+      for (let viewportY = 0; viewportY < this.config.gridHeight; viewportY++) {
+        for (let viewportX = 0; viewportX < this.config.gridWidth; viewportX++) {
+          const worldX = viewportX + this.cameraOffsetX
+          const worldY = viewportY + this.cameraOffsetY
+          dirtyTiles.add(`${worldX},${worldY}`)
+        }
+      }
+      return dirtyTiles
+    }
+
+    // 1. Check if camera scrolled (entire viewport is dirty)
+    const cameraScrolled = this.cameraOffsetX !== this.previousCameraOffsetX ||
+                           this.cameraOffsetY !== this.previousCameraOffsetY
+
+    if (cameraScrolled) {
+      // Camera scrolled - all visible tiles are dirty
+      for (let viewportY = 0; viewportY < this.config.gridHeight; viewportY++) {
+        for (let viewportX = 0; viewportX < this.config.gridWidth; viewportX++) {
+          const worldX = viewportX + this.cameraOffsetX
+          const worldY = viewportY + this.cameraOffsetY
+          dirtyTiles.add(`${worldX},${worldY}`)
+        }
+      }
+      return dirtyTiles
+    }
+
+    // 2. Check for player movement
+    if (this.previousPlayerPos) {
+      // Mark old player position as dirty
+      dirtyTiles.add(`${this.previousPlayerPos.x},${this.previousPlayerPos.y}`)
+      // Mark new player position as dirty
+      dirtyTiles.add(`${state.player.position.x},${state.player.position.y}`)
+    }
+
+    // 3. Check for monster movement
+    const level = state.levels.get(state.currentLevel)
+    if (level) {
+      const currentMonsterPositions = new Map<string, Position>()
+      for (const monster of level.monsters) {
+        const key = monster.id
+        currentMonsterPositions.set(key, { ...monster.position })
+
+        // Check if monster moved
+        const previousPos = this.previousMonsterPositions.get(key)
+        if (previousPos) {
+          if (previousPos.x !== monster.position.x || previousPos.y !== monster.position.y) {
+            // Monster moved - mark both positions as dirty
+            dirtyTiles.add(`${previousPos.x},${previousPos.y}`)
+            dirtyTiles.add(`${monster.position.x},${monster.position.y}`)
+          }
+        } else {
+          // New monster - mark position as dirty
+          dirtyTiles.add(`${monster.position.x},${monster.position.y}`)
+        }
+      }
+
+      // Check for removed monsters (monster died or left viewport)
+      for (const [monsterId, previousPos] of this.previousMonsterPositions) {
+        if (!currentMonsterPositions.has(monsterId)) {
+          dirtyTiles.add(`${previousPos.x},${previousPos.y}`)
+        }
+      }
+    }
+
+    // 4. Check for FOV changes (visibility changes)
+    if (this.previousVisibleCells) {
+      // Find tiles that became visible
+      for (const cell of state.visibleCells) {
+        if (!this.previousVisibleCells.has(cell)) {
+          dirtyTiles.add(cell)
+        }
+      }
+
+      // Find tiles that became not visible (but still explored)
+      for (const cell of this.previousVisibleCells) {
+        if (!state.visibleCells.has(cell)) {
+          dirtyTiles.add(cell)
+        }
+      }
+    }
+
+    return dirtyTiles
+  }
+
+  /**
    * Update camera position using scroll margin system
    *
    * @param state - Current game state
@@ -223,17 +324,67 @@ export class CanvasGameRenderer {
     // Update camera position using scroll margin system
     this.updateCamera(state)
 
-    // Clear canvas
-    this.clear()
+    // Calculate which tiles need to be redrawn (dirty rectangle optimization)
+    const dirtyTiles = this.calculateDirtyTiles(state)
 
-    // Render terrain (floor, walls, doors, stairs)
-    this.renderTerrain(state)
+    // Decide rendering strategy based on dirty tiles count
+    const totalTiles = this.config.gridWidth * this.config.gridHeight
+    const dirtyTileCount = dirtyTiles.size
 
-    // Render entities (items, gold, monsters)
-    this.renderEntities(state)
+    // If more than 30% of tiles are dirty, do full render (it's faster)
+    const useFullRender = !this.config.enableDirtyRectangles || dirtyTileCount > totalTiles * 0.3
 
-    // Render player (always on top)
-    this.renderPlayer(state)
+    if (useFullRender) {
+      // Full render (original behavior)
+      this.clear()
+      this.renderTerrain(state)
+      this.renderEntities(state)
+      this.renderPlayer(state)
+    } else {
+      // Selective render (dirty rectangles only)
+      for (const tileKey of dirtyTiles) {
+        const [xStr, yStr] = tileKey.split(',')
+        const worldX = parseInt(xStr, 10)
+        const worldY = parseInt(yStr, 10)
+
+        // Only render tiles that are in the current viewport
+        const viewportX = worldX - this.cameraOffsetX
+        const viewportY = worldY - this.cameraOffsetY
+
+        if (viewportX >= 0 && viewportX < this.config.gridWidth &&
+            viewportY >= 0 && viewportY < this.config.gridHeight) {
+          // Clear and re-render this tile
+          this.clearTile(worldX, worldY)
+          this.renderTileAt(state, worldX, worldY)
+        }
+      }
+    }
+
+    // Update previous state for next frame's dirty rectangle calculation
+    this.updatePreviousState(state)
+  }
+
+  /**
+   * Update previous state tracking for dirty rectangle optimization
+   *
+   * @param state - Current game state
+   */
+  private updatePreviousState(state: GameState): void {
+    // Update visible cells
+    this.previousVisibleCells = new Set(state.visibleCells)
+
+    // Update monster positions
+    const level = state.levels.get(state.currentLevel)
+    if (level) {
+      this.previousMonsterPositions.clear()
+      for (const monster of level.monsters) {
+        this.previousMonsterPositions.set(monster.id, { ...monster.position })
+      }
+    }
+
+    // Update camera offsets
+    this.previousCameraOffsetX = this.cameraOffsetX
+    this.previousCameraOffsetY = this.cameraOffsetY
   }
 
   /**
@@ -453,6 +604,107 @@ export class CanvasGameRenderer {
     // Fill with black background
     this.ctx.fillStyle = '#000000'
     this.ctx.fillRect(0, 0, this.canvasElement.width, this.canvasElement.height)
+  }
+
+  /**
+   * Clear a single tile at world coordinates
+   *
+   * @param worldX - World X coordinate
+   * @param worldY - World Y coordinate
+   */
+  private clearTile(worldX: number, worldY: number): void {
+    const screen = this.worldToScreen({ x: worldX, y: worldY })
+
+    // Clear the tile rectangle
+    this.ctx.clearRect(screen.x, screen.y, this.config.tileWidth, this.config.tileHeight)
+
+    // Fill with black background
+    this.ctx.fillStyle = '#000000'
+    this.ctx.fillRect(screen.x, screen.y, this.config.tileWidth, this.config.tileHeight)
+  }
+
+  /**
+   * Render everything at a specific tile position (terrain, entities, player)
+   *
+   * @param state - Current game state
+   * @param worldX - World X coordinate
+   * @param worldY - World Y coordinate
+   */
+  private renderTileAt(state: GameState, worldX: number, worldY: number): void {
+    const level = state.levels.get(state.currentLevel)
+    if (!level) return
+
+    const position: Position = { x: worldX, y: worldY }
+
+    // 1. Render terrain at this position
+    const tile = level.tiles[worldY]?.[worldX]
+    if (tile) {
+      const visibilityState = this.renderingService.getVisibilityState(
+        position,
+        state.visibleCells,
+        level
+      )
+
+      // Only render if not unexplored
+      if (visibilityState !== 'unexplored') {
+        const sprite = this.assetLoader.getSprite(tile.char)
+        if (sprite) {
+          const opacity = visibilityState === 'visible' ? 1.0 : this.config.exploredOpacity
+          this.drawTile(worldX, worldY, sprite, opacity)
+        }
+      }
+    }
+
+    // 2. Render entities at this position (items, gold, monsters, stairs, traps)
+    const renderConfig = {
+      showItemsInMemory: true,
+      showGoldInMemory: false,
+    }
+
+    // Check for items
+    for (const item of level.items) {
+      if (item.position.x === worldX && item.position.y === worldY) {
+        const itemSprite = 'spriteName' in item ? item.spriteName : item.name[0] || '?'
+        this.renderEntity(state, level, item.position, itemSprite, 'item', renderConfig)
+      }
+    }
+
+    // Check for gold
+    for (const gold of level.gold) {
+      if (gold.position.x === worldX && gold.position.y === worldY) {
+        this.renderEntity(state, level, gold.position, '$', 'gold', renderConfig)
+      }
+    }
+
+    // Check for monsters
+    for (const monster of level.monsters) {
+      if (monster.position.x === worldX && monster.position.y === worldY) {
+        this.renderEntity(state, level, monster.position, monster.spriteName, 'monster', renderConfig)
+      }
+    }
+
+    // Check for stairs
+    if (level.stairsUp && level.stairsUp.x === worldX && level.stairsUp.y === worldY) {
+      this.renderEntity(state, level, level.stairsUp, '<', 'stairs', renderConfig)
+    }
+    if (level.stairsDown && level.stairsDown.x === worldX && level.stairsDown.y === worldY) {
+      this.renderEntity(state, level, level.stairsDown, '>', 'stairs', renderConfig)
+    }
+
+    // Check for discovered traps
+    for (const trap of level.traps) {
+      if (trap.discovered && trap.position.x === worldX && trap.position.y === worldY) {
+        this.renderEntity(state, level, trap.position, '^', 'trap', renderConfig)
+      }
+    }
+
+    // 3. Render player if at this position
+    if (state.player.position.x === worldX && state.player.position.y === worldY) {
+      const sprite = this.assetLoader.getSprite('@')
+      if (sprite) {
+        this.drawTile(worldX, worldY, sprite, 1.0)
+      }
+    }
   }
 
   /**
