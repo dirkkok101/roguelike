@@ -247,12 +247,12 @@ success = to_hit >= defense_target
 - `src/services/ItemSpawnService/ItemSpawnService.ts`
 
 ##### Subtasks:
-- [ ] Add method to `ItemSpawnService`: `createStartingLeatherArmor(position: Position): Armor`
-- [ ] In `createInitialState()`, create starting leather armor
-- [ ] Add leather armor to player's starting inventory
-- [ ] Optionally: Auto-equip leather armor (changes AC from 10 → 8)
-- [ ] Update welcome message: "You are equipped with leather armor and a torch."
-- [ ] Git commit: "feat: add starting leather armor to player inventory (Phase 3.2)"
+- [x] Add method to `ItemSpawnService`: `createStartingLeatherArmor(position: Position): Armor`
+- [x] In `createInitialState()`, create starting leather armor
+- [x] Add leather armor to player's starting inventory
+- [x] Optionally: Auto-equip leather armor (changes AC from 10 → 8)
+- [x] Update welcome message: "You are equipped with leather armor and a torch."
+- [x] Git commit: "feat: add starting leather armor to player inventory (Phase 3.2)"
 
 ---
 
