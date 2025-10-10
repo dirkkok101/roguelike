@@ -2,8 +2,9 @@
 
 **Goal**: Extend the spriteName approach from monsters to all renderable entities (items, terrain, doors, traps)
 
-**Status**: Planning Phase
+**Status**: Analysis Complete - Ready for Implementation
 **Created**: 2025-10-10
+**Updated**: 2025-10-10 (sprite analysis complete)
 
 ---
 
@@ -24,26 +25,56 @@
 - No explicit sprite mappings in items.json
 
 **Data Files**:
-- `/public/data/items.json` - weapons, armor, potions, scrolls, rings, wands, food
+- `/public/data/items.json` - 65 items across 9 categories
 - Multiple item categories with different structures
 
-**Challenges**:
-1. Multiple item types with different structures
-2. Need to support both generic sprites (all potions → "potion") and specific sprites (individual weapons)
-3. Unidentified items should use generic/descriptor sprites
-4. Items can be equipped, dropped, in inventory (different rendering contexts)
+**Sprite Analysis Results** (see `docs/sprite-mapping-options-items.md`):
+- ✅ **27/65 items (42%)** have exact sprite matches
+- ✅ **Weapons**: 8/8 (100%) - All have exact sprites (Mace → `Mace`, Long Sword → `Long Sword`, etc.)
+- ✅ **Armor**: 7/7 (100%) - All have good matches (Leather Armor → `Hard Leather Armour`, Chain Mail → `Chain Mail`, etc.)
+- ✅ **Light Sources**: 4/4 (100%) - All exact (Torch → `Wooden Torch`, Lantern → `Lantern`, Phial → `Phial`, Star → `Star`)
+- ✅ **Food**: 1/1 (100%) - Food Ration → `Ration of Food`
+- ✅ **Consumables**: 1/1 (100%) - Oil Flask → `Flask of oil`
+- ⚠️ **Scrolls**: 6/11 (55%) - Partial (IDENTIFY → `Identify Rune`, ENCHANT_WEAPON → `Enchant Weapon To-Hit`, etc.)
+- ⚠️ **Potions**: 0/13 (0%) - Need generic `potion` sprite
+- ⚠️ **Rings**: 0/10 (0%) - Need generic `Ring` sprite (0x85:0x95)
+- ⚠️ **Wands**: 0/10 (0%) - Need generic wand sprite
+
+**Implementation Strategy**:
+1. **Phase 2a**: Add spriteName to 21 items with exact matches (high value, low effort)
+2. **Phase 2b**: Add generic sprites for potions/rings/wands (38 items)
+3. **Phase 2c**: Map 6 scrolls to specific Angband sprites, use generic for remaining 5
 
 ### ⚠️ To Implement: Map Tiles
 **Current Approach**:
 - Hardcoded `CHAR_TO_ANGBAND` constant in `AssetLoaderService.ts`
 - Maps characters to Angband feature names: `.` → `['FLOOR']`, `#` → `['GRANITE', 'PERM']`
 
-**Challenges**:
-1. Tiles are generated procedurally, not loaded from JSON
-2. Different tile types: WALL, FLOOR, CORRIDOR, DOOR, TRAP
-3. Doors have multiple states: OPEN, CLOSED, LOCKED, BROKEN, SECRET, ARCHWAY
-4. Some tiles need variants (lit/unlit, torch/los conditions)
-5. No centralized data file for tile definitions
+**Sprite Analysis Results** (see `docs/sprite-mapping-options-terrain.md`):
+- ✅ **10/10 terrain types (100%)** have sprites with full lighting support
+- ✅ **All terrain has 4 lighting variants**: torch, lit, los, dark (69+ total feature entries)
+- ✅ **Core Terrain (Phase 1)**: Floor, Wall, Doors (closed/open), Stairs (up/down) - all ready
+- ✅ **Secondary Terrain (Phase 2)**: Rubble, Magma, Quartz, Trap - all ready
+- ✅ **Bonus**: BROKEN door sprite available, Store sprites available (7 shop types for future)
+
+**Terrain Sprite Mappings**:
+| Char | Name | spriteName | Lighting Variants | Available |
+|------|------|------------|-------------------|-----------|
+| `.` | Floor | `FLOOR` | torch/lit/los/dark | ✅ Yes |
+| `#` | Wall | `GRANITE` | torch/lit/los/dark | ✅ Yes |
+| `+` | Closed Door | `CLOSED` | torch/lit/los/dark | ✅ Yes |
+| `'` | Open Door | `OPEN` | torch/lit/los/dark | ✅ Yes |
+| `<` | Stairs Up | `LESS` | torch/lit/los/dark | ✅ Yes |
+| `>` | Stairs Down | `MORE` | torch/lit/los/dark | ✅ Yes |
+| `%` | Rubble | `RUBBLE` | torch/lit/los/dark | ✅ Yes |
+| `^` | Trap | `trap` | None (item sprite) | ✅ Yes |
+| `*` | Magma/Quartz | `MAGMA`/`QUARTZ` | torch/lit/los/dark | ✅ Yes |
+
+**Implementation Strategy**:
+1. Create `terrain-sprites.json` with 6 core terrain types + lighting variants
+2. Create `TerrainSpriteService` with lighting support
+3. Remove `CHAR_TO_ANGBAND` hardcoded mapping
+4. Update renderer to use lighting variants based on visibility state
 
 ---
 
@@ -257,19 +288,58 @@ const sprite = this.getItemSpriteName(item)
 this.renderEntity(state, level, item.position, sprite, 'item', renderConfig)
 ```
 
-#### 2.5: Create Item Sprite Mapping Analysis
-**Script**: Update `validate-assets.js`
+#### 2.5: Item Sprite Mapping Analysis ✅ COMPLETED
+**Analysis Document**: `docs/sprite-mapping-options-items.md`
 
-1. Analyze Gervais tileset for weapon/armor/item sprites
-2. Create mapping recommendations like we did for monsters
-3. Document in `docs/sprite-mapping-options-items.md`
+**Sprite Coverage Analysis**:
+- Analyzed 248 object sprites in graf-dvg.prf
+- Found 312 flavor variants in flvr-dvg.prf
+- Documented exact mappings for 27/65 items (42%)
 
-**Known Item Sprites in Gervais**:
-```
-Weapons: sword, mace, dagger, bow, etc.
-Armor: chain mail, plate mail, etc.
-Generic: potion, scroll, ring, wand, staff
-```
+**Specific Sprite Mappings**:
+
+**Weapons (8/8 exact matches)**:
+- Mace → `Mace` (0x8a:0x99)
+- Long Sword → `Long Sword` (0x8a:0x8D)
+- Short Sword → `Short Sword` (0x8a:0x88)
+- Two-Handed Sword → `Zweihander` (0x8a:0x91)
+- Dagger → `Dagger` (0x8a:0x83)
+- Spear → `Spear` (0x8a:0xA1)
+- Battle Axe → `Battle Axe` (0x8a:0xA6)
+- Flail → `Flail` (0x8a:0x9E)
+
+**Armor (7/7 good matches)**:
+- Leather Armor → `Hard Leather Armour` (0x80:0xAA)
+- Studded Leather → `Studded Leather Armour` (0x80:0xAB)
+- Ring Mail → `Metal Scale Mail` (0x80:0xAD)
+- Chain Mail → `Chain Mail` (0x80:0xAF)
+- Banded Mail → `Augmented Chain Mail` (0x80:0xB1)
+- Splint Mail → `Partial Plate Armour` (0x80:0xB4)
+- Plate Mail → `Full Plate Armour` (0x80:0xB6)
+
+**Light Sources (4/4 exact matches)**:
+- Torch → `Wooden Torch` (0x87:0x9A)
+- Lantern → `Lantern` (0x87:0x99)
+- Phial of Galadriel → `Phial` (0x87:0xB3)
+- Star of Elendil → `Star` (0x87:0xB4)
+
+**Food & Consumables (2/2 exact matches)**:
+- Food Ration → `Ration of Food` (0x82:0x84)
+- Oil Flask → `Flask of oil` (0x87:0x97)
+
+**Scrolls (6/11 specific, 5/11 generic)**:
+- IDENTIFY → `Identify Rune` (0x87:0xCD)
+- ENCHANT_WEAPON → `Enchant Weapon To-Hit` (0x87:0xCF)
+- ENCHANT_ARMOR → `Enchant Armour` (0x87:0xD2)
+- MAGIC_MAPPING → `Magic Mapping` (0x87:0xD9)
+- TELEPORTATION → `Teleportation` (0x87:0xD6)
+- REMOVE_CURSE → `Remove Curse` (0x87:0xF0)
+- Others → Generic scroll sprite
+
+**Potions, Rings, Wands (generic sprites)**:
+- All 13 potions → Generic `potion` sprite
+- All 10 rings → Generic `Ring` sprite (0x85:0x95)
+- All 10 wands → Generic wand sprite
 
 #### 2.6: Validation
 - Update `validate-assets.js` to validate all item sprites
@@ -376,40 +446,76 @@ getFloorSpriteName(lighting: 'torch' | 'lit' | 'dark'): string {
 
 ### Recommended Sequence
 
-**Week 1: Terrain Tiles** (2-3 hours)
-1. Create `terrain-sprites.json`
+**✅ COMPLETED: Sprite Analysis** (2-3 hours)
+1. ✅ Analyzed all 248 object sprites in graf-dvg.prf
+2. ✅ Analyzed all 69 terrain feature sprites
+3. ✅ Created `docs/sprite-mapping-options-items.md` (complete item sprite mappings)
+4. ✅ Created `docs/sprite-mapping-options-terrain.md` (complete terrain sprite mappings)
+5. ✅ Found 27/65 items (42%) with exact matches, 10/10 terrain (100%) with lighting variants
+
+**Phase 1: Terrain Tiles** (2-3 hours) - READY TO START
+1. Create `terrain-sprites.json` with 6 core terrain types
+   - Floor, Wall, Doors (open/closed), Stairs (up/down)
+   - Include all 4 lighting variants (torch/lit/los/dark) for each
 2. Create `TerrainSpriteService`
+   - Load terrain-sprites.json
+   - Provide getSpriteName(char, lighting) method
 3. Update `AssetLoaderService` to delegate terrain lookups
-4. Update `validate-assets.js` for terrain validation
-5. Test and validate all terrain renders correctly
+   - Remove hardcoded CHAR_TO_ANGBAND (lines 126-144)
+   - Use TerrainSpriteService instead
+4. Update `CanvasGameRenderer` to pass lighting conditions
+   - Pass 'torch' for visible tiles, 'dark' for explored tiles
+5. Update `validate-assets.js` for terrain validation
+6. Test and validate all terrain renders correctly
 
-**Week 2: Items - Data Preparation** (3-4 hours)
-1. Analyze Gervais tileset for item sprites
-2. Create `docs/sprite-mapping-options-items.md`
-3. Add `spriteName` to all items in `items.json`
-4. Update item type definitions
+**Phase 2a: Items - Exact Matches** (2-3 hours)
+1. Add `spriteName` to 21 items with exact matches in `items.json`:
+   - 8 weapons (Mace → `Mace`, Long Sword → `Long Sword`, etc.)
+   - 7 armor (Leather Armor → `Hard Leather Armour`, etc.)
+   - 4 light sources (Torch → `Wooden Torch`, etc.)
+   - 1 food (Food Ration → `Ration of Food`)
+   - 1 consumable (Oil Flask → `Flask of oil`)
+2. Update item type definitions with spriteName field
+3. Update `ItemDataLoader` to validate `spriteName`
+4. Update `CanvasGameRenderer` item rendering to use spriteName
+5. Test and validate all 21 items render correctly
 
-**Week 3: Items - Implementation** (2-3 hours)
-1. Update `ItemDataLoader` to validate `spriteName`
-2. Update `CanvasGameRenderer` item rendering
+**Phase 2b: Items - Generic Sprites** (2-3 hours)
+1. Add generic `spriteName` to remaining 38 items:
+   - 13 potions → `potion`
+   - 10 rings → `Ring`
+   - 10 wands → `wand`
+   - 5 scrolls without specific sprites → `scroll`
+2. Map 6 scrolls to specific Angband sprites:
+   - IDENTIFY → `Identify Rune`
+   - ENCHANT_WEAPON → `Enchant Weapon To-Hit`
+   - ENCHANT_ARMOR → `Enchant Armour`
+   - MAGIC_MAPPING → `Magic Mapping`
+   - TELEPORTATION → `Teleportation`
+   - REMOVE_CURSE → `Remove Curse`
 3. Update `validate-assets.js` for item validation
-4. Test and validate all items render correctly
+4. Test and validate all 65 items render correctly
 
-**Week 4: Special Cases** (1-2 hours, optional)
-1. Implement door state sprite mapping
-2. Implement trap type sprite mapping
-3. Implement identification state logic
-4. Test edge cases
+**Phase 2c: Secondary Terrain** (1 hour, optional)
+1. Add rubble, magma, quartz to terrain-sprites.json
+2. Test mineral vein rendering
+
+**Phase 3: Special Cases** (1-2 hours, future enhancement)
+1. Implement flavor system for unidentified items (312 flavor variants available)
+2. Implement door state sprite mapping (BROKEN sprite available)
+3. Use 'dark' lighting variant for explored tiles (instead of opacity)
+4. Implement permanently lit rooms (use 'lit' variant)
 
 ---
 
 ## File Changes Summary
 
 ### New Files
-- `/public/data/terrain-sprites.json` - Terrain sprite mappings
-- `/src/services/TerrainSpriteService/TerrainSpriteService.ts` - Terrain sprite service
-- `/src/services/TerrainSpriteService/index.ts` - Barrel export
-- `/docs/sprite-mapping-options-items.md` - Item sprite analysis
+- ✅ `/docs/sprite-mapping-options-items.md` - Item sprite analysis (COMPLETED)
+- ✅ `/docs/sprite-mapping-options-terrain.md` - Terrain sprite analysis (COMPLETED)
+- `/public/data/terrain-sprites.json` - Terrain sprite mappings (PENDING)
+- `/src/services/TerrainSpriteService/TerrainSpriteService.ts` - Terrain sprite service (PENDING)
+- `/src/services/TerrainSpriteService/index.ts` - Barrel export (PENDING)
 
 ### Modified Files
 - `/public/data/items.json` - Add spriteName to all items
@@ -505,30 +611,62 @@ getSprite(char: string): TileCoordinate | null {
 
 ---
 
-## Open Questions
+## Questions Answered by Sprite Analysis
 
-1. **Item Sprite Granularity**: Should we have specific sprites for every weapon/armor variant, or use generic categories?
-   - **Recommendation**: Start with generic (all swords → "sword"), add specific later if desired
+1. **✅ Item Sprite Granularity**: Should we have specific sprites for every weapon/armor variant, or use generic categories?
+   - **Answer**: We have BOTH! 27/65 items (42%) have exact matches, use specific sprites
+   - **Strategy**: Phase 2a implements 21 items with exact matches, Phase 2b uses generic for remaining 38
 
-2. **Sprite Variants**: How many variants should we support (lit/unlit, damaged, etc.)?
-   - **Recommendation**: Start minimal (lit/unlit for floor), expand based on tileset availability
+2. **✅ Sprite Variants**: How many variants should we support (lit/unlit, damaged, etc.)?
+   - **Answer**: ALL terrain has 4 lighting variants (torch/lit/los/dark) - 100% coverage!
+   - **Strategy**: Implement lighting variants in Phase 1, use 'torch' for visible, 'dark' for explored
 
-3. **Fallback Strategy**: What should we render if a sprite is missing?
-   - **Recommendation**: Use character-based fallback (current behavior) + console warning
+3. **✅ Fallback Strategy**: What should we render if a sprite is missing?
+   - **Answer**: Very few missing! Only 38/65 items need generic sprites (potions/rings/wands)
+   - **Strategy**: Use character-based fallback (current behavior) + console warning for any missing
 
-4. **Configuration Location**: Should terrain/item configs be separate files or merged?
-   - **Recommendation**: Separate files for clarity (terrain-sprites.json, items.json)
+4. **✅ Configuration Location**: Should terrain/item configs be separate files or merged?
+   - **Answer**: Separate files - terrain-sprites.json for terrain, items.json for items
+   - **Rationale**: Clear separation of concerns, easier to maintain
+
+5. **✅ Flavor System**: Should we implement flavor variants for unidentified items?
+   - **Answer**: 312 flavor variants available in flvr-dvg.prf, implement in Phase 3 (future)
+   - **Strategy**: Start with generic sprites (Phase 2b), add flavor system later for polish
 
 ---
 
 ## Next Steps
 
-1. **Review this plan** - Confirm approach and priorities
-2. **Start Phase 1** - Implement terrain sprite mapping
-3. **Validate Phase 1** - Ensure terrain works before moving to items
-4. **Iterate** - Apply learnings from Phase 1 to Phase 2
+1. ✅ **Sprite Analysis Complete** - Analyzed all 248 item sprites and 69 terrain features
+2. ✅ **Documentation Complete** - Created sprite-mapping-options-items.md and sprite-mapping-options-terrain.md
+3. **Ready to Start Phase 1** - Implement terrain sprite mapping (2-3 hours)
+   - Create terrain-sprites.json with 6 core terrain types
+   - Implement TerrainSpriteService with lighting support
+   - Remove CHAR_TO_ANGBAND hardcoded mapping
+4. **Then Phase 2a** - Implement 21 items with exact sprite matches (2-3 hours)
+5. **Then Phase 2b** - Implement generic sprites for remaining 38 items (2-3 hours)
+6. **Optional Phase 3** - Flavor system and lighting enhancements (future)
 
 ---
 
-**Last Updated**: 2025-10-10
-**Status**: Ready for implementation
+## Summary of Findings
+
+**Sprite Coverage**:
+- ✅ **Monsters**: 26/26 (100%) - COMPLETED
+- ✅ **Terrain**: 10/10 (100%) with 4 lighting variants each - READY
+- ✅ **Items**: 27/65 (42%) exact matches, 38/65 (58%) generic - READY
+
+**Total Renderable Entities**: 101 entities analyzed
+- **100% Ready**: 63 entities (monsters + terrain + exact match items)
+- **Generic Sprites**: 38 entities (potions/rings/wands/some scrolls)
+
+**Implementation Effort**:
+- Phase 1 (Terrain): ~2-3 hours
+- Phase 2a (Items - Exact): ~2-3 hours
+- Phase 2b (Items - Generic): ~2-3 hours
+- **Total**: ~6-9 hours for complete data-driven sprite system
+
+---
+
+**Last Updated**: 2025-10-10 (sprite analysis complete)
+**Status**: Analysis Complete - Ready for Phase 1 Implementation
