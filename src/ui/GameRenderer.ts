@@ -28,6 +28,10 @@ import { DeathScreen } from './DeathScreen'
 // ============================================================================
 
 export class GameRenderer {
+  // Notification display durations (in milliseconds)
+  private static readonly NOTIFICATION_DISPLAY_DURATION = 700 // Time before fade starts
+  private static readonly NOTIFICATION_FADE_DURATION = 300 // Time to complete fade-out
+
   private dungeonContainer: HTMLElement
   private statsContainer: HTMLElement
   private messagesContainer: HTMLElement
@@ -50,7 +54,7 @@ export class GameRenderer {
     private assetLoaderService: AssetLoaderService,
     _hungerService: HungerService,
     private levelingService: LevelingService,
-    debugService: DebugService,
+    private debugService: DebugService,
     contextService: ContextService,
     private victoryService: VictoryService,
     private localStorageService: LocalStorageService,
@@ -63,14 +67,14 @@ export class GameRenderer {
     private onReturnToMenu: () => void,
     private onStartNewGame: (characterName: string) => void,
     private onReplaySeed: (seed: string, characterName: string) => void,
-    _config = {
+    config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
       showItemsInMemory: false,
       showGoldInMemory: false,
     }
   ) {
-    // Config will be used in future phases for customizable rendering
+    // FUTURE: Config parameter will be used for customizable rendering options
     // Initialize ASCII renderer (always available)
     this.asciiRenderer = new AsciiDungeonRenderer(renderingService)
 
@@ -85,8 +89,8 @@ export class GameRenderer {
     this.dungeonContainer = this.createDungeonView()
     this.statsContainer = this.createStatsView()
     this.messagesContainer = this.createMessagesView()
-    this.debugConsole = new DebugConsole(debugService)
-    this.debugOverlays = new DebugOverlays(debugService)
+    this.debugConsole = new DebugConsole(this.debugService)
+    this.debugOverlays = new DebugOverlays(this.debugService)
     this.commandBar = new ContextualCommandBar(contextService)
     this.messageHistoryModal = new MessageHistoryModal()
     this.helpModal = new HelpModal(contextService)
@@ -166,8 +170,10 @@ export class GameRenderer {
     // Update current render mode
     this.currentRenderMode = newMode
 
-    // Log mode change
-    console.log(`[GameRenderer] Render mode changed: ${oldMode} → ${newMode}`)
+    // Log mode change (debug only)
+    if (this.debugService.isEnabled()) {
+      console.log(`[GameRenderer] Render mode changed: ${oldMode} → ${newMode}`)
+    }
 
     // Show visual feedback overlay
     this.showModeChangeNotification(newMode)
@@ -191,11 +197,11 @@ export class GameRenderer {
 
     document.body.appendChild(overlay)
 
-    // Fade out and remove after 1 second
+    // Fade out and remove after display duration
     setTimeout(() => {
       overlay.style.opacity = '0'
-      setTimeout(() => overlay.remove(), 300)
-    }, 700)
+      setTimeout(() => overlay.remove(), GameRenderer.NOTIFICATION_FADE_DURATION)
+    }, GameRenderer.NOTIFICATION_DISPLAY_DURATION)
   }
 
   /**

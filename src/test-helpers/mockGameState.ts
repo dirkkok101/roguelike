@@ -8,6 +8,7 @@ interface MockGameStateOptions {
   playerPosition?: Position
   mapDimensions?: { width: number; height: number }
   currentLevel?: number
+  turnCount?: number
 }
 
 interface MockLevelOptions {
@@ -71,6 +72,7 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
   const playerPos = options.playerPosition || { x: 50, y: 25 }
   const mapDims = options.mapDimensions || { width: 100, height: 50 }
   const currentLevel = options.currentLevel || 1
+  const turnCount = options.turnCount !== undefined ? options.turnCount : 0
 
   const player: Player = {
     position: playerPos,
@@ -110,7 +112,7 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
     player,
     levels,
     currentLevel,
-    turnCount: 0,
+    turnCount,
     messages: [],
     visibleCells: new Set<string>(),
     detectedMonsters: new Set<string>(),
