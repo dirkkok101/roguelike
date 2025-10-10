@@ -116,7 +116,7 @@ export class PlayingState extends BaseState {
     }
 
     // Handle render mode toggle (free action - doesn't consume turn)
-    if (input.key === 'T') {
+    if (_input.key === 'T') {
       this.gameState = this.toggleRenderModeCommand.execute(this.gameState)
       this.renderer.render(this.gameState)
       return
