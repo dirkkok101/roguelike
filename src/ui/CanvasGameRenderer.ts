@@ -192,15 +192,19 @@ export class CanvasGameRenderer {
     let spriteFoundCount = 0
     let spriteNotFoundCount = 0
 
-    // Loop through entire grid
-    for (let y = 0; y < this.config.gridHeight; y++) {
-      for (let x = 0; x < this.config.gridWidth; x++) {
-        // Get tile at position
-        const tile = level.tiles[y]?.[x]
+    // Loop through viewport grid (80×22 tiles)
+    for (let viewportY = 0; viewportY < this.config.gridHeight; viewportY++) {
+      for (let viewportX = 0; viewportX < this.config.gridWidth; viewportX++) {
+        // Convert viewport coordinates to world coordinates
+        const worldX = viewportX + this.cameraOffsetX
+        const worldY = viewportY + this.cameraOffsetY
+
+        // Get tile at world position
+        const tile = level.tiles[worldY]?.[worldX]
         if (!tile) continue
 
-        // Get visibility state
-        const position: Position = { x, y }
+        // Get visibility state using world coordinates
+        const position: Position = { x: worldX, y: worldY }
         const visibilityState = this.renderingService.getVisibilityState(
           position,
           state.visibleCells,
@@ -221,7 +225,7 @@ export class CanvasGameRenderer {
           spriteNotFoundCount++
           // Log first few missing sprites
           if (spriteNotFoundCount <= 3) {
-            console.warn(`[CanvasGameRenderer] No sprite for '${tile.char}' at (${x},${y})`)
+            console.warn(`[CanvasGameRenderer] No sprite for '${tile.char}' at (${worldX},${worldY})`)
           }
           continue
         }
@@ -231,8 +235,8 @@ export class CanvasGameRenderer {
         // Determine opacity based on visibility
         const opacity = visibilityState === 'visible' ? 1.0 : this.config.exploredOpacity
 
-        // Draw tile sprite
-        this.drawTile(x, y, sprite, opacity)
+        // Draw tile sprite using world coordinates
+        this.drawTile(worldX, worldY, sprite, opacity)
       }
     }
 
