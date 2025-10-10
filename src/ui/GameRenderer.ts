@@ -116,6 +116,9 @@ export class GameRenderer {
     this.helpModal = new HelpModal(contextService)
     this.victoryScreen = new VictoryScreen(leaderboardService, leaderboardStorageService)
     this.deathScreen = new DeathScreen(leaderboardService, leaderboardStorageService, scoreCalculationService)
+
+    // Setup window resize handler
+    this.setupResizeHandler()
   }
 
   private targetingState: ITargetingState | null = null // Store active targeting state
