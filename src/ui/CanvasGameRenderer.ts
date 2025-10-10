@@ -92,28 +92,43 @@ export class CanvasGameRenderer {
     }
     this.ctx = context
 
-    // Calculate responsive viewport dimensions based on container size
-    const responsiveDimensions = this.calculateResponsiveDimensions(
-      config?.tileWidth || 32,
-      config?.tileHeight || 32
-    )
+    // Determine grid dimensions: use explicit config if provided, otherwise calculate responsive
+    let gridWidth: number
+    let gridHeight: number
 
-    // Set up configuration with calculated responsive dimensions
+    if (config?.gridWidth !== undefined && config?.gridHeight !== undefined) {
+      // Use explicit dimensions provided in config (useful for testing)
+      gridWidth = config.gridWidth
+      gridHeight = config.gridHeight
+      console.log(
+        `[CanvasGameRenderer] Using explicit grid dimensions from config: ${gridWidth}×${gridHeight} tiles`
+      )
+    } else {
+      // Calculate responsive viewport dimensions based on container size
+      const responsiveDimensions = this.calculateResponsiveDimensions(
+        config?.tileWidth || 32,
+        config?.tileHeight || 32
+      )
+      gridWidth = responsiveDimensions.gridWidth
+      gridHeight = responsiveDimensions.gridHeight
+    }
+
+    // Set up configuration
     this.config = {
       tileWidth: 32,
       tileHeight: 32,
-      gridWidth: responsiveDimensions.gridWidth,
-      gridHeight: responsiveDimensions.gridHeight,
+      gridWidth,
+      gridHeight,
       enableSmoothing: false, // Disable for crisp pixel art
       enableDirtyRectangles: true,
       exploredOpacity: 0.5,
       detectedOpacity: 0.6,
-      scrollMarginX: Math.min(10, Math.floor(responsiveDimensions.gridWidth / 8)), // Dynamic based on viewport size
-      scrollMarginY: Math.min(5, Math.floor(responsiveDimensions.gridHeight / 4)), // Dynamic based on viewport size
+      scrollMarginX: Math.min(10, Math.floor(gridWidth / 8)), // Dynamic based on viewport size
+      scrollMarginY: Math.min(5, Math.floor(gridHeight / 4)), // Dynamic based on viewport size
       ...config,
-      // Override gridWidth/gridHeight even if provided in config (always use responsive)
-      gridWidth: responsiveDimensions.gridWidth,
-      gridHeight: responsiveDimensions.gridHeight,
+      // Preserve explicit dimensions if provided
+      gridWidth,
+      gridHeight,
     }
 
     // Configure canvas context

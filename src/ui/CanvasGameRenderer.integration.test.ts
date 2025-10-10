@@ -87,8 +87,10 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
     })
     jest.spyOn(assetLoader, 'getSprite').mockReturnValue({ x: 0, y: 0, hexX: 0x80, hexY: 0x80 })
 
-    // Create renderer with correct constructor signature
+    // Create renderer with explicit grid dimensions for predictable test results
     renderer = new CanvasGameRenderer(renderingService, assetLoader, canvas, {
+      gridWidth: 80,
+      gridHeight: 22,
       scrollMarginX: 10,
       scrollMarginY: 5,
     })
@@ -98,7 +100,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
     it('should not scroll camera when player moves within starting room', () => {
       // Arrange: Create game state with player in starting position
       const state1 = createMockGameState({
-        player: { position: { x: 40, y: 11 } },
+        playerPosition: { x: 40, y: 11 },
       })
 
       // Act: Render initial state (camera centers on player)
@@ -108,7 +110,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
 
       // Move player within comfort zone (no scrolling expected)
       const state2 = createMockGameState({
-        player: { position: { x: 41, y: 11 } }, // Move right 1 tile
+        playerPosition: { x: 41, y: 11 }, // Move right 1 tile
         currentLevel: 1,
       })
       renderer.render(state2)
@@ -116,7 +118,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
       const cameraY1 = (renderer as any).cameraOffsetY
 
       const state3 = createMockGameState({
-        player: { position: { x: 41, y: 12 } }, // Move down 1 tile
+        playerPosition: { x: 41, y: 12 }, // Move down 1 tile
         currentLevel: 1,
       })
       renderer.render(state3)
@@ -133,7 +135,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
     it('should scroll camera when player moves far to the right', () => {
       // Arrange: Player starts centered on a large map (100x50)
       const state1 = createMockGameState({
-        player: { position: { x: 40, y: 25 } },
+        playerPosition: { x: 40, y: 25 },
         currentLevel: 1,
         mapDimensions: { width: 100, height: 50 },
       })
@@ -144,7 +146,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
 
       // Move player far to the right (should trigger camera scroll)
       const state2 = createMockGameState({
-        player: { position: { x: 80, y: 25 } },
+        playerPosition: { x: 80, y: 25 },
         currentLevel: 1,
         mapDimensions: { width: 100, height: 50 },
       })
@@ -157,11 +159,11 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
   })
 
   describe('Integration Test 2: Level navigation', () => {
-    it.skip('should re-center camera when player takes stairs to new level', () => {
+    it('should re-center camera when player takes stairs to new level', () => {
       // Arrange: Player on level 1 on a large map (far right and bottom)
       const state1 = createMockGameState({
         currentLevel: 1,
-        player: { position: { x: 80, y: 40 } },
+        playerPosition: { x: 80, y: 40 },
         mapDimensions: { width: 100, height: 50 },
       })
 
@@ -177,7 +179,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
       // Simulate level transition to level 2 (player spawns at completely different position - far left and top)
       const state2 = createMockGameState({
         currentLevel: 2,
-        player: { position: { x: 20, y: 10 } },
+        playerPosition: { x: 20, y: 10 },
         mapDimensions: { width: 100, height: 50 },
       })
 
@@ -195,14 +197,14 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
       // Arrange: Navigate from level 1 → 2 → 1
       const state1 = createMockGameState({
         currentLevel: 1,
-        player: { position: { x: 50, y: 20 } },
+        playerPosition: { x: 50, y: 20 },
       })
 
       renderer.render(state1)
 
       const state2 = createMockGameState({
         currentLevel: 2,
-        player: { position: { x: 30, y: 15 } },
+        playerPosition: { x: 30, y: 15 },
       })
 
       renderer.render(state2)
@@ -210,7 +212,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
       // Return to level 1 at new position
       const state3 = createMockGameState({
         currentLevel: 1,
-        player: { position: { x: 60, y: 25 } },
+        playerPosition: { x: 60, y: 25 },
       })
 
       renderer.render(state3)
@@ -229,7 +231,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
     it('should maintain stable camera during position updates near viewport edge', () => {
       // Arrange: Player near edge
       const state1 = createMockGameState({
-        player: { position: { x: 69, y: 21 } },
+        playerPosition: { x: 69, y: 21 },
         currentLevel: 1,
       })
 
@@ -239,7 +241,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
 
       // Player position updates slightly (simulating combat, same level)
       const state2 = createMockGameState({
-        player: { position: { x: 69, y: 21 } }, // Same position
+        playerPosition: { x: 69, y: 21 }, // Same position
         currentLevel: 1,
       })
       renderer.render(state2)
@@ -252,7 +254,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
   })
 
   describe('Integration Test 4: Multiple level transitions', () => {
-    it.skip('should handle camera updates across multiple level transitions', () => {
+    it('should handle camera updates across multiple level transitions', () => {
       const levels = [
         { level: 1, playerPos: { x: 40, y: 20 } },
         { level: 2, playerPos: { x: 55, y: 15 } },
@@ -266,7 +268,7 @@ describe('CanvasGameRenderer - Integration Tests (Phase 3.5.5)', () => {
       for (const { level, playerPos } of levels) {
         const state = createMockGameState({
           currentLevel: level,
-          player: { position: playerPos },
+          playerPosition: playerPos,
           mapDimensions: { width: 100, height: 50 },
         })
 
