@@ -147,6 +147,7 @@ export interface Monster {
   id: string
   letter: string
   name: string
+  spriteName: string // Sprite name for tileset lookup
   position: Position
   hp: number
   maxHp: number
@@ -229,6 +230,7 @@ export interface MonsterAIProfile {
 export interface MonsterTemplate {
   letter: string // Monster display character ('B', 'K', 'D', etc.)
   name: string // Display name ("Bat", "Kobold", "Dragon")
+  spriteName: string // Sprite name for tileset lookup ("Fruit bat", "Water elemental", etc.)
   hp: string // HP dice notation ("1d8", "10d8", etc.)
   ac: number // Armor class (lower = harder to hit)
   damage: string // Damage dice notation ("1d2", "1d8+3d10", etc.)

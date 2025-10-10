@@ -318,8 +318,8 @@ export class CanvasGameRenderer {
 
     // Render monsters (top layer)
     for (const monster of level.monsters) {
-      // Use monster name for Angband tileset lookup (e.g., 'Troll' → 'Forest troll')
-      this.renderEntity(state, level, monster.position, monster.name, 'monster', renderConfig)
+      // Use sprite name for Angband tileset lookup (e.g., 'Bat' → 'Fruit bat')
+      this.renderEntity(state, level, monster.position, monster.spriteName, 'monster', renderConfig)
     }
 
     // Render stairs

@@ -254,7 +254,9 @@ let monstersMissing = 0
 const missingMonsters = []
 
 monstersData.forEach((monster) => {
-  const sprite = findSprite(monster.name, spriteMap)
+  // Use spriteName if available, fallback to name for backwards compatibility
+  const lookupName = monster.spriteName || monster.name
+  const sprite = findSprite(lookupName, spriteMap)
 
   if (sprite) {
     const matchType = sprite.fuzzy ? '(fuzzy)' : '(exact)'
@@ -262,7 +264,7 @@ monstersData.forEach((monster) => {
     console.log(`✅ ${monster.letter.padEnd(3)} ${monster.name.padEnd(20)} → "${sprite.key}" ${matchType} ${coordStr}`)
     monstersMapped++
   } else {
-    console.log(`❌ ${monster.letter.padEnd(3)} ${monster.name.padEnd(20)} → NOT FOUND`)
+    console.log(`❌ ${monster.letter.padEnd(3)} ${monster.name.padEnd(20)} → "${lookupName}" NOT FOUND`)
     missingMonsters.push(monster)
     monstersMissing++
   }

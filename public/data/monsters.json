@@ -2,6 +2,7 @@
   {
     "letter": "A",
     "name": "Aquator",
+    "spriteName": "Water elemental",
     "hp": "5d8",
     "ac": 2,
     "damage": "0d0",
@@ -21,6 +22,7 @@
   {
     "letter": "B",
     "name": "Bat",
+    "spriteName": "Fruit bat",
     "hp": "1d8",
     "ac": 3,
     "damage": "1d2",
@@ -40,6 +42,7 @@
   {
     "letter": "C",
     "name": "Centaur",
+    "spriteName": "Uvatha the Horseman",
     "hp": "4d8",
     "ac": 4,
     "damage": "1d2+1d5+1d5",
@@ -59,6 +62,7 @@
   {
     "letter": "D",
     "name": "Dragon",
+    "spriteName": "Baby blue dragon",
     "hp": "10d8",
     "ac": -1,
     "damage": "1d8+3d10",
@@ -79,6 +83,7 @@
   {
     "letter": "E",
     "name": "Emu",
+    "spriteName": "White harpy",
     "hp": "1d8",
     "ac": 7,
     "damage": "1d2",
@@ -99,6 +104,7 @@
   {
     "letter": "F",
     "name": "Venus Flytrap",
+    "spriteName": "Shrieker mushroom patch",
     "hp": "8d8",
     "ac": 3,
     "damage": "1d6",
@@ -118,6 +124,7 @@
   {
     "letter": "G",
     "name": "Griffin",
+    "spriteName": "Manticore",
     "hp": "13d8",
     "ac": 2,
     "damage": "4d3+3d5",
@@ -138,6 +145,7 @@
   {
     "letter": "H",
     "name": "Hobgoblin",
+    "spriteName": "Large kobold",
     "hp": "1d8",
     "ac": 5,
     "damage": "1d8",
@@ -158,6 +166,7 @@
   {
     "letter": "I",
     "name": "Ice Monster",
+    "spriteName": "Ice elemental",
     "hp": "1d8",
     "ac": 9,
     "damage": "0d0",
@@ -177,6 +186,7 @@
   {
     "letter": "J",
     "name": "Jabberwock",
+    "spriteName": "Jabberwock",
     "hp": "15d8",
     "ac": 6,
     "damage": "2d12+2d4",
@@ -197,6 +207,7 @@
   {
     "letter": "K",
     "name": "Kestrel",
+    "spriteName": "Giant roc",
     "hp": "1d8",
     "ac": 7,
     "damage": "1d4",
@@ -217,6 +228,7 @@
   {
     "letter": "L",
     "name": "Leprechaun",
+    "spriteName": "Cutpurse",
     "hp": "3d8",
     "ac": 8,
     "damage": "1d1",
@@ -236,6 +248,7 @@
   {
     "letter": "M",
     "name": "Medusa",
+    "spriteName": "gorgon",
     "hp": "8d8",
     "ac": 2,
     "damage": "3d4+3d4+2d5",
@@ -255,6 +268,7 @@
   {
     "letter": "N",
     "name": "Nymph",
+    "spriteName": "Master thief",
     "hp": "3d8",
     "ac": 9,
     "damage": "0d0",
@@ -274,6 +288,7 @@
   {
     "letter": "O",
     "name": "Orc",
+    "spriteName": "Cave orc",
     "hp": "1d8",
     "ac": 6,
     "damage": "1d8",
@@ -294,6 +309,7 @@
   {
     "letter": "P",
     "name": "Phantom",
+    "spriteName": "Phantom",
     "hp": "8d8",
     "ac": 3,
     "damage": "4d4",
@@ -313,6 +329,7 @@
   {
     "letter": "Q",
     "name": "Quagga",
+    "spriteName": "Uvatha the Horseman",
     "hp": "3d8",
     "ac": 3,
     "damage": "1d5+1d5",
@@ -333,6 +350,7 @@
   {
     "letter": "R",
     "name": "Rattlesnake",
+    "spriteName": "Rattlesnake",
     "hp": "2d8",
     "ac": 3,
     "damage": "1d6",
@@ -352,6 +370,7 @@
   {
     "letter": "S",
     "name": "Snake",
+    "spriteName": "Large white snake",
     "hp": "1d8",
     "ac": 5,
     "damage": "1d3",
@@ -372,6 +391,7 @@
   {
     "letter": "T",
     "name": "Troll",
+    "spriteName": "troll scavenger",
     "hp": "6d8",
     "ac": 4,
     "damage": "1d8+1d8",
@@ -392,6 +412,7 @@
   {
     "letter": "U",
     "name": "Ur-vile",
+    "spriteName": "Bile Demon",
     "hp": "7d8",
     "ac": -2,
     "damage": "1d9+1d9+2d9",
@@ -412,6 +433,7 @@
   {
     "letter": "V",
     "name": "Vampire",
+    "spriteName": "Vampire",
     "hp": "8d8",
     "ac": 1,
     "damage": "1d10",
@@ -431,6 +453,7 @@
   {
     "letter": "W",
     "name": "Wraith",
+    "spriteName": "White wraith",
     "hp": "5d8",
     "ac": 4,
     "damage": "1d6",
@@ -450,6 +473,7 @@
   {
     "letter": "X",
     "name": "Xeroc",
+    "spriteName": "Imp",
     "hp": "7d8",
     "ac": 7,
     "damage": "4d4",
@@ -469,6 +493,7 @@
   {
     "letter": "Y",
     "name": "Yeti",
+    "spriteName": "Yeti",
     "hp": "4d8",
     "ac": 6,
     "damage": "1d6+1d6",
@@ -488,6 +513,7 @@
   {
     "letter": "Z",
     "name": "Zombie",
+    "spriteName": "Skeleton human",
     "hp": "2d8",
     "ac": 8,
     "damage": "1d8",
