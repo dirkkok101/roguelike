@@ -43,12 +43,13 @@ export class ItemSpawnService {
   private scrollTemplates: Array<{ type: ScrollType; effect: string; rarity: string }>
   private ringTemplates: Array<{ type: RingType; effect: string; rarity: string }>
   private wandTemplates: Array<{ type: WandType; damage: string; charges: string; rarity: string }>
-  private weaponTemplates: Array<{ name: string; damage: string; rarity: string }>
-  private armorTemplates: Array<{ name: string; ac: number; rarity: string }>
-  private foodTemplates: Array<{ name: string; nutrition: number; rarity: string }>
+  private weaponTemplates: Array<{ name: string; spriteName: string; damage: string; rarity: string }>
+  private armorTemplates: Array<{ name: string; spriteName: string; ac: number; rarity: string }>
+  private foodTemplates: Array<{ name: string; spriteName: string; nutrition: number; rarity: string }>
   private lightSourceTemplates: Array<{
     type: string
     name: string
+    spriteName: string
     radius: number
     fuel?: number
     isPermanent: boolean
@@ -56,6 +57,7 @@ export class ItemSpawnService {
   }>
   private consumableTemplates: Array<{
     name: string
+    spriteName: string
     type: string
     fuelAmount: number
     rarity: string
@@ -139,9 +141,10 @@ export class ItemSpawnService {
     return this.itemData.armor
   }
 
-  private loadFoodTemplates(): Array<{ name: string; nutrition: number; rarity: string }> {
+  private loadFoodTemplates(): Array<{ name: string; spriteName: string; nutrition: number; rarity: string }> {
     return this.itemData.food.map((f) => ({
       name: f.name,
+      spriteName: f.spriteName,
       nutrition: parseInt(f.nutrition),
       rarity: f.rarity,
     }))
@@ -340,6 +343,7 @@ export class ItemSpawnService {
               item = {
                 id: itemId,
                 name,
+                spriteName: template.spriteName,
                 type: ItemType.WEAPON,
                 identified: false,
                 position: { x, y },
@@ -369,6 +373,7 @@ export class ItemSpawnService {
               item = {
                 id: itemId,
                 name,
+                spriteName: template.spriteName,
                 type: ItemType.ARMOR,
                 identified: false,
                 position: { x, y },
@@ -485,6 +490,7 @@ export class ItemSpawnService {
             item = {
               id: itemId,
               name: template.name,
+              spriteName: template.spriteName,
               type: ItemType.FOOD,
               identified: false,
               position: { x, y },
@@ -506,6 +512,7 @@ export class ItemSpawnService {
                 item = {
                   id: itemId,
                   name: artifact.name,
+                  spriteName: artifact.spriteName,
                   type: ItemType.TORCH, // Artifacts use TORCH type
                   identified: true, // Artifacts are always identified
                   position: { x, y },
@@ -520,6 +527,7 @@ export class ItemSpawnService {
                 item = {
                   id: itemId,
                   name: torch.name,
+                  spriteName: torch.spriteName,
                   type: ItemType.TORCH,
                   identified: true, // Torches are always identified
                   position: { x, y },
@@ -539,6 +547,7 @@ export class ItemSpawnService {
               item = {
                 id: itemId,
                 name: lantern.name,
+                spriteName: lantern.spriteName,
                 type: ItemType.LANTERN,
                 identified: true, // Lanterns are always identified
                 position: { x, y },
@@ -557,6 +566,7 @@ export class ItemSpawnService {
               item = {
                 id: itemId,
                 name: oilFlask.name,
+                spriteName: oilFlask.spriteName,
                 type: ItemType.OIL_FLASK,
                 identified: true, // Oil flasks are always identified
                 position: { x, y },
@@ -692,6 +702,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: template.name,
+      spriteName: template.spriteName,
       type: ItemType.FOOD,
       identified: false,
       position,
@@ -712,6 +723,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: torch.name,
+      spriteName: torch.spriteName,
       type: ItemType.TORCH,
       identified: true,
       position,
@@ -735,6 +747,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: lantern.name,
+      spriteName: lantern.spriteName,
       type: ItemType.LANTERN,
       identified: true,
       position,
@@ -758,6 +771,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: oilFlask.name,
+      spriteName: oilFlask.spriteName,
       type: ItemType.OIL_FLASK,
       identified: true,
       position,

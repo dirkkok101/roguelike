@@ -332,12 +332,14 @@ export enum ItemType {
 }
 
 export interface Weapon extends Item {
+  spriteName: string // Sprite name for tileset lookup
   damage: string
   bonus: number
   cursed?: boolean // Cursed weapons cannot be unwielded
 }
 
 export interface Armor extends Item {
+  spriteName: string // Sprite name for tileset lookup
   ac: number
   bonus: number
   cursed?: boolean // Cursed armor cannot be removed
@@ -432,15 +434,18 @@ export enum WandType {
 }
 
 export interface Food extends Item {
+  spriteName: string // Sprite name for tileset lookup
   nutrition: number // hunger units restored
 }
 
 export interface OilFlask extends Item {
+  spriteName: string // Sprite name for tileset lookup
   fuelAmount: number // fuel units provided (typically 500)
 }
 
 export interface Torch extends Item {
   type: ItemType.TORCH
+  spriteName: string // Sprite name for tileset lookup
   fuel: number
   maxFuel: number
   radius: number
@@ -449,6 +454,7 @@ export interface Torch extends Item {
 
 export interface Lantern extends Item {
   type: ItemType.LANTERN
+  spriteName: string // Sprite name for tileset lookup
   fuel: number
   maxFuel: number
   radius: number
@@ -457,6 +463,7 @@ export interface Lantern extends Item {
 
 export interface Artifact extends Item {
   type: ItemType.TORCH // Artifacts are magical torches
+  spriteName: string // Sprite name for tileset lookup
   radius: number
   isPermanent: true
   // No fuel properties - artifacts never run out

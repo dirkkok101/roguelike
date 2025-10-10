@@ -2,41 +2,49 @@
   "weapons": [
     {
       "name": "Mace",
+      "spriteName": "Mace",
       "damage": "2d4",
       "rarity": "common"
     },
     {
       "name": "Long Sword",
+      "spriteName": "Long Sword",
       "damage": "1d12",
       "rarity": "uncommon"
     },
     {
       "name": "Short Sword",
+      "spriteName": "Short Sword",
       "damage": "1d8",
       "rarity": "common"
     },
     {
       "name": "Two-Handed Sword",
+      "spriteName": "Zweihander",
       "damage": "3d6",
       "rarity": "rare"
     },
     {
       "name": "Dagger",
+      "spriteName": "Dagger",
       "damage": "1d6",
       "rarity": "common"
     },
     {
       "name": "Spear",
+      "spriteName": "Spear",
       "damage": "2d3",
       "rarity": "common"
     },
     {
       "name": "Battle Axe",
+      "spriteName": "Battle Axe",
       "damage": "2d8",
       "rarity": "uncommon"
     },
     {
       "name": "Flail",
+      "spriteName": "Flail",
       "damage": "2d5",
       "rarity": "uncommon"
     }
@@ -44,36 +52,43 @@
   "armor": [
     {
       "name": "Leather Armor",
+      "spriteName": "Hard Leather Armour",
       "ac": 8,
       "rarity": "common"
     },
     {
       "name": "Studded Leather",
+      "spriteName": "Studded Leather Armour",
       "ac": 7,
       "rarity": "common"
     },
     {
       "name": "Ring Mail",
+      "spriteName": "Metal Scale Mail",
       "ac": 7,
       "rarity": "common"
     },
     {
       "name": "Chain Mail",
+      "spriteName": "Chain Mail",
       "ac": 5,
       "rarity": "uncommon"
     },
     {
       "name": "Banded Mail",
+      "spriteName": "Augmented Chain Mail",
       "ac": 4,
       "rarity": "uncommon"
     },
     {
       "name": "Splint Mail",
+      "spriteName": "Partial Plate Armour",
       "ac": 4,
       "rarity": "uncommon"
     },
     {
       "name": "Plate Mail",
+      "spriteName": "Full Plate Armour",
       "ac": 3,
       "rarity": "rare"
     }
@@ -82,6 +97,7 @@
     {
       "type": "torch",
       "name": "Torch",
+      "spriteName": "Wooden Torch",
       "radius": 2,
       "fuel": 500,
       "isPermanent": false,
@@ -90,6 +106,7 @@
     {
       "type": "lantern",
       "name": "Lantern",
+      "spriteName": "Lantern",
       "radius": 2,
       "fuel": 500,
       "isPermanent": false,
@@ -98,6 +115,7 @@
     {
       "type": "artifact",
       "name": "Phial of Galadriel",
+      "spriteName": "Phial",
       "radius": 3,
       "isPermanent": true,
       "rarity": "legendary"
@@ -105,6 +123,7 @@
     {
       "type": "artifact",
       "name": "Star of Elendil",
+      "spriteName": "Star",
       "radius": 2,
       "isPermanent": true,
       "rarity": "legendary"
@@ -428,6 +447,7 @@
   "food": [
     {
       "name": "Food Ration",
+      "spriteName": "Ration of Food",
       "nutrition": "1300",
       "rarity": "common"
     }
@@ -435,6 +455,7 @@
   "consumables": [
     {
       "name": "Oil Flask",
+      "spriteName": "Flask of oil",
       "type": "lantern_fuel",
       "fuelAmount": 500,
       "rarity": "uncommon"

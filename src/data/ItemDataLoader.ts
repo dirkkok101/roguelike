@@ -4,12 +4,14 @@
 
 export interface WeaponData {
   name: string
+  spriteName: string
   damage: string
   rarity: string
 }
 
 export interface ArmorData {
   name: string
+  spriteName: string
   ac: number
   rarity: string
 }
@@ -17,6 +19,7 @@ export interface ArmorData {
 export interface LightSourceData {
   type: string
   name: string
+  spriteName: string
   radius: number
   fuel?: number
   isPermanent: boolean
@@ -57,12 +60,14 @@ export interface WandData {
 
 export interface FoodData {
   name: string
+  spriteName: string
   nutrition: string
   rarity: string
 }
 
 export interface ConsumableData {
   name: string
+  spriteName: string
   type: string
   fuelAmount: number
   rarity: string

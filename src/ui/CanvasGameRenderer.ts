@@ -308,7 +308,10 @@ export class CanvasGameRenderer {
 
     // Render items first (bottom layer)
     for (const item of level.items) {
-      this.renderEntity(state, level, item.position, item.name[0] || '?', 'item', renderConfig)
+      // Use spriteName if available (weapons, armor, light sources, food, oil flask)
+      // Otherwise fall back to first character (potions, scrolls, rings, wands)
+      const itemSprite = 'spriteName' in item ? item.spriteName : item.name[0] || '?'
+      this.renderEntity(state, level, item.position, itemSprite, 'item', renderConfig)
     }
 
     // Render gold piles
