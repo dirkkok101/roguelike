@@ -480,21 +480,22 @@ getFloorSpriteName(lighting: 'torch' | 'lit' | 'dark'): string {
 4. ✅ Updated `CanvasGameRenderer` item rendering to use spriteName
 5. ✅ Validated: All 21 items have valid sprite mappings
 
-**Phase 2b: Items - Generic Sprites** (2-3 hours)
-1. Add generic `spriteName` to remaining 38 items:
+**✅ COMPLETED: Phase 2b - Items (Generic Sprites)** (2-3 hours)
+1. ✅ Added generic `spriteName` to remaining 44 items:
    - 13 potions → `potion`
    - 10 rings → `Ring`
    - 10 wands → `wand`
    - 5 scrolls without specific sprites → `scroll`
-2. Map 6 scrolls to specific Angband sprites:
+2. ✅ Mapped 6 scrolls to specific Angband sprites:
    - IDENTIFY → `Identify Rune`
    - ENCHANT_WEAPON → `Enchant Weapon To-Hit`
    - ENCHANT_ARMOR → `Enchant Armour`
    - MAGIC_MAPPING → `Magic Mapping`
    - TELEPORTATION → `Teleportation`
    - REMOVE_CURSE → `Remove Curse`
-3. Update `validate-assets.js` for item validation
-4. Test and validate all 65 items render correctly
+3. ✅ Updated TypeScript interfaces (Potion, Scroll, Ring, Wand)
+4. ✅ Updated ItemDataLoader and ItemSpawnService to handle spriteName
+5. ✅ Validated: All 65 items now have sprite mappings (100% coverage)
 
 **Phase 2c: Secondary Terrain** (1 hour, optional)
 1. Add rubble, magma, quartz to terrain-sprites.json
@@ -518,10 +519,10 @@ getFloorSpriteName(lighting: 'torch' | 'lit' | 'dark'): string {
 - ✅ `/src/services/TerrainSpriteService/index.ts` - Barrel export (COMPLETED)
 
 ### Modified Files
-- ✅ `/public/data/items.json` - Added spriteName to 21 items (Phase 2a complete, Phase 2b pending)
-- ✅ `/src/types/core/core.ts` - Added spriteName to item interfaces (COMPLETED)
-- ✅ `/src/data/ItemDataLoader.ts` - Added spriteName validation (COMPLETED)
-- ✅ `/src/services/ItemSpawnService/ItemSpawnService.ts` - Updated to use spriteName (COMPLETED)
+- ✅ `/public/data/items.json` - Added spriteName to all 65 items (COMPLETED)
+- ✅ `/src/types/core/core.ts` - Added spriteName to all item interfaces (COMPLETED)
+- ✅ `/src/data/ItemDataLoader.ts` - Added spriteName to all item data interfaces (COMPLETED)
+- ✅ `/src/services/ItemSpawnService/ItemSpawnService.ts` - Updated to use spriteName for all items (COMPLETED)
 - ✅ `/src/services/AssetLoaderService/AssetLoaderService.ts` - Delegated terrain to TerrainSpriteService (COMPLETED)
 - ✅ `/src/ui/CanvasGameRenderer.ts` - Uses spriteName for items when available (COMPLETED)
 - ✅ `/scripts/validate-assets.js` - Validates terrain and items (COMPLETED)
@@ -606,9 +607,12 @@ getSprite(char: string): TileCoordinate | null {
 - [x] 21/65 items (32%) with exact sprite matches
 
 ### Phase 2b (Items - Generic Sprites)
-- [ ] items.json updated with spriteName for remaining 44 items
-- [ ] All items use either specific or generic sprites
-- [ ] 100% item sprite coverage (65/65 items)
+- [x] items.json updated with spriteName for remaining 44 items
+- [x] All items use either specific or generic sprites
+- [x] 100% item sprite coverage (65/65 items)
+- [x] TypeScript interfaces updated (Potion, Scroll, Ring, Wand)
+- [x] ItemDataLoader updated to include spriteName
+- [x] ItemSpawnService updated to populate spriteName
 
 ### Phase 3 (Special Cases)
 - [ ] Door states use correct sprites
