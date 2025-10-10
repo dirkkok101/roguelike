@@ -78,6 +78,8 @@ export interface Level {
   stairsUp: Position | null
   stairsDown: Position | null
   explored: boolean[][]
+  wanderingMonsterCount?: number // Count of wandering monsters spawned (max 5)
+  lastWanderingSpawnTurn?: number // Turn number of last wandering monster spawn
 }
 
 /**
@@ -141,6 +143,7 @@ export interface Player {
   inventory: Item[]
   statusEffects: StatusEffect[]
   energy: number // Energy for turn system (0-199 typical range)
+  isRunning: boolean // Track if player is running (increases monster detection range)
 }
 
 export interface Monster {
@@ -279,6 +282,9 @@ export interface GameState {
 
   // Targeting state (active during target selection)
   targeting?: TargetingState // Active targeting state (optional)
+
+  // Position history for door slam detection (tracks last 3 positions)
+  positionHistory?: Position[] // Track player movement pattern (max length 3)
 
   // Death details (populated only on death)
   deathDetails?: {

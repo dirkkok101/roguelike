@@ -13,7 +13,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 3,
-      "aggroRange": 7,
+      "aggroRange": 4,
       "fleeThreshold": 0.0,
       "special": ["rusts_armor"]
     }
@@ -32,7 +32,7 @@
     "aiProfile": {
       "behavior": "ERRATIC",
       "intelligence": 2,
-      "aggroRange": 8,
+      "aggroRange": 0,
       "fleeThreshold": 0.0,
       "special": ["flying"]
     }
@@ -51,7 +51,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 6,
-      "aggroRange": 10,
+      "aggroRange": 7,
       "fleeThreshold": 0.2,
       "special": []
     }
@@ -70,7 +70,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 8,
-      "aggroRange": 15,
+      "aggroRange": 10,
       "fleeThreshold": 0.15,
       "chaseChance": 0.67,
       "special": ["mean", "breath_weapon"]
@@ -90,7 +90,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
-      "aggroRange": 6,
+      "aggroRange": 4,
       "fleeThreshold": 0.0,
       "chaseChance": 0.67,
       "special": ["mean"]
@@ -110,7 +110,7 @@
     "aiProfile": {
       "behavior": "STATIONARY",
       "intelligence": 1,
-      "aggroRange": 2,
+      "aggroRange": 1,
       "fleeThreshold": 0.0,
       "special": ["holds"]
     }
@@ -129,7 +129,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
-      "aggroRange": 12,
+      "aggroRange": 10,
       "fleeThreshold": 0.1,
       "chaseChance": 0.67,
       "special": ["regeneration", "flying", "mean"]
@@ -149,7 +149,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
-      "aggroRange": 7,
+      "aggroRange": 4,
       "fleeThreshold": 0.0,
       "chaseChance": 0.67,
       "special": ["mean"]
@@ -169,7 +169,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
-      "aggroRange": 6,
+      "aggroRange": 4,
       "fleeThreshold": 0.0,
       "special": ["freezes"]
     }
@@ -188,7 +188,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
-      "aggroRange": 12,
+      "aggroRange": 10,
       "fleeThreshold": 0.1,
       "chaseChance": 0.67,
       "special": ["mean"]
@@ -208,7 +208,7 @@
     "aiProfile": {
       "behavior": "ERRATIC",
       "intelligence": 2,
-      "aggroRange": 8,
+      "aggroRange": 0,
       "fleeThreshold": 0.0,
       "chaseChance": 0.67,
       "special": ["flying", "mean"]
@@ -228,7 +228,7 @@
     "aiProfile": {
       "behavior": "THIEF",
       "intelligence": 6,
-      "aggroRange": 10,
+      "aggroRange": 7,
       "fleeThreshold": 1.0,
       "special": ["steals"]
     }
@@ -247,7 +247,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
-      "aggroRange": 10,
+      "aggroRange": 8,
       "fleeThreshold": 0.2,
       "special": ["confuses"]
     }
@@ -266,7 +266,7 @@
     "aiProfile": {
       "behavior": "THIEF",
       "intelligence": 7,
-      "aggroRange": 8,
+      "aggroRange": 7,
       "fleeThreshold": 1.0,
       "special": ["steals"]
     }
@@ -285,7 +285,7 @@
     "aiProfile": {
       "behavior": "GREEDY",
       "intelligence": 5,
-      "aggroRange": 8,
+      "aggroRange": 6,
       "fleeThreshold": 0.25,
       "chaseChance": 0.67,
       "special": ["mean"]
@@ -305,7 +305,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
-      "aggroRange": 10,
+      "aggroRange": 8,
       "fleeThreshold": 0.2,
       "special": ["invisible"]
     }
@@ -324,7 +324,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
-      "aggroRange": 7,
+      "aggroRange": 4,
       "fleeThreshold": 0.0,
       "chaseChance": 0.67,
       "special": ["mean"]
@@ -344,7 +344,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
-      "aggroRange": 6,
+      "aggroRange": 4,
       "fleeThreshold": 0.0,
       "special": ["drains_strength"]
     }
@@ -363,7 +363,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
-      "aggroRange": 5,
+      "aggroRange": 4,
       "fleeThreshold": 0.0,
       "chaseChance": 0.67,
       "special": ["mean"]
@@ -383,7 +383,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 4,
-      "aggroRange": 8,
+      "aggroRange": 5,
       "fleeThreshold": 0.2,
       "chaseChance": 0.67,
       "special": ["regeneration"]
@@ -403,7 +403,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
-      "aggroRange": 10,
+      "aggroRange": 8,
       "fleeThreshold": 0.15,
       "chaseChance": 0.67,
       "special": ["mean"]
@@ -423,7 +423,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
-      "aggroRange": 10,
+      "aggroRange": 8,
       "fleeThreshold": 0.3,
       "special": ["regeneration", "drains_max_hp"]
     }
@@ -442,7 +442,7 @@
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 6,
-      "aggroRange": 9,
+      "aggroRange": 7,
       "fleeThreshold": 0.25,
       "special": ["drains_xp"]
     }
@@ -461,7 +461,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 3,
-      "aggroRange": 7,
+      "aggroRange": 4,
       "fleeThreshold": 0.2,
       "special": []
     }
@@ -480,7 +480,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 3,
-      "aggroRange": 7,
+      "aggroRange": 5,
       "fleeThreshold": 0.15,
       "special": []
     }
@@ -499,7 +499,7 @@
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
-      "aggroRange": 6,
+      "aggroRange": 4,
       "fleeThreshold": 0.0,
       "chaseChance": 0.67,
       "special": ["mean"]

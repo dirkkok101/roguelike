@@ -16,6 +16,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
+import { MonsterAIService } from '@services/MonsterAIService'
 import { AttackCommand } from '../AttackCommand'
 
 // ============================================================================
@@ -36,7 +37,8 @@ export class MoveCommand implements ICommand {
     private regenerationService: RegenerationService,
     private notificationService: NotificationService,
     private turnService: TurnService,
-    private goldService: GoldService
+    private goldService: GoldService,
+    private monsterAIService?: MonsterAIService // Optional for backward compatibility
   ) {}
 
   execute(state: GameState): GameState {
@@ -148,8 +150,33 @@ export class MoveCommand implements ICommand {
   private performMovement(state: GameState, position: Position, level: Level): GameState {
     // 1. Move player
     let player = this.movementService.movePlayer(state.player, position)
+
+    // 1.1. Update position history for door slam detection (keep last 3 positions)
+    const currentHistory = state.positionHistory || []
+    const updatedPositionHistory = [...currentHistory, position].slice(-3)
+
+    // 1.2. Initialize message and level tracking
     let messages: (HungerMessage | LightMessage | RegenMessage)[] = []
     let updatedLevel = level
+
+    // 1.3. Detect door slam pattern (returning to same doorway position)
+    const doorAtPosition = level.doors.find(
+      (door) => door.position.x === position.x && door.position.y === position.y
+    )
+    const doorSlammed = this.detectDoorSlam(updatedPositionHistory, level)
+    if (doorSlammed && doorAtPosition && this.monsterAIService) {
+      // Wake monsters in connected rooms
+      const wakeResult = this.monsterAIService.wakeRoomMonsters(updatedLevel, doorAtPosition.connectsRooms)
+      updatedLevel = { ...updatedLevel, monsters: wakeResult.updatedMonsters }
+
+      // Add wake message if any monsters woke
+      if (wakeResult.wokeMonsters.length > 0) {
+        messages.push({
+          text: 'Your loud entrance wakes the monsters!',
+          type: 'warning' as const,
+        })
+      }
+    }
 
     // 1.5. Check for gold pickup at new position (automatic, no turn cost)
     const goldAtPosition = level.gold.find(
@@ -281,7 +308,35 @@ export class MoveCommand implements ICommand {
       visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
       messages: finalMessages,
+      positionHistory: updatedPositionHistory,
     })
+  }
+
+  /**
+   * Detect door slam pattern: player returned to same doorway position within 2 moves
+   * Pattern: position N-2 == position N (current) AND position is a doorway
+   * @param positionHistory Last 3 player positions
+   * @param level Current level (for door lookup)
+   * @returns True if door slam detected
+   */
+  private detectDoorSlam(positionHistory: Position[], level: Level): boolean {
+    // Need at least 3 positions to detect pattern
+    if (positionHistory.length < 3) return false
+
+    const currentPos = positionHistory[2] // position N (most recent)
+    const twoMovesAgo = positionHistory[0] // position N-2
+
+    // Check if returned to same position
+    if (currentPos.x !== twoMovesAgo.x || currentPos.y !== twoMovesAgo.y) {
+      return false
+    }
+
+    // Check if current position is a doorway
+    const doorAtPosition = level.doors.find(
+      (door) => door.position.x === currentPos.x && door.position.y === currentPos.y
+    )
+
+    return doorAtPosition !== undefined
   }
 
 }

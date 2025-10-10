@@ -1,0 +1,1 @@
+export { WanderingMonsterService } from './WanderingMonsterService'

@@ -128,6 +128,7 @@ export class PlayingState extends BaseState {
       // PHASE 3: Process monsters only if player exhausted energy
       if (!this.turnService.canPlayerAct(this.gameState.player)) {
         this.gameState = this.monsterTurnService.processMonsterTurns(this.gameState)
+        this.gameState = this.turnService.processWanderingSpawns(this.gameState)
         this.gameState = this.turnService.incrementTurn(this.gameState)
       }
 
@@ -183,6 +184,7 @@ export class PlayingState extends BaseState {
       // Process monsters only if player exhausted energy
       if (!this.turnService.canPlayerAct(this.gameState.player)) {
         this.gameState = this.monsterTurnService.processMonsterTurns(this.gameState)
+        this.gameState = this.turnService.processWanderingSpawns(this.gameState)
         this.gameState = this.turnService.incrementTurn(this.gameState)
       }
 
