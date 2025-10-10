@@ -240,13 +240,29 @@ export class GameRenderer {
 
     // Add appropriate element for new mode
     if (mode === 'sprites' && this.canvasGameRenderer && this.dungeonCanvas) {
+      // Sprite mode: enable flex centering, disable scrolling
+      this.dungeonContainer.style.overflow = 'hidden'
+      this.dungeonContainer.style.display = 'flex'
+      this.dungeonContainer.style.alignItems = 'center'
+      this.dungeonContainer.style.justifyContent = 'center'
+
       // Reattach canvas element (it was removed when innerHTML was cleared)
       this.dungeonContainer.appendChild(this.dungeonCanvas)
 
       // Trigger resize to recalculate dimensions for new mode
       this.canvasGameRenderer.resize()
+    } else if (mode === 'ascii') {
+      // ASCII mode: enable scrolling, disable flex centering
+      this.dungeonContainer.style.overflow = 'auto'
+      this.dungeonContainer.style.display = 'block'
+      this.dungeonContainer.style.alignItems = ''
+      this.dungeonContainer.style.justifyContent = ''
+
+      // ASCII mode renders full map, ensure player is visible after switch
+      // Scroll will happen after renderDungeon() in handlePreferenceChange()
+      // Use setTimeout to allow DOM to update first
+      setTimeout(() => this.scrollToPlayerInASCII(), 0)
     }
-    // For ASCII mode, renderDungeon will handle innerHTML
   }
 
   /**
@@ -279,7 +295,7 @@ export class GameRenderer {
 
   /**
    * Setup window resize handler with debouncing
-   * Only resizes canvas in sprite mode (ASCII mode uses natural HTML reflow)
+   * Handles both sprite mode (canvas resize) and ASCII mode (scroll to player)
    */
   private setupResizeHandler(): void {
     this.resizeHandler = () => {
@@ -289,10 +305,10 @@ export class GameRenderer {
       }
 
       this.resizeDebounceTimer = window.setTimeout(() => {
-        // Only resize if in sprite mode with canvas renderer
+        // Handle sprite mode resize
         if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
           if (this.debugService.isEnabled()) {
-            console.log('[GameRenderer] Window resized, recalculating canvas dimensions')
+            console.log('[GameRenderer] Window resized (sprite mode), recalculating canvas dimensions')
           }
 
           // Recalculate canvas dimensions based on new container size
@@ -302,12 +318,48 @@ export class GameRenderer {
           if (this.currentGameState) {
             this.renderDungeon(this.currentGameState)
           }
+        } else if (this.currentRenderMode === 'ascii' && this.currentGameState) {
+          // ASCII mode: scroll container to show player position
+          if (this.debugService.isEnabled()) {
+            console.log('[GameRenderer] Window resized (ASCII mode), scrolling to player')
+          }
+
+          this.scrollToPlayerInASCII()
         }
-        // ASCII mode doesn't need resize - HTML naturally reflows
       }, 250) // 250ms debounce delay
     }
 
     window.addEventListener('resize', this.resizeHandler)
+  }
+
+  /**
+   * Scroll ASCII dungeon container to center player position
+   * ASCII mode renders the full map, so we need to scroll to keep player visible
+   */
+  private scrollToPlayerInASCII(): void {
+    if (!this.currentGameState) return
+
+    const player = this.currentGameState.player
+    const container = this.dungeonContainer
+
+    // ASCII renderer uses monospace font, estimate character size
+    // Typical monospace is ~10px wide, ~16px tall
+    const charWidth = 10
+    const charHeight = 16
+
+    // Calculate player pixel position
+    const playerX = player.position.x * charWidth
+    const playerY = player.position.y * charHeight
+
+    // Center player in viewport
+    const scrollX = playerX - container.clientWidth / 2
+    const scrollY = playerY - container.clientHeight / 2
+
+    container.scrollTo({
+      left: Math.max(0, scrollX),
+      top: Math.max(0, scrollY),
+      behavior: 'smooth'
+    })
   }
 
   /**

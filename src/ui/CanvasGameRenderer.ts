@@ -123,8 +123,6 @@ export class CanvasGameRenderer {
     this.config = {
       tileWidth: 32,
       tileHeight: 32,
-      gridWidth,
-      gridHeight,
       enableSmoothing: false, // Disable for crisp pixel art
       enableDirtyRectangles: true,
       exploredOpacity: 0.5,
@@ -132,7 +130,7 @@ export class CanvasGameRenderer {
       scrollMarginX: Math.min(10, Math.floor(gridWidth / 8)), // Dynamic based on viewport size
       scrollMarginY: Math.min(5, Math.floor(gridHeight / 4)), // Dynamic based on viewport size
       ...config,
-      // Preserve explicit dimensions if provided
+      // Always preserve calculated/explicit dimensions (set after spread to override config values)
       gridWidth,
       gridHeight,
     }
