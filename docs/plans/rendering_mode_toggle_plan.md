@@ -11,7 +11,7 @@
 ## 1. Objectives
 
 ### Primary Goal
-Add a user preference toggle that allows switching between ASCII text rendering and sprite-based rendering at runtime, providing flexibility for different user preferences and accessibility needs.
+Add a user preference toggle that allows switching between ASCII text rendering and sprite-based rendering at runtime via keypress, providing instant flexibility for different user preferences and accessibility needs.
 
 ### Design Philosophy
 - **User Choice**: Let users pick their preferred rendering mode
@@ -21,14 +21,15 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 - **Backward Compatibility**: Maintain both rendering systems in parallel
 
 ### Success Criteria
-- [ ] User can toggle between ASCII and sprite modes from settings menu
+- [ ] User can toggle between ASCII and sprite modes with a keypress (e.g., 'R' key)
+- [ ] Visual feedback shown when switching modes (message in game log)
 - [ ] Preference persists across browser sessions (localStorage)
-- [ ] Switching modes updates renderer immediately (no reload)
+- [ ] Switching modes updates renderer immediately (no reload or lag)
 - [ ] Both rendering modes produce identical gameplay
 - [ ] ASCII renderer still works correctly (not broken by sprite work)
 - [ ] All existing tests pass in both modes
 - [ ] New toggle tests achieve >80% coverage
-- [ ] Documentation updated with toggle instructions
+- [ ] Documentation updated with keypress shortcut
 
 ---
 
@@ -284,124 +285,117 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 
 ---
 
-### Phase 4: Settings UI Integration (Priority: MEDIUM)
+### Phase 4: Keypress Toggle Integration (Priority: HIGH)
 
-**Objective**: Add toggle control to settings menu
+**Objective**: Add keypress handler to toggle render mode during gameplay
 
-#### Task 4.1: Create Render Mode Toggle UI Component
+#### Task 4.1: Add Toggle Keypress Handler
 
-**Context**: Add toggle button/radio to settings screen
+**Context**: Handle 'R' keypress to toggle rendering mode in PlayingState
 
 **Files to create/modify**:
-- `src/ui/SettingsModal.ts` (modify or create)
-- `src/states/SettingsState.ts` (modify or create)
+- `src/states/PlayingState.ts` (modify)
+- `src/commands/ToggleRenderModeCommand/ToggleRenderModeCommand.ts` (new)
+- `src/commands/ToggleRenderModeCommand/index.ts` (new)
 
 ##### Subtasks:
-- [ ] Check if SettingsModal/SettingsState exists:
-  ```bash
-  ls src/ui/Settings* src/states/Settings*
-  ```
-- [ ] If not exists, create basic settings modal:
+- [ ] Create `ToggleRenderModeCommand`:
   ```typescript
-  export class SettingsModal {
+  export class ToggleRenderModeCommand implements ICommand {
     constructor(
       private preferencesService: PreferencesService,
-      private onClose: () => void
+      private messageService: MessageService
     ) {}
 
-    render(): HTMLElement {
-      const modal = document.createElement('div')
-      modal.className = 'settings-modal'
+    execute(state: GameState): GameState {
+      const prefs = this.preferencesService.getPreferences()
 
-      // Render mode section
-      const renderSection = this.createRenderModeSection()
-      modal.appendChild(renderSection)
+      // Toggle mode
+      const newMode = prefs.renderMode === 'sprites' ? 'ascii' : 'sprites'
 
-      // Close button
-      const closeButton = this.createCloseButton()
-      modal.appendChild(closeButton)
+      // Save preference (triggers renderer update via event)
+      this.preferencesService.savePreferences({
+        ...prefs,
+        renderMode: newMode
+      })
 
-      return modal
+      // Add message to game log
+      const modeName = newMode === 'sprites' ? 'Sprite' : 'ASCII'
+      const newState = this.messageService.addMessage(
+        state,
+        `Switched to ${modeName} rendering mode`,
+        'info'
+      )
+
+      return newState
     }
   }
   ```
-- [ ] Add render mode toggle:
+- [ ] Add keypress handler to PlayingState:
   ```typescript
-  private createRenderModeSection(): HTMLElement {
-    const section = document.createElement('div')
-    const prefs = this.preferencesService.getPreferences()
-
-    const label = document.createElement('label')
-    label.textContent = 'Rendering Mode:'
-
-    const select = document.createElement('select')
-    select.innerHTML = `
-      <option value="sprites" ${prefs.renderMode === 'sprites' ? 'selected' : ''}>
-        Sprites (Hardware Accelerated)
-      </option>
-      <option value="ascii" ${prefs.renderMode === 'ascii' ? 'selected' : ''}>
-        ASCII Text (Classic)
-      </option>
-    `
-
-    select.addEventListener('change', (e) => {
-      const mode = (e.target as HTMLSelectElement).value as 'ascii' | 'sprites'
-      this.preferencesService.savePreferences({
-        ...prefs,
-        renderMode: mode
-      })
-    })
-
-    section.appendChild(label)
-    section.appendChild(select)
-    return section
+  // In PlayingState.handleInput()
+  if (input.key === 'r' || input.key === 'R') {
+    const newState = this.toggleRenderModeCommand.execute(this.gameState)
+    this.gameState = newState
+    return  // Don't process as movement
   }
   ```
-- [ ] Add keyboard shortcut (optional): `R` key to toggle render mode
-- [ ] Git commit: "feat: add render mode toggle to settings UI (Phase 4.1)"
+- [ ] Wire up command in PlayingState constructor:
+  ```typescript
+  this.toggleRenderModeCommand = new ToggleRenderModeCommand(
+    preferencesService,
+    messageService
+  )
+  ```
+- [ ] Write command tests (toggle behavior, message added)
+- [ ] Git commit: "feat: add keypress toggle for render mode (Phase 4.1)"
 
 ---
 
-#### Task 4.2: Style Settings Modal
+#### Task 4.2: Add Visual Feedback for Toggle
 
-**Context**: Add CSS for settings modal and toggle
+**Context**: Show clear visual indication when render mode switches
 
 **Files to create/modify**:
-- `public/styles.css` (modify)
+- `src/ui/GameRenderer.ts` (modify)
+- `public/styles.css` (modify - optional)
 
 ##### Subtasks:
-- [ ] Add settings modal styles:
-  ```css
-  .settings-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #1a1a1a;
-    border: 2px solid #444;
-    padding: 2rem;
-    z-index: 1000;
-    min-width: 400px;
-  }
+- [ ] Message already added by command (via MessageService)
+- [ ] Optional: Add brief overlay notification:
+  ```typescript
+  private showModeChangeNotification(mode: 'ascii' | 'sprites'): void {
+    const overlay = document.createElement('div')
+    overlay.className = 'mode-change-notification'
+    overlay.textContent = mode === 'sprites' ? 'SPRITE MODE' : 'ASCII MODE'
 
-  .settings-modal label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #fff;
-  }
+    document.body.appendChild(overlay)
 
-  .settings-modal select {
-    width: 100%;
-    padding: 0.5rem;
-    background: #2a2a2a;
-    color: #fff;
-    border: 1px solid #444;
-    margin-bottom: 1rem;
+    // Fade out and remove after 1 second
+    setTimeout(() => {
+      overlay.style.opacity = '0'
+      setTimeout(() => overlay.remove(), 300)
+    }, 700)
   }
   ```
-- [ ] Ensure settings modal is accessible (keyboard navigation, ARIA labels)
-- [ ] Test on different screen sizes
-- [ ] Git commit: "style: add settings modal CSS (Phase 4.2)"
+- [ ] Optional CSS for overlay:
+  ```css
+  .mode-change-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 1rem 2rem;
+    border: 2px solid #44ff44;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    z-index: 9999;
+    transition: opacity 0.3s;
+  }
+  ```
+- [ ] Git commit: "feat: add visual feedback for render mode toggle (Phase 4.2)"
 
 ---
 
@@ -486,10 +480,10 @@ Add a user preference toggle that allows switching between ASCII text rendering 
   - Classic roguelike aesthetic
 
   **How to Switch**:
-  1. Press ESC to open main menu
-  2. Select "Settings"
-  3. Change "Rendering Mode" dropdown
-  4. Preference saves automatically
+  - Press **`R`** key during gameplay to toggle instantly
+  - A message will appear: "Switched to [ASCII/Sprite] rendering mode"
+  - Your preference is saved automatically
+  - Works seamlessly during active gameplay
   ```
 - [ ] Update README.md with feature mention
 - [ ] Add screenshots of both modes (optional)
@@ -542,13 +536,14 @@ GameRenderer
 ### Data Flow
 
 ```
-User clicks "Settings" → SettingsModal opens
-User selects render mode → PreferencesService.savePreferences()
-PreferencesService persists to localStorage
+User presses 'R' key → PlayingState.handleInput() detects
+ToggleRenderModeCommand.execute() called
+PreferencesService.savePreferences() persists to localStorage
 PreferencesService.notifyListeners() called
 GameRenderer.handlePreferenceChange() invoked
 GameRenderer.switchRenderMode() swaps DOM elements
-GameRenderer.render() uses new renderer
+MessageService adds "Switched to X mode" to game log
+GameRenderer.render() uses new renderer on next frame
 ```
 
 ### State Persistence
@@ -615,14 +610,17 @@ class CanvasGameRenderer implements IDungeonRenderer {
 
 ### Manual Testing Checklist
 
-- [ ] Toggle to ASCII mode - ASCII grid appears
-- [ ] Toggle to sprite mode - Canvas appears
-- [ ] Reload page - Preference restored
+- [ ] Press 'R' key - Toggle to ASCII mode, message appears
+- [ ] Press 'R' key again - Toggle back to sprite mode
+- [ ] Check game log - Both toggle messages visible
+- [ ] Reload page - Preference restored (stays in last mode)
 - [ ] Play full game in ASCII mode
 - [ ] Play full game in sprite mode
-- [ ] Switch modes during combat (state intact)
+- [ ] Switch modes during combat (state intact, no bugs)
+- [ ] Switch modes during monster turn (no crash)
 - [ ] Switch modes with inventory open (state intact)
-- [ ] Check localStorage (preference saved)
+- [ ] Rapid press 'R' multiple times (no crashes)
+- [ ] Check localStorage (preference saved correctly)
 - [ ] Test with screen reader (ASCII mode accessibility)
 
 ---
@@ -700,9 +698,9 @@ class CanvasGameRenderer implements IDungeonRenderer {
 - Task 3.2: DOM element swapping - 1 hour
 - **Phase 3 Total**: 3 hours
 
-**Phase 4: Settings UI Integration**
-- Task 4.1: Create toggle UI - 2 hours
-- Task 4.2: Style settings modal - 1 hour
+**Phase 4: Keypress Toggle Integration**
+- Task 4.1: Add toggle keypress handler - 2 hours
+- Task 4.2: Add visual feedback - 1 hour
 - **Phase 4 Total**: 3 hours
 
 **Phase 5: Testing & Integration**
@@ -734,11 +732,12 @@ class CanvasGameRenderer implements IDungeonRenderer {
 
 ### Future Enhancements
 
-1. **Hot-Key Toggle**: Press `R` to quickly switch modes
+1. **Settings Menu Integration**: Add toggle to settings modal (in addition to keypress)
 2. **Performance Stats**: Show FPS for each mode in debug overlay
 3. **Hybrid Mode**: Sprites for terrain, ASCII for entities (experimental)
 4. **Custom Tilesets**: Allow users to load different sprite tilesets
 5. **ASCII Themes**: Multiple color schemes for ASCII mode
+6. **Transition Animation**: Smooth fade/morph between modes
 
 ---
 
