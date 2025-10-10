@@ -11,7 +11,7 @@ const CHAR_TO_ANGBAND: Record<string, string[]> = {
   '.': ['FLOOR'], // Floor
   '#': ['GRANITE', 'PERM'], // Walls
   '+': ['CLOSED'], // Closed door
-  '-': ['OPEN'], // Open door
+  "'": ['OPEN'], // Open door (single quote)
   '<': ['LESS'], // Up stairs
   '>': ['MORE'], // Down stairs
   '^': ['trap'], // Trap

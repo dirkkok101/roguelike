@@ -37,6 +37,48 @@ export class CanvasGameRenderer {
   private previousLevel: number | null = null
   private previousPlayerPos: Position | null = null
 
+  /**
+   * Calculate responsive viewport dimensions based on container size and tile size
+   *
+   * @param tileWidth - Width of each tile in pixels
+   * @param tileHeight - Height of each tile in pixels
+   * @returns Calculated grid dimensions
+   */
+  private calculateResponsiveDimensions(tileWidth: number, tileHeight: number): { gridWidth: number; gridHeight: number } {
+    // Get parent container dimensions
+    const container = this.canvasElement.parentElement
+    if (!container) {
+      // Fallback to default if no parent container
+      console.warn('[CanvasGameRenderer] No parent container found, using default dimensions')
+      return { gridWidth: 80, gridHeight: 22 }
+    }
+
+    // Get container's client dimensions (actual rendered size)
+    const containerWidth = container.clientWidth
+    const containerHeight = container.clientHeight
+
+    // Calculate how many tiles fit in the container
+    const gridWidth = Math.floor(containerWidth / tileWidth)
+    const gridHeight = Math.floor(containerHeight / tileHeight)
+
+    // Ensure minimum dimensions (at least 20×10 tiles visible)
+    const minGridWidth = 20
+    const minGridHeight = 10
+
+    const finalGridWidth = Math.max(gridWidth, minGridWidth)
+    const finalGridHeight = Math.max(gridHeight, minGridHeight)
+
+    console.log(
+      `[CanvasGameRenderer] Responsive viewport: container ${containerWidth}×${containerHeight}px ` +
+        `→ ${finalGridWidth}×${finalGridHeight} tiles @ ${tileWidth}×${tileHeight}px`
+    )
+
+    return {
+      gridWidth: finalGridWidth,
+      gridHeight: finalGridHeight,
+    }
+  }
+
   constructor(
     private renderingService: RenderingService,
     private assetLoader: AssetLoaderService,
@@ -50,19 +92,28 @@ export class CanvasGameRenderer {
     }
     this.ctx = context
 
-    // Set up configuration with defaults
+    // Calculate responsive viewport dimensions based on container size
+    const responsiveDimensions = this.calculateResponsiveDimensions(
+      config?.tileWidth || 32,
+      config?.tileHeight || 32
+    )
+
+    // Set up configuration with calculated responsive dimensions
     this.config = {
       tileWidth: 32,
       tileHeight: 32,
-      gridWidth: 80,
-      gridHeight: 22,
+      gridWidth: responsiveDimensions.gridWidth,
+      gridHeight: responsiveDimensions.gridHeight,
       enableSmoothing: false, // Disable for crisp pixel art
       enableDirtyRectangles: true,
       exploredOpacity: 0.5,
       detectedOpacity: 0.6,
-      scrollMarginX: 10, // 10 tiles from left/right edges
-      scrollMarginY: 5, // 5 tiles from top/bottom edges
+      scrollMarginX: Math.min(10, Math.floor(responsiveDimensions.gridWidth / 8)), // Dynamic based on viewport size
+      scrollMarginY: Math.min(5, Math.floor(responsiveDimensions.gridHeight / 4)), // Dynamic based on viewport size
       ...config,
+      // Override gridWidth/gridHeight even if provided in config (always use responsive)
+      gridWidth: responsiveDimensions.gridWidth,
+      gridHeight: responsiveDimensions.gridHeight,
     }
 
     // Configure canvas context
@@ -154,12 +205,8 @@ export class CanvasGameRenderer {
       return
     }
 
-    console.log('[CanvasGameRenderer] render() called')
-
     // Update camera position using scroll margin system
     this.updateCamera(state)
-
-    console.log(`[CanvasGameRenderer] Camera offset: (${this.cameraOffsetX}, ${this.cameraOffsetY}), player at (${state.player.position.x}, ${state.player.position.y})`)
 
     // Clear canvas
     this.clear()
@@ -240,7 +287,6 @@ export class CanvasGameRenderer {
       }
     }
 
-    console.log(`[CanvasGameRenderer] Terrain: visible=${visibleCount}, explored=${exploredCount}, unexplored=${unexploredCount}, sprites found=${spriteFoundCount}, not found=${spriteNotFoundCount}`)
   }
 
   /**

@@ -161,13 +161,14 @@ async function initializeGame() {
   const modalController = new ModalController(identificationService, curseService, targetingService)
 
   // Dungeon configuration
+  // Note: Dungeon is larger than viewport (80×22) to enable camera scrolling
   const dungeonConfig = {
-    width: 80,
-    height: 22,
-    minRooms: 4,
-    maxRooms: 9,
+    width: 100,
+    height: 50,
+    minRooms: 6,
+    maxRooms: 12,
     minRoomSize: 3,
-    maxRoomSize: 8,
+    maxRoomSize: 10,
     minSpacing: 2,
     loopChance: 0.25,
   }
