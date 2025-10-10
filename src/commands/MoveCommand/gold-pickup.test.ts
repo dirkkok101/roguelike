@@ -144,8 +144,7 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const result = command.execute(state)
@@ -173,8 +172,7 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const result = command.execute(state)
@@ -202,8 +200,7 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const result = command.execute(state)
@@ -233,8 +230,7 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const result = command.execute(state)
@@ -261,8 +257,7 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const result = command.execute(state)
@@ -292,8 +287,7 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const result = command.execute(state)
@@ -325,8 +319,7 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const result = command.execute(state)
@@ -354,8 +347,7 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const result = command.execute(state)

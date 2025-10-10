@@ -252,12 +252,116 @@
 **Asleep** (default):
 - Most monsters start asleep
 - Do not move or attack
-- **Wake up** when player within detection range (typically 3 tiles)
+- **Wake up** when player within aggro range (authentic Rogue mechanic)
+
+**Aggro Ranges** (based on authentic 1980 Rogue values):
+- **SIMPLE monsters** (low intelligence): 3-5 tiles
+- **SMART monsters** (high intelligence): 6-8 tiles (better awareness)
+- **ERRATIC monsters** (Bat, Kestrel): 0 tiles (never wake from proximity, always random movement)
+- **Boss monsters** (Dragon, Jabberwock, Griffin): 8-10 tiles (high awareness)
 
 **Awake**:
 - Follow AI behavior pattern
 - Attack when adjacent
 - Pursue player based on AI type
+
+---
+
+### Running Detection
+
+**Mechanic**: Player running increases monster detection range
+
+**Effect**:
+- **Effective aggro range = base aggro range × 1.5** when player is running
+- Example: Orc (aggro range 5) detects player at 8 tiles when running (5 × 1.5 = 7.5, rounded to 8)
+
+**Authentic Rogue**: Matches original Rogue where running made more noise and woke monsters earlier
+
+**Strategy**:
+- **Walk** when sneaking past sleeping monsters (normal detection range)
+- **Run** when escaping or exploring cleared areas (faster movement, higher risk)
+- **Ring of Stealth** prevents wake-ups even when running (powerful combination)
+
+**Implementation**: `Player.isRunning` flag tracked by MoveCommand, checked in MonsterAIService wake logic
+
+---
+
+### Door Slam Wake Mechanic
+
+**Mechanic**: Leaving a doorway and immediately returning wakes monsters in connected rooms
+
+**Pattern Detection**:
+- Track last 3 player positions
+- Detect: position N-2 == position N (returned to same tile within 2 moves)
+- Check: Is position a doorway?
+- Effect: Wake all sleeping monsters in rooms connected by that door
+
+**Authentic Rogue**: In original 1980 Rogue, slamming doors (leaving and re-entering) created noise that woke monsters
+
+**Tactical Use**:
+- **Intentional wake**: Player can choose to wake monsters by door slamming
+- **Controlled engagement**: Wake specific room's monsters without wandering into room
+- **Message**: "Your loud entrance wakes the monsters!" (warning type)
+
+**Example**:
+```
+Turn N-2: Player at door position (5,5)
+Turn N-1: Player moves left to (4,5)
+Turn N:   Player moves right back to door (5,5)
+Result:   Door slam detected! Monsters in connected rooms wake up.
+```
+
+**Strategy**:
+- Avoid accidental backtracking through doorways
+- Use intentionally to pull sleeping monsters toward doorway
+- Combines with ranged attacks for tactical advantage
+
+**Implementation**: `GameState.positionHistory` tracks positions, MoveCommand detects pattern, MonsterAIService wakes room monsters
+
+---
+
+### Wandering Monster Spawns
+
+**Mechanic**: Monsters spawn randomly as player stays on level (authentic Rogue time pressure)
+
+**Spawn Formula**:
+```
+Base chance = 0.5% per turn (1 in 200)
+Increment = +0.01% per turn since last spawn
+Maximum = 5% per turn (cap)
+Limit = 5 wanderers per level maximum
+```
+
+**Spawn Rules**:
+- **Cannot spawn in player's room** (authentic Rogue rule, prevents cheap deaths)
+- Spawn in walkable tiles (corridors or other rooms)
+- Spawn awake in WANDERING state (not sleeping)
+- Level-appropriate selection (same as initial spawns)
+
+**Progression Example**:
+| Turns Since Spawn | Chance | Average Wait |
+|-------------------|--------|--------------|
+| 0 | 0.5% | 200 turns |
+| 100 | 1.5% | 67 turns |
+| 200 | 2.5% | 40 turns |
+| 300 | 3.5% | 29 turns |
+| 450+ | 5.0% (cap) | 20 turns |
+
+**Authentic Rogue**: Original 1980 Rogue spawned wandering monsters at ~1% per turn, adding time pressure
+
+**Strategy**:
+- **Clear levels quickly** to minimize wanderer spawns
+- **Don't camp indefinitely** - spawn chance increases over time
+- **5 wanderer limit** prevents level overcrowding
+- **Rest in cleared rooms** when safe (fewer wanderers early on)
+
+**Notification**: "You hear a faint noise in the distance..." (atmospheric message when wanderer spawns)
+
+**Implementation**: WanderingMonsterService handles spawn logic, TurnService calls after monster turns
+
+**See**: [WanderingMonsterService](../services/WanderingMonsterService.md) for technical details
+
+---
 
 ### Mean Monsters (ISMEAN Flag)
 **Special Behavior**: **67% chance per turn to pursue** player (authentic Rogue ISMEAN flag)

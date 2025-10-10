@@ -165,6 +165,83 @@ export class MonsterAIService {
   }
 
   /**
+   * Detect door slam pattern and wake monsters if detected
+   *
+   * Door slam pattern: Player returned to same doorway position within 2 moves
+   * (position N-2 == position N, where N is current)
+   *
+   * Authentic Rogue behavior: Leaving and immediately re-entering a room via doorway
+   * wakes all sleeping monsters in the connected rooms.
+   *
+   * @param level Current level
+   * @param position Current player position
+   * @param positionHistory Last 3 player positions (for pattern detection)
+   * @returns Object with slam detection status, updated monsters, and woke monsters
+   */
+  detectDoorSlamAndWake(
+    level: Level,
+    position: Position,
+    positionHistory: Position[]
+  ): {
+    slamDetected: boolean
+    updatedMonsters: Monster[]
+    wokeMonsters: Monster[]
+  } {
+    // Need at least 3 positions to detect pattern
+    if (positionHistory.length < 3) {
+      return {
+        slamDetected: false,
+        updatedMonsters: level.monsters,
+        wokeMonsters: [],
+      }
+    }
+
+    const currentPos = positionHistory[2] // position N (most recent)
+    const twoMovesAgo = positionHistory[0] // position N-2
+
+    // Check if returned to same position
+    if (currentPos.x !== twoMovesAgo.x || currentPos.y !== twoMovesAgo.y) {
+      return {
+        slamDetected: false,
+        updatedMonsters: level.monsters,
+        wokeMonsters: [],
+      }
+    }
+
+    // Check if current position is a doorway
+    const doorAtPosition = this.findDoorAtPosition(level.doors, position)
+
+    if (!doorAtPosition) {
+      return {
+        slamDetected: false,
+        updatedMonsters: level.monsters,
+        wokeMonsters: [],
+      }
+    }
+
+    // Door slam detected! Wake monsters in connected rooms
+    const wakeResult = this.wakeRoomMonsters(level, doorAtPosition.connectsRooms)
+
+    return {
+      slamDetected: true,
+      updatedMonsters: wakeResult.updatedMonsters,
+      wokeMonsters: wakeResult.wokeMonsters,
+    }
+  }
+
+  /**
+   * Find door at specific position
+   * @param doors Array of doors in the level
+   * @param position Position to check
+   * @returns Door at position, or undefined if no door found
+   */
+  private findDoorAtPosition(doors: any[], position: Position) {
+    return doors.find(
+      (door) => door.position.x === position.x && door.position.y === position.y
+    )
+  }
+
+  /**
    * Find which room a monster is currently in
    * @param monster Monster to check
    * @param rooms Array of rooms in the level

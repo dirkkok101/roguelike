@@ -183,8 +183,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -216,8 +215,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -248,8 +246,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -279,8 +276,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -311,8 +307,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -341,8 +336,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -373,8 +367,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -405,8 +398,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)

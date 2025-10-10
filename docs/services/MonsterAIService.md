@@ -59,14 +59,108 @@ const updated = service.updateMonsterMemory(troll, state)
 #### `checkWakeUp(monster: Monster, state: GameState): Monster`
 Checks if sleeping monster should wake up.
 
-**Wake Condition**: Player within `aiProfile.aggroRange`
+**Wake Conditions**:
+1. **Proximity**: Player within `aiProfile.aggroRange`
+2. **Running Detection**: Effective range increases by 50% when player running
+3. **Ring of Stealth**: Prevents adjacent wake-ups (but not proximity at range)
 
 **State Transition**: `SLEEPING` → `HUNTING`
 
+**Running Detection**:
+```typescript
+const baseAggroRange = monster.aiProfile.aggroRange
+const runningMultiplier = state.player.isRunning ? 1.5 : 1.0
+const effectiveAggroRange = Math.round(baseAggroRange * runningMultiplier)
+
+const distance = manhattanDistance(monster.position, state.player.position)
+if (distance <= effectiveAggroRange) {
+  // Wake monster
+}
+```
+
 **Example**:
 ```typescript
-const updated = service.checkWakeUp(dragon, state)
-// If player in range: updated.isAsleep = false, updated.state = HUNTING
+// Normal movement (player.isRunning = false)
+const orc = { ...monster, aiProfile: { aggroRange: 5 } }
+const updated = service.checkWakeUp(orc, state)
+// Wakes if player within 5 tiles
+
+// Running (player.isRunning = true)
+const stateRunning = { ...state, player: { ...state.player, isRunning: true } }
+const updated2 = service.checkWakeUp(orc, stateRunning)
+// Wakes if player within 8 tiles (5 × 1.5 = 7.5 → 8)
+```
+
+**ERRATIC Monsters Exception**:
+- Bat and Kestrel have `aggroRange: 0`
+- **Never wake from proximity** (always move randomly)
+- Authentic Rogue behavior where Bats "always moved as if confused"
+
+---
+
+### Door Slam Wake Mechanic
+
+#### `wakeRoomMonsters(level: Level, roomIds: number[]): { updatedMonsters: Monster[], wokeMonsters: Monster[] }`
+Wakes all sleeping monsters in specified rooms (door slam mechanic).
+
+**Called by**: MoveCommand when door slam pattern detected
+
+**Parameters**:
+- `level`: Current dungeon level
+- `roomIds`: Array of room IDs to wake (from door's `connectsRooms`)
+
+**Returns**:
+- `updatedMonsters`: New monster array with woken monsters
+- `wokeMonsters`: Array of monsters that were woken (for messaging)
+
+**Algorithm**:
+1. Create set of target room IDs for fast lookup
+2. Map over all monsters:
+   - If already awake, return unchanged
+   - Find monster's current room using `findMonsterRoom()`
+   - If room ID matches target rooms, wake monster (SLEEPING → HUNTING)
+   - Otherwise return unchanged
+3. Collect woken monsters for message generation
+
+**Example**:
+```typescript
+// Door at (5,5) connects rooms 0 and 1
+const door = {
+  position: { x: 5, y: 5 },
+  connectsRooms: [0, 1]
+}
+
+// Player door slammed (returned to door position)
+const wakeResult = service.wakeRoomMonsters(level, door.connectsRooms)
+
+// wakeResult.wokeMonsters: [orc, hobgoblin] (in rooms 0 and 1)
+// Monster in room 2: still asleep (not connected by this door)
+```
+
+**Selective Waking**:
+- Only wakes monsters in rooms connected by specific door
+- Monsters in other rooms remain asleep
+- Allows tactical control of which monsters wake
+
+**Immutability**:
+- Returns new monster array (does not mutate level.monsters)
+- Caller must update state: `{ ...level, monsters: wakeResult.updatedMonsters }`
+
+**Helper Method**:
+```typescript
+private findMonsterRoom(monster: Monster, rooms: Room[]): Room | null {
+  for (const room of rooms) {
+    if (
+      monster.position.x >= room.x &&
+      monster.position.x < room.x + room.width &&
+      monster.position.y >= room.y &&
+      monster.position.y < room.y + room.height
+    ) {
+      return room
+    }
+  }
+  return null
+}
 ```
 
 ---

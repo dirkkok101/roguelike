@@ -180,8 +180,7 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -215,8 +214,7 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -252,8 +250,7 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = command.execute(state)
@@ -282,8 +279,7 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = up.execute(state)
@@ -329,8 +325,7 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = left.execute(state)
@@ -370,8 +365,7 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService,
-        ringService
+        goldService
       )
 
       const newState = left.execute(state)

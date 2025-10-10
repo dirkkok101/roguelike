@@ -147,12 +147,11 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService,
-        goldService,
-        ringService
+      hungerService,
+      regenerationService,
+      notificationService,
+      turnService,
+      goldService
       )
 
     const state = createTestState()
@@ -174,12 +173,11 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService,
-        goldService,
-        ringService
+      hungerService,
+      regenerationService,
+      notificationService,
+      turnService,
+      goldService
       )
 
     const state = createTestState()
@@ -203,12 +201,11 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService,
-        goldService,
-        ringService
+      hungerService,
+      regenerationService,
+      notificationService,
+      turnService,
+      goldService
       )
 
     const state = createTestState({
@@ -232,12 +229,11 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService,
-        goldService,
-        ringService
+      hungerService,
+      regenerationService,
+      notificationService,
+      turnService,
+      goldService
       )
 
     const state = createTestState({
@@ -261,12 +257,11 @@ describe('MoveCommand - Starvation Death', () => {
       combatService,
       levelingService,
       doorService,
-        hungerService,
-        regenerationService,
-        notificationService,
-        turnService,
-        goldService,
-        ringService
+      hungerService,
+      regenerationService,
+      notificationService,
+      turnService,
+      goldService
       )
 
     const state = createTestState({ turnCount: 50 })
