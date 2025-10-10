@@ -489,7 +489,9 @@ async function initializeGame() {
       inputHandler,
       monsterTurnService,
       turnService,
-      autoSaveMiddleware
+      autoSaveMiddleware,
+      preferencesService,
+      messageService
     )
 
     // Clear any existing states and push PlayingState

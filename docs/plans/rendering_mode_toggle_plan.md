@@ -299,7 +299,7 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 - `src/commands/ToggleRenderModeCommand/index.ts` (new)
 
 ##### Subtasks:
-- [ ] Create `ToggleRenderModeCommand`:
+- [x] Create `ToggleRenderModeCommand`:
   ```typescript
   export class ToggleRenderModeCommand implements ICommand {
     constructor(
@@ -321,34 +321,35 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 
       // Add message to game log
       const modeName = newMode === 'sprites' ? 'Sprite' : 'ASCII'
-      const newState = this.messageService.addMessage(
-        state,
+      const messages = this.messageService.addMessage(
+        state.messages,
         `Switched to ${modeName} rendering mode`,
-        'info'
+        'info',
+        state.turnCount
       )
 
-      return newState
+      return { ...state, messages }
     }
   }
   ```
-- [ ] Add keypress handler to PlayingState:
+- [x] Add keypress handler to PlayingState (Note: Changed to 'T' key since 'R' is used for Remove Ring):
   ```typescript
   // In PlayingState.handleInput()
-  if (input.key === 'r' || input.key === 'R') {
-    const newState = this.toggleRenderModeCommand.execute(this.gameState)
-    this.gameState = newState
-    return  // Don't process as movement
+  if (input.key === 'T') {
+    this.gameState = this.toggleRenderModeCommand.execute(this.gameState)
+    this.renderer.render(this.gameState)
+    return  // Don't process as movement, don't consume turn
   }
   ```
-- [ ] Wire up command in PlayingState constructor:
+- [x] Wire up command in PlayingState constructor:
   ```typescript
   this.toggleRenderModeCommand = new ToggleRenderModeCommand(
     preferencesService,
     messageService
   )
   ```
-- [ ] Write command tests (toggle behavior, message added)
-- [ ] Git commit: "feat: add keypress toggle for render mode (Phase 4.1)"
+- [x] Write command tests (toggle behavior, message added) - 8 tests, 100% coverage
+- [x] Git commit: "feat: add keypress toggle for render mode (Phase 4.1)"
 
 ---
 
