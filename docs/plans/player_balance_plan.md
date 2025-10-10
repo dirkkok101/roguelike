@@ -231,10 +231,10 @@ success = to_hit >= defense_target
 - `src/main.ts` (lines 198-218, 318-340)
 
 ##### Subtasks:
-- [ ] Change starting AC from `4` to `10` in `createInitialState()`
-- [ ] Change starting AC from `4` to `10` in `replaySeed()`
-- [ ] Update all tests that create players to use AC 10 as default
-- [ ] Git commit: "fix: correct starting player AC to 10 (unarmored, matching original Rogue) (Phase 3.1)"
+- [x] Change starting AC from `4` to `10` in `createInitialState()`
+- [x] Change starting AC from `4` to `10` in `replaySeed()`
+- [x] Update all tests that create players to use AC 10 as default
+- [x] Git commit: "fix: correct starting player AC to 10 (unarmored, matching original Rogue) (Phase 3.1)"
 
 ---
 
