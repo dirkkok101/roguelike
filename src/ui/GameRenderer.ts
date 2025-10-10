@@ -66,6 +66,8 @@ export class GameRenderer {
   private currentRenderMode: 'ascii' | 'sprites' = 'sprites'
   private currentGameState: GameState | null = null
   private canvasNeedsResize = true // Flag to resize canvas on first render (after DOM is constructed)
+  private resizeHandler: (() => void) | null = null // Window resize event handler
+  private resizeDebounceTimer: number | null = null // Debounce timer for resize events
 
   constructor(
     private renderingService: RenderingService,
