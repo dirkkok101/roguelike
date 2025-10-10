@@ -86,7 +86,12 @@ export class PotionService {
       case PotionType.GAIN_STRENGTH:
         {
           updatedPlayer = this.applyGainStrength(player)
-          message = `You feel stronger! (Strength: ${updatedPlayer.strength})`
+          // Format strength display with exceptional strength support
+          const strDisplay =
+            updatedPlayer.strength === 18 && updatedPlayer.strengthPercentile !== undefined
+              ? `18/${updatedPlayer.strengthPercentile.toString().padStart(2, '0')}`
+              : `${updatedPlayer.strength}`
+          message = `You feel stronger! (Strength: ${strDisplay})`
         }
         break
 
@@ -249,13 +254,38 @@ export class PotionService {
   }
 
   private applyGainStrength(player: Player): Player {
-    const newMaxStrength = player.maxStrength + 1
-    const newStrength = player.strength + 1
+    // Handle exceptional strength (18/XX format) from original 1980 Rogue
+    if (player.maxStrength === 18 && player.strengthPercentile !== undefined) {
+      // Already have exceptional strength: increase percentile by d10 (1-10), cap at 100
+      const increase = this.random.nextInt(1, 10)
+      const newPercentile = Math.min(100, player.strengthPercentile + increase)
 
-    return {
-      ...player,
-      strength: newStrength,
-      maxStrength: newMaxStrength,
+      return {
+        ...player,
+        strengthPercentile: newPercentile,
+        // If current strength is also 18, it remains 18 (percentile is the only change)
+        strength: player.strength === 18 ? 18 : player.strength,
+      }
+    } else if (player.maxStrength === 18 && player.strengthPercentile === undefined) {
+      // Just reached 18: add exceptional strength (roll d10 for initial percentile 1-10)
+      const percentile = this.random.nextInt(1, 10)
+
+      return {
+        ...player,
+        strengthPercentile: percentile,
+        strength: player.strength === 18 ? 18 : player.strength,
+        maxStrength: 18,
+      }
+    } else {
+      // Normal strength progression: increment by 1
+      const newMaxStrength = player.maxStrength + 1
+      const newStrength = player.strength + 1
+
+      return {
+        ...player,
+        strength: newStrength,
+        maxStrength: newMaxStrength,
+      }
     }
   }
 
