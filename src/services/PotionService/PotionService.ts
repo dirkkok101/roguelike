@@ -87,11 +87,12 @@ export class PotionService {
         {
           updatedPlayer = this.applyGainStrength(player)
           // Format strength display with exceptional strength support
+          // Show max strength with percentile if exceptional (since Gain Strength increases max)
           const strDisplay =
-            updatedPlayer.strength === 18 && updatedPlayer.strengthPercentile !== undefined
+            updatedPlayer.maxStrength === 18 && updatedPlayer.strengthPercentile !== undefined
               ? `18/${updatedPlayer.strengthPercentile.toString().padStart(2, '0')}`
               : `${updatedPlayer.strength}`
-          message = `You feel stronger! (Strength: ${strDisplay})`
+          message = `You feel stronger! (Max Strength: ${strDisplay})`
         }
         break
 
@@ -195,6 +196,40 @@ export class PotionService {
   }
 
   // ============================================================================
+  // PRIVATE: Helper methods
+  // ============================================================================
+
+  /**
+   * Validate and fix strength percentile invariants
+   * - Percentile must be undefined when maxStrength !== 18
+   * - Percentile must be 1-100 when maxStrength === 18
+   * - Clamps invalid values to valid range
+   * Note: Percentile is tied to maxStrength, not current strength (for drain/restore mechanics)
+   */
+  private validateStrengthPercentile(player: Player): Player {
+    // If maxStrength is not 18, percentile must be undefined
+    if (player.maxStrength !== 18 && player.strengthPercentile !== undefined) {
+      return {
+        ...player,
+        strengthPercentile: undefined,
+      }
+    }
+
+    // If maxStrength is 18 with percentile, clamp to 1-100
+    if (player.maxStrength === 18 && player.strengthPercentile !== undefined) {
+      const clamped = Math.max(1, Math.min(100, player.strengthPercentile))
+      if (clamped !== player.strengthPercentile) {
+        return {
+          ...player,
+          strengthPercentile: clamped,
+        }
+      }
+    }
+
+    return player
+  }
+
+  // ============================================================================
   // PRIVATE: Potion effect implementations
   // ============================================================================
 
@@ -259,13 +294,15 @@ export class PotionService {
   }
 
   private applyGainStrength(player: Player): Player {
+    let updatedPlayer: Player
+
     // Handle exceptional strength (18/XX format) from original 1980 Rogue
     if (player.maxStrength === 18 && player.strengthPercentile !== undefined) {
       // Already have exceptional strength: increase percentile by d10 (1-10), cap at 100
       const increase = this.random.nextInt(1, 10)
       const newPercentile = Math.min(100, player.strengthPercentile + increase)
 
-      return {
+      updatedPlayer = {
         ...player,
         strengthPercentile: newPercentile,
         // If current strength is also 18, it remains 18 (percentile is the only change)
@@ -275,7 +312,7 @@ export class PotionService {
       // Just reached 18: add exceptional strength (roll d10 for initial percentile 1-10)
       const percentile = this.random.nextInt(1, 10)
 
-      return {
+      updatedPlayer = {
         ...player,
         strengthPercentile: percentile,
         strength: player.strength === 18 ? 18 : player.strength,
@@ -286,19 +323,25 @@ export class PotionService {
       const newMaxStrength = player.maxStrength + 1
       const newStrength = player.strength + 1
 
-      return {
+      updatedPlayer = {
         ...player,
         strength: newStrength,
         maxStrength: newMaxStrength,
       }
     }
+
+    // Validate and fix any invariant violations
+    return this.validateStrengthPercentile(updatedPlayer)
   }
 
   private applyRestoreStrength(player: Player): Player {
-    return {
+    const updatedPlayer = {
       ...player,
       strength: player.maxStrength,
     }
+
+    // Validate and fix any invariant violations
+    return this.validateStrengthPercentile(updatedPlayer)
   }
 
   private applyPoison(

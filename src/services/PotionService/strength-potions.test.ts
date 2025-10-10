@@ -79,7 +79,7 @@ describe('PotionService - Strength Potions', () => {
 
       expect(result.player.strength).toBe(17)
       expect(result.player.maxStrength).toBe(17)
-      expect(result.message).toBe('You feel stronger! (Strength: 17)')
+      expect(result.message).toBe('You feel stronger! (Max Strength: 17)')
       expect(result.death).toBe(false)
     })
 
@@ -124,7 +124,7 @@ describe('PotionService - Strength Potions', () => {
       expect(result.player.strength).toBe(18)
       expect(result.player.maxStrength).toBe(18)
       expect(result.player.strengthPercentile).toBeUndefined()
-      expect(result.message).toBe('You feel stronger! (Strength: 18)')
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18)')
     })
 
     test('adds exceptional strength percentile when at 18', () => {
@@ -154,7 +154,7 @@ describe('PotionService - Strength Potions', () => {
       expect(result.player.strength).toBe(18)
       expect(result.player.maxStrength).toBe(18)
       expect(result.player.strengthPercentile).toBe(7)
-      expect(result.message).toBe('You feel stronger! (Strength: 18/07)')
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18/07)')
     })
 
     test('increases exceptional strength percentile by d10', () => {
@@ -184,7 +184,7 @@ describe('PotionService - Strength Potions', () => {
       expect(result.player.strength).toBe(18)
       expect(result.player.maxStrength).toBe(18)
       expect(result.player.strengthPercentile).toBe(58) // 50 + 8
-      expect(result.message).toBe('You feel stronger! (Strength: 18/58)')
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18/58)')
     })
 
     test('caps exceptional strength percentile at 100', () => {
@@ -214,7 +214,7 @@ describe('PotionService - Strength Potions', () => {
       expect(result.player.strength).toBe(18)
       expect(result.player.maxStrength).toBe(18)
       expect(result.player.strengthPercentile).toBe(100) // Capped at 100
-      expect(result.message).toBe('You feel stronger! (Strength: 18/100)')
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18/100)')
     })
 
     test('handles damaged exceptional strength (current < max)', () => {
@@ -245,7 +245,7 @@ describe('PotionService - Strength Potions', () => {
       expect(result.player.strength).toBe(16) // Current remains unchanged
       expect(result.player.maxStrength).toBe(18)
       expect(result.player.strengthPercentile).toBe(80) // 75 + 5
-      expect(result.message).toBe('You feel stronger! (Strength: 16)') // Shows current, not percentile
+      expect(result.message).toBe('You feel stronger! (Max Strength: 18/80)') // Shows max percentile, which increased
     })
   })
 
