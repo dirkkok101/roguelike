@@ -21,6 +21,8 @@ export interface UserPreferences {
  */
 export class PreferencesService {
   private static readonly PREFERENCES_KEY = 'user_preferences'
+  private listeners: Set<(prefs: UserPreferences) => void> = new Set()
+
   /**
    * Load preferences from localStorage
    * Returns null if not found or if deserialization fails
@@ -124,6 +126,37 @@ export class PreferencesService {
    * @returns true if successful, false if failed
    */
   savePreferences(preferences: UserPreferences): boolean {
-    return this.save(PreferencesService.PREFERENCES_KEY, preferences)
+    const success = this.save(PreferencesService.PREFERENCES_KEY, preferences)
+    if (success) {
+      this.notifyListeners(preferences)
+    }
+    return success
+  }
+
+  /**
+   * Subscribe to preference changes
+   *
+   * @param listener - Callback function to invoke when preferences change
+   * @returns Unsubscribe function
+   */
+  subscribe(listener: (prefs: UserPreferences) => void): () => void {
+    this.listeners.add(listener)
+    return () => this.listeners.delete(listener)
+  }
+
+  /**
+   * Notify all listeners of preference changes
+   * Errors in individual listeners are caught and logged to prevent cascading failures
+   *
+   * @param prefs - Updated preferences
+   */
+  private notifyListeners(prefs: UserPreferences): void {
+    this.listeners.forEach((listener) => {
+      try {
+        listener(prefs)
+      } catch (error) {
+        console.error('Error in preference change listener:', error)
+      }
+    })
   }
 }

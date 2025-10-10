@@ -106,7 +106,7 @@ Add a user preference toggle that allows switching between ASCII text rendering 
 - `src/services/PreferencesService/PreferencesService.ts` (modify)
 
 ##### Subtasks:
-- [ ] Add event emitter pattern to PreferencesService:
+- [x] Add event emitter pattern to PreferencesService:
   ```typescript
   private listeners: Set<(prefs: UserPreferences) => void> = new Set()
 
@@ -119,9 +119,9 @@ Add a user preference toggle that allows switching between ASCII text rendering 
     this.listeners.forEach(listener => listener(prefs))
   }
   ```
-- [ ] Call `notifyListeners()` in `savePreferences()` after persistence
-- [ ] Add tests for subscription/notification system
-- [ ] Git commit: "feat: add preference change event system (Phase 1.2)"
+- [x] Call `notifyListeners()` in `savePreferences()` after persistence
+- [x] Add tests for subscription/notification system
+- [x] Git commit: "feat: add preference change event system (Phase 1.2)"
 
 ---
 

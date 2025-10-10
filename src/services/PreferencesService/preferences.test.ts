@@ -154,4 +154,90 @@ describe('PreferencesService', () => {
       expect(service.getPreferences().renderMode).toBe('sprites')
     })
   })
+
+  describe('subscribe and event system', () => {
+    it('should notify listener when preferences are saved', () => {
+      const listener = jest.fn()
+      service.subscribe(listener)
+
+      service.savePreferences({ renderMode: 'ascii' })
+
+      expect(listener).toHaveBeenCalledTimes(1)
+      expect(listener).toHaveBeenCalledWith({ renderMode: 'ascii' })
+    })
+
+    it('should notify multiple listeners', () => {
+      const listener1 = jest.fn()
+      const listener2 = jest.fn()
+
+      service.subscribe(listener1)
+      service.subscribe(listener2)
+
+      service.savePreferences({ renderMode: 'sprites' })
+
+      expect(listener1).toHaveBeenCalledWith({ renderMode: 'sprites' })
+      expect(listener2).toHaveBeenCalledWith({ renderMode: 'sprites' })
+    })
+
+    it('should return unsubscribe function', () => {
+      const listener = jest.fn()
+      const unsubscribe = service.subscribe(listener)
+
+      service.savePreferences({ renderMode: 'ascii' })
+      expect(listener).toHaveBeenCalledTimes(1)
+
+      // Unsubscribe
+      unsubscribe()
+
+      // Save again - listener should not be called
+      service.savePreferences({ renderMode: 'sprites' })
+      expect(listener).toHaveBeenCalledTimes(1) // Still 1, not 2
+    })
+
+    it('should not notify listeners if save fails', () => {
+      const listener = jest.fn()
+      service.subscribe(listener)
+
+      // Mock localStorage.setItem to throw error
+      const originalSetItem = global.localStorage.setItem
+      global.localStorage.setItem = jest.fn(() => {
+        throw new Error('Storage quota exceeded')
+      })
+
+      service.savePreferences({ renderMode: 'ascii' })
+
+      expect(listener).not.toHaveBeenCalled()
+
+      // Restore original setItem
+      global.localStorage.setItem = originalSetItem
+    })
+
+    it('should handle listener errors gracefully', () => {
+      const errorListener = jest.fn(() => {
+        throw new Error('Listener error')
+      })
+      const goodListener = jest.fn()
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
+
+      service.subscribe(errorListener)
+      service.subscribe(goodListener)
+
+      // Should not throw even though one listener errors
+      expect(() => {
+        service.savePreferences({ renderMode: 'ascii' })
+      }).not.toThrow()
+
+      // Both listeners should be called
+      expect(errorListener).toHaveBeenCalled()
+      expect(goodListener).toHaveBeenCalledWith({ renderMode: 'ascii' })
+
+      // Error should be logged
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error in preference change listener:',
+        expect.any(Error)
+      )
+
+      consoleErrorSpy.mockRestore()
+    })
+  })
 })
