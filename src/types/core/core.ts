@@ -346,6 +346,7 @@ export interface Armor extends Item {
 }
 
 export interface Ring extends Item {
+  spriteName: string // Sprite name for tileset lookup
   ringType: RingType
   effect: string
   bonus: number
@@ -368,6 +369,7 @@ export enum RingType {
 }
 
 export interface Potion extends Item {
+  spriteName: string // Sprite name for tileset lookup
   potionType: PotionType
   effect: string
   power: string // dice notation for healing, etc.
@@ -391,6 +393,7 @@ export enum PotionType {
 }
 
 export interface Scroll extends Item {
+  spriteName: string // Sprite name for tileset lookup
   scrollType: ScrollType
   effect: string
   labelName: string // e.g., "scroll labeled XYZZY"
@@ -412,6 +415,7 @@ export enum ScrollType {
 }
 
 export interface Wand extends Item {
+  spriteName: string // Sprite name for tileset lookup
   wandType: WandType
   damage: string // dice notation for damage wands
   charges: number // max charges

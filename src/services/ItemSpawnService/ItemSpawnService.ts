@@ -39,10 +39,10 @@ import { ItemData } from '../../data/ItemDataLoader'
  */
 export class ItemSpawnService {
   // Cached templates (loaded once in constructor)
-  private potionTemplates: Array<{ type: PotionType; effect: string; power: string; rarity: string }>
-  private scrollTemplates: Array<{ type: ScrollType; effect: string; rarity: string }>
-  private ringTemplates: Array<{ type: RingType; effect: string; rarity: string }>
-  private wandTemplates: Array<{ type: WandType; damage: string; charges: string; rarity: string }>
+  private potionTemplates: Array<{ type: PotionType; spriteName: string; effect: string; power: string; rarity: string }>
+  private scrollTemplates: Array<{ type: ScrollType; spriteName: string; effect: string; rarity: string }>
+  private ringTemplates: Array<{ type: RingType; spriteName: string; effect: string; rarity: string }>
+  private wandTemplates: Array<{ type: WandType; spriteName: string; damage: string; charges: string; rarity: string }>
   private weaponTemplates: Array<{ name: string; spriteName: string; damage: string; rarity: string }>
   private armorTemplates: Array<{ name: string; spriteName: string; ac: number; rarity: string }>
   private foodTemplates: Array<{ name: string; spriteName: string; nutrition: number; rarity: string }>
@@ -91,29 +91,33 @@ export class ItemSpawnService {
 
   private loadPotionTemplates(): Array<{
     type: PotionType
+    spriteName: string
     effect: string
     power: string
     rarity: string
   }> {
     return this.itemData.potions.map((p) => ({
       type: PotionType[p.type as keyof typeof PotionType],
+      spriteName: p.spriteName,
       effect: p.effect,
       power: p.power,
       rarity: p.rarity,
     }))
   }
 
-  private loadScrollTemplates(): Array<{ type: ScrollType; effect: string; rarity: string }> {
+  private loadScrollTemplates(): Array<{ type: ScrollType; spriteName: string; effect: string; rarity: string }> {
     return this.itemData.scrolls.map((s) => ({
       type: ScrollType[s.type as keyof typeof ScrollType],
+      spriteName: s.spriteName,
       effect: s.effect,
       rarity: s.rarity,
     }))
   }
 
-  private loadRingTemplates(): Array<{ type: RingType; effect: string; rarity: string }> {
+  private loadRingTemplates(): Array<{ type: RingType; spriteName: string; effect: string; rarity: string }> {
     return this.itemData.rings.map((r) => ({
       type: RingType[r.type as keyof typeof RingType],
+      spriteName: r.spriteName,
       effect: r.effect,
       rarity: r.rarity,
     }))
@@ -121,12 +125,14 @@ export class ItemSpawnService {
 
   private loadWandTemplates(): Array<{
     type: WandType
+    spriteName: string
     damage: string
     charges: string
     rarity: string
   }> {
     return this.itemData.wands.map((w) => ({
       type: WandType[w.type as keyof typeof WandType],
+      spriteName: w.spriteName,
       damage: w.damage,
       charges: w.charges,
       rarity: w.rarity,
@@ -392,6 +398,7 @@ export class ItemSpawnService {
               item = {
                 id: itemId,
                 name: `Potion of ${template.type}`,
+                spriteName: template.spriteName,
                 type: ItemType.POTION,
                 identified: false,
                 position: { x, y },
@@ -411,6 +418,7 @@ export class ItemSpawnService {
               item = {
                 id: itemId,
                 name: `Scroll of ${template.type}`,
+                spriteName: template.spriteName,
                 type: ItemType.SCROLL,
                 identified: false,
                 position: { x, y },
@@ -442,6 +450,7 @@ export class ItemSpawnService {
               item = {
                 id: itemId,
                 name,
+                spriteName: template.spriteName,
                 type: ItemType.RING,
                 identified: false,
                 position: { x, y },
@@ -471,6 +480,7 @@ export class ItemSpawnService {
               item = {
                 id: itemId,
                 name: `Wand of ${template.type}`,
+                spriteName: template.spriteName,
                 type: ItemType.WAND,
                 identified: false,
                 position: { x, y },
@@ -604,6 +614,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: `Potion of ${template.type}`,
+      spriteName: template.spriteName,
       type: ItemType.POTION,
       identified: false,
       position,
@@ -627,6 +638,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: `Scroll of ${template.type}`,
+      spriteName: template.spriteName,
       type: ItemType.SCROLL,
       identified: false,
       position,
@@ -652,6 +664,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: `Ring of ${template.type} +${bonus}`,
+      spriteName: template.spriteName,
       type: ItemType.RING,
       identified: false,
       position,
@@ -680,6 +693,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: `Wand of ${template.type}`,
+      spriteName: template.spriteName,
       type: ItemType.WAND,
       identified: false,
       position,

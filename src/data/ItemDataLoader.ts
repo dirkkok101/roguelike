@@ -28,6 +28,7 @@ export interface LightSourceData {
 
 export interface PotionData {
   type: string
+  spriteName: string
   effect: string
   power: string
   rarity: string
@@ -36,6 +37,7 @@ export interface PotionData {
 
 export interface ScrollData {
   type: string
+  spriteName: string
   effect: string
   rarity: string
   labels: string[]
@@ -43,6 +45,7 @@ export interface ScrollData {
 
 export interface RingData {
   type: string
+  spriteName: string
   effect: string
   power: string
   hungerModifier: number
@@ -52,6 +55,7 @@ export interface RingData {
 
 export interface WandData {
   type: string
+  spriteName: string
   damage: string
   charges: string
   rarity: string
