@@ -584,7 +584,87 @@ class CanvasGameRenderer implements IDungeonRenderer {
 
 ---
 
-## 5. Testing Strategy
+## 5. Integration Points
+
+### Commands
+
+**New Commands**:
+- **ToggleRenderModeCommand**: Toggles between ASCII and sprite rendering modes
+  - Triggered by: 'R' keypress in PlayingState
+  - Dependencies: PreferencesService, MessageService
+  - Returns: Updated GameState with toggle message in log
+  - Side effect: Saves preference to localStorage
+
+**Modified Commands**:
+- None (no existing commands modified)
+
+### UI Changes
+
+**Renderer Updates**:
+- GameRenderer now manages both ASCII and Canvas renderers
+- DOM element swapping: `<pre class="dungeon-grid">` ↔ `<canvas class="dungeon-canvas">`
+- Optional: Brief overlay notification when mode changes
+
+**Input Handling**:
+- PlayingState handles 'R' keypress
+- Does not consume player turn (free action)
+- Blocks if 'R' conflicts with existing command (check first)
+
+**Visual Feedback**:
+- Message in game log: "Switched to [ASCII/Sprite] rendering mode"
+- Optional: 1-second fade overlay at top-right of screen
+- Both renderers maintain identical visual state (FOV, colors, entities)
+
+### State Updates
+
+**GameState Changes**:
+```typescript
+// No changes to GameState interface
+// Only messages array updated (via MessageService)
+```
+
+**User Preferences Changes**:
+```typescript
+interface UserPreferences {
+  // ... existing fields
+  renderMode: 'ascii' | 'sprites'  // ← NEW: Default 'sprites'
+}
+```
+
+**Renderer State Changes**:
+```typescript
+// GameRenderer internal state
+class GameRenderer {
+  private currentRenderMode: 'ascii' | 'sprites'
+  private asciiRenderer: AsciiDungeonRenderer
+  private canvasRenderer: CanvasGameRenderer
+  private asciiElement: HTMLPreElement
+  private canvasElement: HTMLCanvasElement
+}
+```
+
+### Event System
+
+**PreferencesService Events**:
+- Emits change event when `renderMode` preference updated
+- GameRenderer subscribes to preference changes
+- Triggers `switchRenderMode()` when event fires
+
+**Flow**:
+```
+ToggleRenderModeCommand.execute()
+  → PreferencesService.savePreferences()
+    → localStorage.setItem('preferences', ...)
+    → PreferencesService.notifyListeners()
+      → GameRenderer.handlePreferenceChange()
+        → GameRenderer.switchRenderMode()
+          → DOM element swap
+          → Next frame: render with new mode
+```
+
+---
+
+## 6. Testing Strategy
 
 ### Unit Tests
 
@@ -625,7 +705,20 @@ class CanvasGameRenderer implements IDungeonRenderer {
 
 ---
 
-## 6. Risk & Considerations
+## 7. Documentation Updates
+
+**Files to Update**:
+- [x] Create `docs/plans/rendering_mode_toggle_plan.md` - This implementation plan
+- [ ] Update `docs/user-guide.md` - Add "Rendering Modes" section with 'R' key instruction
+- [ ] Update `docs/architecture.md` - Document dual-mode renderer pattern
+- [ ] Update `docs/ui/GameRenderer.md` - Add renderer switching documentation
+- [ ] Update `docs/services/PreferencesService.md` - Document renderMode preference and event system
+- [ ] Update `CLAUDE.md` - Add keypress toggle to controls reference (if controls section exists)
+- [ ] Update `README.md` - Mention rendering mode toggle feature
+
+---
+
+## 8. Risk & Considerations
 
 ### Potential Issues
 
@@ -674,7 +767,7 @@ class CanvasGameRenderer implements IDungeonRenderer {
 
 ---
 
-## 7. Timeline & Dependencies
+## 9. Timeline & Dependencies
 
 ### Dependencies
 
@@ -717,18 +810,21 @@ class CanvasGameRenderer implements IDungeonRenderer {
 
 ---
 
-## 8. Post-Implementation
+## 10. Post-Implementation
 
 ### Verification Checklist
 
 - [ ] All tests passing (`npm test`)
 - [ ] Type checking passing (`npm run type-check`)
-- [ ] Coverage >80% for new code
+- [ ] Coverage >80% (`npm run test:coverage`)
+- [ ] Architectural review completed ([ARCHITECTURAL_REVIEW.md](../ARCHITECTURAL_REVIEW.md))
+- [ ] Documentation updated (all 7 files listed above)
+- [ ] Manual testing completed (all 12 test cases in Section 6)
 - [ ] Both render modes work correctly
 - [ ] Preference persists across sessions
 - [ ] No performance regression in either mode
-- [ ] Documentation updated (user guide + technical docs)
 - [ ] Accessibility tested (screen reader with ASCII mode)
+- [ ] Keypress 'R' doesn't conflict with existing commands
 
 ### Future Enhancements
 
@@ -741,5 +837,8 @@ class CanvasGameRenderer implements IDungeonRenderer {
 
 ---
 
+---
+
 **Last Updated**: 2025-10-10
 **Status**: 📋 Planning Complete - Ready to Implement
+**Follows Template**: docs/plans/README.md ✓
