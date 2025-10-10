@@ -41,6 +41,7 @@ import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
 import { ScoreCalculationService } from '@services/ScoreCalculationService'
 import { PreferencesService } from '@services/PreferencesService'
 import { TargetingService } from '@services/TargetingService'
+import { WanderingMonsterService } from '@services/WanderingMonsterService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -113,7 +114,8 @@ async function initializeGame() {
   const pathfindingService = new PathfindingService(levelService)
   const monsterAIService = new MonsterAIService(pathfindingService, random, fovService, levelService)
   const specialAbilityService = new SpecialAbilityService(random)
-  const turnService = new TurnService(statusEffectService, levelService, ringService)
+  const wanderingMonsterService = new WanderingMonsterService(monsterSpawnService, random)
+  const turnService = new TurnService(statusEffectService, levelService, ringService, wanderingMonsterService, messageService)
   const goldService = new GoldService(random)
   const monsterTurnService = new MonsterTurnService(
     random,
@@ -211,6 +213,7 @@ async function initializeGame() {
     inventory: [],
     statusEffects: [],
     energy: 100, // Start with full energy (can act immediately)
+    isRunning: false, // Not running initially
   }
 
   // Compute initial FOV
@@ -253,6 +256,7 @@ async function initializeGame() {
     detectedMonsters: new Set(),
     detectedMagicItems: new Set(),
     debug: debugService.initializeDebugState(),
+    positionHistory: [], // Track last 3 positions for door slam detection
     // Run statistics (initialized to 0)
     monstersKilled: 0,
     itemsFound: 0,
@@ -331,6 +335,7 @@ async function initializeGame() {
       inventory: [],
       statusEffects: [],
       energy: 100, // Start with full energy (can act immediately)
+      isRunning: false, // Not running initially
     }
 
     const visibleCells = fovService.computeFOV(
@@ -370,6 +375,7 @@ async function initializeGame() {
       detectedMonsters: new Set(),
       detectedMagicItems: new Set(),
       debug: debugService.initializeDebugState(),
+      positionHistory: [], // Track last 3 positions for door slam detection
       monstersKilled: 0,
       itemsFound: 0,
       itemsUsed: 0,

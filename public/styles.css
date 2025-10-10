@@ -13,6 +13,16 @@ body {
   overflow: hidden;
 }
 
+/* HP critical blinking animation */
+@keyframes hp-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+.hp-critical-blink {
+  animation: hp-blink 1s infinite;
+}
+
 #app {
   width: 100vw;
   height: 100vh;
