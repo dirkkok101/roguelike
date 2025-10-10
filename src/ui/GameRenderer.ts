@@ -40,6 +40,7 @@ export class GameRenderer {
   private victoryScreen: VictoryScreen
   private deathScreen: DeathScreen
   private canvasGameRenderer: CanvasGameRenderer | null = null
+  private dungeonCanvas: HTMLCanvasElement | null = null
   private asciiRenderer: AsciiDungeonRenderer
   private currentRenderMode: 'ascii' | 'sprites' = 'sprites'
   private currentGameState: GameState | null = null
@@ -205,12 +206,9 @@ export class GameRenderer {
     this.dungeonContainer.innerHTML = ''
 
     // Add appropriate element for new mode
-    if (mode === 'sprites' && this.canvasGameRenderer) {
-      // Find or recreate canvas element
-      const canvas = document.getElementById('dungeon-canvas') as HTMLCanvasElement
-      if (canvas) {
-        this.dungeonContainer.appendChild(canvas)
-      }
+    if (mode === 'sprites' && this.canvasGameRenderer && this.dungeonCanvas) {
+      // Reattach canvas element (it was removed when innerHTML was cleared)
+      this.dungeonContainer.appendChild(this.dungeonCanvas)
     }
     // For ASCII mode, renderDungeon will handle innerHTML
   }
@@ -277,6 +275,9 @@ export class GameRenderer {
     canvas.width = 2560  // 80 tiles × 32px
     canvas.height = 704  // 22 tiles × 32px
     canvas.className = 'dungeon-canvas'
+
+    // Store canvas reference for mode switching
+    this.dungeonCanvas = canvas
 
     // Initialize CanvasGameRenderer if tileset is loaded
     if (this.assetLoaderService.isLoaded()) {

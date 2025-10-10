@@ -97,7 +97,8 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
         isPermanent: false,
       },
     },
-    statuses: [],
+    statusEffects: [],
+    energy: 0,
   }
 
   const level = createMockLevel({ width: mapDims.width, height: mapDims.height })
@@ -109,13 +110,23 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
     player,
     levels,
     currentLevel,
-    turn: 0,
+    turnCount: 0,
     messages: [],
     visibleCells: new Set<string>(),
     detectedMonsters: new Set<string>(),
     detectedMagicItems: new Set<string>(),
     seed: 'test-seed',
-    gameOver: false,
-    victory: false,
+    gameId: 'test-game-id',
+    characterName: 'TestHero',
+    isGameOver: false,
+    hasWon: false,
+    hasAmulet: false,
+    itemNameMap: {
+      potions: new Map(),
+      scrolls: new Map(),
+      wands: new Map(),
+      rings: new Map(),
+    },
+    identifiedItems: new Set<string>(),
   }
 }
