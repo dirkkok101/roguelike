@@ -574,11 +574,12 @@ export class LocalStorageService {
     )
 
     // Restore Sets with defaults for missing fields
-    const visibleCells = new Set(data.visibleCells || [])
-    const identifiedItems = new Set(data.identifiedItems || [])
-    const detectedMonsters = new Set(data.detectedMonsters || [])
-    const detectedMagicItems = new Set(data.detectedMagicItems || [])
-    const levelsVisitedWithAmulet = new Set(data.levelsVisitedWithAmulet || [])
+    // DEFENSIVE: Ensure values are arrays (old saves might have objects {})
+    const visibleCells = new Set(Array.isArray(data.visibleCells) ? data.visibleCells : [])
+    const identifiedItems = new Set(Array.isArray(data.identifiedItems) ? data.identifiedItems : [])
+    const detectedMonsters = new Set(Array.isArray(data.detectedMonsters) ? data.detectedMonsters : [])
+    const detectedMagicItems = new Set(Array.isArray(data.detectedMagicItems) ? data.detectedMagicItems : [])
+    const levelsVisitedWithAmulet = new Set(Array.isArray(data.levelsVisitedWithAmulet) ? data.levelsVisitedWithAmulet : [])
 
     // Restore nested Maps in itemNameMap
     // Handle both old format (plain objects) and new format (arrays)
@@ -621,6 +622,8 @@ export class LocalStorageService {
       itemsFound: data.itemsFound ?? 0,
       itemsUsed: data.itemsUsed ?? 0,
       levelsExplored: data.levelsExplored ?? 1,
+      // MIGRATION: Add default config for saves without it (pre room-reveal PR)
+      config: data.config ?? { fovMode: 'radius' },
     }
   }
 
