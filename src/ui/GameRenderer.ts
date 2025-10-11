@@ -552,7 +552,7 @@ export class GameRenderer {
       : `${player.ac}`
 
     this.statsContainer.innerHTML = `
-    <div class="stats-row-new">
+      <!-- Player Stats Section -->
       <div class="stats-panel stats-panel-wide">
         <div class="stats-panel-header">Player Stats</div>
         <div class="stats-panel-content-vertical">
@@ -605,12 +605,11 @@ export class GameRenderer {
       </div>
 
       ${this.renderEquipmentAndStatus(state)}
-    </div>
   `
   }
 
   /**
-   * Render equipment and status effects panel (right column)
+   * Render equipment and status effects panel (vertical stack)
    */
   private renderEquipmentAndStatus(state: GameState): string {
     const { equipment, statusEffects } = state.player
