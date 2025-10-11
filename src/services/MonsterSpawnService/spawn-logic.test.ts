@@ -28,6 +28,7 @@ describe('MonsterSpawnService - Spawn Logic', () => {
           speed: 10,
           rarity: 'common',
           mean: false,
+          vorpalness: 1,
           aiProfile: {
             behavior: 'SIMPLE',
             intelligence: 1,

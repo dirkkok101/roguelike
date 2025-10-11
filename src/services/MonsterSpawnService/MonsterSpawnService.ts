@@ -154,10 +154,10 @@ export class MonsterSpawnService {
   /**
    * Select monster template for a given depth
    *
-   * Filters monsters appropriate for depth and selects one using weighted randomness.
+   * Filters monsters appropriate for depth using vorpal range and selects one using weighted randomness.
    * Used by wandering monster spawns and other special spawn scenarios.
    *
-   * @param depth - Dungeon level (1-10)
+   * @param depth - Dungeon level (1-26)
    * @returns Selected MonsterTemplate
    * @throws Error if no templates available for depth (shouldn't happen with proper data)
    */
@@ -167,8 +167,12 @@ export class MonsterSpawnService {
       throw new Error('Monster data not loaded. Call loadMonsterData() first.')
     }
 
-    // Filter monsters appropriate for this depth
-    const availableTemplates = this.filterMonstersByDepth(depth)
+    // Calculate vorpal range: [depth-6, depth+3] clamped to [0, 25]
+    const minVorpal = Math.max(0, depth - 6)
+    const maxVorpal = Math.min(25, depth + 3)
+
+    // Filter monsters by vorpal range
+    const availableTemplates = this.filterByVorpalRange(minVorpal, maxVorpal)
 
     if (availableTemplates.length === 0) {
       throw new Error(`No monsters available for depth ${depth}`)
@@ -182,11 +186,12 @@ export class MonsterSpawnService {
    * Spawn monsters for a dungeon level
    *
    * Creates monsters appropriate for the given depth with weighted selection.
+   * Uses vorpal range formula [depth-6, depth+3] for authentic Rogue spawning.
    * Places monsters in random valid positions within rooms.
    *
    * @param rooms - Room structures to spawn monsters in
    * @param tiles - Tile grid for walkability checks
-   * @param depth - Dungeon level (1-10), determines spawn count and monster selection
+   * @param depth - Dungeon level (1-26), determines spawn count and monster selection
    * @returns Array of spawned Monster instances
    */
   spawnMonsters(rooms: Room[], tiles: Tile[][], depth: number): Monster[] {
@@ -201,11 +206,15 @@ export class MonsterSpawnService {
     // Determine how many monsters to spawn
     const spawnCount = this.getSpawnCount(depth)
 
-    // Filter monsters appropriate for this depth
-    const availableTemplates = this.filterMonstersByDepth(depth)
+    // Calculate vorpal range: [depth-6, depth+3] clamped to [0, 25]
+    const minVorpal = Math.max(0, depth - 6)
+    const maxVorpal = Math.min(25, depth + 3)
+
+    // Filter monsters by vorpal range (replaces old level-based filtering)
+    const availableTemplates = this.filterByVorpalRange(minVorpal, maxVorpal)
 
     if (availableTemplates.length === 0) {
-      // No monsters available (shouldn't happen with proper data)
+      // No monsters available (shouldn't happen with proper vorpal values)
       return monsters
     }
 
@@ -351,35 +360,6 @@ export class MonsterSpawnService {
     return validatedTemplates
   }
 
-  /**
-   * Filter monster templates by dungeon depth
-   *
-   * Allows monsters up to 2 levels above current depth (e.g., depth 1 allows levels 1-3).
-   * Ensures at least some monsters are available even on deep levels.
-   * Boss monsters (level >= 10) have additional restrictions (see isBossMonster).
-   *
-   * @private
-   */
-  private filterMonstersByDepth(depth: number): MonsterTemplate[] {
-    const filtered = this.monsterTemplates.filter((template) => {
-      // Basic level check: monster.level <= depth + 2
-      if (template.level > depth + 2) {
-        return false
-      }
-
-      // Boss monsters have additional restrictions
-      if (this.isBossMonster(template)) {
-        // Boss monsters only spawn on deep levels (depth >= level - 1)
-        // E.g., Dragon (level 10) only spawns on depth 9-10
-        return depth >= template.level - 1
-      }
-
-      return true
-    })
-
-    // Fallback: if no monsters match, return all (shouldn't happen with proper data)
-    return filtered.length > 0 ? filtered : this.monsterTemplates
-  }
 
   /**
    * Select monster template with weighted randomness
@@ -417,14 +397,6 @@ export class MonsterSpawnService {
 
     // Fallback (should never reach here)
     return this.random.pickRandom(templates)
-  }
-
-  /**
-   * Check if monster is boss-tier (level >= 10)
-   * @private
-   */
-  private isBossMonster(template: MonsterTemplate): boolean {
-    return template.level >= 10
   }
 
   /**
