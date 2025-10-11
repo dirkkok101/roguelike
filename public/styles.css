@@ -221,37 +221,6 @@ body {
   overflow: hidden;
 }
 
-.bar-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-}
-
-.bar-fill.hunger {
-  background: #00ff00;
-}
-
-.bar-fill.hunger.warning {
-  background: #ff8800;
-}
-
-.bar-fill.hunger.critical {
-  background: #ff0000;
-}
-
-.bar-fill.light {
-  background: #ffdd00;
-}
-
-.bar-fill.light.warning {
-  background: #ff8800;
-}
-
-.bar-fill.light.critical {
-  background: #ff0000;
-}
-
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .game-container {
