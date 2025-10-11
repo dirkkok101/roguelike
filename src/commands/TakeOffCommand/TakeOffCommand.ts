@@ -101,7 +101,8 @@ export class TakeOffCommand implements ICommand {
           updatedPlayer.position,
           lightRadius,
           currentLevel,
-          updatedPlayer
+          updatedPlayer,
+          state.config
         )
 
         // Return state with updated FOV before incrementing turn

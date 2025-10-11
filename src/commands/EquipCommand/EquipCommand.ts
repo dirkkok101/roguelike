@@ -141,7 +141,8 @@ export class EquipCommand implements ICommand {
           updatedPlayer.position,
           lightRadius,
           currentLevel,
-          updatedPlayer
+          updatedPlayer,
+          state.config
         )
         updatedState = {
           ...updatedState,

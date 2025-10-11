@@ -264,7 +264,8 @@ export class MoveCommand implements ICommand {
       finalPosition, // Use final position (may be teleported)
       lightRadius,
       updatedLevel,
-      updatedPlayer
+      updatedPlayer,
+      state.config
     )
 
     // 5. Update levels map

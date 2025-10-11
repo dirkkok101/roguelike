@@ -4,6 +4,7 @@ import { SeededRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
+import { RoomDetectionService } from '@services/RoomDetectionService'
 import { RenderingService } from '@services/RenderingService'
 import { MovementService } from '@services/MovementService'
 import { MessageService } from '@services/MessageService'
@@ -76,6 +77,7 @@ async function initializeGame() {
   const random = new SeededRandom(newGameSeed)
   const statusEffectService = new StatusEffectService()
   const messageService = new MessageService()
+  const roomDetectionService = new RoomDetectionService()
 
   // Load monster data early (needed by DebugService)
   const monsterSpawnService = new MonsterSpawnService(random)
@@ -122,7 +124,7 @@ async function initializeGame() {
   const debugService = new DebugService(messageService, monsterSpawnService, itemSpawnService, random, import.meta.env.DEV)
 
   const lightingService = new LightingService(random, debugService)
-  const fovService = new FOVService(statusEffectService)
+  const fovService = new FOVService(statusEffectService, roomDetectionService)
   const renderingService = new RenderingService(fovService)
   const movementService = new MovementService(random, statusEffectService)
 
@@ -332,6 +334,9 @@ async function initializeGame() {
     detectedMagicItems: new Set(),
     debug: debugService.initializeDebugState(),
     positionHistory: [], // Track last 3 positions for door slam detection
+    config: {
+      fovMode: 'radius' // Default to radius-based FOV (current behavior)
+    },
     // Run statistics (initialized to 0)
     monstersKilled: 0,
     itemsFound: 0,
@@ -489,6 +494,9 @@ async function initializeGame() {
       detectedMagicItems: new Set(),
       debug: debugService.initializeDebugState(),
       positionHistory: [], // Track last 3 positions for door slam detection
+      config: {
+        fovMode: 'radius' // Default to radius-based FOV (current behavior)
+      },
       monstersKilled: 0,
       itemsFound: 0,
       itemsUsed: 0,
