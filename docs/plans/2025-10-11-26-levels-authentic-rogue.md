@@ -1109,10 +1109,12 @@ git commit -m "feat: add StairsNavigationService for 26-level traversal with mon
 
 ---
 
-### Task 4.2: Update DescendStairsCommand to Use StairsNavigationService
+### Task 4.2: Update DescendStairsCommand to Use StairsNavigationService ✅
+
+**Note:** Completed as part of MoveStairsCommand refactor (combines Tasks 4.2 and 4.3)
 
 **Files:**
-- Modify: `src/commands/DescendStairsCommand/DescendStairsCommand.ts`
+- Modify: `src/commands/MoveStairsCommand/MoveStairsCommand.ts`
 
 **Step 1: Inject StairsNavigationService into DescendStairsCommand**
 
@@ -1202,10 +1204,12 @@ git commit -m "refactor: use StairsNavigationService in DescendStairsCommand"
 
 ---
 
-### Task 4.3: Update AscendStairsCommand to Use StairsNavigationService
+### Task 4.3: Update AscendStairsCommand to Use StairsNavigationService ✅
+
+**Note:** Completed as part of MoveStairsCommand refactor (combines Tasks 4.2 and 4.3)
 
 **Files:**
-- Modify: `src/commands/AscendStairsCommand/AscendStairsCommand.ts`
+- Modify: `src/commands/MoveStairsCommand/MoveStairsCommand.ts`
 
 **Step 1: Inject StairsNavigationService**
 
