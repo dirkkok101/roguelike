@@ -488,6 +488,12 @@ export interface GoldPile {
   amount: number
 }
 
+export interface Amulet extends Item {
+  type: ItemType.AMULET
+  spriteName: string
+  cursed: boolean
+}
+
 // ============================================================================
 // TARGETING TYPES
 // ============================================================================
