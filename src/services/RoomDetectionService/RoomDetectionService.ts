@@ -96,8 +96,13 @@ export class RoomDetectionService {
 
         const tile = level.tiles[adjacent.y][adjacent.x]
 
-        // Add if it's a wall or door
-        if (tile.type === TileType.WALL || tile.type === TileType.DOOR) {
+        // Add if it's a wall or door (explicitly exclude corridors and room floors)
+        // Corridors are walkable passages with isRoom: false
+        // Room floors have isRoom: true and should never be boundaries
+        if (
+          (tile.type === TileType.WALL || tile.type === TileType.DOOR) &&
+          !tile.isRoom
+        ) {
           boundaryTiles.add(adjKey)
         }
       }

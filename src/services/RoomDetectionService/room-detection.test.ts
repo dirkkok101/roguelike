@@ -217,4 +217,37 @@ describe('RoomDetectionService - Room Detection', () => {
     // First room: 5x5 floor (25) + boundary walls (7x7 = 49 - 25 = 24)
     expect(roomTiles.size).toBe(49) // Only first room + boundaries
   })
+
+  it('should not add corridor tiles to boundary when player in corridor next to room', () => {
+    const level = createTestLevel(20, 20)
+    createRoom(level, 5, 5, 6, 6) // Room at (5,5) to (10,10)
+
+    // Create corridor tile adjacent to room (at x=11, y=8)
+    level.tiles[8][11] = {
+      type: 'CORRIDOR' as const,
+      char: '#',
+      walkable: true,
+      transparent: true,
+      isRoom: false,
+      colorVisible: '#A89078',
+      colorExplored: '#544832'
+    }
+
+    // Player stands in corridor adjacent to room
+    const roomTiles = service.detectRoom({ x: 11, y: 8 }, level)
+
+    // Should detect adjacent room + boundary walls/doors
+    // Room: 6x6 = 36 floor tiles
+    // Boundary: 8x8 perimeter - 6x6 interior = 64-36 = 28 wall positions
+    // But position (11,8) is a corridor (not a wall), so that boundary position is NOT added
+    // Total: 36 floor + 27 walls (missing one wall replaced by corridor) = 63
+    expect(roomTiles.size).toBe(63)
+
+    // Corridor tile itself should NOT be included in room tiles
+    expect(roomTiles.has('11,8')).toBe(false)
+
+    // But adjacent room tiles should be included
+    expect(roomTiles.has('10,8')).toBe(true) // Room edge
+    expect(roomTiles.has('8,8')).toBe(true) // Room center
+  })
 })
