@@ -11,6 +11,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 14,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 3,
@@ -31,6 +32,7 @@
     "speed": 15,
     "rarity": "common",
     "mean": false,
+    "vorpalness": 1,
     "aiProfile": {
       "behavior": "ERRATIC",
       "intelligence": 2,
@@ -51,6 +53,7 @@
     "speed": 12,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 12,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 6,
@@ -71,6 +74,7 @@
     "speed": 18,
     "rarity": "rare",
     "mean": true,
+    "vorpalness": 24,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 8,
@@ -92,6 +96,7 @@
     "speed": 10,
     "rarity": "common",
     "mean": true,
+    "vorpalness": 2,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,
@@ -113,6 +118,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 17,
     "aiProfile": {
       "behavior": "STATIONARY",
       "intelligence": 1,
@@ -133,6 +139,7 @@
     "speed": 18,
     "rarity": "rare",
     "mean": true,
+    "vorpalness": 24,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
@@ -154,6 +161,7 @@
     "speed": 10,
     "rarity": "common",
     "mean": true,
+    "vorpalness": 3,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
@@ -175,6 +183,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 22,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
@@ -195,6 +204,7 @@
     "speed": 18,
     "rarity": "rare",
     "mean": true,
+    "vorpalness": 25,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
@@ -216,6 +226,7 @@
     "speed": 15,
     "rarity": "common",
     "mean": true,
+    "vorpalness": 5,
     "aiProfile": {
       "behavior": "ERRATIC",
       "intelligence": 2,
@@ -237,6 +248,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 14,
     "aiProfile": {
       "behavior": "THIEF",
       "intelligence": 6,
@@ -257,6 +269,7 @@
     "speed": 12,
     "rarity": "rare",
     "mean": false,
+    "vorpalness": 21,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
@@ -277,6 +290,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 18,
     "aiProfile": {
       "behavior": "THIEF",
       "intelligence": 7,
@@ -297,6 +311,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": true,
+    "vorpalness": 7,
     "aiProfile": {
       "behavior": "GREEDY",
       "intelligence": 5,
@@ -318,6 +333,7 @@
     "speed": 15,
     "rarity": "rare",
     "mean": false,
+    "vorpalness": 21,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
@@ -338,6 +354,7 @@
     "speed": 10,
     "rarity": "common",
     "mean": true,
+    "vorpalness": 9,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
@@ -359,6 +376,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 10,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
@@ -379,6 +397,7 @@
     "speed": 10,
     "rarity": "common",
     "mean": true,
+    "vorpalness": 1,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 2,
@@ -400,6 +419,7 @@
     "speed": 7,
     "rarity": "uncommon",
     "mean": true,
+    "vorpalness": 18,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 4,
@@ -421,6 +441,7 @@
     "speed": 15,
     "rarity": "rare",
     "mean": true,
+    "vorpalness": 23,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
@@ -442,6 +463,7 @@
     "speed": 15,
     "rarity": "rare",
     "mean": false,
+    "vorpalness": 22,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 7,
@@ -462,6 +484,7 @@
     "speed": 12,
     "rarity": "rare",
     "mean": false,
+    "vorpalness": 20,
     "aiProfile": {
       "behavior": "SMART",
       "intelligence": 6,
@@ -482,6 +505,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 19,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 3,
@@ -502,6 +526,7 @@
     "speed": 10,
     "rarity": "uncommon",
     "mean": false,
+    "vorpalness": 13,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 3,
@@ -522,6 +547,7 @@
     "speed": 5,
     "rarity": "uncommon",
     "mean": true,
+    "vorpalness": 6,
     "aiProfile": {
       "behavior": "SIMPLE",
       "intelligence": 1,

@@ -243,6 +243,7 @@ export interface MonsterTemplate {
   speed: number // Energy gain rate (5=slow, 10=normal, 15=fast, 18+=very fast)
   rarity: 'common' | 'uncommon' | 'rare' // Spawn frequency (common=50%, uncommon=30%, rare=20%)
   mean: boolean // If true, starts awake and aggressive (no sleep chance)
+  vorpalness: number // 0-25 scale for spawn depth control (authentic Rogue vorpal spawn ranges)
   aiProfile: MonsterAIProfile // AI behavior configuration
 }
 
