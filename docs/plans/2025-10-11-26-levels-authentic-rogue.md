@@ -1421,10 +1421,13 @@ git commit -m "feat: spawn Amulet of Yendor on level 26"
 
 ---
 
-### Task 5.2: Handle Amulet Pickup in PickupItemCommand
+### Task 5.2: Handle Amulet Pickup in PickupItemCommand ✅
+
+**Note:** Already implemented in PickUpCommand.ts (lines 62-89) with comprehensive test coverage
 
 **Files:**
-- Modify: `src/commands/PickupItemCommand/PickupItemCommand.ts`
+- Modify: `src/commands/PickUpCommand/PickUpCommand.ts` (already done)
+- Tests: `src/commands/PickUpCommand/amulet-pickup.test.ts` (7 tests passing)
 
 **Step 1: Add special handling for Amulet pickup**
 
@@ -1507,12 +1510,15 @@ git commit -m "feat: handle Amulet pickup and prevent dropping quest item"
 
 ---
 
-### Task 5.3: Create WinConditionService and Victory Screen
+### Task 5.3: Create WinConditionService and Victory Screen ✅
+
+**Note:** Already implemented as VictoryService with full integration in MoveStairsCommand
 
 **Files:**
-- Create: `src/services/WinConditionService/WinConditionService.ts`
-- Create: `src/services/WinConditionService/index.ts`
-- Create: `src/services/WinConditionService/win-condition.test.ts`
+- Create: `src/services/VictoryService/VictoryService.ts` (already done)
+- Create: `src/services/VictoryService/victory-condition.test.ts` (5 tests passing)
+- Integration: Victory checking in MoveStairsCommand.ts (lines 144-157)
+- Victory screen: `src/states/VictoryScreenState/VictoryScreenState.ts` (already done)
 
 **Step 1: Write tests for WinConditionService**
 
