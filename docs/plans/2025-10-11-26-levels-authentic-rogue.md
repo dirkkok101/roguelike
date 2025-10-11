@@ -1668,9 +1668,9 @@ Expected: All respawn tests pass
 
 ---
 
-## Phase 7: Resource Rebalancing
+## Phase 7: Resource Rebalancing ✅
 
-### Task 7.1: Update Light Source Fuel Values
+### Task 7.1: Update Light Source Fuel Values ✅
 
 **Files:**
 - Modify: `src/services/LightingService/LightingService.ts` (or wherever light constants are defined)
@@ -1718,10 +1718,12 @@ git commit -m "balance: increase light source fuel for 26-level journey (torch 6
 
 ---
 
-### Task 7.2: Update Food Spawn Rate with Depth Scaling
+### Task 7.2: Update Food Spawn Rate with Depth Scaling ✅
 
 **Files:**
 - Modify: `src/services/ItemSpawnService/ItemSpawnService.ts`
+
+**Completed:** Added depth-scaled food spawning (10% base + 1% per 5 levels), torch spawning (7%), and oil flask spawning (5%) with helper methods.
 
 **Step 1: Implement depth-scaled food spawning**
 
