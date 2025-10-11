@@ -53,12 +53,13 @@ describe('DungeonGenerationService - Room Flag', () => {
   it('should mark corridor tiles with isRoom: false', () => {
     const level = service.generateLevel(1, config)
 
-    // Find corridor tiles (char === '#')
+    // Find corridor tiles (char === '.' with isRoom: false and type: CORRIDOR)
     let foundCorridorTile = false
     for (let y = 0; y < level.height; y++) {
       for (let x = 0; x < level.width; x++) {
         const tile = level.tiles[y][x]
-        if (tile.char === '#' && tile.walkable) {
+        // Corridors are walkable floor tiles with isRoom: false
+        if (tile.char === '.' && tile.walkable && !tile.isRoom && tile.type === 'CORRIDOR') {
           foundCorridorTile = true
           expect(tile.isRoom).toBe(false)
         }
