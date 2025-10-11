@@ -551,8 +551,137 @@ export class GameRenderer {
       ? `${player.ac}(${acBonus > 0 ? '+' : ''}${acBonus})`
       : `${player.ac}`
 
-    // HTML rendering will be added in next task...
-    this.statsContainer.innerHTML = ''  // Placeholder for now
+    this.statsContainer.innerHTML = `
+    <div class="stats-row-new">
+      <div class="stats-panel stats-panel-wide">
+        <div class="stats-panel-header">Player Stats</div>
+        <div class="stats-panel-content-vertical">
+          <!-- HP Bar -->
+          <div class="stat-line${hpBlink}">
+            <span class="stat-label">HP:</span>
+            <span class="stat-value">${player.hp}/${player.maxHp}</span>
+            <div class="segmented-bar hp-bar">
+              <div class="bar-fill ${hpClass}" style="width: ${hpPercent}%"></div>
+            </div>
+          </div>
+
+          <!-- XP Bar -->
+          <div class="stat-line">
+            <span class="stat-label">XP:</span>
+            <span class="stat-value">${xpDisplay}</span>
+            <div class="segmented-bar xp-bar">
+              <div class="bar-fill xp" style="width: ${xpPercent}%"></div>
+            </div>
+          </div>
+
+          <!-- Hunger Bar -->
+          <div class="stat-line">
+            <span class="stat-label">Hunger:</span>
+            <span class="stat-value">${hungerLabel}</span>
+            <div class="segmented-bar hunger-bar">
+              <div class="bar-fill ${hungerClass}" style="width: ${hungerPercent}%"></div>
+            </div>
+          </div>
+
+          <!-- Light Bar -->
+          <div class="stat-line">
+            <span class="stat-label">Light:</span>
+            <span class="stat-value">${lightLabel}</span>
+            <div class="segmented-bar light-bar">
+              <div class="bar-fill ${lightClass}" style="width: ${lightPercent}%"></div>
+            </div>
+          </div>
+
+          <!-- Compact Secondary Stats -->
+          <div class="stat-compact">
+            <span>Str: ${strDisplay}</span>
+            <span>AC: ${acDisplay}</span>
+            <span>Lvl: ${player.level}</span>
+            <span>Gold: ${player.gold}</span>
+            <span>Depth: ${state.currentLevel}</span>
+            <span>Turn: ${state.turnCount}</span>
+          </div>
+        </div>
+      </div>
+
+      ${this.renderEquipmentAndStatus(state)}
+    </div>
+  `
+  }
+
+  /**
+   * Render equipment and status effects panel (right column)
+   */
+  private renderEquipmentAndStatus(state: GameState): string {
+    const { equipment, statusEffects } = state.player
+
+    // Equipment slots with cursed indicators
+    const weaponSlot = equipment.weapon
+      ? `${equipment.weapon.name}${equipment.weapon.bonus !== 0 ? ` ${equipment.weapon.bonus > 0 ? '+' : ''}${equipment.weapon.bonus}` : ''}`
+      : '(empty)'
+    const weaponClass = equipment.weapon?.cursed ? 'equip-cursed' : 'equip-value'
+    const weaponCursed = equipment.weapon?.cursed ? ' 🔒' : ''
+
+    const armorSlot = equipment.armor
+      ? `${equipment.armor.name}${equipment.armor.bonus !== 0 ? ` ${equipment.armor.bonus > 0 ? '+' : ''}${equipment.armor.bonus}` : ''}`
+      : '(empty)'
+    const armorClass = equipment.armor?.cursed ? 'equip-cursed' : 'equip-value'
+    const armorCursed = equipment.armor?.cursed ? ' 🔒' : ''
+
+    const leftRingSlot = equipment.leftRing
+      ? `${equipment.leftRing.name}${equipment.leftRing.bonus !== 0 ? ` ${equipment.leftRing.bonus > 0 ? '+' : ''}${equipment.leftRing.bonus}` : ''}`
+      : '(empty)'
+    const leftRingClass = equipment.leftRing?.cursed ? 'equip-cursed' : 'equip-value'
+    const leftRingCursed = equipment.leftRing?.cursed ? ' 🔒' : ''
+
+    const rightRingSlot = equipment.rightRing
+      ? `${equipment.rightRing.name}${equipment.rightRing.bonus !== 0 ? ` ${equipment.rightRing.bonus > 0 ? '+' : ''}${equipment.rightRing.bonus}` : ''}`
+      : '(empty)'
+    const rightRingClass = equipment.rightRing?.cursed ? 'equip-cursed' : 'equip-value'
+    const rightRingCursed = equipment.rightRing?.cursed ? ' 🔒' : ''
+
+    // Status effects with colored badges
+    const statusHTML = statusEffects.length > 0
+      ? statusEffects.map(effect => {
+          const display = this.getStatusEffectDisplay(effect.type)
+          return `<div class="status-badge" style="color: ${display.color};">
+          ${display.icon} ${display.label} (${effect.duration})
+        </div>`
+        }).join('')
+      : '<span class="status-empty" style="color: #666; font-style: italic;">No effects</span>'
+
+    return `
+    <div class="stats-panel stats-panel-wide">
+      <div class="stats-panel-header">Equipment & Status</div>
+      <div class="stats-panel-content-vertical">
+        <div class="equipment-list">
+          <div class="equipment-item">
+            <span class="equip-label">Weapon:</span>
+            <span class="${weaponClass}">${weaponSlot}${weaponCursed}</span>
+          </div>
+
+          <div class="equipment-item">
+            <span class="equip-label">Armor:</span>
+            <span class="${armorClass}">${armorSlot}${armorCursed}</span>
+          </div>
+
+          <div class="equipment-item">
+            <span class="equip-label">Left Hand:</span>
+            <span class="${leftRingClass}">${leftRingSlot}${leftRingCursed}</span>
+          </div>
+
+          <div class="equipment-item">
+            <span class="equip-label">Right Hand:</span>
+            <span class="${rightRingClass}">${rightRingSlot}${rightRingCursed}</span>
+          </div>
+        </div>
+
+        <div class="status-effects">
+          ${statusHTML}
+        </div>
+      </div>
+    </div>
+  `
   }
 
   private renderMessages(state: GameState): void {
