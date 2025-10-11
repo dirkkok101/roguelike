@@ -1268,11 +1268,13 @@ git commit -m "refactor: use StairsNavigationService in AscendStairsCommand"
 
 ## Phase 5: Amulet & Win Condition
 
-### Task 5.1: Create Amulet Factory and Spawn on Level 26
+### Task 5.1: Create Amulet Factory and Spawn on Level 26 ✅
 
 **Files:**
 - Modify: `src/services/ItemSpawnService/ItemSpawnService.ts`
 - Create: `src/services/ItemSpawnService/amulet-spawn.test.ts`
+
+**Note:** Level 26 amulet spawning already implemented in DungeonService.generateLevel()
 
 **Step 1: Write test for Amulet spawning**
 
