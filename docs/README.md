@@ -41,7 +41,7 @@
 |----------|---------|-------|----------|
 | **[Diagrams Index](./diagrams/README.md)** | Visual architecture diagrams (Mermaid.js) | - | All |
 | **[Architecture Layers](./diagrams/architecture-layers.md)** | 4-layer architecture (UI → Command → Service → Data) | - | Dev |
-| **[Service Dependencies](./diagrams/service-dependencies.md)** | Dependency graph of all 33 services | - | Dev |
+| **[Service Dependencies](./diagrams/service-dependencies.md)** | Dependency graph of all 35 services | - | Dev |
 | **[Data Model](./diagrams/data-model.md)** | Entity relationships (GameState, Player, Monster) | - | Dev |
 | **[Command Flow](./diagrams/command-flow.md)** | MoveCommand execution sequence | - | Dev |
 
@@ -51,7 +51,7 @@
 |----------|---------|-------|----------|
 | **[CLAUDE.md](../CLAUDE.md)** | Main reference (workflows, patterns, quick ref) | 422 | All |
 | **[Architecture](./architecture.md)** | Technical architecture, SOLID principles, layers | 1,224 | Dev |
-| **[Services Guide](./services/README.md)** | All 33 services reference | 287 | Dev |
+| **[Services Guide](./services/README.md)** | All 35 services reference | 287 | Dev |
 | **[Commands Guide](./commands/README.md)** | All 40+ commands reference | 118 | Dev |
 
 ### 🎮 Game Design

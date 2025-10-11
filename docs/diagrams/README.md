@@ -20,7 +20,7 @@ This folder contains Mermaid.js diagrams that complement the textual documentati
 
 ### Core Architecture
 - **[Layered Architecture](./architecture-layers.md)** - UI → Command → Service → Data layers with data flow
-- **[Service Dependencies](./service-dependencies.md)** - Dependency graph of all 33 services
+- **[Service Dependencies](./service-dependencies.md)** - Dependency graph of all 35 services
 - **[Data Model](./data-model.md)** - Entity relationships (GameState, Player, Monster, Level, Items)
 
 **Use Cases**:
@@ -234,7 +234,7 @@ Diagrams render automatically in markdown files
 - [Testing Strategy](../testing-strategy.md) - Test organization and patterns
 
 **Service Docs**:
-- [Services Index](../services/README.md) - All 33 services documentation
+- [Services Index](../services/README.md) - All 35 services documentation
 
 **Game Design**:
 - [Game Design Index](../game-design/README.md) - Gameplay mechanics and rules

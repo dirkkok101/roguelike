@@ -60,9 +60,13 @@ See [Architecture Guide](../architecture.md) for details.
 | [TurnService](./TurnService.md) | Turn management, energy system | `incrementTurn`, `grantPlayerEnergy`, `consumePlayerEnergy` | StatusEffectService |
 | [VictoryService](./VictoryService.md) | Win condition checking | `checkVictory`, `calculateScore` | None |
 | [DebugService](./DebugService.md) | Debug tools | `toggleGodMode`, `revealMap` | None |
-| **Persistence** ||||
+| **Rendering & Assets** ||||
+| [AssetLoaderService](./AssetLoaderService.md) | Sprite sheet loading, .prf parsing | `loadTileset`, `getSprite`, `getSpriteByName` | None (browser Image/fetch) |
+| [TerrainSpriteService](./TerrainSpriteService.md) | Terrain sprite mapping | `getTerrainSprite`, `loadMappings` | None |
+| **Persistence & Preferences** ||||
 | [LocalStorageService](./LocalStorageService.md) | Save/load, serialization | `saveGame`, `loadGame` | None |
 | [AutoSaveMiddleware](./AutoSaveMiddleware.md) | Auto-save logic | `wrapCommand` | LocalStorageService |
+| [PreferencesService](./PreferencesService.md) | User preferences, event system | `get`, `set`, `subscribe`, `notifyChange` | None |
 | [RandomService](./RandomService.md) | Seeded RNG | `nextInt`, `roll`, `MockRandom` | None |
 
 ---
@@ -120,10 +124,16 @@ Supporting systems:
 - [VictoryService](./VictoryService.md) - Win conditions
 - [DebugService](./DebugService.md) - Debug tools
 
-### Persistence (3 services)
-Save/load and randomness:
+### Rendering & Assets (2 services)
+Sprite loading and rendering:
+- [AssetLoaderService](./AssetLoaderService.md) - Sprite sheet loading, .prf parsing
+- [TerrainSpriteService](./TerrainSpriteService.md) - Terrain sprite mappings
+
+### Persistence & Preferences (4 services)
+Save/load, preferences, and randomness:
 - [LocalStorageService](./LocalStorageService.md) - Save/load
 - [AutoSaveMiddleware](./AutoSaveMiddleware.md) - Auto-save
+- [PreferencesService](./PreferencesService.md) - User preferences with event system
 - [RandomService](./RandomService.md) - Seeded RNG
 
 ---
@@ -207,7 +217,10 @@ Services (orchestrated by commands)
     │   ├── MovementService
     │   ├── FOVService
     │   ├── MessageService
-    │   └── StatusEffectService
+    │   ├── StatusEffectService
+    │   ├── AssetLoaderService (browser APIs only)
+    │   ├── TerrainSpriteService
+    │   └── PreferencesService
     │
     ├── RandomService (injected everywhere)
     │

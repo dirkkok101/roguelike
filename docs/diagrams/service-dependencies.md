@@ -8,7 +8,7 @@
 
 ## Overview
 
-This diagram shows the dependency relationships between all 33 services in the ASCII Roguelike. The graph is **acyclic** (no circular dependencies), following the **Dependency Inversion Principle**.
+This diagram shows the dependency relationships between all 35 services in the ASCII Roguelike. The graph is **acyclic** (no circular dependencies), following the **Dependency Inversion Principle**.
 
 **Key Insights**:
 - **RandomService** is the most depended-upon service (12 dependencies)
@@ -493,7 +493,7 @@ graph TD
 
 ## References
 
-- **[Services Index](../services/README.md)** - Documentation for all 33 services
+- **[Services Index](../services/README.md)** - Documentation for all 35 services
 - **[Architecture](../architecture.md)** - Service layer specifications
 - **[Dependency Inversion Principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle)**
 

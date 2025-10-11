@@ -174,7 +174,7 @@ npm run dev
 **Goal**: Understand service implementation patterns
 
 **Read**:
-1. [Services Guide - README](./services/README.md) - All 33 services overview
+1. [Services Guide - README](./services/README.md) - All 35 services overview
 2. [Service Creation Guide](./services/creation-guide.md) - Step-by-step creation
 3. [Service Patterns](./services/patterns.md) - Common patterns (Result Objects, Immutability, DI)
 

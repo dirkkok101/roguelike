@@ -99,7 +99,7 @@
 5. **Pure Functions**: Services are stateless where possible
 
 **Related Diagrams**:
-- [Service Dependencies](./diagrams/service-dependencies.md) - Dependency graph of all 33 services
+- [Service Dependencies](./diagrams/service-dependencies.md) - Dependency graph of all 35 services
 - [Command Flow](./diagrams/command-flow.md) - Detailed MoveCommand execution sequence
 - [Data Model](./diagrams/data-model.md) - Entity relationships and data structures
 

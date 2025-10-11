@@ -40,7 +40,7 @@
 - **[Testing Strategy](./docs/testing-strategy.md)** - Test organization
 
 **Implementation Guides:**
-- **[Services Guide](./docs/services/README.md)** - All 34 services reference
+- **[Services Guide](./docs/services/README.md)** - All 35 services reference
 - **[Commands Guide](./docs/commands/README.md)** - All 40+ commands reference
 - **[Architectural Review](./docs/ARCHITECTURAL_REVIEW.md)** - Pre-commit checklist
 
