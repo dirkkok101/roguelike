@@ -221,37 +221,6 @@ body {
   overflow: hidden;
 }
 
-.bar-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-}
-
-.bar-fill.hunger {
-  background: #00ff00;
-}
-
-.bar-fill.hunger.warning {
-  background: #ff8800;
-}
-
-.bar-fill.hunger.critical {
-  background: #ff0000;
-}
-
-.bar-fill.light {
-  background: #ffdd00;
-}
-
-.bar-fill.light.warning {
-  background: #ff8800;
-}
-
-.bar-fill.light.critical {
-  background: #ff0000;
-}
-
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .game-container {
@@ -508,4 +477,159 @@ body {
   z-index: 9999;
   transition: opacity 0.3s;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   SEGMENTED PROGRESS BARS
+   ============================================================================ */
+
+.segmented-bar {
+  width: 100%;
+  height: 18px;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  transition: width 0.3s ease;
+
+  /* Segmented pattern: 14px bar + 2px gap */
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0px,
+    currentColor 14px,
+    #00000080 14px,
+    #00000080 16px
+  );
+}
+
+/* HP color states */
+.bar-fill.hp { color: #00ff00; }
+.bar-fill.hp.wounded { color: #ffdd00; }
+.bar-fill.hp.critical { color: #ff8800; }
+.bar-fill.hp.danger { color: #ff0000; }
+
+/* XP bar */
+.bar-fill.xp { color: #ffd700; }
+
+/* Hunger states */
+.bar-fill.hunger { color: #00ff00; }
+.bar-fill.hunger.warning { color: #ff8800; }
+.bar-fill.hunger.critical { color: #ff0000; }
+
+/* Light states */
+.bar-fill.light { color: #ffdd00; }
+.bar-fill.light.warning { color: #ff8800; }
+.bar-fill.light.critical { color: #ff0000; }
+
+/* ============================================================================
+   TWO-COLUMN STATS LAYOUT
+   ============================================================================ */
+
+/* New two-column grid layout */
+.stats-row-new {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  font-size: 1.1em; /* Increased from 0.9em for readability */
+}
+
+.stats-panel-wide {
+  flex: 1;
+  padding: 12px 15px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+}
+
+.stats-panel-content-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 1em; /* Increased from 0.8em */
+}
+
+/* Stat line with progress bar: label (80px) + value (100px) + bar (flex) */
+.stat-line {
+  display: grid;
+  grid-template-columns: 80px 100px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.stat-label {
+  font-weight: bold;
+  color: #888;
+}
+
+.stat-value {
+  color: #fff;
+  font-family: monospace;
+  text-align: right;
+}
+
+/* Compact stat row for secondary stats (Gold, Depth, Turn) */
+.stat-compact {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 0.9em;
+  color: #aaa;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #333;
+}
+
+.stat-compact span {
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   EQUIPMENT & STATUS STYLING
+   ============================================================================ */
+
+.equipment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.equipment-item {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.equip-label {
+  font-weight: bold;
+  color: #888;
+}
+
+.equip-value {
+  color: #fff;
+}
+
+.equip-cursed {
+  color: #ff4444;
+}
+
+.status-effects {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-badge {
+  font-size: 0.95em;
 }
