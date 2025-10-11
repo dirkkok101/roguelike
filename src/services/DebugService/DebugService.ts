@@ -572,6 +572,29 @@ export class DebugService {
   }
 
   /**
+   * Toggle FOV mode between radius and room-reveal
+   */
+  toggleFOVMode(state: GameState): GameState {
+    if (!this.isEnabled()) return state
+
+    const currentMode = state.config?.fovMode || 'radius'
+    const newMode = currentMode === 'radius' ? 'room-reveal' : 'radius'
+
+    // Add message
+    const message = `FOV mode set to: ${newMode}`
+    const messages = this.messageService.addMessage(state.messages, message, 'info', state.turnCount)
+
+    return {
+      ...state,
+      messages,
+      config: {
+        ...state.config,
+        fovMode: newMode,
+      },
+    }
+  }
+
+  /**
    * Smart spawn position finder (Phase 5.2)
    *
    * Spawns items/monsters intelligently:

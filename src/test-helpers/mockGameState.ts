@@ -132,5 +132,12 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
       rings: new Map(),
     },
     identifiedItems: new Set<string>(),
+    config: {
+      fovMode: 'radius' // Default to radius-based FOV for tests
+    },
+    monstersKilled: 0,
+    itemsFound: 0,
+    itemsUsed: 0,
+    levelsExplored: 1,
   }
 }

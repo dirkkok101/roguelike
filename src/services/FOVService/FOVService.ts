@@ -1,5 +1,6 @@
-import { Position, Level, Player, StatusEffectType } from '@game/core/core'
+import { Position, Level, Player, StatusEffectType, GameConfig } from '@game/core/core'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { RoomDetectionService } from '@services/RoomDetectionService'
 
 // ============================================================================
 // RESULT TYPES
@@ -15,7 +16,10 @@ export interface FOVUpdateResult {
 // ============================================================================
 
 export class FOVService {
-  constructor(private statusEffectService: StatusEffectService) {}
+  constructor(
+    private statusEffectService: StatusEffectService,
+    private roomDetectionService: RoomDetectionService
+  ) {}
 
   /**
    * Compute field of view from origin position
@@ -55,14 +59,38 @@ export class FOVService {
   /**
    * Combined FOV computation + exploration update
    * Convenience method that combines computeFOV() and updateExploredTiles()
+   *
+   * NEW: Supports room-reveal mode via config.fovMode
    */
   updateFOVAndExploration(
     position: Position,
     lightRadius: number,
     level: Level,
-    player?: Player
+    player?: Player,
+    config?: GameConfig
   ): FOVUpdateResult {
-    const visibleCells = this.computeFOV(position, lightRadius, level, player)
+    let visibleCells: Set<string>
+
+    // Determine FOV mode
+    const fovMode = config?.fovMode || 'radius'
+
+    if (fovMode === 'room-reveal' && lightRadius > 0) {
+      // Check if player is blind first
+      if (player && this.statusEffectService.hasStatusEffect(player, StatusEffectType.BLIND)) {
+        visibleCells = new Set<string>() // Blind = see nothing
+      } else {
+        // Mode A: Room reveal + radius for corridors
+        const roomTiles = this.roomDetectionService.detectRoom(position, level)
+        const radiusTiles = this.computeFOV(position, lightRadius, level, player)
+
+        // Combine: Room tiles + radius-based FOV
+        visibleCells = new Set([...roomTiles, ...radiusTiles])
+      }
+    } else {
+      // Mode C: Pure radius-based (current behavior)
+      visibleCells = this.computeFOV(position, lightRadius, level, player)
+    }
+
     const updatedLevel = this.updateExploredTiles(level, visibleCells)
     return { visibleCells, level: updatedLevel }
   }

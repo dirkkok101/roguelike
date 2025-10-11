@@ -103,9 +103,9 @@ export class DungeonService {
     const corridors = this.corridorGenerationService.generateCorridors(rooms, config.loopChance)
 
     // Carve corridors into tiles
-    const floorTile = this.createFloorTile()
+    const corridorTile = this.createCorridorTile()
     for (const corridor of corridors) {
-      this.corridorGenerationService.carveCorridorIntoTiles(tiles, corridor, floorTile)
+      this.corridorGenerationService.carveCorridorIntoTiles(tiles, corridor, corridorTile)
     }
 
     // Carve rooms into tiles
@@ -201,11 +201,12 @@ export class DungeonService {
       transparent: false,
       colorVisible: '#8B7355',
       colorExplored: '#4A4A4A',
+      isRoom: false,  // Walls are not rooms
     }
   }
 
   /**
-   * Create floor tile
+   * Create floor tile (for rooms)
    */
   private createFloorTile(): Tile {
     return {
@@ -215,6 +216,22 @@ export class DungeonService {
       transparent: true,
       colorVisible: '#A89078',
       colorExplored: '#5A5A5A',
+      isRoom: true,  // Floor tiles in rooms
+    }
+  }
+
+  /**
+   * Create corridor tile (not in a room)
+   */
+  private createCorridorTile(): Tile {
+    return {
+      type: TileType.CORRIDOR,
+      char: '.',
+      walkable: true,
+      transparent: true,
+      colorVisible: '#A89078',
+      colorExplored: '#5A5A5A',
+      isRoom: false,  // Corridors are not rooms
     }
   }
 
@@ -342,6 +359,7 @@ export class DungeonService {
 
     // Set tile type to DOOR
     tile.type = TileType.DOOR
+    tile.isRoom = false  // Doors are not room tiles
 
     switch (door.state) {
       case DoorState.OPEN:

@@ -169,6 +169,10 @@ export class DebugConsole {
           ${debugState.fovOverlay ? '✓' : '✗'} FOV Debug
         </span>
       </div>
+      <div style="margin-top: 4px;">
+        <span style="color: #888;">FOV Mode:</span>
+        <span style="color: #0f0;"> ${state.config?.fovMode || 'radius'}</span>
+      </div>
       <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #0f0;">
         <div style="font-weight: bold; margin-bottom: 6px; color: #ff0; font-size: 11px;">
           DEBUG COMMANDS:
@@ -185,6 +189,7 @@ export class DebugConsole {
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">f</span> FOV Overlay</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">p</span> Path Overlay</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">n</span> AI Overlay</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">x</span> Toggle FOV Mode</div>
         </div>
       </div>
     `

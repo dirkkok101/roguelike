@@ -1,14 +1,17 @@
 import { FOVService } from './FOVService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { RoomDetectionService } from '@services/RoomDetectionService'
 import { Level, TileType } from '@game/core/core'
 
 describe('FOVService - Exploration Tracking', () => {
   let service: FOVService
   let statusEffectService: StatusEffectService
+  let roomDetectionService: RoomDetectionService
 
   beforeEach(() => {
     statusEffectService = new StatusEffectService()
-    service = new FOVService(statusEffectService)
+    roomDetectionService = new RoomDetectionService()
+    service = new FOVService(statusEffectService, roomDetectionService)
   })
 
   function createTestLevel(): Level {

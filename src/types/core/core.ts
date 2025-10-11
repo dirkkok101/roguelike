@@ -22,6 +22,7 @@ export interface Tile {
   transparent: boolean
   colorVisible: string
   colorExplored: string
+  isRoom: boolean  // NEW: Marks room tiles vs corridor/wall/door tiles
 }
 
 export enum DoorState {
@@ -256,6 +257,15 @@ export interface DebugState {
   aiOverlay: boolean            // AI state visualization (Phase 6)
 }
 
+/**
+ * GameConfig - Global game configuration
+ *
+ * Controls game behavior and features.
+ */
+export interface GameConfig {
+  fovMode: 'radius' | 'room-reveal' // Field of view mode: radius-based (default) or room-reveal (1980 Rogue)
+}
+
 export interface GameState {
   player: Player
   currentLevel: number
@@ -275,6 +285,7 @@ export interface GameState {
   itemNameMap: ItemNameMap // Random descriptive names for this game
   identifiedItems: Set<string> // Item types that have been identified
   debug?: DebugState // Debug state (optional for production builds)
+  config: GameConfig // Game configuration (FOV mode, etc.)
 
   // Detection state (from detection potions)
   detectedMonsters: Set<string> // Monster IDs revealed by DETECT_MONSTERS potion

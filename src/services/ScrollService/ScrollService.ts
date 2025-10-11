@@ -381,7 +381,8 @@ export class ScrollService {
       targetPos,
       lightRadius,
       level,
-      updatedPlayer
+      updatedPlayer,
+      state.config
     )
 
     // 6. Update level in levels map

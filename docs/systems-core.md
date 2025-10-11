@@ -1,7 +1,7 @@
 # Core Systems: ASCII Roguelike
 
-**Version**: 2.0  
-**Last Updated**: 2025-10-03  
+**Version**: 2.1
+**Last Updated**: 2025-01-11
 **Related Docs**: [Game Design](./game-design/README.md) | [Architecture](./architecture.md) | [Advanced Systems](./systems-advanced.md) | [Testing](./testing-strategy.md) | [Plan](./plan.md)
 
 ---
@@ -159,6 +159,221 @@ For each octant:
 - `radius.test.ts` - Light radius limits visibility
 - `exploration-tracking.test.ts` - Explored tiles tracking (immutability, bounds checking)
 - `octants.test.ts` - All 8 octants computed correctly
+- `room-reveal-mode.test.ts` - Room-reveal FOV mode behavior
+
+---
+
+### 2.3 Room-Reveal FOV Mode
+
+**Inspiration**: 1980 Rogue - entire rooms light up when entered, providing tactical visibility
+
+**Overview**: Alternative FOV mode that reveals entire rooms upon entry, combining room floodfill with radius-based FOV for corridors.
+
+#### 2.3.1 Two FOV Modes
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| **radius** (default) | Shadowcasting only, vision limited to light radius | Classic roguelike feel, tense exploration |
+| **room-reveal** | Entire room revealed + radius FOV in corridors | Tactical gameplay, better spatial awareness |
+
+**Configuration**:
+```typescript
+interface GameConfig {
+  fovMode: 'radius' | 'room-reveal'
+}
+```
+
+**Toggle**: Debug console → Press `x` key to switch between modes
+
+---
+
+#### 2.3.2 Room-Reveal Behavior
+
+**Algorithm**:
+1. Check if player has light (`lightRadius > 0`)
+2. Detect current room via floodfill from player position
+3. Combine room tiles + radius FOV tiles
+4. Update explored tiles (rooms fade to memory when leaving)
+
+**Room Detection** (RoomDetectionService):
+- 4-directional floodfill from player position
+- Stops at walls, doors, corridors (`isRoom: false`)
+- Includes boundary walls and doors (8-directional adjacency)
+- Handles doorway entry (player standing on non-room tile adjacent to room)
+
+**Light Requirement**:
+- Room reveal only works if `lightRadius > 0`
+- Without light → falls back to radius mode (sees nothing)
+- Matches 1980 Rogue: "darkness" means no vision
+
+**Blind Player**:
+- Blindness status effect overrides room reveal
+- Blind player sees nothing regardless of light or mode
+- Prevents seeing through blindness via room reveal exploit
+
+---
+
+#### 2.3.3 Room Detection Algorithm
+
+**Tile Classification**:
+```typescript
+isRoom: boolean  // Added to Tile interface
+
+// During dungeon generation:
+- Room floor tiles: isRoom = true
+- Corridor tiles: isRoom = false
+- Wall tiles: isRoom = false
+- Door tiles: isRoom = false
+```
+
+**Floodfill Process**:
+1. Start at player position
+2. If player on room tile → flood from current position
+3. If player on non-room tile → check 4 adjacent tiles for room entry
+4. Expand 4-directionally to all connected room tiles
+5. Stop at tiles with `isRoom: false`
+6. Add boundary tiles (walls/doors) in 8 directions around room
+
+**Example**:
+```
+###########      (# = wall, isRoom: false)
+#.........#      (. = room floor, isRoom: true)
+#....@....#      (@ = player position)
+#.........#      (+ = door, isRoom: false)
+#####+#####
+     #
+     #           (# = corridor, isRoom: false)
+```
+
+Player enters room → entire 9x4 room revealed (36 floor tiles + 28 boundary walls/door)
+
+---
+
+#### 2.3.4 Combining Room + Radius FOV
+
+**Implementation**:
+```typescript
+if (fovMode === 'room-reveal' && lightRadius > 0) {
+  // Check blindness first
+  if (isBlind(player)) {
+    visibleCells = new Set<string>()
+  } else {
+    const roomTiles = roomDetectionService.detectRoom(position, level)
+    const radiusTiles = computeFOV(position, lightRadius, level)
+    visibleCells = new Set([...roomTiles, ...radiusTiles])
+  }
+} else {
+  // Radius mode (default)
+  visibleCells = computeFOV(position, lightRadius, level)
+}
+```
+
+**Set Union**:
+- Room tiles revealed fully (all floor + boundaries)
+- Radius FOV adds corridor visibility around player
+- Combined set marked as visible (explored tiles updated)
+
+---
+
+#### 2.3.5 Visibility Memory
+
+**Room Fading**:
+- When player leaves room → room tiles no longer in FOV
+- Room tiles remain in explored state (50% opacity, dimmed)
+- Player can see room layout but not dynamic entities (monsters)
+
+**Corridor Visibility**:
+- Corridors always use radius FOV (not affected by room reveal)
+- Corridor tiles fade to explored when out of radius
+
+**Tactical Implications**:
+- Room reveal: See entire room layout immediately
+- Memory: Recall room shapes and door positions
+- Monsters: Only visible in current FOV (no "see through walls")
+
+---
+
+#### 2.3.6 Edge Cases
+
+**Doorway Entry**:
+- Player standing on door → detects adjacent room → reveals room
+- Prevents "standing on door sees nothing" bug
+
+**L-Shaped Rooms**:
+- Floodfill follows all connected room tiles
+- Reveals entire connected area (not just rectangular bounds)
+
+**Adjacent Rooms**:
+- Wall boundaries stop floodfill
+- Cannot see through walls into adjacent rooms
+- Each room revealed independently
+
+**Secret Doors**:
+- Pre-discovery: Secret door is wall (`isRoom: false`)
+- Blocks floodfill (room boundary)
+- Post-discovery: Door becomes transparent (`isRoom: false` but walkable)
+- Still blocks floodfill (maintains room separation)
+
+---
+
+#### 2.3.7 Testing
+
+**Test Coverage** (24 new tests):
+- `room-detection.test.ts` (10 tests):
+  - 6x6 room detection from center/corner
+  - Boundary wall/door inclusion
+  - Adjacent room separation
+  - Corridor detection (empty set)
+  - Doorway entry
+  - L-shaped rooms
+  - Secret door blocking
+  - Corridor tile boundary exclusion
+- `room-reveal-mode.test.ts` (8 tests):
+  - Room reveal vs radius mode comparison
+  - Light requirement (no light = no vision)
+  - Blind player (sees nothing)
+  - Room + corridor FOV combination
+  - Explored tiles tracking
+- `room-flag.test.ts` (4 tests):
+  - Room tiles flagged correctly
+  - Corridor tiles not flagged
+  - Wall tiles not flagged
+- `core.test.ts` (3 tests):
+  - GameConfig type structure
+  - FOV mode union type validation
+
+**See**:
+- Implementation: `src/services/RoomDetectionService/RoomDetectionService.ts`
+- Integration: `src/services/FOVService/FOVService.ts` (updateFOVAndExploration)
+- Tests: `src/services/RoomDetectionService/*.test.ts`, `src/services/FOVService/room-reveal-mode.test.ts`
+
+---
+
+#### 2.3.8 Design Rationale
+
+**Why Two Modes?**
+- **Radius mode**: Classic roguelike tension, careful exploration
+- **Room-reveal mode**: Tactical gameplay, faster pacing, better for combat
+
+**Why Default to Radius?**
+- Backward compatibility with existing gameplay
+- Radius mode is traditional roguelike standard
+- Room-reveal is experimental/optional enhancement
+
+**Why Light Requirement?**
+- Consistent with existing lighting system
+- Prevents "see in darkness" exploit
+- Matches 1980 Rogue behavior (no light = no vision)
+
+**Why Floodfill vs Raycasting?**
+- Floodfill: Reveals entire connected area (room concept)
+- Raycasting: Limited to line-of-sight (defeats purpose)
+- Floodfill matches 1980 Rogue room reveal behavior
+
+**Why Boundary Inclusion?**
+- Shows room shape and exits (doors)
+- Helps tactical planning (know where exits are)
+- Matches player expectation (room = floor + walls)
 
 ---
 

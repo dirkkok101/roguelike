@@ -1,5 +1,6 @@
 import { FOVService } from './FOVService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { RoomDetectionService } from '@services/RoomDetectionService'
 import { Player, Level, Equipment, StatusEffectType, Position } from '@game/core/core'
 
 // ============================================================================
@@ -79,11 +80,13 @@ function createTestLevel(): Level {
 
 describe('FOVService - Blind FOV', () => {
   let statusEffectService: StatusEffectService
+  let roomDetectionService: RoomDetectionService
   let fovService: FOVService
 
   beforeEach(() => {
     statusEffectService = new StatusEffectService()
-    fovService = new FOVService(statusEffectService)
+    roomDetectionService = new RoomDetectionService()
+    fovService = new FOVService(statusEffectService, roomDetectionService)
   })
 
   describe('computeFOV with blindness', () => {

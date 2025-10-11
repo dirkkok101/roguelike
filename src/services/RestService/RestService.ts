@@ -100,7 +100,8 @@ export class RestService {
         player.position,
         lightRadius,
         currentLevel,
-        player
+        player,
+        currentState.config
       )
 
       // Update levels map
