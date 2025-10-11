@@ -578,6 +578,7 @@ export class LocalStorageService {
     const identifiedItems = new Set(data.identifiedItems || [])
     const detectedMonsters = new Set(data.detectedMonsters || [])
     const detectedMagicItems = new Set(data.detectedMagicItems || [])
+    const levelsVisitedWithAmulet = new Set(data.levelsVisitedWithAmulet || [])
 
     // Restore nested Maps in itemNameMap
     // Handle both old format (plain objects) and new format (arrays)
@@ -611,9 +612,15 @@ export class LocalStorageService {
       identifiedItems,
       detectedMonsters,
       detectedMagicItems,
+      levelsVisitedWithAmulet,
       itemNameMap,
-      // MIGRATION: Add default characterName for old saves
+      // MIGRATION: Add defaults for v2 26-level fields (for v1 saves)
       characterName: data.characterName ?? 'Unknown Hero',
+      maxDepth: data.maxDepth ?? 10, // Old saves used 10 levels
+      monstersKilled: data.monstersKilled ?? 0,
+      itemsFound: data.itemsFound ?? 0,
+      itemsUsed: data.itemsUsed ?? 0,
+      levelsExplored: data.levelsExplored ?? 1,
     }
   }
 

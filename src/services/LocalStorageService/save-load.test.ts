@@ -105,6 +105,7 @@ describe('LocalStorageService - Save/Load', () => {
       isGameOver: false,
       hasWon: false,
       hasAmulet: false,
+      levelsVisitedWithAmulet: new Set<number>(),
       itemNameMap: {
         potions: new Map(),
         scrolls: new Map(),
@@ -250,6 +251,22 @@ describe('LocalStorageService - Save/Load', () => {
     expect(loaded.isGameOver).toBe(false)
     expect(loaded.hasWon).toBe(false)
     expect(loaded.hasAmulet).toBe(true)
+  })
+
+  test('preserves Set type for levelsVisitedWithAmulet', async () => {
+    const state = createTestState({
+      hasAmulet: true,
+      levelsVisitedWithAmulet: new Set([5, 10, 15]),
+    })
+
+    await service.saveGame(state)
+    const loaded = await service.loadGame(state.gameId)!
+
+    expect(loaded.levelsVisitedWithAmulet).toBeInstanceOf(Set)
+    expect(loaded.levelsVisitedWithAmulet.size).toBe(3)
+    expect(loaded.levelsVisitedWithAmulet.has(5)).toBe(true)
+    expect(loaded.levelsVisitedWithAmulet.has(10)).toBe(true)
+    expect(loaded.levelsVisitedWithAmulet.has(15)).toBe(true)
   })
 
   test('throws error when storage quota exceeded', async () => {
