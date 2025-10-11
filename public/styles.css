@@ -590,3 +590,46 @@ body {
 .stat-compact span {
   white-space: nowrap;
 }
+
+/* ============================================================================
+   EQUIPMENT & STATUS STYLING
+   ============================================================================ */
+
+.equipment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.equipment-item {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.equip-label {
+  font-weight: bold;
+  color: #888;
+}
+
+.equip-value {
+  color: #fff;
+}
+
+.equip-cursed {
+  color: #ff4444;
+}
+
+.status-effects {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-badge {
+  font-size: 0.95em;
+}
