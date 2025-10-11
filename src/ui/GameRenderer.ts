@@ -67,7 +67,7 @@ export class GameRenderer {
   private currentGameState: GameState | null = null
   private canvasNeedsResize = true // Flag to resize canvas on first render (after DOM is constructed)
   private resizeHandler: (() => void) | null = null // Window resize event handler
-  private resizeDebounceTimer: number | null = null // Debounce timer for resize events
+  private resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null // Debounce timer for resize events
 
   constructor(
     private renderingService: RenderingService,
@@ -209,13 +209,19 @@ export class GameRenderer {
     this.switchRenderMode(newMode)
 
     // Re-render with current game state if available
-    if (this.currentGameState) {
-      this.renderDungeon(this.currentGameState)
+    // Capture state before async operations to prevent race conditions
+    const capturedState = this.currentGameState
+    if (capturedState) {
+      this.renderDungeon(capturedState)
 
       // If switching TO ASCII mode, scroll to player after content is rendered
       if (newMode === 'ascii') {
-        // Use setTimeout to allow DOM to fully update after innerHTML change
-        setTimeout(() => this.scrollToPlayerInASCII(), 0)
+        // Use double requestAnimationFrame for reliable DOM synchronization
+        // First rAF: waits for browser to finish layout/paint of renderDungeon
+        // Second rAF: ensures scroll happens after that frame completes
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => this.scrollToPlayerInASCII(capturedState))
+        })
       }
     }
   }
@@ -338,17 +344,48 @@ export class GameRenderer {
   /**
    * Scroll ASCII dungeon container to center player position
    * ASCII mode renders the full map, so we need to scroll to keep player visible
+   *
+   * @param state - Optional game state to use (prevents race conditions with async calls)
    */
-  private scrollToPlayerInASCII(): void {
-    if (!this.currentGameState) return
+  private scrollToPlayerInASCII(state?: GameState): void {
+    // Use provided state or fall back to current state
+    const gameState = state || this.currentGameState
 
-    const player = this.currentGameState.player
+    // Validate preconditions
+    if (!gameState) {
+      if (this.debugService.isEnabled()) {
+        console.warn('[GameRenderer] scrollToPlayerInASCII: No game state available')
+      }
+      return
+    }
+
+    if (!this.dungeonContainer) {
+      if (this.debugService.isEnabled()) {
+        console.warn('[GameRenderer] scrollToPlayerInASCII: Dungeon container not found')
+      }
+      return
+    }
+
+    const player = gameState.player
     const container = this.dungeonContainer
 
-    // ASCII renderer uses monospace font, estimate character size
-    // Typical monospace is ~10px wide, ~16px tall
-    const charWidth = 10
-    const charHeight = 16
+    // Measure actual character dimensions from rendered DOM
+    // This adapts to font size, zoom level, and CSS changes
+    let charWidth = 10  // Fallback if measurement fails
+    let charHeight = 16 // Fallback if measurement fails
+
+    const preElement = container.querySelector('pre')
+    if (preElement) {
+      const spanElement = preElement.querySelector('span')
+      if (spanElement) {
+        const rect = spanElement.getBoundingClientRect()
+        // Validate measurements are reasonable (positive non-zero values)
+        if (rect.width > 0 && rect.height > 0) {
+          charWidth = rect.width
+          charHeight = rect.height
+        }
+      }
+    }
 
     // Calculate player pixel position
     const playerX = player.position.x * charWidth
@@ -358,11 +395,16 @@ export class GameRenderer {
     const scrollX = playerX - container.clientWidth / 2
     const scrollY = playerY - container.clientHeight / 2
 
-    container.scrollTo({
-      left: Math.max(0, scrollX),
-      top: Math.max(0, scrollY),
-      behavior: 'smooth'
-    })
+    // Validate scrollTo method exists before calling
+    if (typeof container.scrollTo === 'function') {
+      container.scrollTo({
+        left: Math.max(0, scrollX),
+        top: Math.max(0, scrollY),
+        behavior: 'smooth'
+      })
+    } else if (this.debugService.isEnabled()) {
+      console.warn('[GameRenderer] scrollToPlayerInASCII: scrollTo method not available on container')
+    }
   }
 
   /**
@@ -370,13 +412,30 @@ export class GameRenderer {
    * Called when returning to menu
    */
   public cleanupResizeHandler(): void {
+    // Clean up event listener with error handling
     if (this.resizeHandler) {
-      window.removeEventListener('resize', this.resizeHandler)
-      this.resizeHandler = null
+      try {
+        window.removeEventListener('resize', this.resizeHandler)
+      } catch (error) {
+        if (this.debugService.isEnabled()) {
+          console.warn('[GameRenderer] Error removing resize event listener:', error)
+        }
+      } finally {
+        this.resizeHandler = null
+      }
     }
+
+    // Clean up debounce timer with error handling
     if (this.resizeDebounceTimer !== null) {
-      window.clearTimeout(this.resizeDebounceTimer)
-      this.resizeDebounceTimer = null
+      try {
+        window.clearTimeout(this.resizeDebounceTimer)
+      } catch (error) {
+        if (this.debugService.isEnabled()) {
+          console.warn('[GameRenderer] Error clearing resize debounce timer:', error)
+        }
+      } finally {
+        this.resizeDebounceTimer = null
+      }
     }
   }
 
