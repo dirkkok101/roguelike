@@ -1,4 +1,4 @@
-import { GameState, Position, Torch, ItemType, Input } from '@game/core/core'
+import { GameState, Position, Torch, ItemType, Input, Level } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { SeededRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
@@ -204,8 +204,9 @@ async function initializeGame() {
   const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
   const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
 
-  // Generate procedural dungeon using DungeonService
-  const level = gameDungeonService.generateLevel(1, dungeonConfig)
+  // Generate all 26 dungeon levels upfront using DungeonService
+  const allLevels = gameDungeonService.generateAllLevels(dungeonConfig)
+  const level = allLevels[0] // Start at level 1 (index 0)
 
   // Start player in center of first room
   const startRoom = level.rooms[0]
@@ -298,10 +299,16 @@ async function initializeGame() {
     })
   }
 
+  // Create level map from all 26 levels (indexed 1-26)
+  const levelMap = new Map<number, Level>()
+  allLevels.forEach((lvl, index) => {
+    levelMap.set(index + 1, lvl) // Map uses 1-based indexing for depth
+  })
+
   return {
     player,
     currentLevel: 1,
-    levels: new Map([[1, level]]),
+    levels: levelMap, // Store all 26 levels
     visibleCells,
     messages: initialMessages,
     turnCount: 0,
@@ -358,7 +365,9 @@ async function initializeGame() {
     const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
     const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
 
-    const level = gameDungeonService.generateLevel(1, dungeonConfig)
+    // Generate all 26 dungeon levels upfront using DungeonService
+    const allLevels = gameDungeonService.generateAllLevels(dungeonConfig)
+    const level = allLevels[0] // Start at level 1 (index 0)
     const startRoom = level.rooms[0]
     const startPos: Position = {
       x: startRoom.x + Math.floor(startRoom.width / 2),
@@ -447,10 +456,16 @@ async function initializeGame() {
       })
     }
 
+    // Create level map from all 26 levels (indexed 1-26)
+    const levelMap = new Map<number, Level>()
+    allLevels.forEach((lvl, index) => {
+      levelMap.set(index + 1, lvl) // Map uses 1-based indexing for depth
+    })
+
     const replayState: GameState = {
       player,
       currentLevel: 1,
-      levels: new Map([[1, level]]),
+      levels: levelMap, // Store all 26 levels
       visibleCells,
       messages: initialMessages,
       turnCount: 0,
