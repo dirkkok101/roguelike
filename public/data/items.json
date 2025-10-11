@@ -99,7 +99,7 @@
       "name": "Torch",
       "spriteName": "Wooden Torch",
       "radius": 2,
-      "fuel": 500,
+      "fuel": 650,
       "isPermanent": false,
       "rarity": "common"
     },
@@ -108,7 +108,7 @@
       "name": "Lantern",
       "spriteName": "Lantern",
       "radius": 2,
-      "fuel": 500,
+      "fuel": 750,
       "isPermanent": false,
       "rarity": "uncommon"
     },
@@ -501,7 +501,7 @@
       "name": "Oil Flask",
       "spriteName": "Flask of oil",
       "type": "lantern_fuel",
-      "fuelAmount": 500,
+      "fuelAmount": 600,
       "rarity": "uncommon"
     }
   ]

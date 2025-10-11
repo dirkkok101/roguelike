@@ -562,8 +562,8 @@ export class ItemSpawnService {
                 type: ItemType.LANTERN,
                 identified: true, // Lanterns are always identified
                 position: { x, y },
-                fuel: lantern.fuel ?? 500,
-                maxFuel: 1000, // Lanterns can hold more fuel
+                fuel: lantern.fuel ?? 750,
+                maxFuel: 1500, // Lanterns can hold 2x starting fuel (750 * 2)
                 radius: lantern.radius,
                 isPermanent: false,
               } as Lantern
@@ -766,8 +766,8 @@ export class ItemSpawnService {
       type: ItemType.LANTERN,
       identified: true,
       position,
-      fuel: lantern.fuel ?? 500,
-      maxFuel: 1000,
+      fuel: lantern.fuel ?? 750,
+      maxFuel: 1500, // Lanterns can hold 2x starting fuel
       radius: lantern.radius,
       isPermanent: false,
     } as Lantern
