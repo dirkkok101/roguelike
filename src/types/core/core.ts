@@ -22,6 +22,7 @@ export interface Tile {
   transparent: boolean
   colorVisible: string
   colorExplored: string
+  isRoom: boolean  // NEW: Marks room tiles vs corridor/wall/door tiles
 }
 
 export enum DoorState {
