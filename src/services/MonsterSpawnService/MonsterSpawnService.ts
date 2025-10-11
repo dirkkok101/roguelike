@@ -95,6 +95,34 @@ export class MonsterSpawnService {
   }
 
   /**
+   * Filter monsters by vorpal range
+   *
+   * Vorpal range determines which monsters can spawn at a given depth.
+   * Range formula: [depth - 6, depth + 3] clamped to [0, 25]
+   *
+   * This implements authentic 1980 Rogue spawning where monsters have a
+   * "vorpalness" value (0-25) that determines which depths they can spawn on.
+   *
+   * Examples:
+   * - Depth 1: range [0, 4] → early monsters like Bat (1), Snake (1), Emu (2), Hobgoblin (3)
+   * - Depth 10: range [4, 13] → mid-tier monsters
+   * - Depth 26: range [20, 25] → boss monsters like Wraith (20), Dragon (24), Jabberwock (25)
+   *
+   * @param minVorpal - Minimum vorpalness value (inclusive)
+   * @param maxVorpal - Maximum vorpalness value (inclusive)
+   * @returns Filtered array of MonsterTemplates within range
+   */
+  filterByVorpalRange(minVorpal: number, maxVorpal: number): MonsterTemplate[] {
+    if (!this.dataLoaded) {
+      throw new Error('Monster data not loaded. Call loadMonsterData() first.')
+    }
+
+    return this.monsterTemplates.filter((template) => {
+      return template.vorpalness >= minVorpal && template.vorpalness <= maxVorpal
+    })
+  }
+
+  /**
    * Create monster from template
    *
    * Creates a Monster instance from a MonsterTemplate at a specific position.
