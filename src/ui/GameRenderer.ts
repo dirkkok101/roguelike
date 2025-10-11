@@ -211,6 +211,12 @@ export class GameRenderer {
     // Re-render with current game state if available
     if (this.currentGameState) {
       this.renderDungeon(this.currentGameState)
+
+      // If switching TO ASCII mode, scroll to player after content is rendered
+      if (newMode === 'ascii') {
+        // Use setTimeout to allow DOM to fully update after innerHTML change
+        setTimeout(() => this.scrollToPlayerInASCII(), 0)
+      }
     }
   }
 
@@ -258,10 +264,7 @@ export class GameRenderer {
       this.dungeonContainer.style.alignItems = ''
       this.dungeonContainer.style.justifyContent = ''
 
-      // ASCII mode renders full map, ensure player is visible after switch
-      // Scroll will happen after renderDungeon() in handlePreferenceChange()
-      // Use setTimeout to allow DOM to update first
-      setTimeout(() => this.scrollToPlayerInASCII(), 0)
+      // Note: Player scroll will happen AFTER renderDungeon() in handlePreferenceChange()
     }
   }
 
