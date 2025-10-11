@@ -75,12 +75,10 @@ export class CompressionWorkerService {
     this.workerInitAttempts++
 
     try {
-      // Use Function to defer import.meta evaluation (prevents Jest parse error)
-      // This is the only way to use import.meta without Jest failing to parse the file
-      // NOTE: This does NOT use eval() and is CSP-safe in most contexts
-      const getWorkerUrl = new Function('return import.meta.url')
+      // Direct import.meta.url usage (Vite requires this to be written directly in source)
+      // Jest tests won't reach this code due to typeof Worker check above
       this.worker = new Worker(
-        new URL('../../workers/compressionWorker.ts', getWorkerUrl()),
+        new URL('../../workers/compressionWorker.ts', import.meta.url),
         { type: 'module' }
       )
 

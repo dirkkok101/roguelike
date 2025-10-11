@@ -71,10 +71,10 @@ export class SerializationWorkerService {
     this.workerInitAttempts++
 
     try {
-      // Use Function to defer import.meta evaluation (prevents Jest parse error)
-      const getWorkerUrl = new Function('return import.meta.url')
+      // Direct import.meta.url usage (Vite requires this to be written directly in source)
+      // Jest tests won't reach this code due to typeof Worker check above
       this.worker = new Worker(
-        new URL('../../workers/serializationWorker.ts', getWorkerUrl()),
+        new URL('../../workers/serializationWorker.ts', import.meta.url),
         { type: 'module' }
       )
 
