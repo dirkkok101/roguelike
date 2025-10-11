@@ -75,12 +75,17 @@ export class FOVService {
     const fovMode = config?.fovMode || 'radius'
 
     if (fovMode === 'room-reveal' && lightRadius > 0) {
-      // Mode A: Room reveal + radius for corridors
-      const roomTiles = this.roomDetectionService.detectRoom(position, level)
-      const radiusTiles = this.computeFOV(position, lightRadius, level, player)
+      // Check if player is blind first
+      if (player && this.statusEffectService.hasStatusEffect(player, StatusEffectType.BLIND)) {
+        visibleCells = new Set<string>() // Blind = see nothing
+      } else {
+        // Mode A: Room reveal + radius for corridors
+        const roomTiles = this.roomDetectionService.detectRoom(position, level)
+        const radiusTiles = this.computeFOV(position, lightRadius, level, player)
 
-      // Combine: Room tiles + radius-based FOV
-      visibleCells = new Set([...roomTiles, ...radiusTiles])
+        // Combine: Room tiles + radius-based FOV
+        visibleCells = new Set([...roomTiles, ...radiusTiles])
+      }
     } else {
       // Mode C: Pure radius-based (current behavior)
       visibleCells = this.computeFOV(position, lightRadius, level, player)

@@ -1,7 +1,7 @@
 import { FOVService } from './FOVService'
 import { RoomDetectionService } from '@services/RoomDetectionService'
 import { StatusEffectService } from '@services/StatusEffectService'
-import { Level, Position, Player, GameConfig } from '@game/core/core'
+import { Level, Position, Player, GameConfig, StatusEffectType } from '@game/core/core'
 
 describe('FOVService - Room Reveal Mode', () => {
   let fovService: FOVService
@@ -197,6 +197,27 @@ describe('FOVService - Room Reveal Mode', () => {
         const [x, y] = key.split(',').map(Number)
         expect(result.level.explored[y][x]).toBe(true)
       })
+    })
+
+    it('should see nothing when blind even in room-reveal mode', () => {
+      const level = createTestLevel(20, 20)
+      createRoom(level, 5, 5, 6, 6)
+
+      const blindPlayer: Player = {
+        ...mockPlayer,
+        statusEffects: [{ type: StatusEffectType.BLIND, duration: 5, source: 'potion' }]
+      }
+
+      const config: GameConfig = { fovMode: 'room-reveal' }
+      const result = fovService.updateFOVAndExploration(
+        { x: 8, y: 8 },
+        2,
+        level,
+        blindPlayer,
+        config
+      )
+
+      expect(result.visibleCells.size).toBe(0) // Blind = see nothing
     })
   })
 
