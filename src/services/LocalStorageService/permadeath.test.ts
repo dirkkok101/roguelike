@@ -6,6 +6,7 @@ describe('LocalStorageService - Permadeath', () => {
 
   beforeEach(() => {
     service = new LocalStorageService()
+    service.enableTestMode() // Use synchronous compression for tests
     localStorage.clear()
   })
 
@@ -91,14 +92,14 @@ describe('LocalStorageService - Permadeath', () => {
     }
   }
 
-  test('save is deleted when player dies', () => {
+  test('save is deleted when player dies', async () => {
     const state = createTestState({
       gameId: 'doomed',
       isGameOver: true,
       hasWon: false,
     })
 
-    service.saveGame(state)
+    await service.saveGame(state)
     expect(service.hasSave('doomed')).toBe(true)
 
     // Simulate permadeath deletion
@@ -107,22 +108,22 @@ describe('LocalStorageService - Permadeath', () => {
     expect(service.hasSave('doomed')).toBe(false)
   })
 
-  test('save is NOT deleted when player wins', () => {
+  test('save is NOT deleted when player wins', async () => {
     const state = createTestState({
       gameId: 'winner',
       isGameOver: true,
       hasWon: true,
     })
 
-    service.saveGame(state)
+    await service.saveGame(state)
 
     // Victory does not delete save (only death does)
     expect(service.hasSave('winner')).toBe(true)
   })
 
-  test('continue key is cleared on permadeath', () => {
+  test('continue key is cleared on permadeath', async () => {
     const state = createTestState({ gameId: 'clear' })
-    service.saveGame(state)
+    await service.saveGame(state)
 
     expect(service.getContinueGameId()).toBe('clear')
 
@@ -131,9 +132,9 @@ describe('LocalStorageService - Permadeath', () => {
     expect(service.getContinueGameId()).toBeNull()
   })
 
-  test('deleteSave is idempotent', () => {
+  test('deleteSave is idempotent', async () => {
     const state = createTestState({ gameId: 'test-delete' })
-    service.saveGame(state)
+    await service.saveGame(state)
 
     service.deleteSave('test-delete')
     expect(service.hasSave('test-delete')).toBe(false)
@@ -143,14 +144,14 @@ describe('LocalStorageService - Permadeath', () => {
     expect(service.hasSave('test-delete')).toBe(false)
   })
 
-  test('deleting one save does not affect others', () => {
+  test('deleting one save does not affect others', async () => {
     const state1 = createTestState({ gameId: 'save-1' })
     const state2 = createTestState({ gameId: 'save-2' })
     const state3 = createTestState({ gameId: 'save-3' })
 
-    service.saveGame(state1)
-    service.saveGame(state2)
-    service.saveGame(state3)
+    await service.saveGame(state1)
+    await service.saveGame(state2)
+    await service.saveGame(state3)
 
     service.deleteSave('save-2')
 
@@ -159,12 +160,12 @@ describe('LocalStorageService - Permadeath', () => {
     expect(service.hasSave('save-3')).toBe(true)
   })
 
-  test('continue key is not cleared if deleting different save', () => {
+  test('continue key is not cleared if deleting different save', async () => {
     const state1 = createTestState({ gameId: 'current' })
     const state2 = createTestState({ gameId: 'other' })
 
-    service.saveGame(state1)
-    service.saveGame(state2)
+    await service.saveGame(state1)
+    await service.saveGame(state2)
 
     expect(service.getContinueGameId()).toBe('other') // Most recent
 
@@ -174,17 +175,17 @@ describe('LocalStorageService - Permadeath', () => {
     expect(service.getContinueGameId()).toBe('other')
   })
 
-  test('loading deleted save returns null', () => {
+  test('loading deleted save returns null', async () => {
     const state = createTestState({ gameId: 'deleted' })
-    service.saveGame(state)
+    await service.saveGame(state)
 
     service.deleteSave('deleted')
 
-    const loaded = service.loadGame('deleted')
+    const loaded = await service.loadGame('deleted')
     expect(loaded).toBeNull()
   })
 
-  test('permadeath prevents save scumming', () => {
+  test('permadeath prevents save scumming', async () => {
     const state = createTestState({
       gameId: 'no-scum',
       turnCount: 100,
@@ -192,7 +193,7 @@ describe('LocalStorageService - Permadeath', () => {
     })
 
     // Save game
-    service.saveGame(state)
+    await service.saveGame(state)
     expect(service.hasSave('no-scum')).toBe(true)
 
     // Player dies - save is deleted
@@ -200,28 +201,28 @@ describe('LocalStorageService - Permadeath', () => {
 
     // Cannot reload from before death
     expect(service.hasSave('no-scum')).toBe(false)
-    expect(service.loadGame('no-scum')).toBeNull()
+    expect(await service.loadGame('no-scum')).toBeNull()
   })
 
-  test('permadeath is final - no recovery', () => {
+  test('permadeath is final - no recovery', async () => {
     const state = createTestState({ gameId: 'final-death' })
-    service.saveGame(state)
+    await service.saveGame(state)
 
     // Delete save
     service.deleteSave('final-death')
 
     // Attempting to load returns null
-    expect(service.loadGame('final-death')).toBeNull()
+    expect(await service.loadGame('final-death')).toBeNull()
 
     // Cannot save with same ID and expect old data
     const newState = createTestState({
       gameId: 'final-death',
       turnCount: 999,
     })
-    service.saveGame(newState)
+    await service.saveGame(newState)
 
     // New save is separate from deleted one
-    const loaded = service.loadGame('final-death')
+    const loaded = await service.loadGame('final-death')
     expect(loaded?.turnCount).toBe(999) // New game, not old
   })
 })

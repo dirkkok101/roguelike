@@ -6,6 +6,7 @@ describe('LocalStorageService - Persistence', () => {
 
   beforeEach(() => {
     service = new LocalStorageService()
+    service.enableTestMode() // Use synchronous compression for tests
     localStorage.clear()
   })
 
@@ -91,24 +92,24 @@ describe('LocalStorageService - Persistence', () => {
     }
   }
 
-  test('sets continue key when saving', () => {
+  test('sets continue key when saving', async () => {
     const state = createTestState({ gameId: 'game-789' })
 
-    service.saveGame(state)
+    await service.saveGame(state)
 
     expect(localStorage.getItem('roguelike_continue')).toBe('game-789')
   })
 
-  test('updates continue key when saving different game', () => {
-    service.saveGame(createTestState({ gameId: 'game-1' }))
-    service.saveGame(createTestState({ gameId: 'game-2' }))
+  test('updates continue key when saving different game', async () => {
+    await service.saveGame(createTestState({ gameId: 'game-1' }))
+    await service.saveGame(createTestState({ gameId: 'game-2' }))
 
     expect(localStorage.getItem('roguelike_continue')).toBe('game-2')
   })
 
-  test('hasSave returns true when save exists', () => {
+  test('hasSave returns true when save exists', async () => {
     const state = createTestState({ gameId: 'exists' })
-    service.saveGame(state)
+    await service.saveGame(state)
 
     expect(service.hasSave('exists')).toBe(true)
   })
@@ -117,9 +118,9 @@ describe('LocalStorageService - Persistence', () => {
     expect(service.hasSave('missing')).toBe(false)
   })
 
-  test('hasSave uses continue key when no gameId provided', () => {
+  test('hasSave uses continue key when no gameId provided', async () => {
     const state = createTestState({ gameId: 'continue-me' })
-    service.saveGame(state)
+    await service.saveGame(state)
 
     expect(service.hasSave()).toBe(true)
   })
@@ -128,9 +129,9 @@ describe('LocalStorageService - Persistence', () => {
     expect(service.hasSave()).toBe(false)
   })
 
-  test('deleteSave removes save file', () => {
+  test('deleteSave removes save file', async () => {
     const state = createTestState({ gameId: 'doomed' })
-    service.saveGame(state)
+    await service.saveGame(state)
 
     expect(service.hasSave('doomed')).toBe(true)
 
@@ -139,9 +140,9 @@ describe('LocalStorageService - Persistence', () => {
     expect(service.hasSave('doomed')).toBe(false)
   })
 
-  test('deleteSave clears continue key if matching', () => {
+  test('deleteSave clears continue key if matching', async () => {
     const state = createTestState({ gameId: 'clear-me' })
-    service.saveGame(state)
+    await service.saveGame(state)
 
     expect(localStorage.getItem('roguelike_continue')).toBe('clear-me')
 
@@ -150,9 +151,9 @@ describe('LocalStorageService - Persistence', () => {
     expect(localStorage.getItem('roguelike_continue')).toBeNull()
   })
 
-  test('deleteSave does not clear continue key if not matching', () => {
-    service.saveGame(createTestState({ gameId: 'keep-1' }))
-    service.saveGame(createTestState({ gameId: 'keep-2' }))
+  test('deleteSave does not clear continue key if not matching', async () => {
+    await service.saveGame(createTestState({ gameId: 'keep-1' }))
+    await service.saveGame(createTestState({ gameId: 'keep-2' }))
 
     // Continue key now points to keep-2
     service.deleteSave('keep-1')
@@ -160,9 +161,9 @@ describe('LocalStorageService - Persistence', () => {
     expect(localStorage.getItem('roguelike_continue')).toBe('keep-2')
   })
 
-  test('getContinueGameId returns most recent save', () => {
-    service.saveGame(createTestState({ gameId: 'first' }))
-    service.saveGame(createTestState({ gameId: 'second' }))
+  test('getContinueGameId returns most recent save', async () => {
+    await service.saveGame(createTestState({ gameId: 'first' }))
+    await service.saveGame(createTestState({ gameId: 'second' }))
 
     expect(service.getContinueGameId()).toBe('second')
   })
@@ -171,10 +172,10 @@ describe('LocalStorageService - Persistence', () => {
     expect(service.getContinueGameId()).toBeNull()
   })
 
-  test('listSaves returns all save IDs', () => {
-    service.saveGame(createTestState({ gameId: 'save1' }))
-    service.saveGame(createTestState({ gameId: 'save2' }))
-    service.saveGame(createTestState({ gameId: 'save3' }))
+  test('listSaves returns all save IDs', async () => {
+    await service.saveGame(createTestState({ gameId: 'save1' }))
+    await service.saveGame(createTestState({ gameId: 'save2' }))
+    await service.saveGame(createTestState({ gameId: 'save3' }))
 
     const saves = service.listSaves()
 
@@ -190,10 +191,10 @@ describe('LocalStorageService - Persistence', () => {
     expect(saves).toEqual([])
   })
 
-  test('listSaves ignores non-save localStorage items', () => {
+  test('listSaves ignores non-save localStorage items', async () => {
     localStorage.setItem('other_key_1', 'value')
     localStorage.setItem('other_key_2', 'value')
-    service.saveGame(createTestState({ gameId: 'only-save' }))
+    await service.saveGame(createTestState({ gameId: 'only-save' }))
 
     const saves = service.listSaves()
 
@@ -201,19 +202,19 @@ describe('LocalStorageService - Persistence', () => {
     expect(saves).toContain('only-save')
   })
 
-  test('loadGame without gameId uses continue key', () => {
+  test('loadGame without gameId uses continue key', async () => {
     const state = createTestState({ gameId: 'auto-load', turnCount: 42 })
-    service.saveGame(state)
+    await service.saveGame(state)
 
-    const loaded = service.loadGame()
+    const loaded = await service.loadGame()
 
     expect(loaded).not.toBeNull()
     expect(loaded?.gameId).toBe('auto-load')
     expect(loaded?.turnCount).toBe(42)
   })
 
-  test('loadGame returns null when no continue key and no gameId', () => {
-    const loaded = service.loadGame()
+  test('loadGame returns null when no continue key and no gameId', async () => {
+    const loaded = await service.loadGame()
 
     expect(loaded).toBeNull()
   })

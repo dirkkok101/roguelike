@@ -45,9 +45,11 @@ import { AssetLoaderService } from '@services/AssetLoaderService'
 import { TerrainSpriteService } from '@services/TerrainSpriteService'
 import { WanderingMonsterService } from '@services/WanderingMonsterService'
 import { StairsNavigationService } from '@services/StairsNavigationService'
+import { ToastNotificationService } from '@services/ToastNotificationService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
+import { ToastContainer } from '@ui/ToastContainer'
 import { MainMenu } from '@ui/MainMenu'
 import { loadItemData, ItemData } from './data/ItemDataLoader'
 import { GameStateManager } from '@services/GameStateManager'
@@ -134,6 +136,8 @@ async function initializeGame() {
   const identificationService = new IdentificationService(random)
   const contextService = new ContextService(identificationService)
   const notificationService = new NotificationService(identificationService)
+  const toastNotificationService = new ToastNotificationService()
+  const toastContainer = new ToastContainer(toastNotificationService)
   const victoryService = new VictoryService()
   const deathService = new DeathService()
   const localStorageService = new LocalStorageService()
@@ -548,6 +552,7 @@ async function initializeGame() {
       targeting: targetingService,
       localStorage: localStorageService,
       notification: notificationService,
+      toastNotification: toastNotificationService,
       victory: victoryService,
       debug: debugService,
     }
@@ -599,6 +604,14 @@ async function initializeGame() {
     currentKeydownHandler = (event: KeyboardEvent) => {
       const currentState = stateManager.getCurrentState()
       if (currentState) {
+        // Check if state allows this key (input filtering)
+        const allowedKeys = currentState.getAllowedKeys()
+        if (allowedKeys !== null && !allowedKeys.includes(event.key)) {
+          // Block input - not allowed for this state
+          event.preventDefault()
+          return
+        }
+
         // Convert KeyboardEvent to Input
         const input: Input = {
           key: event.key,
@@ -664,8 +677,8 @@ async function initializeGame() {
         startGame(newState)
       },
       // Continue callback
-      () => {
-        const savedState = localStorageService.loadGame()
+      async () => {
+        const savedState = await localStorageService.loadGame()
         if (savedState) {
           console.log('Continuing saved game:', savedState.gameId)
           startGame(savedState)
@@ -683,6 +696,20 @@ async function initializeGame() {
       }
     )
   }
+
+  // Mount toast container (for async notification display)
+  toastContainer.mount()
+
+  // Add beforeunload handler to prevent page close during save
+  window.addEventListener('beforeunload', (event) => {
+    // If LocalStorageService is currently saving, warn user
+    // Note: Modern browsers ignore custom messages, but we still need to set returnValue
+    if (localStorageService.isSavingInProgress()) {
+      event.preventDefault()
+      event.returnValue = 'Game is currently saving. Are you sure you want to leave?'
+      return event.returnValue
+    }
+  })
 
   // Initialize - show main menu
   showMainMenu()

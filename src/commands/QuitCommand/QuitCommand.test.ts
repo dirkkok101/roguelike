@@ -8,6 +8,7 @@ describe('QuitCommand', () => {
 
   beforeEach(() => {
     localStorageService = new LocalStorageService()
+    localStorageService.enableTestMode() // Use synchronous compression for tests
     command = new QuitCommand(localStorageService, jest.fn())
     localStorage.clear()
 
@@ -107,10 +108,13 @@ describe('QuitCommand', () => {
     }
   }
 
-  test('saves game before quitting', () => {
+  test('saves game before quitting', async () => {
     const state = createTestState({ gameId: 'quit-test' })
 
     command.execute(state)
+
+    // Wait for async save
+    await new Promise((resolve) => setTimeout(resolve, 10))
 
     expect(localStorageService.hasSave('quit-test')).toBe(true)
   })
@@ -138,17 +142,20 @@ describe('QuitCommand', () => {
     expect(localStorageService.hasSave('won-game')).toBe(false)
   })
 
-  test('handles save failure gracefully', () => {
-    // Mock saveGame to throw error
+  test('handles save failure gracefully', async () => {
+    // Mock saveGame to return rejected promise
     const originalSaveGame = localStorageService.saveGame
     localStorageService.saveGame = jest.fn(() => {
-      throw new Error('Storage quota exceeded')
+      return Promise.reject(new Error('Storage quota exceeded'))
     })
 
     const state = createTestState()
 
     // Should not throw
     expect(() => command.execute(state)).not.toThrow()
+
+    // Wait for async error handling
+    await new Promise((resolve) => setTimeout(resolve, 10))
 
     // Restore
     localStorageService.saveGame = originalSaveGame
@@ -162,7 +169,7 @@ describe('QuitCommand', () => {
     expect(result).toBe(state)
   })
 
-  test('saves complete game state before quit', () => {
+  test('saves complete game state before quit', async () => {
     const state = createTestState({
       gameId: 'complete-quit',
       turnCount: 500,
@@ -172,7 +179,10 @@ describe('QuitCommand', () => {
 
     command.execute(state)
 
-    const loaded = localStorageService.loadGame('complete-quit')
+    // Wait for async save
+    await new Promise((resolve) => setTimeout(resolve, 10))
+
+    const loaded = await localStorageService.loadGame('complete-quit')
     expect(loaded).not.toBeNull()
     expect(loaded?.turnCount).toBe(500)
     expect(loaded?.currentLevel).toBe(3)

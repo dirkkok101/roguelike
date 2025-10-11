@@ -22,12 +22,15 @@ export class AutoSaveMiddleware {
 
     // Check if turn count is a multiple of save interval
     if (state.turnCount % this.saveInterval === 0 && state.turnCount > 0) {
-      try {
-        this.localStorageService.saveGame(state)
-        console.log(`Auto-saved at turn ${state.turnCount}`)
-      } catch (error) {
-        console.error('Auto-save failed:', error)
-      }
+      // Fire async save without blocking (fire-and-forget)
+      this.localStorageService
+        .saveGame(state)
+        .then(() => {
+          console.log(`✅ Auto-saved at turn ${state.turnCount}`)
+        })
+        .catch((error) => {
+          console.error('❌ Auto-save failed:', error)
+        })
     }
   }
 }

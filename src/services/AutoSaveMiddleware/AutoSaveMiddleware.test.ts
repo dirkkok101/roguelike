@@ -8,6 +8,7 @@ describe('AutoSaveMiddleware', () => {
 
   beforeEach(() => {
     localStorageService = new LocalStorageService()
+    localStorageService.enableTestMode() // Use synchronous compression for tests
     middleware = new AutoSaveMiddleware(localStorageService)
     localStorage.clear()
   })
@@ -94,15 +95,19 @@ describe('AutoSaveMiddleware', () => {
     }
   }
 
-  test('saves every 10 turns by default', () => {
+  // Helper to wait for async save to complete
+  const waitForSave = () => new Promise((resolve) => setTimeout(resolve, 10))
+
+  test('saves every 10 turns by default', async () => {
     const state = createTestState({ turnCount: 10, gameId: 'auto-10' })
 
     middleware.afterTurn(state)
+    await waitForSave()
 
     expect(localStorageService.hasSave('auto-10')).toBe(true)
   })
 
-  test('does not save on non-interval turns', () => {
+  test('does not save on non-interval turns', async () => {
     const state = createTestState({ turnCount: 7, gameId: 'auto-7' })
 
     middleware.afterTurn(state)
@@ -110,37 +115,43 @@ describe('AutoSaveMiddleware', () => {
     expect(localStorageService.hasSave('auto-7')).toBe(false)
   })
 
-  test('saves on all interval turns (10, 20, 30)', () => {
+  test('saves on all interval turns (10, 20, 30)', async () => {
     const state10 = createTestState({ turnCount: 10, gameId: 'auto-multi' })
     middleware.afterTurn(state10)
+    await waitForSave()
     expect(localStorageService.hasSave('auto-multi')).toBe(true)
 
     const state20 = createTestState({ turnCount: 20, gameId: 'auto-multi' })
     middleware.afterTurn(state20)
-    expect(localStorageService.loadGame('auto-multi')?.turnCount).toBe(20)
+    await waitForSave()
+    expect((await localStorageService.loadGame('auto-multi'))?.turnCount).toBe(20)
 
     const state30 = createTestState({ turnCount: 30, gameId: 'auto-multi' })
     middleware.afterTurn(state30)
-    expect(localStorageService.loadGame('auto-multi')?.turnCount).toBe(30)
+    await waitForSave()
+    expect((await localStorageService.loadGame('auto-multi'))?.turnCount).toBe(30)
   })
 
-  test('respects custom save interval', () => {
+  test('respects custom save interval', async () => {
     const customMiddleware = new AutoSaveMiddleware(localStorageService, 5)
 
     const state1 = createTestState({ turnCount: 5, gameId: 'custom-5' })
     customMiddleware.afterTurn(state1)
+    await waitForSave()
     expect(localStorageService.hasSave('custom-5')).toBe(true)
 
     const state2 = createTestState({ turnCount: 10, gameId: 'custom-10' })
     customMiddleware.afterTurn(state2)
+    await waitForSave()
     expect(localStorageService.hasSave('custom-10')).toBe(true)
 
     const state3 = createTestState({ turnCount: 7, gameId: 'custom-7' })
     customMiddleware.afterTurn(state3)
+    await waitForSave()
     expect(localStorageService.hasSave('custom-7')).toBe(false)
   })
 
-  test('does not save on turn 0', () => {
+  test('does not save on turn 0', async () => {
     const state = createTestState({ turnCount: 0, gameId: 'turn-0' })
 
     middleware.afterTurn(state)
@@ -148,7 +159,7 @@ describe('AutoSaveMiddleware', () => {
     expect(localStorageService.hasSave('turn-0')).toBe(false)
   })
 
-  test('does not save if game is over', () => {
+  test('does not save if game is over', async () => {
     const state = createTestState({
       turnCount: 10,
       isGameOver: true,
@@ -160,7 +171,7 @@ describe('AutoSaveMiddleware', () => {
     expect(localStorageService.hasSave('game-over-auto')).toBe(false)
   })
 
-  test('does not save if player has won', () => {
+  test('does not save if player has won', async () => {
     const state = createTestState({
       turnCount: 20,
       isGameOver: true,
@@ -173,11 +184,11 @@ describe('AutoSaveMiddleware', () => {
     expect(localStorageService.hasSave('won-auto')).toBe(false)
   })
 
-  test('handles save failure gracefully', () => {
-    // Mock saveGame to throw error
+  test('handles save failure gracefully', async () => {
+    // Mock saveGame to return rejected promise
     const originalSaveGame = localStorageService.saveGame
     localStorageService.saveGame = jest.fn(() => {
-      throw new Error('Storage quota exceeded')
+      return Promise.reject(new Error('Storage quota exceeded'))
     })
 
     const state = createTestState({ turnCount: 10 })
@@ -185,11 +196,14 @@ describe('AutoSaveMiddleware', () => {
     // Should not throw
     expect(() => middleware.afterTurn(state)).not.toThrow()
 
+    // Wait for async error handling
+    await waitForSave()
+
     // Restore
     localStorageService.saveGame = originalSaveGame
   })
 
-  test('saves complete game state', () => {
+  test('saves complete game state', async () => {
     const state = createTestState({
       turnCount: 20,
       currentLevel: 3,
@@ -198,37 +212,42 @@ describe('AutoSaveMiddleware', () => {
     })
 
     middleware.afterTurn(state)
+    await waitForSave()
 
-    const loaded = localStorageService.loadGame('complete-auto')
+    const loaded = await localStorageService.loadGame('complete-auto')
     expect(loaded).not.toBeNull()
     expect(loaded?.turnCount).toBe(20)
     expect(loaded?.currentLevel).toBe(3)
     expect(loaded?.hasAmulet).toBe(true)
   })
 
-  test('interval of 1 saves every turn', () => {
+  test('interval of 1 saves every turn', async () => {
     const everyTurnMiddleware = new AutoSaveMiddleware(localStorageService, 1)
 
     for (let turn = 1; turn <= 5; turn++) {
       const state = createTestState({ turnCount: turn, gameId: `every-${turn}` })
       everyTurnMiddleware.afterTurn(state)
+      await waitForSave()
       expect(localStorageService.hasSave(`every-${turn}`)).toBe(true)
     }
   })
 
-  test('interval of 100 saves on turn 100, 200, etc', () => {
+  test('interval of 100 saves on turn 100, 200, etc', async () => {
     const longInterval = new AutoSaveMiddleware(localStorageService, 100)
 
     const state99 = createTestState({ turnCount: 99, gameId: 'long-99' })
     longInterval.afterTurn(state99)
+    await waitForSave()
     expect(localStorageService.hasSave('long-99')).toBe(false)
 
     const state100 = createTestState({ turnCount: 100, gameId: 'long-100' })
     longInterval.afterTurn(state100)
+    await waitForSave()
     expect(localStorageService.hasSave('long-100')).toBe(true)
 
     const state200 = createTestState({ turnCount: 200, gameId: 'long-200' })
     longInterval.afterTurn(state200)
+    await waitForSave()
     expect(localStorageService.hasSave('long-200')).toBe(true)
   })
 })

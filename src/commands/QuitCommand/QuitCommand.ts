@@ -15,18 +15,23 @@ export class QuitCommand implements ICommand {
   execute(state: GameState): GameState {
     // Don't save if game is over (permadeath already deleted save)
     if (state.isGameOver) {
+      this.onReturnToMenu()
       return state
     }
 
-    try {
-      this.localStorageService.saveGame(state)
-      console.log('Auto-saved before quit')
-    } catch (error) {
-      console.error('Auto-save failed:', error)
-    }
-
-    // Return to main menu
-    this.onReturnToMenu()
+    // Save before quitting - wait for completion before returning to menu
+    console.log('Saving before quit...')
+    this.localStorageService
+      .saveGame(state)
+      .then(() => {
+        console.log('✅ Saved successfully, returning to menu')
+        this.onReturnToMenu()
+      })
+      .catch((error) => {
+        console.error('❌ Save failed:', error)
+        // Still return to menu even if save fails
+        this.onReturnToMenu()
+      })
 
     return state
   }

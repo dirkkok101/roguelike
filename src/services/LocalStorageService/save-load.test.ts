@@ -6,6 +6,7 @@ describe('LocalStorageService - Save/Load', () => {
 
   beforeEach(() => {
     service = new LocalStorageService()
+    service.enableTestMode() // Use synchronous compression for tests
     localStorage.clear()
   })
 
@@ -115,20 +116,20 @@ describe('LocalStorageService - Save/Load', () => {
     }
   }
 
-  test('saves game state to localStorage', () => {
+  test('saves game state to localStorage', async () => {
     const state = createTestState({ gameId: 'test-123' })
 
-    service.saveGame(state)
+    await service.saveGame(state)
 
     const saved = localStorage.getItem('roguelike_save_test-123')
     expect(saved).not.toBeNull()
   })
 
-  test('loads saved game state', () => {
+  test('loads saved game state', async () => {
     const original = createTestState({ gameId: 'test-456' })
-    service.saveGame(original)
+    await service.saveGame(original)
 
-    const loaded = service.loadGame('test-456')
+    const loaded = await service.loadGame('test-456')
 
     expect(loaded).not.toBeNull()
     expect(loaded?.gameId).toBe('test-456')
@@ -137,13 +138,13 @@ describe('LocalStorageService - Save/Load', () => {
     expect(loaded?.player.gold).toBe(100)
   })
 
-  test('returns null when no save exists', () => {
-    const loaded = service.loadGame('nonexistent')
+  test('returns null when no save exists', async () => {
+    const loaded = await service.loadGame('nonexistent')
 
     expect(loaded).toBeNull()
   })
 
-  test('preserves Map type for levels', () => {
+  test('preserves Map type for levels', async () => {
     const level1 = createTestLevel(1)
     const level2 = createTestLevel(2)
     const state = createTestState({
@@ -153,8 +154,8 @@ describe('LocalStorageService - Save/Load', () => {
       ]),
     })
 
-    service.saveGame(state)
-    const loaded = service.loadGame(state.gameId)!
+    await service.saveGame(state)
+    const loaded = await service.loadGame(state.gameId)!
 
     expect(loaded.levels).toBeInstanceOf(Map)
     expect(loaded.levels.size).toBe(2)
@@ -164,13 +165,13 @@ describe('LocalStorageService - Save/Load', () => {
     expect(loaded.levels.get(2)?.depth).toBe(2)
   })
 
-  test('preserves Set type for visibleCells', () => {
+  test('preserves Set type for visibleCells', async () => {
     const state = createTestState({
       visibleCells: new Set(['0,0', '1,1', '2,2']),
     })
 
-    service.saveGame(state)
-    const loaded = service.loadGame(state.gameId)!
+    await service.saveGame(state)
+    const loaded = await service.loadGame(state.gameId)!
 
     expect(loaded.visibleCells).toBeInstanceOf(Set)
     expect(loaded.visibleCells.size).toBe(3)
@@ -179,13 +180,13 @@ describe('LocalStorageService - Save/Load', () => {
     expect(loaded.visibleCells.has('2,2')).toBe(true)
   })
 
-  test('preserves Set type for identifiedItems', () => {
+  test('preserves Set type for identifiedItems', async () => {
     const state = createTestState({
       identifiedItems: new Set(['potion_healing', 'scroll_identify']),
     })
 
-    service.saveGame(state)
-    const loaded = service.loadGame(state.gameId)!
+    await service.saveGame(state)
+    const loaded = await service.loadGame(state.gameId)!
 
     expect(loaded.identifiedItems).toBeInstanceOf(Set)
     expect(loaded.identifiedItems.size).toBe(2)
@@ -193,7 +194,7 @@ describe('LocalStorageService - Save/Load', () => {
     expect(loaded.identifiedItems.has('scroll_identify')).toBe(true)
   })
 
-  test('preserves nested Sets in monsters', () => {
+  test('preserves nested Sets in monsters', async () => {
     const monster = createTestMonster()
     const level = createTestLevel(1)
     level.monsters = [monster]
@@ -202,8 +203,8 @@ describe('LocalStorageService - Save/Load', () => {
       levels: new Map([[1, level]]),
     })
 
-    service.saveGame(state)
-    const loaded = service.loadGame(state.gameId)!
+    await service.saveGame(state)
+    const loaded = await service.loadGame(state.gameId)!
 
     const loadedMonster = loaded.levels.get(1)!.monsters[0]
     expect(loadedMonster.visibleCells).toBeInstanceOf(Set)
@@ -212,7 +213,7 @@ describe('LocalStorageService - Save/Load', () => {
     expect(loadedMonster.visibleCells.has('11,11')).toBe(true)
   })
 
-  test('preserves monster currentPath array', () => {
+  test('preserves monster currentPath array', async () => {
     const monster = createTestMonster()
     const level = createTestLevel(1)
     level.monsters = [monster]
@@ -221,14 +222,14 @@ describe('LocalStorageService - Save/Load', () => {
       levels: new Map([[1, level]]),
     })
 
-    service.saveGame(state)
-    const loaded = service.loadGame(state.gameId)!
+    await service.saveGame(state)
+    const loaded = await service.loadGame(state.gameId)!
 
     const loadedMonster = loaded.levels.get(1)!.monsters[0]
     expect(loadedMonster.currentPath).toEqual([{ x: 11, y: 11 }])
   })
 
-  test('preserves all game state fields', () => {
+  test('preserves all game state fields', async () => {
     const state = createTestState({
       gameId: 'full-test',
       currentLevel: 5,
@@ -239,8 +240,8 @@ describe('LocalStorageService - Save/Load', () => {
       hasAmulet: true,
     })
 
-    service.saveGame(state)
-    const loaded = service.loadGame('full-test')!
+    await service.saveGame(state)
+    const loaded = await service.loadGame('full-test')!
 
     expect(loaded.gameId).toBe('full-test')
     expect(loaded.currentLevel).toBe(5)
@@ -251,7 +252,7 @@ describe('LocalStorageService - Save/Load', () => {
     expect(loaded.hasAmulet).toBe(true)
   })
 
-  test('throws error when storage quota exceeded', () => {
+  test('throws error when storage quota exceeded', async () => {
     // Mock localStorage.setItem to throw quota exceeded error
     const originalSetItem = Storage.prototype.setItem
     Storage.prototype.setItem = jest.fn(() => {
@@ -260,7 +261,9 @@ describe('LocalStorageService - Save/Load', () => {
 
     const state = createTestState()
 
-    expect(() => service.saveGame(state)).toThrow('Save failed - storage quota exceeded?')
+    await expect(service.saveGame(state)).rejects.toThrow(
+      'Save failed - individual save file too large for localStorage'
+    )
 
     // Restore original
     Storage.prototype.setItem = originalSetItem

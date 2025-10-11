@@ -1,0 +1,1 @@
+export { CompressionWorkerService } from './CompressionWorkerService'

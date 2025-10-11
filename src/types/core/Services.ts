@@ -30,6 +30,7 @@ import { GoldService } from '@services/GoldService'
 import { TargetingService } from '@services/TargetingService'
 import { RingService } from '@services/RingService'
 import { StairsNavigationService } from '@services/StairsNavigationService'
+import { ToastNotificationService } from '@services/ToastNotificationService'
 
 /**
  * Dependency injection container for game services and configuration
@@ -94,6 +95,7 @@ export interface GameDependencies {
   // Persistence and meta
   localStorage: LocalStorageService
   notification: NotificationService
+  toastNotification: ToastNotificationService
   victory: VictoryService
   debug: DebugService
 }

@@ -744,4 +744,7 @@ export interface IGameState {
 
   /** Should lower states in stack be visible (dimmed)? */
   isTransparent(): boolean
+
+  /** Which keys should this state handle? (null = all keys, array = specific keys only) */
+  getAllowedKeys(): string[] | null
 }

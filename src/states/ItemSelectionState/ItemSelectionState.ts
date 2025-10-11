@@ -1,15 +1,28 @@
 import { BaseState } from '@states/BaseState'
 import { Input, GameState, Item } from '@game/core/core'
+import { GameStateManager } from '@services/GameStateManager'
+import { ModalController } from '@ui/ModalController'
 
 /**
- * ItemFilter function type - returns true if item should be shown
+ * ItemFilter type - string-based filter for ModalController compatibility
  */
-export type ItemFilter = (item: Item, state: GameState) => boolean
+export type ItemFilter =
+  | 'all'
+  | 'potion'
+  | 'scroll'
+  | 'wand'
+  | 'food'
+  | 'weapon'
+  | 'armor'
+  | 'ring'
+  | 'oil_flask'
+  | 'equipment' // weapons + light sources
+  | 'unidentified'
 
 /**
  * ItemSelectionCallback - called when user selects an item
  */
-export type ItemSelectionCallback = (item: Item) => void
+export type ItemSelectionCallback = (item: Item | null) => void
 
 /**
  * ItemSelectionState - Reusable modal for "select item to X" prompts
@@ -24,57 +37,77 @@ export type ItemSelectionCallback = (item: Item) => void
  * Features:
  * - Prompt message ("Quaff which potion?")
  * - Item filtering (only show relevant items)
- * - Item selection (a-z, A-Z keys)
- * - '?' to show filtered inventory list
+ * - Item selection (a-z keys)
  * - ESC to abort
- * - Callback on selection
+ * - Callback on selection/cancel
+ * - Input filtering (only a-z and ESC allowed - prevents opening nested dialogs)
  *
  * State Properties:
  * - isPaused(): true (selection pauses gameplay)
  * - isTransparent(): true (game visible underneath, dimmed)
+ * - getAllowedKeys(): ['Escape', 'a'-'z'] (blocks other keys)
  *
  * Architecture:
- * - Wraps ModalController's item selection for now
- * - Phase 4 will implement native item selection UI
- * - Callback pattern allows commands to handle selection
+ * - Integrates with GameStateManager (pushes/pops state properly)
+ * - Uses ModalController for DOM rendering (backward compatibility)
+ * - Prevents input bleeding (won't open another dialog when 'w' pressed)
  *
  * @example
  * // Quaff potion command
  * const itemSelectionState = new ItemSelectionState(
+ *   stateManager,
  *   modalController,
  *   gameState,
  *   "Quaff which potion?",
- *   (item, state) => item.type === ItemType.POTION,
+ *   "potion",
  *   (item) => {
- *     // Drink the potion
- *     potionService.drink(gameState, item)
- *     stateManager.popState() // Close selection
+ *     if (item) {
+ *       // Drink the potion
+ *       pendingCommand = new QuaffPotionCommand(item.id, ...)
+ *     }
  *   },
- *   () => stateManager.popState() // Cancel
+ *   () => {} // Cancel - just close
  * )
  * stateManager.pushState(itemSelectionState)
  */
 export class ItemSelectionState extends BaseState {
+  private readonly allowedKeys: string[]
+
   constructor(
+    private stateManager: GameStateManager,
+    private modalController: ModalController,
     private gameState: GameState,
     private prompt: string,
-    private filter: ItemFilter
+    private filter: ItemFilter,
+    private onSelect: ItemSelectionCallback,
+    private onCancel: () => void,
+    private excludeItemId?: string
   ) {
     super()
+
+    // Generate allowed keys: ESC + a-z
+    const letters = 'abcdefghijklmnopqrstuvwxyz'.split('')
+    this.allowedKeys = ['Escape', ...letters]
   }
 
   /**
    * Called when state becomes active
-   * Show the item selection modal
+   * Show the item selection modal via ModalController
    */
   enter(): void {
-    // For now, we'll use ModalController's existing item selection
-    // In Phase 4, we'll create a dedicated item selection UI
-    // that uses the prompt, filter, and callbacks
-
-    // ModalController.showItemSelection handles filtered item display
-    // It calls onSelect callback when item is chosen
-    // It calls onCancel callback on ESC
+    // Use existing ModalController for DOM rendering (backward compatibility)
+    // Future: Could create custom modal rendering here
+    this.modalController.showItemSelection(
+      this.filter,
+      this.prompt,
+      this.gameState,
+      (item) => {
+        // Item selected - delegate to callback
+        this.onSelect(item)
+        // Note: Don't pop state here - let callback control state management
+      },
+      this.excludeItemId
+    )
   }
 
   /**
@@ -82,8 +115,10 @@ export class ItemSelectionState extends BaseState {
    * Hide the item selection modal
    */
   exit(): void {
-    // ModalController handles its own modal cleanup
-    // Phase 4 will properly implement modal close
+    // Close modal if it's still open
+    if (this.modalController.isOpen()) {
+      this.modalController.hide()
+    }
   }
 
   /**
@@ -100,26 +135,42 @@ export class ItemSelectionState extends BaseState {
    */
   render(): void {
     // ModalController manages its own DOM rendering
-    // Phase 4 will implement custom rendering with prompt display
+    // No additional rendering needed
   }
 
   /**
    * Handle input for item selection
-   * ModalController has its own keydown handler for now
-   * Future Phase 4: Will move command registration here
    *
    * Commands:
-   * - a-z, A-Z: Select item (calls onSelect)
-   * - ?: Show filtered inventory list
+   * - a-z: Select item (calls onSelect)
    * - ESC: Cancel selection (calls onCancel)
+   * - All other keys: BLOCKED (prevented by getAllowedKeys())
    *
    * @param input - Key press and modifiers
    */
-  handleInput(_input: Input): void {
-    // ModalController currently handles its own input via keydown listeners
-    // When an item is selected, it will call onSelect callback
-    // When ESC is pressed, it will call onCancel callback
-    // This is a transition state - Phase 4 will refactor to handle input here
+  handleInput(input: Input): void {
+    // ESC to cancel
+    if (input.key === 'Escape') {
+      this.onCancel()
+      return
+    }
+
+    // a-z to select item
+    const index = this.getItemIndexFromLetter(input.key)
+    if (index !== null) {
+      // Check if ModalController is still open
+      // (It might have been closed by callback opening another modal)
+      if (this.modalController.isOpen()) {
+        // Let ModalController handle the selection
+        // It will call our onSelect callback
+        const mockEvent = new KeyboardEvent('keydown', { key: input.key })
+        this.modalController.handleInput(mockEvent)
+      }
+      return
+    }
+
+    // All other keys are blocked by getAllowedKeys() in main.ts
+    // This ensures 'w', 'd', 'q', etc. don't open nested dialogs
   }
 
   /**
@@ -138,6 +189,14 @@ export class ItemSelectionState extends BaseState {
   }
 
   /**
+   * Only allow ESC and a-z keys
+   * This prevents input bleeding (e.g., 'w' in wield modal won't open another wield modal)
+   */
+  getAllowedKeys(): string[] | null {
+    return this.allowedKeys
+  }
+
+  /**
    * Get the prompt message for this selection
    */
   getPrompt(): string {
@@ -145,11 +204,16 @@ export class ItemSelectionState extends BaseState {
   }
 
   /**
-   * Get filtered items that match the filter
+   * Convert letter key to item index
+   * @param key - Keyboard key
+   * @returns Index (0-25) or null if not a letter
    */
-  getFilteredItems(): Item[] {
-    return this.gameState.player.inventory.filter((item) =>
-      this.filter(item, this.gameState)
-    )
+  private getItemIndexFromLetter(key: string): number | null {
+    const code = key.charCodeAt(0)
+    // a = 97, z = 122
+    if (code >= 97 && code <= 122) {
+      return code - 97
+    }
+    return null
   }
 }

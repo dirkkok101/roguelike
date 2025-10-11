@@ -46,6 +46,7 @@ import { DebugService } from '@services/DebugService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
 import { LocalStorageService } from '@services/LocalStorageService'
+import { ToastNotificationService } from '@services/ToastNotificationService'
 import { DoorService } from '@services/DoorService'
 import { PotionService } from '@services/PotionService'
 import { ScrollService } from '@services/ScrollService'
@@ -62,6 +63,7 @@ import { ModalController } from './ModalController'
 import { GameStateManager } from '@services/GameStateManager'
 import { GameRenderer } from '@ui/GameRenderer'
 import { TargetSelectionState } from '@states/TargetSelectionState'
+import { ItemSelectionState } from '@states/ItemSelectionState'
 
 // ============================================================================
 // INPUT HANDLER - Keyboard input to commands
@@ -90,6 +92,7 @@ export class InputHandler {
   private readonly levelingService: LevelingService
   private readonly debugService: DebugService
   private readonly notificationService: NotificationService
+  private readonly toastNotificationService: ToastNotificationService
   private readonly victoryService: VictoryService
   private readonly localStorageService: LocalStorageService
   private readonly doorService: DoorService
@@ -129,6 +132,7 @@ export class InputHandler {
     this.levelingService = services.leveling
     this.debugService = services.debug
     this.notificationService = services.notification
+    this.toastNotificationService = services.toastNotification
     this.victoryService = services.victory
     this.localStorageService = services.localStorage
     this.doorService = services.door
@@ -279,7 +283,7 @@ export class InputHandler {
 
       case 'S':
         event.preventDefault()
-        return new SaveCommand(this.localStorageService, this.messageService)
+        return new SaveCommand(this.localStorageService, this.messageService, this.toastNotificationService)
 
       case 'Q':
         event.preventDefault()
@@ -331,175 +335,241 @@ export class InputHandler {
       case 'd':
         // Drop item
         event.preventDefault()
-        this.modalController.showItemSelection('all', 'Drop which item?', state, (item) => {
-          if (item) {
-            this.pendingCommand = new DropCommand(
-              item.id,
-              this.inventoryService,
-              this.messageService,
-              this.turnService,
-              this.identificationService
-            )
-          }
-        })
+        this.stateManager.pushState(
+          new ItemSelectionState(
+            this.stateManager,
+            this.modalController,
+            state,
+            'Drop which item?',
+            'all',
+            (item) => {
+              if (item) {
+                this.pendingCommand = new DropCommand(
+                  item.id,
+                  this.inventoryService,
+                  this.messageService,
+                  this.turnService,
+                  this.identificationService
+                )
+              }
+              this.stateManager.popState()
+            },
+            () => this.stateManager.popState() // Cancel
+          )
+        )
         return null
 
       case 'q':
         // Quaff potion
         event.preventDefault()
-        this.modalController.showItemSelection('potion', 'Quaff which potion?', state, (item) => {
-          if (item) {
-            this.pendingCommand = new QuaffPotionCommand(
-              item.id,
-              this.inventoryService,
-              this.potionService,
-              this.messageService,
-              this.turnService,
-              this.statusEffectService
-            )
-          }
-        })
+        this.stateManager.pushState(
+          new ItemSelectionState(
+            this.stateManager,
+            this.modalController,
+            state,
+            'Quaff which potion?',
+            'potion',
+            (item) => {
+              if (item) {
+                this.pendingCommand = new QuaffPotionCommand(
+                  item.id,
+                  this.inventoryService,
+                  this.potionService,
+                  this.messageService,
+                  this.turnService,
+                  this.statusEffectService
+                )
+              }
+              this.stateManager.popState()
+            },
+            () => this.stateManager.popState() // Cancel
+          )
+        )
         return null
 
       case 'r':
         // Read scroll
         event.preventDefault()
-        this.modalController.showItemSelection('scroll', 'Read which scroll?', state, (scroll) => {
-          if (!scroll) return
-
-          // Check scroll type to determine if we need item selection
-          const scrollItem = scroll as Scroll
-
-          if (scrollItem.scrollType === ScrollType.IDENTIFY) {
-            // Close scroll selection modal before opening target selection
-            this.modalController.hide()
-
-            // Show unidentified items (exclude the scroll being read)
-            this.modalController.showItemSelection(
-              'unidentified',
-              'Identify which item?',
-              state,
-              (targetItem) => {
-                if (targetItem) {
-                  this.pendingCommand = new ReadScrollCommand(
-                    scroll.id,
-                    this.inventoryService,
-                    this.scrollService,
-                    this.messageService,
-                    this.turnService,
-                    this.statusEffectService,
-                    targetItem.id
-                  )
-                }
-              },
-              scroll.id // Exclude the identify scroll itself
-            )
-          } else if (scrollItem.scrollType === ScrollType.ENCHANT_WEAPON) {
-            // Close scroll selection modal before opening target selection
-            this.modalController.hide()
-
-            // Show weapons
-            this.modalController.showItemSelection(
-              'weapon',
-              'Enchant which weapon?',
-              state,
-              (targetItem) => {
-                if (targetItem) {
-                  this.pendingCommand = new ReadScrollCommand(
-                    scroll.id,
-                    this.inventoryService,
-                    this.scrollService,
-                    this.messageService,
-                    this.turnService,
-                    this.statusEffectService,
-                    targetItem.id
-                  )
-                }
+        this.stateManager.pushState(
+          new ItemSelectionState(
+            this.stateManager,
+            this.modalController,
+            state,
+            'Read which scroll?',
+            'scroll',
+            (scroll) => {
+              if (!scroll) {
+                this.stateManager.popState()
+                return
               }
-            )
-          } else if (scrollItem.scrollType === ScrollType.ENCHANT_ARMOR) {
-            // Close scroll selection modal before opening target selection
-            this.modalController.hide()
 
-            // Show armor
-            this.modalController.showItemSelection(
-              'armor',
-              'Enchant which armor?',
-              state,
-              (targetItem) => {
-                if (targetItem) {
-                  this.pendingCommand = new ReadScrollCommand(
-                    scroll.id,
-                    this.inventoryService,
-                    this.scrollService,
-                    this.messageService,
-                    this.turnService,
-                    this.statusEffectService,
-                    targetItem.id
+              // Check scroll type to determine if we need item selection
+              const scrollItem = scroll as Scroll
+
+              if (scrollItem.scrollType === ScrollType.IDENTIFY) {
+                // Pop scroll selection, push target selection
+                this.stateManager.popState()
+
+                // Show unidentified items (exclude the scroll being read)
+                this.stateManager.pushState(
+                  new ItemSelectionState(
+                    this.stateManager,
+                    this.modalController,
+                    state,
+                    'Identify which item?',
+                    'unidentified',
+                    (targetItem) => {
+                      if (targetItem) {
+                        this.pendingCommand = new ReadScrollCommand(
+                          scroll.id,
+                          this.inventoryService,
+                          this.scrollService,
+                          this.messageService,
+                          this.turnService,
+                          this.statusEffectService,
+                          targetItem.id
+                        )
+                      }
+                      this.stateManager.popState()
+                    },
+                    () => this.stateManager.popState(), // Cancel
+                    scroll.id // Exclude the identify scroll itself
                   )
-                }
+                )
+              } else if (scrollItem.scrollType === ScrollType.ENCHANT_WEAPON) {
+                // Pop scroll selection, push target selection
+                this.stateManager.popState()
+
+                // Show weapons
+                this.stateManager.pushState(
+                  new ItemSelectionState(
+                    this.stateManager,
+                    this.modalController,
+                    state,
+                    'Enchant which weapon?',
+                    'weapon',
+                    (targetItem) => {
+                      if (targetItem) {
+                        this.pendingCommand = new ReadScrollCommand(
+                          scroll.id,
+                          this.inventoryService,
+                          this.scrollService,
+                          this.messageService,
+                          this.turnService,
+                          this.statusEffectService,
+                          targetItem.id
+                        )
+                      }
+                      this.stateManager.popState()
+                    },
+                    () => this.stateManager.popState() // Cancel
+                  )
+                )
+              } else if (scrollItem.scrollType === ScrollType.ENCHANT_ARMOR) {
+                // Pop scroll selection, push target selection
+                this.stateManager.popState()
+
+                // Show armor
+                this.stateManager.pushState(
+                  new ItemSelectionState(
+                    this.stateManager,
+                    this.modalController,
+                    state,
+                    'Enchant which armor?',
+                    'armor',
+                    (targetItem) => {
+                      if (targetItem) {
+                        this.pendingCommand = new ReadScrollCommand(
+                          scroll.id,
+                          this.inventoryService,
+                          this.scrollService,
+                          this.messageService,
+                          this.turnService,
+                          this.statusEffectService,
+                          targetItem.id
+                        )
+                      }
+                      this.stateManager.popState()
+                    },
+                    () => this.stateManager.popState() // Cancel
+                  )
+                )
+              } else {
+                // Other scrolls (no selection needed)
+                this.pendingCommand = new ReadScrollCommand(
+                  scroll.id,
+                  this.inventoryService,
+                  this.scrollService,
+                  this.messageService,
+                  this.turnService,
+                  this.statusEffectService
+                )
+                this.stateManager.popState()
               }
-            )
-          } else {
-            // Other scrolls (no selection needed)
-            this.pendingCommand = new ReadScrollCommand(
-              scroll.id,
-              this.inventoryService,
-              this.scrollService,
-              this.messageService,
-              this.turnService,
-              this.statusEffectService
-            )
-          }
-        })
+            },
+            () => this.stateManager.popState() // Cancel
+          )
+        )
         return null
 
       case 'z':
         // Zap wand
         event.preventDefault()
-        this.modalController.showItemSelection('wand', 'Zap which wand?', state, (item) => {
-          if (item) {
-            // After wand selected, push targeting state
-            const wand = item as any // Cast to Wand (will have range property)
-            const wandRange = wand.range || 5 // Default range if not set yet
+        this.stateManager.pushState(
+          new ItemSelectionState(
+            this.stateManager,
+            this.modalController,
+            state,
+            'Zap which wand?',
+            'wand',
+            (item) => {
+              if (item) {
+                // After wand selected, pop item selection and push targeting state
+                const wand = item as any // Cast to Wand (will have range property)
+                const wandRange = wand.range || 5 // Default range if not set yet
 
-            // Close wand selection modal first
-            this.modalController.hide()
+                // Pop wand selection modal
+                this.stateManager.popState()
 
-            // Push targeting state for in-game targeting
-            const targetingState = new TargetSelectionState(
-              this.targetingService,
-              this.gameRenderer!,
-              state,
-              wandRange,
-              (targetPosition) => {
-                // Targeting confirmed - fire wand at target position
-                // WandService will handle projectile logic to find what gets hit
-                this.pendingCommand = new ZapWandCommand(
-                  item.id,
-                  this.inventoryService,
-                  this.wandService,
-                  this.messageService,
-                  this.turnService,
-                  this.statusEffectService,
+                // Push targeting state for in-game targeting
+                const targetingState = new TargetSelectionState(
                   this.targetingService,
-                  targetPosition
+                  this.gameRenderer,
+                  state,
+                  wandRange,
+                  (targetPosition) => {
+                    // Targeting confirmed - fire wand at target position
+                    // WandService will handle projectile logic to find what gets hit
+                    this.pendingCommand = new ZapWandCommand(
+                      item.id,
+                      this.inventoryService,
+                      this.wandService,
+                      this.messageService,
+                      this.turnService,
+                      this.statusEffectService,
+                      this.targetingService,
+                      targetPosition
+                    )
+                    // Pop targeting state
+                    this.stateManager.popState()
+                  },
+                  () => {
+                    // Targeting cancelled
+                    this.pendingCommand = null
+                    // Pop targeting state
+                    this.stateManager.popState()
+                  }
                 )
-                // Pop targeting state
-                this.stateManager!.popState()
-              },
-              () => {
-                // Targeting cancelled
-                this.pendingCommand = null
-                // Pop targeting state
-                this.stateManager!.popState()
-              }
-            )
 
-            // Push targeting state onto stack
-            this.stateManager!.pushState(targetingState)
-          }
-        })
+                // Push targeting state onto stack
+                this.stateManager.pushState(targetingState)
+              } else {
+                this.stateManager.popState()
+              }
+            },
+            () => this.stateManager.popState() // Cancel
+          )
+        )
         return null
 
       case 'e':
@@ -531,79 +601,123 @@ export class InputHandler {
       case 'F':
         // Refill lantern with oil flask
         event.preventDefault()
-        this.modalController.showItemSelection('oil_flask', 'Use which oil flask?', state, (item) => {
-          if (item) {
-            this.pendingCommand = new RefillLanternCommand(
-              item.id,
-              this.inventoryService,
-              this.lightingService,
-              this.messageService,
-              this.turnService
-            )
-          }
-        })
+        this.stateManager.pushState(
+          new ItemSelectionState(
+            this.stateManager,
+            this.modalController,
+            state,
+            'Use which oil flask?',
+            'oil_flask',
+            (item) => {
+              if (item) {
+                this.pendingCommand = new RefillLanternCommand(
+                  item.id,
+                  this.inventoryService,
+                  this.lightingService,
+                  this.messageService,
+                  this.turnService
+                )
+              }
+              this.stateManager.popState()
+            },
+            () => this.stateManager.popState() // Cancel
+          )
+        )
         return null
 
       case 'w':
         // Wield equipment (weapon or light source)
         event.preventDefault()
-        this.modalController.showItemSelection('equipment', 'Wield which item?', state, (item) => {
-          if (item) {
-            this.pendingCommand = new EquipCommand(
-              item.id,
-              null, // No ring slot for weapons/light sources
-              this.inventoryService,
-              this.messageService,
-              this.turnService,
-              this.identificationService,
-              this.curseService,
-              this.fovService,
-              this.lightingService
-            )
-          }
-        })
+        this.stateManager.pushState(
+          new ItemSelectionState(
+            this.stateManager,
+            this.modalController,
+            state,
+            'Wield which item?',
+            'equipment',
+            (item) => {
+              if (item) {
+                this.pendingCommand = new EquipCommand(
+                  item.id,
+                  null, // No ring slot for weapons/light sources
+                  this.inventoryService,
+                  this.messageService,
+                  this.turnService,
+                  this.identificationService,
+                  this.curseService,
+                  this.fovService,
+                  this.lightingService
+                )
+              }
+              this.stateManager.popState()
+            },
+            () => this.stateManager.popState() // Cancel
+          )
+        )
         return null
 
       case 'W':
         // Wear armor
         event.preventDefault()
-        this.modalController.showItemSelection('armor', 'Wear which armor?', state, (item) => {
-          if (item) {
-            this.pendingCommand = new EquipCommand(
-              item.id,
-              null, // No ring slot for armor
-              this.inventoryService,
-              this.messageService,
-              this.turnService,
-              this.identificationService,
-              this.curseService,
-              this.fovService,
-              this.lightingService
-            )
-          }
-        })
+        this.stateManager.pushState(
+          new ItemSelectionState(
+            this.stateManager,
+            this.modalController,
+            state,
+            'Wear which armor?',
+            'armor',
+            (item) => {
+              if (item) {
+                this.pendingCommand = new EquipCommand(
+                  item.id,
+                  null, // No ring slot for armor
+                  this.inventoryService,
+                  this.messageService,
+                  this.turnService,
+                  this.identificationService,
+                  this.curseService,
+                  this.fovService,
+                  this.lightingService
+                )
+              }
+              this.stateManager.popState()
+            },
+            () => this.stateManager.popState() // Cancel
+          )
+        )
         return null
 
       case 'P':
         // Put on ring
         event.preventDefault()
-        this.modalController.showItemSelection('ring', 'Put on which ring?', state, (item) => {
-          if (item) {
-            // Choose first available slot (left preferred)
-            const slot = !state.player.equipment.leftRing ? 'left' : 'right'
-            this.pendingCommand = new EquipCommand(
-              item.id,
-              slot,
-              this.inventoryService,
-              this.messageService,
-              this.turnService,
-              this.identificationService,
-              this.curseService,
-              this.fovService,
-              this.lightingService
-            )
-          }
-        })
+        this.stateManager.pushState(
+          new ItemSelectionState(
+            this.stateManager,
+            this.modalController,
+            state,
+            'Put on which ring?',
+            'ring',
+            (item) => {
+              if (item) {
+                // Choose first available slot (left preferred)
+                const slot = !state.player.equipment.leftRing ? 'left' : 'right'
+                this.pendingCommand = new EquipCommand(
+                  item.id,
+                  slot,
+                  this.inventoryService,
+                  this.messageService,
+                  this.turnService,
+                  this.identificationService,
+                  this.curseService,
+                  this.fovService,
+                  this.lightingService
+                )
+              }
+              this.stateManager.popState()
+            },
+            () => this.stateManager.popState() // Cancel
+          )
+        )
         return null
 
       case 'R':
@@ -656,33 +770,32 @@ export class InputHandler {
         return null
 
       case 'g':
-        // Toggle god mode
-        if (this.debugService.isEnabled()) {
+        // Toggle god mode (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new ToggleGodModeCommand(this.debugService)
         }
         return null
 
       case 'v':
-        // Reveal map
-        if (this.debugService.isEnabled()) {
+        // Reveal map (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new RevealMapCommand(this.debugService)
         }
         return null
 
       case 'm':
-        // Spawn monster (hardcoded to 'T' for now - TODO: add monster selection modal)
-        if (this.debugService.isEnabled()) {
+        // Spawn monster (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new SpawnMonsterCommand('T', this.debugService)
         }
         return null
 
       case 'M':
-        // Show message history (if not in debug mode with monsters)
-        // Otherwise wake all monsters (debug)
-        if (this.debugService.isEnabled()) {
+        // Wake all monsters (requires debug console open) OR show message history
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new WakeAllMonstersCommand(this.debugService)
         } else if (this.messageHistoryModal) {
@@ -693,48 +806,48 @@ export class InputHandler {
         return null
 
       case 'K':
-        // Kill all monsters
-        if (this.debugService.isEnabled()) {
+        // Kill all monsters (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new KillAllMonstersCommand(this.debugService)
         }
         return null
 
       case 'f':
-        // Toggle FOV debug overlay
-        if (this.debugService.isEnabled()) {
+        // Toggle FOV debug overlay (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new ToggleFOVDebugCommand(this.debugService)
         }
         return null
 
       case 'p':
-        // Toggle pathfinding debug overlay
-        if (this.debugService.isEnabled()) {
+        // Toggle pathfinding debug overlay (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new TogglePathDebugCommand(this.debugService)
         }
         return null
 
       case 'n':
-        // Toggle AI debug overlay
-        if (this.debugService.isEnabled()) {
+        // Toggle AI debug overlay (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new ToggleAIDebugCommand(this.debugService)
         }
         return null
 
       case 'a':
-        // Identify all items
-        if (this.debugService.isEnabled()) {
+        // Identify all items (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new IdentifyAllItemsCommand(this.debugService)
         }
         return null
 
       case 'I':
-        // Spawn item (with category and subtype selection)
-        if (this.debugService.isEnabled()) {
+        // Spawn item (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
 
           // Step 1: Show item category selection

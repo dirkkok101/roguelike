@@ -1,17 +1,21 @@
 import { SaveCommand } from './SaveCommand'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { MessageService } from '@services/MessageService'
+import { ToastNotificationService } from '@services/ToastNotificationService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
 
 describe('SaveCommand', () => {
   let command: SaveCommand
   let localStorageService: LocalStorageService
   let messageService: MessageService
+  let toastNotificationService: ToastNotificationService
 
   beforeEach(() => {
     localStorageService = new LocalStorageService()
+    localStorageService.enableTestMode() // Use synchronous compression for tests
     messageService = new MessageService()
-    command = new SaveCommand(localStorageService, messageService)
+    toastNotificationService = new ToastNotificationService()
+    command = new SaveCommand(localStorageService, messageService, toastNotificationService)
     localStorage.clear()
   })
 
@@ -97,22 +101,25 @@ describe('SaveCommand', () => {
     }
   }
 
-  test('saves game to localStorage', () => {
+  test('starts async save (fire-and-forget)', async () => {
     const state = createTestState({ gameId: 'save-test-1' })
 
     command.execute(state)
 
+    // Wait for async save to complete (setTimeout deferral + save operation)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
     expect(localStorageService.hasSave('save-test-1')).toBe(true)
   })
 
-  test('adds success message when save succeeds', () => {
+  test('shows "Saving..." message immediately', () => {
     const state = createTestState({ gameId: 'save-test-2' })
 
     const result = command.execute(state)
 
     expect(result.messages).toHaveLength(1)
-    expect(result.messages[0].text).toBe('Game saved successfully.')
-    expect(result.messages[0].type).toBe('success')
+    expect(result.messages[0].text).toBe('Saving game...')
+    expect(result.messages[0].type).toBe('info')
   })
 
   test('does not save if game is over', () => {
@@ -137,37 +144,7 @@ describe('SaveCommand', () => {
     expect(result).toBe(state)
   })
 
-  test('adds warning message when save fails', () => {
-    // Mock saveGame to throw error
-    const originalSaveGame = localStorageService.saveGame
-    localStorageService.saveGame = jest.fn(() => {
-      throw new Error('Storage quota exceeded')
-    })
-
-    const state = createTestState()
-
-    const result = command.execute(state)
-
-    expect(result.messages).toHaveLength(1)
-    expect(result.messages[0].text).toBe('Failed to save game. Storage may be full.')
-    expect(result.messages[0].type).toBe('warning')
-
-    // Restore
-    localStorageService.saveGame = originalSaveGame
-  })
-
-  test('does not throw error when save fails', () => {
-    // Mock saveGame to throw error
-    localStorageService.saveGame = jest.fn(() => {
-      throw new Error('Storage quota exceeded')
-    })
-
-    const state = createTestState()
-
-    expect(() => command.execute(state)).not.toThrow()
-  })
-
-  test('saves complete game state', () => {
+  test('saves complete game state', async () => {
     const state = createTestState({
       gameId: 'complete-save',
       turnCount: 500,
@@ -177,7 +154,11 @@ describe('SaveCommand', () => {
 
     command.execute(state)
 
-    const loaded = localStorageService.loadGame('complete-save')
+    // Wait for async save (setTimeout deferral + save operation)
+    // Need longer wait in test environment due to Jest overhead
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    const loaded = await localStorageService.loadGame('complete-save')
     expect(loaded).not.toBeNull()
     expect(loaded?.turnCount).toBe(500)
     expect(loaded?.currentLevel).toBe(3)

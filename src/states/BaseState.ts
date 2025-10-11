@@ -104,4 +104,33 @@ export abstract class BaseState implements IGameState {
   isTransparent(): boolean {
     return false
   }
+
+  /**
+   * Which keys should this state handle?
+   * Default: null (handle all keys)
+   *
+   * Override to specify allowed keys for this state (e.g., modal only accepts a-z + ESC).
+   * Keys not in this list will be blocked and NOT passed to lower states.
+   *
+   * This prevents input bleeding through modals (e.g., pressing 'w' in wield modal
+   * shouldn't open another wield modal).
+   *
+   * @returns Array of allowed keys, or null to allow all keys
+   *
+   * @example
+   * // Item selection modal (only a-z and ESC)
+   * getAllowedKeys(): string[] | null {
+   *   const letters = 'abcdefghijklmnopqrstuvwxyz'.split('')
+   *   return ['Escape', ...letters]
+   * }
+   *
+   * @example
+   * // Main gameplay (all keys allowed)
+   * getAllowedKeys(): string[] | null {
+   *   return null
+   * }
+   */
+  getAllowedKeys(): string[] | null {
+    return null // Default: allow all keys
+  }
 }
