@@ -209,20 +209,9 @@ export class GameRenderer {
     this.switchRenderMode(newMode)
 
     // Re-render with current game state if available
-    // Capture state before async operations to prevent race conditions
-    const capturedState = this.currentGameState
-    if (capturedState) {
-      this.renderDungeon(capturedState)
-
-      // If switching TO ASCII mode, scroll to player after content is rendered
-      if (newMode === 'ascii') {
-        // Use double requestAnimationFrame for reliable DOM synchronization
-        // First rAF: waits for browser to finish layout/paint of renderDungeon
-        // Second rAF: ensures scroll happens after that frame completes
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => this.scrollToPlayerInASCII(capturedState))
-        })
-      }
+    // Both modes now use viewport systems with automatic camera centering
+    if (this.currentGameState) {
+      this.renderDungeon(this.currentGameState)
     }
   }
 
@@ -264,13 +253,13 @@ export class GameRenderer {
       // Trigger resize to recalculate dimensions for new mode
       this.canvasGameRenderer.resize()
     } else if (mode === 'ascii') {
-      // ASCII mode: enable scrolling, disable flex centering
-      this.dungeonContainer.style.overflow = 'auto'
+      // ASCII mode: viewport-based rendering (no scrolling needed)
+      this.dungeonContainer.style.overflow = 'hidden'
       this.dungeonContainer.style.display = 'block'
       this.dungeonContainer.style.alignItems = ''
       this.dungeonContainer.style.justifyContent = ''
 
-      // Note: Player scroll will happen AFTER renderDungeon() in handlePreferenceChange()
+      // Note: ASCII renderer handles camera automatically via viewport system
     }
   }
 
@@ -304,7 +293,7 @@ export class GameRenderer {
 
   /**
    * Setup window resize handler with debouncing
-   * Handles both sprite mode (canvas resize) and ASCII mode (scroll to player)
+   * Handles sprite mode canvas resize (ASCII mode uses viewport system, no resize needed)
    */
   private setupResizeHandler(): void {
     this.resizeHandler = () => {
@@ -314,7 +303,7 @@ export class GameRenderer {
       }
 
       this.resizeDebounceTimer = window.setTimeout(() => {
-        // Handle sprite mode resize
+        // Handle sprite mode resize only (ASCII mode viewport is fixed)
         if (this.currentRenderMode === 'sprites' && this.canvasGameRenderer) {
           if (this.debugService.isEnabled()) {
             console.log('[GameRenderer] Window resized (sprite mode), recalculating canvas dimensions')
@@ -327,84 +316,11 @@ export class GameRenderer {
           if (this.currentGameState) {
             this.renderDungeon(this.currentGameState)
           }
-        } else if (this.currentRenderMode === 'ascii' && this.currentGameState) {
-          // ASCII mode: scroll container to show player position
-          if (this.debugService.isEnabled()) {
-            console.log('[GameRenderer] Window resized (ASCII mode), scrolling to player')
-          }
-
-          this.scrollToPlayerInASCII()
         }
       }, 250) // 250ms debounce delay
     }
 
     window.addEventListener('resize', this.resizeHandler)
-  }
-
-  /**
-   * Scroll ASCII dungeon container to center player position
-   * ASCII mode renders the full map, so we need to scroll to keep player visible
-   *
-   * @param state - Optional game state to use (prevents race conditions with async calls)
-   */
-  private scrollToPlayerInASCII(state?: GameState): void {
-    // Use provided state or fall back to current state
-    const gameState = state || this.currentGameState
-
-    // Validate preconditions
-    if (!gameState) {
-      if (this.debugService.isEnabled()) {
-        console.warn('[GameRenderer] scrollToPlayerInASCII: No game state available')
-      }
-      return
-    }
-
-    if (!this.dungeonContainer) {
-      if (this.debugService.isEnabled()) {
-        console.warn('[GameRenderer] scrollToPlayerInASCII: Dungeon container not found')
-      }
-      return
-    }
-
-    const player = gameState.player
-    const container = this.dungeonContainer
-
-    // Measure actual character dimensions from rendered DOM
-    // This adapts to font size, zoom level, and CSS changes
-    let charWidth = 10  // Fallback if measurement fails
-    let charHeight = 16 // Fallback if measurement fails
-
-    const preElement = container.querySelector('pre')
-    if (preElement) {
-      const spanElement = preElement.querySelector('span')
-      if (spanElement) {
-        const rect = spanElement.getBoundingClientRect()
-        // Validate measurements are reasonable (positive non-zero values)
-        if (rect.width > 0 && rect.height > 0) {
-          charWidth = rect.width
-          charHeight = rect.height
-        }
-      }
-    }
-
-    // Calculate player pixel position
-    const playerX = player.position.x * charWidth
-    const playerY = player.position.y * charHeight
-
-    // Center player in viewport
-    const scrollX = playerX - container.clientWidth / 2
-    const scrollY = playerY - container.clientHeight / 2
-
-    // Validate scrollTo method exists before calling
-    if (typeof container.scrollTo === 'function') {
-      container.scrollTo({
-        left: Math.max(0, scrollX),
-        top: Math.max(0, scrollY),
-        behavior: 'smooth'
-      })
-    } else if (this.debugService.isEnabled()) {
-      console.warn('[GameRenderer] scrollToPlayerInASCII: scrollTo method not available on container')
-    }
   }
 
   /**
@@ -546,144 +462,19 @@ export class GameRenderer {
       return
     }
 
-    // ASCII rendering mode
-    if (targetingState) {
-      // Targeting requires custom overlay rendering
-      this.renderDungeonWithTargeting(state, targetingState)
+    // ASCII rendering mode (viewport-based with camera system)
+    const level = state.levels.get(state.currentLevel)
+    if (targetingState && level) {
+      // Targeting mode: use AsciiDungeonRenderer.renderWithTargeting()
+      const cursorPos = targetingState.getCursorPosition()
+      const range = targetingState.getRange()
+      const html = this.asciiRenderer.renderWithTargeting(state, cursorPos, range, level)
+      this.dungeonContainer.innerHTML = html
     } else {
-      // Standard rendering via AsciiDungeonRenderer
+      // Standard rendering via AsciiDungeonRenderer.render()
       const html = this.asciiRenderer.render(state)
       this.dungeonContainer.innerHTML = html
     }
-  }
-
-  /**
-   * Render dungeon with targeting overlay (ASCII mode only)
-   * Separate method for rendering targeting line and cursor
-   */
-  private renderDungeonWithTargeting(state: GameState, targetingState: ITargetingState): void {
-    const level = state.levels.get(state.currentLevel)
-    if (!level) return
-
-    // Check for SEE_INVISIBLE status effect
-    const canSeeInvisible = state.player.statusEffects.some((e) => e.type === StatusEffectType.SEE_INVISIBLE)
-
-    // Get targeting data
-    const cursorPos = targetingState.getCursorPosition()
-    const targetingLine = this.calculateTargetingLine(state.player.position, cursorPos, level)
-
-    let html = '<pre class="dungeon-grid">'
-
-    for (let y = 0; y < level.height; y++) {
-      for (let x = 0; x < level.width; x++) {
-        const pos: Position = { x, y }
-        const tile = level.tiles[y][x]
-        const visState = this.renderingService.getVisibilityState(
-          pos,
-          state.visibleCells,
-          level
-        )
-
-        // Check for entities at this position
-        let char = tile.char
-        let color = this.renderingService.getColorForTile(tile, visState)
-
-        // Items and gold (visible or detected in explored areas)
-        if (visState === 'visible' || visState === 'explored') {
-          // Gold piles (only if visible)
-          if (visState === 'visible') {
-            const gold = level.gold.find((g) => g.position.x === x && g.position.y === y)
-            if (gold) {
-              char = '$'
-              color = '#FFD700' // Gold
-            }
-          }
-
-          // Items (visible or detected)
-          const item = level.items.find((i) => i.position?.x === x && i.position?.y === y)
-          if (item) {
-            const isDetected = state.detectedMagicItems.has(item.id)
-            const isVisible = visState === 'visible'
-
-            // Render if visible OR if detected and in explored area
-            if (isVisible || isDetected) {
-              char = this.getItemSymbol(item.type)
-              color = isVisible ? this.getItemColor(item.type) : this.dimColor(this.getItemColor(item.type))
-            }
-          }
-
-          // Monsters (visible or detected in explored areas, render on top of items)
-          const monster = level.monsters.find((m) => m.position.x === x && m.position.y === y)
-          if (monster) {
-            const isDetected = state.detectedMonsters.has(monster.id)
-            const isVisible = visState === 'visible'
-            const canRenderInvisible = !monster.isInvisible || canSeeInvisible
-
-            // Render if (visible OR detected) AND (not invisible OR has SEE_INVISIBLE)
-            if ((isVisible || isDetected) && canRenderInvisible) {
-              char = monster.letter
-              color = isVisible
-                ? this.renderingService.getColorForEntity(monster, visState)
-                : this.dimColor(this.renderingService.getColorForEntity(monster, 'visible'))
-            }
-          }
-        }
-
-        // Stairs (visible or explored, render before player)
-        const config = { showItemsInMemory: false, showGoldInMemory: false }
-        if (
-          level.stairsUp &&
-          level.stairsUp.x === x &&
-          level.stairsUp.y === y &&
-          this.renderingService.shouldRenderEntity(pos, 'stairs', visState, config)
-        ) {
-          char = '<'
-          color = visState === 'visible' ? '#FFFF00' : '#707070' // Yellow if visible, gray if explored
-        }
-        if (
-          level.stairsDown &&
-          level.stairsDown.x === x &&
-          level.stairsDown.y === y &&
-          this.renderingService.shouldRenderEntity(pos, 'stairs', visState, config)
-        ) {
-          char = '>'
-          color = visState === 'visible' ? '#FFFF00' : '#707070' // Yellow if visible, gray if explored
-        }
-
-        // Targeting line (render before player but after entities)
-        if (targetingLine.has(`${x},${y}`) && !(x === state.player.position.x && y === state.player.position.y) && !(x === cursorPos.x && y === cursorPos.y)) {
-          char = '*'
-          color = '#FFFF00' // Yellow
-        }
-
-        // Targeting cursor (render before player)
-        if (pos.x === cursorPos.x && pos.y === cursorPos.y) {
-          // Check if target is valid (position-based targeting)
-          // Valid if: in FOV + within range + walkable tile
-          const distance = Math.abs(cursorPos.x - state.player.position.x) + Math.abs(cursorPos.y - state.player.position.y)
-          const key = `${cursorPos.x},${cursorPos.y}`
-          const inFOV = state.visibleCells.has(key)
-          const tile = level.tiles[cursorPos.y][cursorPos.x]
-          const inRange = distance <= targetingState.getRange()
-          const isValid = inFOV && inRange && tile.walkable
-
-          char = 'X'
-          color = isValid ? '#00FF00' : '#FF0000' // Green if valid, red if invalid
-        }
-
-        // Player (always on top)
-        if (pos.x === state.player.position.x && pos.y === state.player.position.y) {
-          char = '@'
-          color = '#00FFFF'
-        }
-
-        html += `<span style="color: ${color}">${char}</span>`
-      }
-      html += '\n'
-    }
-
-    html += '</pre>'
-    this.dungeonContainer.innerHTML = html
   }
 
   private renderStats(state: GameState): void {
@@ -796,75 +587,6 @@ export class GameRenderer {
 
     // Auto-scroll to bottom to show latest messages
     this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight
-  }
-
-  /**
-   * Dim a color for detected entities (not directly visible)
-   */
-  private dimColor(color: string): string {
-    // Convert hex to RGB, reduce brightness by 50%, return hex
-    const hex = color.replace('#', '')
-    const r = parseInt(hex.substring(0, 2), 16)
-    const g = parseInt(hex.substring(2, 4), 16)
-    const b = parseInt(hex.substring(4, 6), 16)
-
-    const dimmedR = Math.floor(r * 0.5)
-    const dimmedG = Math.floor(g * 0.5)
-    const dimmedB = Math.floor(b * 0.5)
-
-    return `#${dimmedR.toString(16).padStart(2, '0')}${dimmedG.toString(16).padStart(2, '0')}${dimmedB.toString(16).padStart(2, '0')}`
-  }
-
-  /**
-   * Get display symbol for item type
-   */
-  private getItemSymbol(itemType: ItemType): string {
-    switch (itemType) {
-      case ItemType.POTION:
-        return '!'
-      case ItemType.SCROLL:
-        return '?'
-      case ItemType.RING:
-        return '='
-      case ItemType.WAND:
-        return '/'
-      case ItemType.FOOD:
-        return '%'
-      case ItemType.OIL_FLASK:
-        return '!'
-      case ItemType.WEAPON:
-        return ')'
-      case ItemType.ARMOR:
-        return '['
-      default:
-        return '?'
-    }
-  }
-
-  /**
-   * Get display color for item type
-   */
-  private getItemColor(itemType: ItemType): string {
-    switch (itemType) {
-      case ItemType.POTION:
-        return '#FF00FF' // Magenta
-      case ItemType.SCROLL:
-        return '#FFFFFF' // White
-      case ItemType.RING:
-        return '#FFD700' // Gold
-      case ItemType.WAND:
-        return '#00FFFF' // Cyan
-      case ItemType.FOOD:
-        return '#8B4513' // Brown
-      case ItemType.OIL_FLASK:
-        return '#FFA500' // Orange
-      case ItemType.WEAPON:
-        return '#C0C0C0' // Silver
-      case ItemType.ARMOR:
-        return '#C0C0C0' // Silver
-      default:
-        return '#FFFFFF'
-    }
   }
 
   /**
@@ -1146,46 +868,4 @@ export class GameRenderer {
     this.targetingState = null
   }
 
-  /**
-   * Calculate targeting line from start to end position
-   * Uses Bresenham-like algorithm to trace line until hitting wall
-   *
-   * @param start - Starting position (player)
-   * @param end - End position (cursor)
-   * @param level - Current dungeon level
-   * @returns Set of position keys representing the line path
-   */
-  private calculateTargetingLine(start: Position, end: Position, level: Level): Set<string> {
-    const line = new Set<string>()
-
-    // Calculate direction vector
-    const dx = end.x - start.x
-    const dy = end.y - start.y
-
-    // Number of steps = max of absolute differences
-    const steps = Math.max(Math.abs(dx), Math.abs(dy))
-
-    // Calculate step increments
-    const xStep = steps === 0 ? 0 : dx / steps
-    const yStep = steps === 0 ? 0 : dy / steps
-
-    // Trace line from start to end
-    for (let i = 0; i <= steps; i++) {
-      const x = Math.round(start.x + xStep * i)
-      const y = Math.round(start.y + yStep * i)
-
-      // Add position to line
-      line.add(`${x},${y}`)
-
-      // Stop if we hit a wall (but not at the cursor position itself)
-      if (x >= 0 && x < level.width && y >= 0 && y < level.height) {
-        const tile = level.tiles[y][x]
-        if (!tile.walkable && (x !== end.x || y !== end.y)) {
-          break
-        }
-      }
-    }
-
-    return line
-  }
 }
