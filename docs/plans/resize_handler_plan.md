@@ -1,10 +1,10 @@
 # Window Resize Handler Implementation Plan
 
-**Status**: ✅ Complete
-**Version**: 1.0
+**Status**: ✅ Complete (with code review improvements)
+**Version**: 1.1
 **Created**: 2025-10-10
-**Last Updated**: 2025-10-10
-**Completed**: 2025-10-10
+**Last Updated**: 2025-10-11
+**Completed**: 2025-10-11
 **Owner**: Development Team
 **Related Docs**: [Core Systems](../systems-core.md) | [Architecture](../architecture.md) | [CLAUDE.md](../../CLAUDE.md)
 
@@ -18,18 +18,24 @@ Enable the sprite-based canvas renderer to automatically recalculate viewport di
 ### Design Philosophy
 - **Responsive by Default**: Viewport should automatically adapt to window size changes
 - **Performance First**: Debounce resize events to avoid excessive redraws during window dragging
-- **Mode-Aware**: Only handle resize for sprite mode (ASCII mode uses natural HTML reflow)
+- **Mode-Aware**: Handle resize for both sprite mode (canvas recalculation) and ASCII mode (scroll to player)
 - **Clean Lifecycle**: Properly cleanup event listeners to prevent memory leaks
+- **DOM Synchronization**: Use requestAnimationFrame for reliable timing with browser layout/paint
+- **Type Safety**: Cross-platform timer types for Node.js and browser compatibility
 
 ### Success Criteria
-- [ ] Window resize triggers canvas dimension recalculation in sprite mode
-- [ ] Viewport bounds adjust appropriately (min 20×10, max based on container size)
-- [ ] Debouncing prevents performance issues during rapid resize
-- [ ] ASCII mode continues to work without resize handling (natural HTML reflow)
-- [ ] Event listeners properly cleaned up when returning to menu
-- [ ] No memory leaks or console errors during/after resize
-- [ ] Camera recenters on player after resize
-- [ ] All manual tests pass with smooth resize behavior
+- [x] Window resize triggers canvas dimension recalculation in sprite mode
+- [x] Viewport bounds adjust appropriately (min 20×10, max based on container size)
+- [x] Debouncing prevents performance issues during rapid resize (250ms)
+- [x] ASCII mode scrolls to center player after window resize
+- [x] Event listeners properly cleaned up when returning to menu (with error handling)
+- [x] No memory leaks or console errors during/after resize
+- [x] Camera recenters on player after resize
+- [x] All manual tests pass with smooth resize behavior
+- [x] Mode switching handles resize correctly (sprite → ASCII and back)
+- [x] Character dimensions measured from DOM (adapts to font size/zoom)
+- [x] Type-safe timer handling (ReturnType<typeof setTimeout>)
+- [x] Race conditions prevented with state capture before async operations
 
 ---
 
@@ -622,6 +628,222 @@ function returnToMenu() {
 
 ---
 
+## 11. Code Review Improvements (2025-10-11)
+
+After the initial implementation was completed, a comprehensive code review identified several areas for improvement. All critical issues and warnings have been addressed.
+
+### Critical Fixes Implemented
+
+#### Fix 1: Type-Safe Timer Handling
+**Issue**: `resizeDebounceTimer: number | null` causes type conflicts between Node.js and browser environments.
+
+**Solution**: Changed to `ReturnType<typeof setTimeout> | null` for cross-platform compatibility.
+
+**Location**: `src/ui/GameRenderer.ts:70`
+
+```typescript
+// Before
+private resizeDebounceTimer: number | null = null
+
+// After
+private resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null
+```
+
+---
+
+#### Fix 2: DOM Synchronization with requestAnimationFrame
+**Issue**: `setTimeout(..., 0)` is unreliable for DOM synchronization when switching to ASCII mode. The scroll operation could execute before the DOM fully renders.
+
+**Solution**: Replaced with double `requestAnimationFrame()` for reliable timing.
+
+**Location**: `src/ui/GameRenderer.ts:220-224`
+
+```typescript
+// Before
+setTimeout(() => this.scrollToPlayerInASCII(), 0)
+
+// After
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => this.scrollToPlayerInASCII(capturedState))
+})
+```
+
+**Why double rAF?**
+- First rAF: waits for browser to finish layout/paint after renderDungeon
+- Second rAF: ensures scroll happens after that frame completes
+
+---
+
+#### Fix 3: Dynamic Character Dimension Measurement
+**Issue**: Hardcoded character dimensions (10px width, 16px height) break with:
+- Font size changes
+- Browser zoom levels
+- CSS modifications
+
+**Solution**: Measure actual rendered character dimensions from DOM.
+
+**Location**: `src/ui/GameRenderer.ts:372-389`
+
+```typescript
+// Measure actual character dimensions from rendered DOM
+let charWidth = 10  // Fallback if measurement fails
+let charHeight = 16 // Fallback if measurement fails
+
+const preElement = container.querySelector('pre')
+if (preElement) {
+  const spanElement = preElement.querySelector('span')
+  if (spanElement) {
+    const rect = spanElement.getBoundingClientRect()
+    // Validate measurements are reasonable (positive non-zero values)
+    if (rect.width > 0 && rect.height > 0) {
+      charWidth = rect.width
+      charHeight = rect.height
+    }
+  }
+}
+```
+
+**Benefits**:
+- Adapts automatically to font changes
+- Respects user zoom preferences
+- Works with custom CSS
+- Falls back to safe defaults
+
+---
+
+#### Fix 4: Comprehensive Null Checks and Validation
+**Issue**: Missing validation could cause runtime errors if:
+- Game state becomes null during async operations
+- Dungeon container is not available
+- scrollTo method is missing (older browsers)
+
+**Solution**: Added comprehensive validation with debug logging.
+
+**Location**: `src/ui/GameRenderer.ts:354-367, 392-399`
+
+```typescript
+// Validate game state
+if (!gameState) {
+  if (this.debugService.isEnabled()) {
+    console.warn('[GameRenderer] scrollToPlayerInASCII: No game state available')
+  }
+  return
+}
+
+// Validate dungeon container
+if (!this.dungeonContainer) {
+  if (this.debugService.isEnabled()) {
+    console.warn('[GameRenderer] scrollToPlayerInASCII: Dungeon container not found')
+  }
+  return
+}
+
+// Validate scrollTo method exists
+if (typeof container.scrollTo === 'function') {
+  container.scrollTo({ /* ... */ })
+} else if (this.debugService.isEnabled()) {
+  console.warn('[GameRenderer] scrollToPlayerInASCII: scrollTo method not available')
+}
+```
+
+---
+
+#### Fix 5: Error Handling in Cleanup
+**Issue**: If `removeEventListener` or `clearTimeout` throw errors, cleanup could fail and leave memory leaks.
+
+**Solution**: Wrapped all cleanup operations in try/catch/finally blocks.
+
+**Location**: `src/ui/GameRenderer.ts:407-433`
+
+```typescript
+public cleanupResizeHandler(): void {
+  // Clean up event listener with error handling
+  if (this.resizeHandler) {
+    try {
+      window.removeEventListener('resize', this.resizeHandler)
+    } catch (error) {
+      if (this.debugService.isEnabled()) {
+        console.warn('[GameRenderer] Error removing resize event listener:', error)
+      }
+    } finally {
+      this.resizeHandler = null
+    }
+  }
+
+  // Clean up debounce timer with error handling
+  if (this.resizeDebounceTimer !== null) {
+    try {
+      window.clearTimeout(this.resizeDebounceTimer)
+    } catch (error) {
+      if (this.debugService.isEnabled()) {
+        console.warn('[GameRenderer] Error clearing resize debounce timer:', error)
+      }
+    } finally {
+      this.resizeDebounceTimer = null
+    }
+  }
+}
+```
+
+**Benefits**:
+- Cleanup always completes (finally blocks)
+- Errors logged for debugging
+- Memory leaks prevented even in edge cases
+
+---
+
+#### Fix 6: Race Condition Prevention
+**Issue**: `currentGameState` could change between capture and async callback execution when switching to ASCII mode.
+
+**Solution**: Capture state before async operations and pass to callbacks.
+
+**Location**: `src/ui/GameRenderer.ts:213-224, 350-352`
+
+```typescript
+// Capture state BEFORE async operations
+const capturedState = this.currentGameState
+if (capturedState) {
+  this.renderDungeon(capturedState)
+
+  if (newMode === 'ascii') {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => this.scrollToPlayerInASCII(capturedState))
+    })
+  }
+}
+
+// Method accepts optional state parameter
+private scrollToPlayerInASCII(state?: GameState): void {
+  // Use provided state or fall back to current state
+  const gameState = state || this.currentGameState
+  // ...
+}
+```
+
+**Benefits**:
+- Prevents race conditions with rapid mode switches
+- Ensures scroll always uses correct player position
+- Maintains backward compatibility (optional parameter)
+
+---
+
+### Testing & Verification
+
+**Build Status**: ✅ All checks passing
+- TypeScript compilation: ✅ Clean (no type errors)
+- Production build: ✅ Success (400ms, 188 modules)
+- Dev server: ✅ Hot-reload working
+- Browser testing: ✅ Verified working in latest Chrome
+
+**Code Quality Improvements**:
+- Type safety: Cross-platform timer types
+- Robustness: Comprehensive error handling
+- Reliability: DOM measurement instead of hardcoded values
+- Performance: Proper async timing with requestAnimationFrame
+- Maintainability: Detailed debug logging
+
+---
+
 ## Appendix: Code References
 
 ### Existing CanvasGameRenderer.resize() Method
@@ -677,5 +899,5 @@ resize(): void {
 
 ---
 
-**Last Updated**: 2025-10-10
-**Status**: ✅ Complete
+**Last Updated**: 2025-10-11
+**Status**: ✅ Complete (with code review improvements)
