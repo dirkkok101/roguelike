@@ -268,6 +268,8 @@ export interface GameState {
   isGameOver: boolean
   hasWon: boolean
   hasAmulet: boolean // Player has retrieved the Amulet of Yendor
+  levelsVisitedWithAmulet: Set<number> // Tracks which levels had monsters respawn during ascent with Amulet
+  maxDepth: number // Maximum dungeon depth (26 levels)
   deathCause?: string // Reason for player death (e.g., "Killed by Orc")
   itemNameMap: ItemNameMap // Random descriptive names for this game
   identifiedItems: Set<string> // Item types that have been identified

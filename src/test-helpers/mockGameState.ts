@@ -123,6 +123,8 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
     isGameOver: false,
     hasWon: false,
     hasAmulet: false,
+    levelsVisitedWithAmulet: new Set<number>(),
+    maxDepth: 26,
     itemNameMap: {
       potions: new Map(),
       scrolls: new Map(),

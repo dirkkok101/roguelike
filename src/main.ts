@@ -311,6 +311,8 @@ async function initializeGame() {
     isGameOver: false,
     hasWon: false,
     hasAmulet: false,
+    levelsVisitedWithAmulet: new Set<number>(), // Track levels visited with Amulet (for monster respawn)
+    maxDepth: 26, // Maximum dungeon depth (26 levels)
     itemNameMap,
     identifiedItems: new Set(),
     detectedMonsters: new Set(),
@@ -458,6 +460,8 @@ async function initializeGame() {
       isGameOver: false,
       hasWon: false,
       hasAmulet: false,
+      levelsVisitedWithAmulet: new Set<number>(), // Track levels visited with Amulet (for monster respawn)
+      maxDepth: 26, // Maximum dungeon depth (26 levels)
       itemNameMap,
       identifiedItems: new Set(),
       detectedMonsters: new Set(),
