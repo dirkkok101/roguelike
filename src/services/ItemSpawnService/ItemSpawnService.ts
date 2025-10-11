@@ -12,6 +12,7 @@ import {
   Lantern,
   Artifact,
   OilFlask,
+  Amulet,
   PotionType,
   ScrollType,
   RingType,
@@ -814,5 +815,23 @@ export class ItemSpawnService {
       bonus: 0, // No enchantment on starting equipment
       cursed: false, // Starting equipment is never cursed
     } as Armor
+  }
+
+  /**
+   * Create Amulet of Yendor (the quest item)
+   * Always identified and never cursed
+   * Used for spawning on level 26
+   */
+  createAmulet(position: Position): Amulet {
+    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: 'Amulet of Yendor',
+      spriteName: 'amulet',
+      type: ItemType.AMULET,
+      identified: true, // Always identified
+      position,
+      cursed: false, // Never cursed
+    } as Amulet
   }
 }
