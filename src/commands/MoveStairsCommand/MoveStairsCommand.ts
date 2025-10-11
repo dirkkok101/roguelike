@@ -1,7 +1,7 @@
 import { GameState, StatusEffectType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
-import { DungeonService, DungeonConfig } from '@services/DungeonService'
+import { StairsNavigationService } from '@services/StairsNavigationService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
 import { VictoryService } from '@services/VictoryService'
@@ -16,8 +16,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 export class MoveStairsCommand implements ICommand {
   constructor(
     private direction: 'up' | 'down',
-    private dungeonService: DungeonService,
-    private dungeonConfig: DungeonConfig,
+    private stairsNavigationService: StairsNavigationService,
     private fovService: FOVService,
     private lightingService: LightingService,
     private messageService: MessageService,
@@ -50,11 +49,8 @@ export class MoveStairsCommand implements ICommand {
         return { ...state, messages }
       }
 
-      // Go down
-      const newDepth = state.currentLevel + 1
-
-      // Check for max depth
-      if (newDepth > 26) {
+      // Check if can descend
+      if (!this.stairsNavigationService.canDescend(state)) {
         const messages = this.messageService.addMessage(
           state.messages,
           'You cannot go any deeper!',
@@ -64,7 +60,7 @@ export class MoveStairsCommand implements ICommand {
         return { ...state, messages }
       }
 
-      return this.moveToLevel(state, newDepth, 'down')
+      return this.moveToLevel(state, 'down')
     } else {
       // Check for stairs up
       if (
@@ -81,11 +77,8 @@ export class MoveStairsCommand implements ICommand {
         return { ...state, messages }
       }
 
-      // Go up
-      const newDepth = state.currentLevel - 1
-
-      // Check for min depth
-      if (newDepth < 1) {
+      // Check if can ascend
+      if (!this.stairsNavigationService.canAscend(state)) {
         const messages = this.messageService.addMessage(
           state.messages,
           'You cannot go any higher! You need to find the Amulet first.',
@@ -95,32 +88,28 @@ export class MoveStairsCommand implements ICommand {
         return { ...state, messages }
       }
 
-      return this.moveToLevel(state, newDepth, 'up')
+      return this.moveToLevel(state, 'up')
     }
   }
 
   private moveToLevel(
     state: GameState,
-    newDepth: number,
     direction: 'up' | 'down'
   ): GameState {
-    // Check if level exists, if not generate it
-    let level = state.levels.get(newDepth)
-    const levels = new Map(state.levels)
-    const isNewLevel = !level // Track if this is a newly explored level
+    // Use StairsNavigationService to handle level transition (includes monster respawn with Amulet)
+    let newState = direction === 'down'
+      ? this.stairsNavigationService.descend(state)
+      : this.stairsNavigationService.ascend(state)
 
-    if (!level) {
-      // Generate new level
-      level = this.dungeonService.generateLevel(newDepth, this.dungeonConfig)
-      levels.set(newDepth, level)
-    }
+    const newDepth = newState.currentLevel
+    const level = newState.levels.get(newDepth)!
 
     // Determine spawn position using LevelService (opposite stairs)
     const preferredPosition = direction === 'down' ? level.stairsUp : level.stairsDown
     const spawnPos = this.levelService.getSpawnPosition(level, preferredPosition)
 
     // Update player position and clear SEE_INVISIBLE (Original Rogue: lasts until level change)
-    let updatedPlayer = { ...state.player, position: spawnPos }
+    let updatedPlayer = { ...newState.player, position: spawnPos }
     updatedPlayer = this.statusEffectService.removeStatusEffect(updatedPlayer, StatusEffectType.SEE_INVISIBLE)
 
     // Compute FOV for new position
@@ -131,10 +120,11 @@ export class MoveStairsCommand implements ICommand {
 
     // Mark visible tiles as explored using FOVService
     const updatedLevel = this.fovService.updateExploredTiles(level, visibleCells)
+    const levels = new Map(newState.levels)
     levels.set(newDepth, updatedLevel)
 
     const messages = this.messageService.addMessage(
-      state.messages,
+      newState.messages,
       direction === 'down'
         ? `You descend to level ${newDepth}.`
         : `You climb to level ${newDepth}.`,
@@ -143,14 +133,12 @@ export class MoveStairsCommand implements ICommand {
     )
 
     // Create new state after level change using TurnService
-    const newState = this.turnService.incrementTurn({
-      ...state,
+    newState = this.turnService.incrementTurn({
+      ...newState,
       player: updatedPlayer,
-      currentLevel: newDepth,
       levels,
       visibleCells,
       messages,
-      levelsExplored: isNewLevel ? state.levelsExplored + 1 : state.levelsExplored, // Track unique levels visited
     })
 
     // Check victory condition after moving to new level
