@@ -27,6 +27,13 @@ export class LocalStorageService {
   private readonly CONTINUE_KEY = 'roguelike_continue'
 
   /**
+   * Save version for compatibility checking
+   * Version 1: Original 10-level implementation
+   * Version 2: 26-level implementation with vorpal spawning and amulet quest
+   */
+  public readonly SAVE_VERSION = 2
+
+  /**
    * Save game state to LocalStorage
    * Auto-cleanup old saves if quota exceeded
    */
@@ -92,6 +99,18 @@ export class LocalStorageService {
       const serialized = localStorage.getItem(saveKey)
 
       if (!serialized) {
+        return null
+      }
+
+      // Check version compatibility before full deserialization
+      const parsed = JSON.parse(serialized)
+      const saveVersion = parsed.version ?? 1 // Old saves have no version field (v1)
+
+      if (saveVersion !== this.SAVE_VERSION) {
+        console.warn(
+          `Incompatible save version: found v${saveVersion}, expected v${this.SAVE_VERSION}. Deleting incompatible save...`
+        )
+        this.deleteSave(targetId)
         return null
       }
 
@@ -246,6 +265,7 @@ export class LocalStorageService {
     )
 
     const serializable = {
+      version: this.SAVE_VERSION, // Add version for compatibility checking
       ...state,
       levels: serializedLevels,
       visibleCells: Array.from(state.visibleCells), // Set → Array
