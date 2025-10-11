@@ -226,7 +226,7 @@ export class DungeonService {
   private createCorridorTile(): Tile {
     return {
       type: TileType.CORRIDOR,
-      char: '#',
+      char: '.',
       walkable: true,
       transparent: true,
       colorVisible: '#A89078',
