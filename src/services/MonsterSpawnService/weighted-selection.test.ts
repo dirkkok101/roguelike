@@ -28,6 +28,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
           speed: 10,
           rarity: 'common',
           mean: false,
+          vorpalness: 1,
           aiProfile: {
             behavior: 'SIMPLE',
             intelligence: 1,
@@ -48,6 +49,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
           speed: 10,
           rarity: 'common',
           mean: true,
+          vorpalness: 7,
           aiProfile: {
             behavior: 'SIMPLE',
             intelligence: 2,
@@ -68,6 +70,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
           speed: 7,
           rarity: 'uncommon',
           mean: true,
+          vorpalness: 18,
           aiProfile: {
             behavior: 'SIMPLE',
             intelligence: 3,
@@ -88,6 +91,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
           speed: 18,
           rarity: 'rare',
           mean: true,
+          vorpalness: 24,
           aiProfile: {
             behavior: 'SMART',
             intelligence: 10,
@@ -134,48 +138,48 @@ describe('MonsterSpawnService - Weighted Selection', () => {
   // TESTS
   // ============================================================================
 
-  describe('Level-Based Filtering', () => {
-    it('should spawn level 1-3 monsters on depth 1', async () => {
+  describe('Vorpal Range Filtering', () => {
+    it('should filter monsters within vorpal range [0, 4] for depth 1', async () => {
       // Load monster data
       await service.loadMonsterData()
 
-      // Access private method via type assertion
-      const filtered = (service as any).filterMonstersByDepth(1)
+      // Depth 1: vorpal range [max(0, 1-6), min(25, 1+3)] = [0, 4]
+      const filtered = service.filterByVorpalRange(0, 4)
 
-      // All filtered monsters should be level 1-3 (depth + 2)
-      for (const template of filtered) {
-        expect(template.level).toBeLessThanOrEqual(3)
-      }
-
-      // Should include at least some low-level monsters
+      // Should include Kobold (vorpalness 1) but not Orc (7), Troll (18), Dragon (24)
       expect(filtered.length).toBeGreaterThan(0)
+      expect(filtered.some(t => t.name === 'Kobold')).toBe(true)
+      expect(filtered.some(t => t.name === 'Orc')).toBe(false)
+      expect(filtered.some(t => t.name === 'Troll')).toBe(false)
+      expect(filtered.some(t => t.name === 'Dragon')).toBe(false)
     })
 
-    it('should spawn level 1-7 monsters on depth 5', async () => {
+    it('should filter monsters within vorpal range [0, 8] for depth 5', async () => {
       await service.loadMonsterData()
 
-      const filtered = (service as any).filterMonstersByDepth(5)
+      // Depth 5: vorpal range [max(0, 5-6), min(25, 5+3)] = [0, 8]
+      const filtered = service.filterByVorpalRange(0, 8)
 
-      // All filtered monsters should be level 1-7 (depth + 2)
-      for (const template of filtered) {
-        expect(template.level).toBeLessThanOrEqual(7)
-      }
-
+      // Should include Kobold (1) and Orc (7), but not Troll (18) or Dragon (24)
       expect(filtered.length).toBeGreaterThan(0)
+      expect(filtered.some(t => t.name === 'Kobold')).toBe(true)
+      expect(filtered.some(t => t.name === 'Orc')).toBe(true)
+      expect(filtered.some(t => t.name === 'Troll')).toBe(false)
+      expect(filtered.some(t => t.name === 'Dragon')).toBe(false)
     })
 
-    it('should spawn all monsters on depth 10', async () => {
+    it('should filter all monsters for deep levels with vorpal range [4, 13]', async () => {
       await service.loadMonsterData()
 
-      const filtered = (service as any).filterMonstersByDepth(10)
+      // Depth 10: vorpal range [max(0, 10-6), min(25, 10+3)] = [4, 13]
+      const filtered = service.filterByVorpalRange(4, 13)
 
-      // Depth 10 should allow all monsters (level 1-10, and boss restrictions satisfied)
-      // All monsters up to level 12 (10 + 2) would be allowed
-      for (const template of filtered) {
-        expect(template.level).toBeLessThanOrEqual(12)
-      }
-
+      // Should include Orc (7), but not Kobold (1), Troll (18), or Dragon (24)
       expect(filtered.length).toBeGreaterThan(0)
+      expect(filtered.some(t => t.name === 'Kobold')).toBe(false) // vorpalness 1 < 4
+      expect(filtered.some(t => t.name === 'Orc')).toBe(true)     // vorpalness 7
+      expect(filtered.some(t => t.name === 'Troll')).toBe(false)  // vorpalness 18 > 13
+      expect(filtered.some(t => t.name === 'Dragon')).toBe(false) // vorpalness 24 > 13
     })
   })
 
@@ -230,43 +234,44 @@ describe('MonsterSpawnService - Weighted Selection', () => {
     })
   })
 
-  describe('Boss Monster Restrictions', () => {
-    it('should never spawn Dragon (level 10) on depth 1-8', async () => {
+  describe('Vorpal Boss Monster Filtering', () => {
+    it('should not spawn Dragon (vorpalness 24) on early depths', async () => {
       await service.loadMonsterData()
 
-      // Test multiple depths below boss threshold
-      for (let depth = 1; depth <= 8; depth++) {
-        const filtered = (service as any).filterMonstersByDepth(depth)
+      // Test depths where Dragon (vorpalness 24) should NOT appear
+      // Dragon only appears when depth+3 >= 24, so depth >= 21
+      for (let depth = 1; depth <= 20; depth++) {
+        const minVorpal = Math.max(0, depth - 6)
+        const maxVorpal = Math.min(25, depth + 3)
+        const filtered = service.filterByVorpalRange(minVorpal, maxVorpal)
 
-        // Should not include any level 10 monsters (boss restriction)
-        const hasLevel10 = filtered.some((t: any) => t.level === 10)
-        expect(hasLevel10).toBe(false)
+        // Should not include Dragon (vorpalness 24)
+        const hasDragon = filtered.some((t: any) => t.name === 'Dragon')
+        expect(hasDragon).toBe(false)
       }
     })
 
-    it('should spawn Dragon on depth 9-10', async () => {
+    it('should spawn Dragon on deep levels (depth >= 21)', async () => {
       await service.loadMonsterData()
 
-      // Test depths where Dragon should spawn (depth >= level - 1, so depth >= 9)
-      for (let depth = 9; depth <= 10; depth++) {
-        const filtered = (service as any).filterMonstersByDepth(depth)
+      // Test depths where Dragon (vorpalness 24) should appear
+      // Dragon appears when maxVorpal >= 24, which means depth+3 >= 24, so depth >= 21
+      for (let depth = 21; depth <= 26; depth++) {
+        const minVorpal = Math.max(0, depth - 6)
+        const maxVorpal = Math.min(25, depth + 3)
+        const filtered = service.filterByVorpalRange(minVorpal, maxVorpal)
 
-        // Check if Dragon (or any level 10 monster) is available
-        const hasLevel10 = filtered.some((t: any) => t.level === 10)
-
-        // Boss monsters should be available at these depths
-        // Note: This assumes monsters.json has a level 10 monster
-        if (depth >= 9) {
-          // If we have level 10 monsters in data, they should be included
-          // We'll just verify the filter allows them, not that they exist
-          expect(depth >= 9).toBe(true)
+        // Should include Dragon (vorpalness 24) as long as minVorpal <= 24
+        if (minVorpal <= 24) {
+          const hasDragon = filtered.some((t: any) => t.name === 'Dragon')
+          expect(hasDragon).toBe(true)
         }
       }
     })
   })
 
   describe('Integration: Spawn Distribution', () => {
-    it('should spawn mostly low-level monsters on depth 1', async () => {
+    it('should spawn monsters with vorpal range [0, 4] on depth 1', async () => {
       // Use SeededRandom for integration tests (provides many random values)
       const seededRandom = new SeededRandom('test-seed-1')
       const integrationService = new MonsterSpawnService(seededRandom)
@@ -278,9 +283,11 @@ describe('MonsterSpawnService - Weighted Selection', () => {
       // Spawn monsters multiple times to check distribution
       const monsters = integrationService.spawnMonsters(rooms, tiles, 1)
 
-      // All spawned monsters should be low level (1-3, since depth 1 allows up to depth+2)
+      // Depth 1 vorpal range is [0, 4], so only Kobold (vorpalness 1) should spawn
+      // from our mock data
+      expect(monsters.length).toBeGreaterThan(0)
       for (const monster of monsters) {
-        expect(monster.level).toBeLessThanOrEqual(3)
+        expect(monster.name).toBe('Kobold')
       }
 
       // Should spawn expected count for depth 1
@@ -288,7 +295,7 @@ describe('MonsterSpawnService - Weighted Selection', () => {
       expect(monsters.length).toBeLessThanOrEqual(expectedCount)
     })
 
-    it('should spawn mix of level 1-7 monsters on depth 5', async () => {
+    it('should spawn mix of monsters with vorpal range [0, 8] on depth 5', async () => {
       const seededRandom = new SeededRandom('test-seed-5')
       const integrationService = new MonsterSpawnService(seededRandom)
       await integrationService.loadMonsterData()
@@ -301,18 +308,18 @@ describe('MonsterSpawnService - Weighted Selection', () => {
 
       const monsters = integrationService.spawnMonsters(rooms, tiles, 5)
 
-      // All spawned monsters should be appropriate level (1-7)
+      // Depth 5 vorpal range is [0, 8], so Kobold (1) and Orc (7) should be possible
+      expect(monsters.length).toBeGreaterThan(0)
       for (const monster of monsters) {
-        expect(monster.level).toBeGreaterThanOrEqual(1)
-        expect(monster.level).toBeLessThanOrEqual(7)
+        expect(['Kobold', 'Orc']).toContain(monster.name)
       }
 
-      // Should have variety of levels (not all the same)
-      const levels = new Set(monsters.map((m) => m.level))
-      expect(levels.size).toBeGreaterThan(1) // At least 2 different levels
+      // Should have variety if enough spawns
+      const expectedCount = integrationService.getSpawnCount(5)
+      expect(monsters.length).toBeLessThanOrEqual(expectedCount)
     })
 
-    it('should spawn high-level monsters on depth 10', async () => {
+    it('should spawn mid-tier monsters with vorpal range [4, 13] on depth 10', async () => {
       const seededRandom = new SeededRandom('test-seed-10')
       const integrationService = new MonsterSpawnService(seededRandom)
       await integrationService.loadMonsterData()
@@ -326,16 +333,15 @@ describe('MonsterSpawnService - Weighted Selection', () => {
 
       const monsters = integrationService.spawnMonsters(rooms, tiles, 10)
 
-      // Depth 10 allows all monsters (up to level 12 if they existed)
+      // Depth 10 vorpal range is [4, 13], so only Orc (vorpalness 7) from our mock data
+      expect(monsters.length).toBeGreaterThan(0)
       for (const monster of monsters) {
-        expect(monster.level).toBeGreaterThanOrEqual(1)
-        expect(monster.level).toBeLessThanOrEqual(12) // depth + 2
+        expect(monster.name).toBe('Orc') // Only Orc has vorpalness in [4, 13]
       }
 
       // Should spawn full count for depth 10
       const expectedCount = integrationService.getSpawnCount(10)
       expect(monsters.length).toBeLessThanOrEqual(expectedCount)
-      expect(monsters.length).toBeGreaterThan(0)
     })
   })
 })

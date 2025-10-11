@@ -14,6 +14,16 @@ import {
 // INVENTORY SERVICE - Item management and equipment
 // ============================================================================
 
+/**
+ * Represents a stacked item (for display purposes)
+ * Used to group identical light sources together in inventory
+ */
+export interface StackedItem {
+  item: Item
+  quantity: number
+  totalFuel: number // Total fuel across all items in stack
+}
+
 export class InventoryService {
   private readonly MAX_INVENTORY_SIZE = 26 // a-z letters
 
@@ -257,5 +267,82 @@ export class InventoryService {
    */
   getAvailableSlots(player: Player): number {
     return this.MAX_INVENTORY_SIZE - player.inventory.length
+  }
+
+  /**
+   * Stack light sources by type and fuel amount
+   *
+   * Groups torches/oil flasks with identical fuel values into stacks.
+   * Each stack tracks quantity and total available fuel.
+   * Non-stackable items are returned as individual stacks with quantity = 1.
+   *
+   * @param inventory - Player's inventory
+   * @returns Array of stacked items for display
+   */
+  stackLightSources(inventory: Item[]): StackedItem[] {
+    const stacks = new Map<string, StackedItem>()
+
+    for (const item of inventory) {
+      // Only stack torches and oil flasks
+      if (item.type !== ItemType.TORCH && item.type !== ItemType.OIL_FLASK) {
+        stacks.set(item.id, { item, quantity: 1, totalFuel: 0 })
+        continue
+      }
+
+      // Get fuel amount for this item
+      let fuel = 0
+      if (item.type === ItemType.TORCH && 'fuel' in item) {
+        fuel = item.fuel
+      } else if (item.type === ItemType.OIL_FLASK && 'fuelAmount' in item) {
+        fuel = item.fuelAmount
+      }
+
+      // Create stack key: type + fuel amount
+      const stackKey = `${item.type}-${fuel}`
+
+      if (stacks.has(stackKey)) {
+        // Add to existing stack
+        const stack = stacks.get(stackKey)!
+        stack.quantity += 1
+        stack.totalFuel += fuel
+      } else {
+        // Create new stack
+        stacks.set(stackKey, {
+          item,
+          quantity: 1,
+          totalFuel: fuel,
+        })
+      }
+    }
+
+    return Array.from(stacks.values())
+  }
+
+  /**
+   * Get display name for item with optional stacking info
+   *
+   * Format for stacked items: "Torch (×3, 1950 turns)"
+   * Format for single items: "Torch"
+   *
+   * @param item - Item to format
+   * @param quantity - Number of items in stack (default: 1)
+   * @returns Formatted display name
+   */
+  getDisplayName(item: Item, quantity: number = 1): string {
+    if (quantity === 1) {
+      return item.name
+    }
+
+    // Get fuel amount for this item type
+    let fuelPerItem = 0
+    if (item.type === ItemType.TORCH && 'fuel' in item) {
+      fuelPerItem = item.fuel
+    } else if (item.type === ItemType.OIL_FLASK && 'fuelAmount' in item) {
+      fuelPerItem = item.fuelAmount
+    }
+
+    const totalFuel = fuelPerItem * quantity
+
+    return `${item.name} (×${quantity}, ${totalFuel} turns)`
   }
 }

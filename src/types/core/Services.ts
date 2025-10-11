@@ -29,6 +29,7 @@ import { CurseService } from '@services/CurseService'
 import { GoldService } from '@services/GoldService'
 import { TargetingService } from '@services/TargetingService'
 import { RingService } from '@services/RingService'
+import { StairsNavigationService } from '@services/StairsNavigationService'
 
 /**
  * Dependency injection container for game services and configuration
@@ -60,6 +61,7 @@ export interface GameDependencies {
 
   // World generation
   dungeon: DungeonService
+  stairsNavigation: StairsNavigationService
 
   // Configuration (plain objects, not services)
   dungeonConfig: DungeonConfig

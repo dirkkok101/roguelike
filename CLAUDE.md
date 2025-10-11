@@ -2,7 +2,7 @@
 
 **Project**: Web-based roguelike inspired by 1980 Rogue with sprite-based rendering
 **Stack**: TypeScript + Vite + Jest + Canvas 2D (AngbandTK tileset)
-**Current Phase**: Phase 1 - Foundation & Core Loop (5/16 tasks complete)
+**Current Implementation**: 26-level authentic Rogue implementation complete
 
 ---
 
@@ -52,15 +52,18 @@
 ## Project Overview
 
 Classic roguelike with modern sprite rendering:
-- **10 procedurally generated dungeon levels**
+- **26 procedurally generated dungeon levels** (authentic 1980 Rogue depth)
 - **26 monsters** (A-Z) with varied AI behaviors
+- **Vorpal spawning system** ([depth-6, depth+3] range for authentic difficulty curve)
 - **Sprite-based graphics** (AngbandTK Gervais 32×32 tileset)
 - **Light management system** (torches, lanterns, artifacts)
 - **Field of view** based on light radius (1-3 tiles)
 - **Turn-based combat** with hunger and permadeath
 - **Three-state visibility** (visible/explored/unexplored with opacity)
+- **Amulet quest** with return journey and monster respawning
 
-**Win condition**: Retrieve Amulet of Yendor from Level 10, return to Level 1.
+**Win condition**: Retrieve Amulet of Yendor from Level 26, return to Level 1.
+**Journey**: 52 total levels (26 down + 26 up with Amulet)
 
 ---
 
@@ -200,9 +203,11 @@ This project follows **Clean Architecture** and **Functional Programming** princ
 ## Key Systems Reference
 
 ### Lighting System
-- **Torches**: Radius 2, 500 turns fuel
-- **Lanterns**: Radius 2, refillable (500 per oil flask)
+- **Torches**: Radius 2, 650 turns fuel
+- **Lanterns**: Radius 2, refillable (750 starting, 1500 max capacity, 600 per oil flask)
 - **Artifacts**: Radius 3, permanent (no fuel)
+
+**Rebalanced for 26-level journey** (52 total levels with return)
 
 **Details**: [Core Systems - Lighting](./docs/systems-core.md#lighting-system)
 
@@ -582,8 +587,10 @@ See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 
 ---
 
-**Last Updated**: 2025-10-10
+**Last Updated**: 2025-10-11 (26-level implementation complete)
 **Developer**: Dirk Kok
 **Repository**: https://github.com/dirkkok101/roguelike
 
 **Note**: Game supports dual rendering modes (Sprite + ASCII). Toggle with `T` key during gameplay. Preference persists to localStorage.
+
+**Recent Major Update**: Extended dungeon from 10 to 26 levels with authentic 1980 Rogue vorpal spawning system, Amulet of Yendor quest, and return journey with monster respawning.

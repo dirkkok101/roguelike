@@ -33,8 +33,8 @@ describe('DungeonService - Amulet Spawning', () => {
     dungeonService = new DungeonService(random, mockMonsterSpawnService as MonsterSpawnService, mockItemData)
   })
 
-  test('spawns amulet on level 10', () => {
-    const level = dungeonService.generateLevel(10, config)
+  test('spawns amulet on level 26', () => {
+    const level = dungeonService.generateLevel(26, config)
     const amulets = level.items.filter((i) => i.type === ItemType.AMULET)
 
     expect(amulets).toHaveLength(1)
@@ -42,8 +42,8 @@ describe('DungeonService - Amulet Spawning', () => {
     expect(amulets[0].identified).toBe(true)
   })
 
-  test('does not spawn amulet on levels 1-9', () => {
-    for (let depth = 1; depth <= 9; depth++) {
+  test('does not spawn amulet on levels 1-25', () => {
+    for (let depth = 1; depth <= 25; depth++) {
       const level = dungeonService.generateLevel(depth, config)
       const amulets = level.items.filter((i) => i.type === ItemType.AMULET)
       expect(amulets).toHaveLength(0)
@@ -51,7 +51,7 @@ describe('DungeonService - Amulet Spawning', () => {
   })
 
   test('amulet spawns in last room', () => {
-    const level = dungeonService.generateLevel(10, config)
+    const level = dungeonService.generateLevel(26, config)
     const amulet = level.items.find((i) => i.type === ItemType.AMULET)
     const lastRoom = level.rooms[level.rooms.length - 1]
 
@@ -63,13 +63,13 @@ describe('DungeonService - Amulet Spawning', () => {
   })
 
   test('amulet is always identified', () => {
-    const level = dungeonService.generateLevel(10, config)
+    const level = dungeonService.generateLevel(26, config)
     const amulet = level.items.find((i) => i.type === ItemType.AMULET)
 
     expect(amulet?.identified).toBe(true)
   })
 
-  test('spawnAmulet returns unmodified level for non-level-10', () => {
+  test('spawnAmulet returns unmodified level for non-level-26', () => {
     const level = dungeonService.generateLevel(5, config)
     const originalItemCount = level.items.length
 
@@ -79,8 +79,8 @@ describe('DungeonService - Amulet Spawning', () => {
     expect(result.items.filter((i) => i.type === ItemType.AMULET)).toHaveLength(0)
   })
 
-  test('spawnAmulet adds amulet to level 10', () => {
-    const level = dungeonService.generateLevel(10, config)
+  test('spawnAmulet adds amulet to level 26', () => {
+    const level = dungeonService.generateLevel(26, config)
 
     // Count items before (amulet already spawned by generateLevel)
     const amulets = level.items.filter((i) => i.type === ItemType.AMULET)
@@ -90,7 +90,7 @@ describe('DungeonService - Amulet Spawning', () => {
   })
 
   test('amulet spawns on walkable floor tile', () => {
-    const level = dungeonService.generateLevel(10, config)
+    const level = dungeonService.generateLevel(26, config)
     const amulet = level.items.find((i) => i.type === ItemType.AMULET)
 
     expect(amulet).toBeDefined()
@@ -101,10 +101,10 @@ describe('DungeonService - Amulet Spawning', () => {
     }
   })
 
-  test('level 10 has no stairs down', () => {
-    const level = dungeonService.generateLevel(10, config)
+  test('level 26 has no stairs down', () => {
+    const level = dungeonService.generateLevel(26, config)
 
-    // Level 10 is the deepest level, should not have stairs down
+    // Level 26 is the deepest level, should not have stairs down
     expect(level.stairsDown).toBeNull()
   })
 })

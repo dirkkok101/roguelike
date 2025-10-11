@@ -1,6 +1,6 @@
 import { MoveStairsCommand } from './MoveStairsCommand'
 import { MessageService } from '@services/MessageService'
-import { DungeonService, DungeonConfig } from '@services/DungeonService'
+import { StairsNavigationService } from '@services/StairsNavigationService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
@@ -8,24 +8,21 @@ import { VictoryService } from '@services/VictoryService'
 import { LevelService } from '@services/LevelService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
-import { SeededRandom, MockRandom } from '@services/RandomService'
+import { MockRandom } from '@services/RandomService'
 import { GameState, Player, Position, Level } from '@game/core/core'
-import { mockItemData } from '@/test-utils'
 
 describe('MoveStairsCommand', () => {
   let messageService: MessageService
-  let dungeonService: DungeonService
+  let stairsNavigationService: StairsNavigationService
   let fovService: FOVService
   let lightingService: LightingService
   let victoryService: VictoryService
   let levelService: LevelService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
-  let dungeonConfig: DungeonConfig
 
   beforeEach(() => {
     messageService = new MessageService()
-    const random = new SeededRandom('test-seed')
     const mockRandom = new MockRandom()
 
     // Mock MonsterSpawnService
@@ -35,24 +32,13 @@ describe('MoveStairsCommand', () => {
       getSpawnCount: jest.fn().mockReturnValue(5),
     } as unknown as MonsterSpawnService
 
-    dungeonService = new DungeonService(random, mockMonsterSpawnService, mockItemData)
+    stairsNavigationService = new StairsNavigationService(mockMonsterSpawnService)
     statusEffectService = new StatusEffectService()
     fovService = new FOVService(statusEffectService)
     lightingService = new LightingService(mockRandom)
     victoryService = new VictoryService()
     levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
-
-    dungeonConfig = {
-      width: 80,
-      height: 22,
-      minRooms: 4,
-      maxRooms: 9,
-      minRoomSize: 3,
-      maxRoomSize: 8,
-      minSpacing: 2,
-      loopChance: 0.25,
-    }
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {
@@ -120,15 +106,23 @@ describe('MoveStairsCommand', () => {
   }
 
   function createTestState(player: Player, currentLevel: number = 1): GameState {
+    // Create all 26 levels (authentic Rogue has all levels pre-generated)
+    const levels = new Map<number, Level>()
+    for (let depth = 1; depth <= 26; depth++) {
+      levels.set(depth, createTestLevel(depth))
+    }
+
     return {
       player,
-      levels: new Map([[currentLevel, createTestLevel(currentLevel)]]),
+      levels,
       currentLevel,
+      maxDepth: 26,
       messages: [],
       turnCount: 0,
       isGameOver: false,
       hasWon: false,
       hasAmulet: false,
+      levelsVisitedWithAmulet: new Set(),
       visibleCells: new Set(),
       seed: 'test-seed',
       gameId: 'test-game-id',
@@ -149,8 +143,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -172,8 +165,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -188,14 +180,17 @@ describe('MoveStairsCommand', () => {
       expect(result.player.position).toEqual(newLevel.stairsUp)
     })
 
-    test('generates new level if it does not exist', () => {
+    test('uses pre-generated level when descending', () => {
       const player = createTestPlayer({ x: 17, y: 7 })
       const state = createTestState(player, 1)
 
+      // Verify all 26 levels exist before any movement
+      expect(state.levels.size).toBe(26)
+      expect(state.levels.has(2)).toBe(true)
+
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -206,8 +201,10 @@ describe('MoveStairsCommand', () => {
       )
       const result = command.execute(state)
 
+      // Level 2 should still exist and be used
       expect(result.levels.has(2)).toBe(true)
       expect(result.levels.get(2)!.depth).toBe(2)
+      expect(result.currentLevel).toBe(2)
     })
 
     test('reuses existing level when revisiting', () => {
@@ -218,8 +215,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -243,8 +239,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -272,8 +267,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -298,8 +292,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'up',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -323,8 +316,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'up',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -344,8 +336,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'up',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -373,8 +364,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'up',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -399,8 +389,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -421,8 +410,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -449,8 +437,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'down',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,
@@ -473,8 +460,7 @@ describe('MoveStairsCommand', () => {
 
       const command = new MoveStairsCommand(
         'up',
-        dungeonService,
-        dungeonConfig,
+        stairsNavigationService,
         fovService,
         lightingService,
         messageService,

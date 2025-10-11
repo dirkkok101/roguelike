@@ -80,6 +80,7 @@ export class InputHandler {
   private readonly messageService: MessageService
   private readonly random: IRandomService
   private readonly dungeonService: DungeonService
+  private readonly stairsNavigationService: StairsNavigationService
   private readonly dungeonConfig: DungeonConfig
   private readonly combatService: CombatService
   private readonly inventoryService: InventoryService
@@ -118,6 +119,7 @@ export class InputHandler {
     this.messageService = services.message
     this.random = services.random
     this.dungeonService = services.dungeon
+    this.stairsNavigationService = services.stairsNavigation
     this.dungeonConfig = services.dungeonConfig
     this.combatService = services.combat
     this.inventoryService = services.inventory
@@ -287,8 +289,7 @@ export class InputHandler {
         event.preventDefault()
         return new MoveStairsCommand(
           'down',
-          this.dungeonService,
-          this.dungeonConfig,
+          this.stairsNavigationService,
           this.fovService,
           this.lightingService,
           this.messageService,
@@ -302,8 +303,7 @@ export class InputHandler {
         event.preventDefault()
         return new MoveStairsCommand(
           'up',
-          this.dungeonService,
-          this.dungeonConfig,
+          this.stairsNavigationService,
           this.fovService,
           this.lightingService,
           this.messageService,

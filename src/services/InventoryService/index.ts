@@ -1,1 +1,1 @@
-export { InventoryService } from './InventoryService'
+export { InventoryService, type StackedItem } from './InventoryService'
