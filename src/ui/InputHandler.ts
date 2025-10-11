@@ -26,6 +26,7 @@ import { KillAllMonstersCommand } from '@commands/KillAllMonstersCommand'
 import { ToggleFOVDebugCommand } from '@commands/ToggleFOVDebugCommand'
 import { TogglePathDebugCommand } from '@commands/TogglePathDebugCommand'
 import { ToggleAIDebugCommand } from '@commands/ToggleAIDebugCommand'
+import { ToggleFOVModeCommand } from '@commands/ToggleFOVModeCommand'
 import { IdentifyAllItemsCommand } from '@commands/IdentifyAllItemsCommand'
 import { SpawnItemCommand } from '@commands/SpawnItemCommand'
 import { RestService } from '@services/RestService'
@@ -842,6 +843,14 @@ export class InputHandler {
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new IdentifyAllItemsCommand(this.debugService)
+        }
+        return null
+
+      case 'x':
+        // Toggle FOV mode (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
+          event.preventDefault()
+          return new ToggleFOVModeCommand(this.debugService)
         }
         return null
 
