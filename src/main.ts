@@ -44,6 +44,7 @@ import { TargetingService } from '@services/TargetingService'
 import { AssetLoaderService } from '@services/AssetLoaderService'
 import { TerrainSpriteService } from '@services/TerrainSpriteService'
 import { WanderingMonsterService } from '@services/WanderingMonsterService'
+import { StairsNavigationService } from '@services/StairsNavigationService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -124,6 +125,7 @@ async function initializeGame() {
   const movementService = new MovementService(random, statusEffectService)
 
   const dungeonService = new DungeonService(random, monsterSpawnService, itemData)
+  const stairsNavigationService = new StairsNavigationService(monsterSpawnService)
   const ringService = new RingService(random)
   const hungerService = new HungerService(random, ringService, debugService)
   const regenerationService = new RegenerationService(ringService)
@@ -527,6 +529,7 @@ async function initializeGame() {
       turn: turnService,
       level: levelService,
       dungeon: dungeonService,
+      stairsNavigation: stairsNavigationService,
       dungeonConfig: dungeonConfig,
       combat: combatService,
       gold: goldService,
