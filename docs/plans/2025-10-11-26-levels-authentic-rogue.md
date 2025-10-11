@@ -1792,13 +1792,15 @@ git commit -m "balance: scale food spawn with depth (10%+bonus), increase torch/
 
 ---
 
-## Phase 8: Light Source Stacking
+## Phase 8: Light Source Stacking ✅
 
-### Task 8.1: Implement Light Source Stacking in Inventory
+### Task 8.1: Implement Light Source Stacking in Inventory ✅
 
 **Files:**
 - Modify: `src/services/InventoryService/InventoryService.ts` (or wherever inventory is managed)
 - Create: `src/services/InventoryService/light-stacking.test.ts`
+
+**Completed:** Implemented light source stacking with stackLightSources() and getDisplayName() methods. All 9 tests passing.
 
 **Step 1: Write test for light source stacking**
 
