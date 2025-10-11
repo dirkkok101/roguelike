@@ -82,11 +82,12 @@ export class DoorService {
 
   /**
    * Reveals a secret door, making it visible and updating tile
+   * Transitions door state from SECRET to CLOSED
    * @returns Updated level with secret door revealed
    */
   revealSecretDoor(level: Level, door: Door): Level {
-    // Mark door as discovered
-    const revealedDoor = { ...door, discovered: true }
+    // Mark door as discovered and transition to CLOSED state
+    const revealedDoor = { ...door, discovered: true, state: DoorState.CLOSED }
     const updatedDoors = level.doors.map((d) =>
       d.position.x === door.position.x && d.position.y === door.position.y ? revealedDoor : d
     )

@@ -108,7 +108,7 @@ describe('DoorService - Secret Door Revealing', () => {
       expect(door.discovered).toBe(false)
     })
 
-    test('preserves door state', () => {
+    test('transitions door state from SECRET to CLOSED', () => {
       const door = createTestDoor({ state: DoorState.SECRET })
       const level = createTestLevel([door])
 
@@ -117,7 +117,7 @@ describe('DoorService - Secret Door Revealing', () => {
       const revealedDoor = result.doors.find(
         (d) => d.position.x === 5 && d.position.y === 5
       )
-      expect(revealedDoor?.state).toBe(DoorState.SECRET)
+      expect(revealedDoor?.state).toBe(DoorState.CLOSED)
     })
 
     test('preserves door orientation', () => {
