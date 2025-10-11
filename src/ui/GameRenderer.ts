@@ -480,28 +480,60 @@ export class GameRenderer {
   private renderStats(state: GameState): void {
     const { player } = state
 
-    // HP color (green > yellow > red > blinking red)
+    // HP calculation with color classes
     const hpPercent = (player.hp / player.maxHp) * 100
-    const hpColor =
-      hpPercent >= GameRenderer.HP_THRESHOLDS.HEALTHY
-        ? '#00FF00'
-        : hpPercent >= GameRenderer.HP_THRESHOLDS.WOUNDED
-        ? '#FFDD00'
-        : hpPercent >= GameRenderer.HP_THRESHOLDS.CRITICAL
-        ? '#FF8800'
-        : '#FF0000'
-    const hpBlinkClass = hpPercent < GameRenderer.HP_THRESHOLDS.BLINKING ? ' hp-critical-blink' : ''
-    const hpWarning = hpPercent < GameRenderer.HP_THRESHOLDS.CRITICAL ? ' ⚠️' : ''
+    const hpClass =
+      hpPercent >= 75 ? 'hp' :
+      hpPercent >= 50 ? 'hp wounded' :
+      hpPercent >= 25 ? 'hp critical' :
+      'hp danger'
+    const hpBlink = hpPercent < 10 ? ' hp-critical-blink' : ''
 
-    // Get XP progress for display
+    // XP calculation
     const xpNeeded = this.levelingService.getXPForNextLevel(player.level)
+    const xpPercent = xpNeeded === Infinity ? 100 : (player.xp / xpNeeded) * 100
     const xpDisplay = xpNeeded === Infinity ? `${player.xp} (MAX)` : `${player.xp}/${xpNeeded}`
+
+    // Hunger calculation
+    const hungerPercent = Math.min(100, (player.hunger / 1300) * 100)
+    const hungerClass =
+      hungerPercent < 10 ? 'hunger critical' :
+      hungerPercent < 25 ? 'hunger warning' :
+      'hunger'
+    const hungerLabel =
+      hungerPercent === 0 ? 'STARVING!' :
+      hungerPercent < 10 ? 'Fainting' :
+      hungerPercent < 25 ? 'Hungry' :
+      'Fed'
+
+    // Light calculation
+    let lightPercent = 0
+    let lightClass = 'light'
+    let lightLabel = 'None!'
+    const lightSource = player.equipment.lightSource
+
+    if (lightSource) {
+      if ('fuel' in lightSource && 'maxFuel' in lightSource) {
+        const fuel = lightSource.fuel
+        const maxFuel = lightSource.maxFuel
+        lightPercent = (fuel / maxFuel) * 100
+        lightClass =
+          lightPercent < 10 && fuel > 0 ? 'light critical' :
+          lightPercent < 25 ? 'light warning' :
+          'light'
+        lightLabel = `${fuel}`
+      } else {
+        // Artifact - permanent
+        lightPercent = 100
+        lightLabel = '∞'
+      }
+    }
 
     // Ring bonuses
     const strBonus = this.ringService.getStrengthBonus(player)
     const acBonus = this.ringService.getACBonus(player)
 
-    // Format strength display with exceptional strength (18/XX) support
+    // Format strength with exceptional strength support
     const formatStrength = (str: number, percentile: number | undefined): string => {
       if (str === 18 && percentile !== undefined) {
         return `18/${percentile.toString().padStart(2, '0')}`
@@ -515,59 +547,12 @@ export class GameRenderer {
       ? `${currentStr}(${strBonus > 0 ? '+' : ''}${strBonus})/${maxStr}`
       : `${currentStr}/${maxStr}`
 
-    const acDisplay = acBonus !== 0 ? `${player.ac}(${acBonus > 0 ? '+' : ''}${acBonus})` : `${player.ac}`
+    const acDisplay = acBonus !== 0
+      ? `${player.ac}(${acBonus > 0 ? '+' : ''}${acBonus})`
+      : `${player.ac}`
 
-    // Hunger bar
-    const hungerPercent = Math.min(100, (player.hunger / GameRenderer.HUNGER_MAX) * 100)
-    const hungerLabel = hungerPercent === 0 ? 'STARVING!' : hungerPercent < 10 ? 'Fainting' : hungerPercent < 25 ? 'Hungry' : 'Fed'
-    const hungerWarning = hungerPercent < 25 ? ' 🍖' : ''
-
-    // Light bar
-    const lightSource = player.equipment.lightSource
-    let lightPercent = 0
-    let lightLabel = 'None!'
-    let lightWarning = ''
-    if (lightSource) {
-      if ('fuel' in lightSource && 'maxFuel' in lightSource) {
-        const fuel = lightSource.fuel
-        const maxFuel = lightSource.maxFuel
-        lightPercent = (fuel / maxFuel) * 100
-        lightLabel = `${fuel}`
-        lightWarning = lightPercent < 10 && fuel > 0 ? ' 🔥' : lightPercent === 0 ? ' OUT!' : ''
-      } else {
-        // Artifact - permanent
-        lightPercent = 100
-        lightLabel = '∞'
-      }
-    }
-
-    this.statsContainer.innerHTML = `
-      <!-- Single Row: 4 Panels Side-by-Side -->
-      <div class="stats-row">
-        <div class="stats-panel">
-          <div class="stats-panel-header">Combat</div>
-          <div class="stats-panel-content">
-            <div class="${hpBlinkClass}" style="color: ${hpColor}">HP: ${player.hp}/${player.maxHp}${hpWarning}</div>
-            <div>Str: ${strDisplay}</div>
-            <div>AC: ${acDisplay}</div>
-            <div>Lvl: ${player.level}</div>
-            <div>XP: ${xpDisplay}</div>
-          </div>
-        </div>
-        <div class="stats-panel">
-          <div class="stats-panel-header">Resources</div>
-          <div class="stats-panel-content">
-            <div>Gold: ${player.gold}</div>
-            <div>Hunger: ${hungerLabel}${hungerWarning}</div>
-            <div>Depth: ${state.currentLevel}</div>
-            <div>Turn: ${state.turnCount}</div>
-            <div>Torch: ${lightLabel}${lightWarning}</div>
-          </div>
-        </div>
-        ${this.renderEquipmentSlots(state)}
-        ${this.renderStatusEffects(state)}
-      </div>
-    `
+    // HTML rendering will be added in next task...
+    this.statsContainer.innerHTML = ''  // Placeholder for now
   }
 
   private renderMessages(state: GameState): void {
