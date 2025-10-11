@@ -247,6 +247,39 @@ export class ItemSpawnService {
   }
 
   /**
+   * Calculate food spawn weight for a given depth
+   *
+   * Base: 10%
+   * Depth bonus: +1% every 5 levels
+   *
+   * Depth 1-4: 10 weight
+   * Depth 5-9: 11 weight
+   * Depth 10-14: 12 weight
+   * Depth 15-19: 13 weight
+   * Depth 20-24: 14 weight
+   * Depth 25-26: 15 weight
+   */
+  private getFoodSpawnWeight(depth: number): number {
+    const baseWeight = 10
+    const depthBonus = Math.floor(depth / 5)
+    return baseWeight + depthBonus
+  }
+
+  /**
+   * Calculate torch spawn weight (fixed 7% across all depths)
+   */
+  private getTorchSpawnWeight(depth: number): number {
+    return 7  // 7% spawn rate
+  }
+
+  /**
+   * Calculate oil flask spawn weight (fixed 5% across all depths)
+   */
+  private getOilFlaskSpawnWeight(depth: number): number {
+    return 5  // 5% spawn rate
+  }
+
+  /**
    * Spawn items in dungeon rooms with rarity-based selection
    */
   spawnItems(
@@ -289,26 +322,29 @@ export class ItemSpawnService {
             : 'rare'
 
         // Pick item category with depth-based weights
-        // Early game (1-3): More torches, no lanterns
-        // Mid game (4-7): Normal torch/lantern/oil mix
-        // Late game (8-10): Fewer torches, more lanterns/oil, rare artifacts
+        // Resource spawn rates balanced for 26-level journey:
+        // - Food: 10% base + 1% per 5 levels (10-15%)
+        // - Torch: 7% (consistent across all depths)
+        // - Oil: 5% (consistent across all depths)
+        // - Lanterns: Scale with depth (0% early, 8-12% late)
         const categories: string[] = []
 
         // Base categories (12 each, 8 for wand)
         for (let j = 0; j < 12; j++) {
-          categories.push('weapon', 'armor', 'potion', 'scroll', 'ring', 'food')
+          categories.push('weapon', 'armor', 'potion', 'scroll', 'ring')
         }
         for (let j = 0; j < 8; j++) {
           categories.push('wand')
         }
 
-        // Extra food weight (total food weight: 18)
-        for (let j = 0; j < 6; j++) {
+        // Food (depth-scaled: 10-15%)
+        const foodWeight = this.getFoodSpawnWeight(depth)
+        for (let j = 0; j < foodWeight; j++) {
           categories.push('food')
         }
 
-        // Torches (depth-based)
-        const torchWeight = depth <= 3 ? 20 : depth <= 7 ? 15 : 10
+        // Torches (7% across all depths)
+        const torchWeight = this.getTorchSpawnWeight(depth)
         for (let j = 0; j < torchWeight; j++) {
           categories.push('torch')
         }
@@ -319,8 +355,8 @@ export class ItemSpawnService {
           categories.push('lantern')
         }
 
-        // Oil flasks (depth-based)
-        const oilWeight = depth <= 3 ? 3 : depth <= 7 ? 10 : 12
+        // Oil flasks (5% across all depths)
+        const oilWeight = this.getOilFlaskSpawnWeight(depth)
         for (let j = 0; j < oilWeight; j++) {
           categories.push('oil_flask')
         }
