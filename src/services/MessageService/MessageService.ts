@@ -20,7 +20,7 @@ export class MessageService {
     // Check if last message is identical (for grouping)
     const lastMessage = messages[messages.length - 1]
 
-    if (lastMessage && lastMessage.text === text && lastMessage.turn === turn) {
+    if (lastMessage && lastMessage.text === text) {
       // Group identical messages
       const count = (lastMessage.count || 1) + 1
       const updatedMessages = [...messages]
@@ -72,7 +72,7 @@ export class MessageService {
       if (msg.count && msg.count > 1) {
         return {
           ...msg,
-          text: `${msg.text} (x${msg.count})`,
+          text: `${msg.text} x${msg.count}`,
         }
       }
       return msg

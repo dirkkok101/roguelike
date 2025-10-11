@@ -41,18 +41,35 @@ describe('MessageService - Grouping and Importance', () => {
       expect(messages[1].count).toBeUndefined()
     })
 
-    test('does not group messages from different turns', () => {
+    test('groups identical messages across different turns', () => {
       // Arrange
       let messages: Message[] = []
 
       // Act
       messages = service.addMessage(messages, 'You hit the Orc.', 'combat', 1)
       messages = service.addMessage(messages, 'You hit the Orc.', 'combat', 2)
+      messages = service.addMessage(messages, 'You hit the Orc.', 'combat', 3)
 
       // Assert
-      expect(messages.length).toBe(2)
-      expect(messages[0].count).toBeUndefined()
-      expect(messages[1].count).toBeUndefined()
+      expect(messages.length).toBe(1)
+      expect(messages[0].count).toBe(3)
+    })
+
+    test('resets count when different message appears', () => {
+      // Arrange
+      let messages: Message[] = []
+
+      // Act
+      messages = service.addMessage(messages, 'You hit.', 'combat', 1)
+      messages = service.addMessage(messages, 'You hit.', 'combat', 2)
+      messages = service.addMessage(messages, 'You miss.', 'combat', 3)
+      messages = service.addMessage(messages, 'You hit.', 'combat', 4)
+
+      // Assert
+      expect(messages.length).toBe(3)
+      expect(messages[0].count).toBe(2) // First "You hit." x2
+      expect(messages[1].count).toBeUndefined() // "You miss."
+      expect(messages[2].count).toBeUndefined() // New "You hit." (count=1, so undefined)
     })
 
     test('displays grouped messages with count', () => {
@@ -66,7 +83,7 @@ describe('MessageService - Grouping and Importance', () => {
       const recent = service.getRecentMessages(messages, 5)
 
       // Assert
-      expect(recent[0].text).toBe('You hit the Orc. (x3)')
+      expect(recent[0].text).toBe('You hit the Orc. x3')
     })
   })
 
