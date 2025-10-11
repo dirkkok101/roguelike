@@ -528,3 +528,65 @@ body {
 .bar-fill.light { color: #ffdd00; }
 .bar-fill.light.warning { color: #ff8800; }
 .bar-fill.light.critical { color: #ff0000; }
+
+/* ============================================================================
+   TWO-COLUMN STATS LAYOUT
+   ============================================================================ */
+
+/* New two-column grid layout */
+.stats-row-new {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  font-size: 1.1em; /* Increased from 0.9em for readability */
+}
+
+.stats-panel-wide {
+  flex: 1;
+  padding: 12px 15px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+}
+
+.stats-panel-content-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 1em; /* Increased from 0.8em */
+}
+
+/* Stat line with progress bar: label (80px) + value (100px) + bar (flex) */
+.stat-line {
+  display: grid;
+  grid-template-columns: 80px 100px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.stat-label {
+  font-weight: bold;
+  color: #888;
+}
+
+.stat-value {
+  color: #fff;
+  font-family: monospace;
+  text-align: right;
+}
+
+/* Compact stat row for secondary stats (Gold, Depth, Turn) */
+.stat-compact {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 0.9em;
+  color: #aaa;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #333;
+}
+
+.stat-compact span {
+  white-space: nowrap;
+}
