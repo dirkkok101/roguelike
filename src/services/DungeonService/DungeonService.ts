@@ -61,6 +61,26 @@ export class DungeonService {
   }
 
   /**
+   * Generate all 26 dungeon levels at once
+   *
+   * Called at game initialization to create the full dungeon.
+   * Levels are persistent and stored in GameState.levels array.
+   *
+   * @param config Dungeon configuration settings
+   * @returns Array of 26 Level instances (depths 1-26)
+   */
+  generateAllLevels(config: DungeonConfig): Level[] {
+    const levels: Level[] = []
+
+    for (let depth = 1; depth <= 26; depth++) {
+      const level = this.generateLevel(depth, config)
+      levels.push(level)
+    }
+
+    return levels
+  }
+
+  /**
    * Generate a complete dungeon level
    */
   generateLevel(depth: number, config: DungeonConfig): Level {
@@ -104,7 +124,7 @@ export class DungeonService {
     const startRoomIndex = 0
     const stairsUpPos = depth > 1 ? this.getRandomRoomCenter(rooms[startRoomIndex]) : null
     const stairsDownIndex = rooms.length > 1 ? rooms.length - 1 : 0
-    const stairsDownPos = depth < 10 ? this.getRandomRoomCenter(rooms[stairsDownIndex]) : null
+    const stairsDownPos = depth < 26 ? this.getRandomRoomCenter(rooms[stairsDownIndex]) : null
 
     // Spawn monsters (exclude starting room) - delegated to MonsterSpawnService
     const spawnRooms = rooms.slice(1) // Skip first room
@@ -137,7 +157,7 @@ export class DungeonService {
         .map(() => Array(config.width).fill(false)),
     }
 
-    // Spawn Amulet of Yendor on Level 10
+    // Spawn Amulet of Yendor on Level 26
     return this.spawnAmulet(level)
   }
 
@@ -581,12 +601,12 @@ export class DungeonService {
   // ============================================================================
 
   /**
-   * Spawn Amulet of Yendor on Level 10
+   * Spawn Amulet of Yendor on Level 26
    * Places on walkable floor tile in last room
    */
   spawnAmulet(level: Level): Level {
-    // Only spawn on Level 10
-    if (level.depth !== 10) {
+    // Only spawn on Level 26
+    if (level.depth !== 26) {
       return level
     }
 
