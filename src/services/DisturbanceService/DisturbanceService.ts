@@ -92,12 +92,11 @@ export class DisturbanceService {
 
     const { player } = state
 
-    // Check for doors adjacent to player
+    // Check for doors in the path of running (not perpendicular doors)
+    const positionAhead = this.getPositionAhead(player.position, runState.direction)
     for (const door of currentLevel.doors) {
-      const dx = Math.abs(door.position.x - player.position.x)
-      const dy = Math.abs(door.position.y - player.position.y)
-      if (dx <= 1 && dy <= 1 && (dx + dy) === 1) {
-        // Door is orthogonally adjacent
+      if (door.position.x === positionAhead.x && door.position.y === positionAhead.y) {
+        // Door is directly in the path of running
         return { disturbed: true, reason: 'You reach a door.' }
       }
     }
@@ -113,6 +112,38 @@ export class DisturbanceService {
     }
 
     return { disturbed: false }
+  }
+
+  /**
+   * Get the position one step ahead in the running direction.
+   * Used to check for doors directly in the path of running.
+   *
+   * @param position - Current player position
+   * @param direction - Direction of run
+   * @returns Position one step ahead in the running direction
+   */
+  private getPositionAhead(position: Position, direction: Direction): Position {
+    switch (direction) {
+      case 'up':
+        return { x: position.x, y: position.y - 1 }
+      case 'down':
+        return { x: position.x, y: position.y + 1 }
+      case 'left':
+        return { x: position.x - 1, y: position.y }
+      case 'right':
+        return { x: position.x + 1, y: position.y }
+      case 'up-left':
+        return { x: position.x - 1, y: position.y - 1 }
+      case 'up-right':
+        return { x: position.x + 1, y: position.y - 1 }
+      case 'down-left':
+        return { x: position.x - 1, y: position.y + 1 }
+      case 'down-right':
+        return { x: position.x + 1, y: position.y + 1 }
+      default:
+        // Fallback: return current position (no movement)
+        return position
+    }
   }
 
   /**

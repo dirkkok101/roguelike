@@ -387,29 +387,128 @@ describe('DisturbanceService - Disturbance Checks', () => {
       })
     })
 
-    it('stops run when reaching a door', () => {
-      const player = createTestPlayer({ position: { x: 5, y: 5 } })
-      const level = createMockLevel()
+    describe('door detection', () => {
+      it('stops run when reaching a door in path (running right)', () => {
+        const player = createTestPlayer({ position: { x: 5, y: 5 } })
+        const level = createMockLevel()
 
-      level.doors = [
-        { position: { x: 5, y: 6 }, state: 'CLOSED' } as any
-      ]
+        // Door is directly ahead (in path of running)
+        level.doors = [
+          { position: { x: 6, y: 5 }, state: 'CLOSED' } as any
+        ]
 
-      const state: GameState = createMockGameState({ currentLevel: 1 })
-      state.player = player
-      state.levels.set(1, level)
+        const state: GameState = createMockGameState({ currentLevel: 1 })
+        state.player = player
+        state.levels.set(1, level)
 
-      const runState: RunState = {
-        direction: 'right',
-        startingFOV: new Set(),
-        startingPosition: { x: 4, y: 5 },
-        previousHP: 20
-      }
+        const runState: RunState = {
+          direction: 'right',
+          startingFOV: new Set(),
+          startingPosition: { x: 4, y: 5 },
+          previousHP: 20
+        }
 
-      const result = service.checkDisturbance(state, runState)
+        const result = service.checkDisturbance(state, runState)
 
-      expect(result.disturbed).toBe(true)
-      expect(result.reason).toContain('door')
+        expect(result.disturbed).toBe(true)
+        expect(result.reason).toContain('door')
+      })
+
+      it('continues run when door is perpendicular (running right, door above)', () => {
+        const player = createTestPlayer({ position: { x: 5, y: 5 } })
+        const level = createMockLevel()
+
+        // Create straight horizontal corridor (no branches)
+        for (let y = 0; y < level.height; y++) {
+          for (let x = 0; x < level.width; x++) {
+            level.tiles[y][x] = { walkable: false, type: 'WALL' } as any
+          }
+        }
+        level.tiles[5][4] = { walkable: true, type: 'CORRIDOR' } as any // left (behind)
+        level.tiles[5][5] = { walkable: true, type: 'CORRIDOR' } as any // player position
+        level.tiles[5][6] = { walkable: true, type: 'CORRIDOR' } as any // right (ahead)
+
+        // Door is perpendicular (above player, not in path)
+        level.doors = [
+          { position: { x: 5, y: 4 }, state: 'CLOSED' } as any
+        ]
+
+        const state: GameState = createMockGameState({ currentLevel: 1 })
+        state.player = player
+        state.levels.set(1, level)
+
+        const runState: RunState = {
+          direction: 'right',
+          startingFOV: new Set(),
+          startingPosition: { x: 4, y: 5 },
+          previousHP: 20
+        }
+
+        const result = service.checkDisturbance(state, runState)
+
+        expect(result.disturbed).toBe(false)
+      })
+
+      it('continues run when door is perpendicular (running down, door to left)', () => {
+        const player = createTestPlayer({ position: { x: 5, y: 5 } })
+        const level = createMockLevel()
+
+        // Create straight vertical corridor
+        for (let y = 0; y < level.height; y++) {
+          for (let x = 0; x < level.width; x++) {
+            level.tiles[y][x] = { walkable: false, type: 'WALL' } as any
+          }
+        }
+        level.tiles[4][5] = { walkable: true, type: 'CORRIDOR' } as any // up (behind)
+        level.tiles[5][5] = { walkable: true, type: 'CORRIDOR' } as any // player position
+        level.tiles[6][5] = { walkable: true, type: 'CORRIDOR' } as any // down (ahead)
+
+        // Door is perpendicular (to the left, not in path)
+        level.doors = [
+          { position: { x: 4, y: 5 }, state: 'CLOSED' } as any
+        ]
+
+        const state: GameState = createMockGameState({ currentLevel: 1 })
+        state.player = player
+        state.levels.set(1, level)
+
+        const runState: RunState = {
+          direction: 'down',
+          startingFOV: new Set(),
+          startingPosition: { x: 5, y: 4 },
+          previousHP: 20
+        }
+
+        const result = service.checkDisturbance(state, runState)
+
+        expect(result.disturbed).toBe(false)
+      })
+
+      it('stops run when door is in path (diagonal run up-right)', () => {
+        const player = createTestPlayer({ position: { x: 5, y: 5 } })
+        const level = createMockLevel()
+
+        // Door is ahead in diagonal path (up-right)
+        level.doors = [
+          { position: { x: 6, y: 4 }, state: 'CLOSED' } as any
+        ]
+
+        const state: GameState = createMockGameState({ currentLevel: 1 })
+        state.player = player
+        state.levels.set(1, level)
+
+        const runState: RunState = {
+          direction: 'up-right',
+          startingFOV: new Set(),
+          startingPosition: { x: 4, y: 6 },
+          previousHP: 20
+        }
+
+        const result = service.checkDisturbance(state, runState)
+
+        expect(result.disturbed).toBe(true)
+        expect(result.reason).toContain('door')
+      })
     })
   })
 })
