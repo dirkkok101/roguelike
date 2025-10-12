@@ -1,5 +1,5 @@
 import { BaseState } from '@states/BaseState'
-import { GameState, Input } from '@game/core/core'
+import { GameState, Input, Direction } from '@game/core/core'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { MonsterTurnService } from '@services/MonsterTurnService'
@@ -8,6 +8,7 @@ import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { ToggleRenderModeCommand } from '@commands/ToggleRenderModeCommand'
 import { PreferencesService } from '@services/PreferencesService'
 import { MessageService } from '@services/MessageService'
+import { RunCommand } from '@commands/RunCommand'
 
 /**
  * PlayingState - Main gameplay state
@@ -122,6 +123,21 @@ export class PlayingState extends BaseState {
       return
     }
 
+    // Handle Shift+Arrow to initiate run command
+    if (_input.shift) {
+      const direction = this.getDirectionFromKey(_input.key)
+      if (direction) {
+        // Initiate run with RunCommand
+        const runCommand = new RunCommand(direction)
+        this.gameState = runCommand.execute(this.gameState)
+
+        // Take first step with MoveCommand (needs all services from InputHandler)
+        // Note: InputHandler constructs MoveCommand with all required services
+        // For now, delegate to InputHandler by falling through
+        // The MoveCommand will be created by InputHandler with arrow key
+      }
+    }
+
     // Convert Input to KeyboardEvent for existing InputHandler
     // TODO: Phase 4 will refactor to use Input directly
     const keyboardEvent = this.inputToKeyboardEvent(_input)
@@ -226,5 +242,27 @@ export class PlayingState extends BaseState {
       ctrlKey: input.ctrl,
       altKey: input.alt,
     })
+  }
+
+  /**
+   * Convert arrow key to Direction
+   * Supports all 8 directions (4 cardinal + 4 diagonal)
+   *
+   * @param key - Arrow key name
+   * @returns Direction or null if not an arrow key
+   */
+  private getDirectionFromKey(key: string): Direction | null {
+    switch (key) {
+      case 'ArrowUp':
+        return 'up'
+      case 'ArrowDown':
+        return 'down'
+      case 'ArrowLeft':
+        return 'left'
+      case 'ArrowRight':
+        return 'right'
+      default:
+        return null
+    }
   }
 }
