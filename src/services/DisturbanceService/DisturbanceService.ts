@@ -1,4 +1,4 @@
-import { GameState, RunState, Position, Monster } from '@game/core/core'
+import { GameState, RunState, Position, Level } from '@game/core/core'
 
 export interface DisturbanceResult {
   disturbed: boolean
@@ -111,7 +111,7 @@ export class DisturbanceService {
     return { disturbed: false }
   }
 
-  private countWalkableDirections(level: any, position: Position): number {
+  private countWalkableDirections(level: Level, position: Position): number {
     const directions = [
       { x: 0, y: -1 }, // up
       { x: 0, y: 1 }, // down
