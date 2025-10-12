@@ -1,7 +1,8 @@
 import { GameState, Direction, RunState } from '@game/core/core'
+import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
 
-export class RunCommand {
+export class RunCommand implements ICommand {
   private messageService: MessageService
 
   constructor(private direction: Direction) {
