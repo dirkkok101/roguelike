@@ -304,6 +304,14 @@ export class MoveCommand implements ICommand {
     // 8.5. Check for run disturbances (if running)
     let finalPlayer = updatedPlayer
     if (updatedPlayer.runState) {
+      console.log('[MoveCommand:Run] Player has runState, checking for disturbances', {
+        direction: updatedPlayer.runState.direction,
+        currentPosition: position,
+        currentHP: updatedPlayer.hp,
+        previousHP: updatedPlayer.runState.previousHP,
+        isRunning: updatedPlayer.isRunning
+      })
+
       const disturbanceService = new DisturbanceService()
       const stateWithUpdatedPlayer = {
         ...stateWithUpdatedLevel,
@@ -315,7 +323,14 @@ export class MoveCommand implements ICommand {
         updatedPlayer.runState
       )
 
+      console.log('[MoveCommand:Run] Disturbance check result:', {
+        disturbed: disturbanceCheck.disturbed,
+        reason: disturbanceCheck.reason
+      })
+
       if (disturbanceCheck.disturbed) {
+        console.log('[MoveCommand:Run] Stopping run due to disturbance:', disturbanceCheck.reason)
+
         // Stop running
         finalPlayer = {
           ...updatedPlayer,
@@ -331,6 +346,11 @@ export class MoveCommand implements ICommand {
           state.turnCount + 1
         )
       } else {
+        console.log('[MoveCommand:Run] Continuing run, updating HP', {
+          previousHP: updatedPlayer.runState.previousHP,
+          newHP: updatedPlayer.hp
+        })
+
         // Update runState with current HP for next iteration
         finalPlayer = {
           ...updatedPlayer,

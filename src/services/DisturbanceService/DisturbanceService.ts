@@ -11,18 +11,30 @@ export class DisturbanceService {
    * Priority: Safety > Combat > Navigation
    */
   checkDisturbance(state: GameState, runState: RunState): DisturbanceResult {
+    console.log('[DisturbanceService] checkDisturbance called', {
+      playerPosition: state.player.position,
+      runDirection: runState.direction,
+      playerHP: state.player.hp,
+      previousHP: runState.previousHP,
+      visibleCellsCount: state.visibleCells.size
+    })
+
     // Safety critical checks
     const safetyCheck = this.checkSafety(state, runState)
+    console.log('[DisturbanceService] Safety check result:', safetyCheck)
     if (safetyCheck.disturbed) return safetyCheck
 
     // Combat threat checks
     const combatCheck = this.checkCombatThreats(state, runState)
+    console.log('[DisturbanceService] Combat check result:', combatCheck)
     if (combatCheck.disturbed) return combatCheck
 
     // Navigation checks
     const navCheck = this.checkNavigation(state, runState)
+    console.log('[DisturbanceService] Navigation check result:', navCheck)
     if (navCheck.disturbed) return navCheck
 
+    console.log('[DisturbanceService] No disturbances detected, continue running')
     return { disturbed: false }
   }
 
@@ -88,15 +100,21 @@ export class DisturbanceService {
 
   private checkNavigation(state: GameState, runState: RunState): DisturbanceResult {
     const currentLevel = state.levels.get(state.currentLevel)
-    if (!currentLevel) return { disturbed: false }
+    if (!currentLevel) {
+      console.log('[DisturbanceService] Navigation: No current level')
+      return { disturbed: false }
+    }
 
     const { player } = state
 
     // Check for doors in the path of running (not perpendicular doors)
     const positionAhead = this.getPositionAhead(player.position, runState.direction)
+    console.log('[DisturbanceService] Navigation: Checking position ahead', positionAhead)
+
     for (const door of currentLevel.doors) {
       if (door.position.x === positionAhead.x && door.position.y === positionAhead.y) {
         // Door is directly in the path of running
+        console.log('[DisturbanceService] Navigation: Door detected ahead at', door.position)
         return { disturbed: true, reason: 'You reach a door.' }
       }
     }
@@ -104,15 +122,25 @@ export class DisturbanceService {
     // Check for corridor branches (perpendicular choices)
     // Skip this check if player is in a room - rooms are meant to have open floors
     const currentTile = currentLevel.tiles[player.position.y]?.[player.position.x]
+    console.log('[DisturbanceService] Navigation: Current tile', {
+      position: player.position,
+      isRoom: currentTile?.isRoom,
+      walkable: currentTile?.walkable
+    })
+
     if (currentTile && !currentTile.isRoom) {
       const perpendicularChoices = this.countPerpendicularChoices(
         currentLevel,
         player.position,
         runState.direction
       )
+      console.log('[DisturbanceService] Navigation: Perpendicular choices in corridor:', perpendicularChoices)
+
       if (perpendicularChoices > 0) {
         return { disturbed: true, reason: 'The corridor branches.' }
       }
+    } else if (currentTile?.isRoom) {
+      console.log('[DisturbanceService] Navigation: In room, skipping branch check')
     }
 
     return { disturbed: false }
