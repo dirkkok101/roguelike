@@ -124,7 +124,8 @@ export class PlayingState extends BaseState {
     }
 
     // Handle Shift+Arrow to initiate run command
-    if (_input.shift) {
+    // Only call RunCommand once when initiating a new run, not on every Shift+Arrow press
+    if (_input.shift && !this.gameState.player.isRunning) {
       const direction = this.getDirectionFromKey(_input.key)
       if (direction) {
         // Initiate run with RunCommand
