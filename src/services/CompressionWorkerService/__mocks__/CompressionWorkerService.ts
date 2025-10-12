@@ -1,17 +1,15 @@
 // Mock for CompressionWorkerService (Jest can't parse import.meta.url)
 export class CompressionWorkerService {
-  private testMode = true
-
   constructor() {
     // Always in test mode for mocks
   }
 
   enableTestMode(): void {
-    this.testMode = true
+    // No-op in mock (always in test mode)
   }
 
   disableTestMode(): void {
-    this.testMode = true // Keep in test mode
+    // No-op in mock (always in test mode)
   }
 
   async compress(data: string): Promise<string> {

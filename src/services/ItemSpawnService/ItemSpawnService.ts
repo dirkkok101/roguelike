@@ -140,11 +140,11 @@ export class ItemSpawnService {
     }))
   }
 
-  private loadWeaponTemplates(): Array<{ name: string; damage: string; rarity: string }> {
+  private loadWeaponTemplates(): Array<{ name: string; spriteName: string; damage: string; rarity: string }> {
     return this.itemData.weapons
   }
 
-  private loadArmorTemplates(): Array<{ name: string; ac: number; rarity: string }> {
+  private loadArmorTemplates(): Array<{ name: string; spriteName: string; ac: number; rarity: string }> {
     return this.itemData.armor
   }
 
@@ -160,6 +160,7 @@ export class ItemSpawnService {
   private loadLightSourceTemplates(): Array<{
     type: string
     name: string
+    spriteName: string
     radius: number
     fuel?: number
     isPermanent: boolean
@@ -170,6 +171,7 @@ export class ItemSpawnService {
 
   private loadConsumableTemplates(): Array<{
     name: string
+    spriteName: string
     type: string
     fuelAmount: number
     rarity: string
@@ -268,14 +270,14 @@ export class ItemSpawnService {
   /**
    * Calculate torch spawn weight (fixed 7% across all depths)
    */
-  private getTorchSpawnWeight(depth: number): number {
+  private getTorchSpawnWeight(_depth: number): number {
     return 7  // 7% spawn rate
   }
 
   /**
    * Calculate oil flask spawn weight (fixed 5% across all depths)
    */
-  private getOilFlaskSpawnWeight(depth: number): number {
+  private getOilFlaskSpawnWeight(_depth: number): number {
     return 5  // 5% spawn rate
   }
 
@@ -844,6 +846,7 @@ export class ItemSpawnService {
     return {
       id: itemId,
       name: leatherTemplate.name,
+      spriteName: leatherTemplate.spriteName,
       type: ItemType.ARMOR,
       identified: true, // Starting equipment is always identified
       position,

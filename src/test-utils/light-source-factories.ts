@@ -12,6 +12,7 @@ export function createTestTorch(overrides?: Partial<Torch>): Torch {
     id: 'test-torch',
     name: 'Torch',
     type: ItemType.TORCH,
+    spriteName: 'torch',
     identified: true,
     position: defaultPosition,
     fuel: 500,
@@ -29,6 +30,7 @@ export function createTestLantern(overrides?: Partial<Lantern>): Lantern {
     id: 'test-lantern',
     name: 'Lantern',
     type: ItemType.LANTERN,
+    spriteName: 'lantern',
     identified: true,
     position: defaultPosition,
     fuel: 500,
@@ -46,6 +48,7 @@ export function createTestArtifact(name: string, radius: number, overrides?: Par
     id: 'test-artifact',
     name,
     type: ItemType.TORCH, // Artifacts use TORCH type
+    spriteName: 'artifact',
     identified: true,
     position: defaultPosition,
     radius,

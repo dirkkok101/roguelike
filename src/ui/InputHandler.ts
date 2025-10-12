@@ -36,7 +36,7 @@ import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
 import { MessageService } from '@services/MessageService'
 import { IRandomService } from '@services/RandomService'
-import { DungeonService, DungeonConfig } from '@services/DungeonService'
+import { StairsNavigationService } from '@services/StairsNavigationService'
 import { CombatService } from '@services/CombatService'
 import { InventoryService } from '@services/InventoryService'
 import { IdentificationService } from '@services/IdentificationService'
@@ -82,9 +82,7 @@ export class InputHandler {
   private readonly fovService: FOVService
   private readonly messageService: MessageService
   private readonly random: IRandomService
-  private readonly dungeonService: DungeonService
   private readonly stairsNavigationService: StairsNavigationService
-  private readonly dungeonConfig: DungeonConfig
   private readonly combatService: CombatService
   private readonly inventoryService: InventoryService
   private readonly identificationService: IdentificationService
@@ -122,9 +120,7 @@ export class InputHandler {
     this.fovService = services.fov
     this.messageService = services.message
     this.random = services.random
-    this.dungeonService = services.dungeon
     this.stairsNavigationService = services.stairsNavigation
-    this.dungeonConfig = services.dungeonConfig
     this.combatService = services.combat
     this.inventoryService = services.inventory
     this.identificationService = services.identification
@@ -338,7 +334,6 @@ export class InputHandler {
         event.preventDefault()
         this.stateManager.pushState(
           new ItemSelectionState(
-            this.stateManager,
             this.modalController,
             state,
             'Drop which item?',
@@ -365,7 +360,6 @@ export class InputHandler {
         event.preventDefault()
         this.stateManager.pushState(
           new ItemSelectionState(
-            this.stateManager,
             this.modalController,
             state,
             'Quaff which potion?',
@@ -393,7 +387,6 @@ export class InputHandler {
         event.preventDefault()
         this.stateManager.pushState(
           new ItemSelectionState(
-            this.stateManager,
             this.modalController,
             state,
             'Read which scroll?',
@@ -414,7 +407,6 @@ export class InputHandler {
                 // Show unidentified items (exclude the scroll being read)
                 this.stateManager.pushState(
                   new ItemSelectionState(
-                    this.stateManager,
                     this.modalController,
                     state,
                     'Identify which item?',
@@ -444,7 +436,6 @@ export class InputHandler {
                 // Show weapons
                 this.stateManager.pushState(
                   new ItemSelectionState(
-                    this.stateManager,
                     this.modalController,
                     state,
                     'Enchant which weapon?',
@@ -473,7 +464,6 @@ export class InputHandler {
                 // Show armor
                 this.stateManager.pushState(
                   new ItemSelectionState(
-                    this.stateManager,
                     this.modalController,
                     state,
                     'Enchant which armor?',
@@ -518,7 +508,6 @@ export class InputHandler {
         event.preventDefault()
         this.stateManager.pushState(
           new ItemSelectionState(
-            this.stateManager,
             this.modalController,
             state,
             'Zap which wand?',
@@ -604,7 +593,6 @@ export class InputHandler {
         event.preventDefault()
         this.stateManager.pushState(
           new ItemSelectionState(
-            this.stateManager,
             this.modalController,
             state,
             'Use which oil flask?',
@@ -631,7 +619,6 @@ export class InputHandler {
         event.preventDefault()
         this.stateManager.pushState(
           new ItemSelectionState(
-            this.stateManager,
             this.modalController,
             state,
             'Wield which item?',
@@ -662,7 +649,6 @@ export class InputHandler {
         event.preventDefault()
         this.stateManager.pushState(
           new ItemSelectionState(
-            this.stateManager,
             this.modalController,
             state,
             'Wear which armor?',
@@ -693,7 +679,6 @@ export class InputHandler {
         event.preventDefault()
         this.stateManager.pushState(
           new ItemSelectionState(
-            this.stateManager,
             this.modalController,
             state,
             'Put on which ring?',

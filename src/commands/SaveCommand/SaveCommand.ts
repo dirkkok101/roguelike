@@ -31,7 +31,6 @@ export class SaveCommand implements ICommand {
 
     // Capture references to avoid `this` context issues after command is garbage collected
     const toastService = this.toastNotificationService
-    const messageService = this.messageService
 
     // PERFORMANCE: Defer save to next tick to avoid blocking game loop
     // This gives control back to the UI immediately

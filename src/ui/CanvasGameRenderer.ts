@@ -487,7 +487,7 @@ export class CanvasGameRenderer {
     for (const item of level.items) {
       // Use spriteName if available (weapons, armor, light sources, food, oil flask)
       // Otherwise fall back to first character (potions, scrolls, rings, wands)
-      const itemSprite = 'spriteName' in item ? item.spriteName : item.name[0] || '?'
+      const itemSprite = 'spriteName' in item ? item.spriteName as string : item.name[0] || '?'
       this.renderEntity(state, level, item.position, itemSprite, 'item', renderConfig)
     }
 
@@ -675,7 +675,7 @@ export class CanvasGameRenderer {
     // Check for items
     for (const item of level.items) {
       if (item.position.x === worldX && item.position.y === worldY) {
-        const itemSprite = 'spriteName' in item ? item.spriteName : item.name[0] || '?'
+        const itemSprite = 'spriteName' in item ? item.spriteName as string : item.name[0] || '?'
         this.renderEntity(state, level, item.position, itemSprite, 'item', renderConfig)
       }
     }

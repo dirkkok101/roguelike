@@ -1,17 +1,15 @@
 // Mock for SerializationWorkerService (Jest can't parse import.meta.url)
 export class SerializationWorkerService {
-  private testMode = true
-
   constructor() {
     // Always in test mode for mocks
   }
 
   enableTestMode(): void {
-    this.testMode = true
+    // No-op in mock (always in test mode)
   }
 
   disableTestMode(): void {
-    this.testMode = true // Keep in test mode
+    // No-op in mock (always in test mode)
   }
 
   async serialize(state: any, saveVersion: number): Promise<string> {
@@ -21,7 +19,7 @@ export class SerializationWorkerService {
   }
 
   private prepareStateForSerializationSync(state: any, saveVersion: number): any {
-    const serializedLevels: Array<[number, any]> = Array.from(state.levels.entries()).map(
+    const serializedLevels: Array<[number, any]> = (Array.from(state.levels.entries()) as Array<[number, any]>).map(
       ([depth, level]: [number, any]) => {
         const serializedLevel = {
           ...level,

@@ -24,6 +24,7 @@ export function createTestTorch(id: string, name: string, options?: {
       position: options?.position || { x: 0, y: 0 },
       radius: options?.radius ?? 3,
       isPermanent: true,
+      spriteName: 'artifact_light',
     }
   }
 
@@ -38,6 +39,7 @@ export function createTestTorch(id: string, name: string, options?: {
     maxFuel: options?.maxFuel ?? 500,
     radius: options?.radius ?? 2,
     isPermanent: false,
+    spriteName: 'torch',
   }
 }
 
@@ -60,6 +62,7 @@ export function createTestLantern(id: string, name: string, options?: {
     maxFuel: options?.maxFuel ?? 500,
     radius: options?.radius ?? 2,
     isPermanent: false,
+    spriteName: 'lantern',
   }
 }
 

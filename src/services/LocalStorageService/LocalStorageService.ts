@@ -1,4 +1,4 @@
-import { GameState, Level, Monster } from '@game/core/core'
+import { GameState } from '@game/core/core'
 import { CompressionWorkerService } from '@services/CompressionWorkerService'
 import { SerializationWorkerService } from '@services/SerializationWorkerService'
 
@@ -8,17 +8,19 @@ import { SerializationWorkerService } from '@services/SerializationWorkerService
 
 /**
  * Serialized monster with Set converted to Array
+ * (Defined for documentation - actual serialization uses inline types)
  */
-type SerializedMonster = Omit<Monster, 'visibleCells'> & {
-  visibleCells: string[] // Array instead of Set<string>
-}
+// type SerializedMonster = Omit<Monster, 'visibleCells'> & {
+//   visibleCells: string[] // Array instead of Set<string>
+// }
 
 /**
  * Serialized level with monsters converted to serialized form
+ * (Defined for documentation - actual serialization uses inline types)
  */
-type SerializedLevel = Omit<Level, 'monsters'> & {
-  monsters: SerializedMonster[]
-}
+// type SerializedLevel = Omit<Level, 'monsters'> & {
+//   monsters: SerializedMonster[]
+// }
 
 // ============================================================================
 // LOCAL STORAGE SERVICE - Game save/load persistence
@@ -160,14 +162,12 @@ export class LocalStorageService {
       }
 
       // Retry logic with exponential backoff
-      let lastError: Error | null = null
       for (let attempt = 1; attempt <= LocalStorageService.MAX_RETRY_ATTEMPTS; attempt++) {
         try {
           await this.saveGameInternal(state)
           // Success - break out of retry loop
           break
         } catch (error) {
-          lastError = error as Error
           console.error(`Save attempt ${attempt}/${LocalStorageService.MAX_RETRY_ATTEMPTS} failed:`, error)
 
           if (attempt === LocalStorageService.MAX_RETRY_ATTEMPTS) {

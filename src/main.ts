@@ -232,6 +232,7 @@ async function initializeGame() {
     maxFuel: 500,
     radius: 2,
     isPermanent: false,
+    spriteName: 'torch',
   }
 
   // Create starting leather armor (matching original Rogue 1980)
@@ -395,6 +396,7 @@ async function initializeGame() {
       maxFuel: 500,
       radius: 2,
       isPermanent: false,
+      spriteName: 'torch',
     }
 
     // Create starting leather armor (matching original Rogue 1980)

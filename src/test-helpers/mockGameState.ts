@@ -1,4 +1,4 @@
-import { GameState, Level, Tile, Player, Position } from '@game/core/core'
+import { GameState, Level, Tile, Player, Position, ItemType, TileType } from '@game/core/core'
 
 // ============================================================================
 // MOCK GAME STATE HELPERS FOR TESTING
@@ -29,10 +29,13 @@ export function createMockLevel(options: MockLevelOptions = {}): Level {
     const row: Tile[] = []
     for (let x = 0; x < width; x++) {
       row.push({
+        type: TileType.FLOOR,
         char: '.',
         walkable: true,
         transparent: true,
-        explored: false,
+        colorVisible: '#888888',
+        colorExplored: '#444444',
+        isRoom: false,
       })
     }
     tiles.push(row)
@@ -82,9 +85,9 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
     maxStrength: 16,
     ac: 4,
     level: 1,
-    exp: 0,
-    expToNextLevel: 10,
+    xp: 0,
     gold: 0,
+    isRunning: false,
     hunger: 1000,
     inventory: [],
     equipment: {
@@ -93,9 +96,15 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
       leftRing: null,
       rightRing: null,
       lightSource: {
-        type: 'torch',
-        radius: 2,
+        id: 'test-torch',
+        name: 'Torch',
+        type: ItemType.TORCH,
+        spriteName: 'torch',
+        identified: true,
+        position: { x: 0, y: 0 },
         fuel: 500,
+        maxFuel: 500,
+        radius: 2,
         isPermanent: false,
       },
     },

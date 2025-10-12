@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { GameState, Position, ItemType, StatusEffectType } from '@game/core/core'
-import { RenderingService, VisibilityState } from '@services/RenderingService'
+import { RenderingService } from '@services/RenderingService'
 
 export interface AsciiRenderConfig {
   viewportWidth: number   // Characters wide (e.g., 80)

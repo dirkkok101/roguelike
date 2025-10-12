@@ -26,7 +26,7 @@ export interface SerializationResponse {
  */
 function prepareStateForSerialization(state: any, saveVersion: number): any {
   // Convert levels Map to array with serialized monsters
-  const serializedLevels: Array<[number, any]> = Array.from(state.levels.entries()).map(
+  const serializedLevels: Array<[number, any]> = (Array.from(state.levels.entries()) as Array<[number, any]>).map(
     ([depth, level]: [number, any]) => {
       const serializedLevel = {
         ...level,

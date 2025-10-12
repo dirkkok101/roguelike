@@ -292,9 +292,9 @@ export class InventoryService {
       // Get fuel amount for this item
       let fuel = 0
       if (item.type === ItemType.TORCH && 'fuel' in item) {
-        fuel = item.fuel
+        fuel = item.fuel as number
       } else if (item.type === ItemType.OIL_FLASK && 'fuelAmount' in item) {
-        fuel = item.fuelAmount
+        fuel = item.fuelAmount as number
       }
 
       // Create stack key: type + fuel amount
@@ -336,9 +336,9 @@ export class InventoryService {
     // Get fuel amount for this item type
     let fuelPerItem = 0
     if (item.type === ItemType.TORCH && 'fuel' in item) {
-      fuelPerItem = item.fuel
+      fuelPerItem = item.fuel as number
     } else if (item.type === ItemType.OIL_FLASK && 'fuelAmount' in item) {
-      fuelPerItem = item.fuelAmount
+      fuelPerItem = item.fuelAmount as number
     }
 
     const totalFuel = fuelPerItem * quantity

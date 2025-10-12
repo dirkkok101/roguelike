@@ -528,6 +528,7 @@ export class DungeonService {
       id: `monster-scroll-${this.random.nextInt(1000, 9999)}`,
       letter: template.letter,
       name: template.name,
+      spriteName: `monster_${template.letter.toLowerCase()}`,
       position,
       hp,
       maxHp: hp,

@@ -116,7 +116,7 @@ export class AssetLoaderService {
     // For multi-character strings, assume it's a monster name
     if (char.length > 1) {
       // Try looking up as "monster:Name" in tileset
-      sprite = this.currentTileset.config.tiles.get(char)
+      sprite = this.currentTileset.config.tiles.get(char) ?? null
       if (sprite) return sprite
 
       // Try with common Angband monster prefixes as fallbacks
@@ -127,12 +127,12 @@ export class AssetLoaderService {
         for (const suffix of suffixes) {
           const variant = `${prefix}${char}${suffix}`
           // Try exact case
-          sprite = this.currentTileset.config.tiles.get(variant)
+          sprite = this.currentTileset.config.tiles.get(variant) ?? null
           if (sprite) return sprite
 
           // Try lowercase
           const lowercaseVariant = variant.toLowerCase()
-          sprite = this.currentTileset.config.tiles.get(lowercaseVariant)
+          sprite = this.currentTileset.config.tiles.get(lowercaseVariant) ?? null
           if (sprite) return sprite
         }
       }
@@ -147,14 +147,14 @@ export class AssetLoaderService {
       }
     } else {
       // Single character - try direct lookup first (for monster letters A-Z, etc.)
-      sprite = this.currentTileset.config.tiles.get(char)
+      sprite = this.currentTileset.config.tiles.get(char) ?? null
       if (sprite) return sprite
 
       // Try TerrainSpriteService for terrain characters (data-driven)
       if (this.terrainSpriteService.isLoaded()) {
         const terrainSpriteName = this.terrainSpriteService.getSpriteNameWithLighting(char, 'torch')
         if (terrainSpriteName) {
-          sprite = this.currentTileset.config.tiles.get(terrainSpriteName)
+          sprite = this.currentTileset.config.tiles.get(terrainSpriteName) ?? null
           if (sprite) {
             return sprite
           }
@@ -165,7 +165,7 @@ export class AssetLoaderService {
       const featureNames = CHAR_TO_ANGBAND[char]
       if (featureNames) {
         for (const featureName of featureNames) {
-          sprite = this.currentTileset.config.tiles.get(featureName)
+          sprite = this.currentTileset.config.tiles.get(featureName) ?? null
           if (sprite) return sprite
         }
       }
@@ -186,12 +186,12 @@ export class AssetLoaderService {
   /**
    * Get sprite by entity type and name
    *
-   * @param type - Entity type (e.g., "feat", "monster", "object")
+   * @param type - Entity type (e.g., "feat", "monster", "object") - currently unused, reserved for future filtering
    * @param name - Entity name (e.g., "FLOOR", "Bat", "Healing")
    * @param condition - Optional condition (e.g., "torch", "lit")
    * @returns Tile coordinate or null if not found
    */
-  getSpriteByName(type: string, name: string, condition?: string): TileCoordinate | null {
+  getSpriteByName(_type: string, name: string, condition?: string): TileCoordinate | null {
     if (!this.currentTileset) {
       console.warn('[AssetLoader] No tileset loaded')
       return null

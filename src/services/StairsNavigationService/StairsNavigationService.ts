@@ -138,8 +138,7 @@ export class StairsNavigationService {
   private respawnMonstersForLevel(level: Level, depth: number): Level {
     // Use cumulative vorpal range for ascent challenge
     // All monsters from vorpalness 0 up to depth+3 can spawn
-    const minVorpal = 0 // All monsters unlocked up to this depth
-    const maxVorpal = Math.min(25, depth + 3)
+    // Note: Currently using full spawn range via MonsterSpawnService
 
     // Spawn new monsters using normal spawn logic
     const newMonsters = this.monsterSpawnService.spawnMonsters(

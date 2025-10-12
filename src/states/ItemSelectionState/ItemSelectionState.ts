@@ -1,6 +1,5 @@
 import { BaseState } from '@states/BaseState'
 import { Input, GameState, Item } from '@game/core/core'
-import { GameStateManager } from '@services/GameStateManager'
 import { ModalController } from '@ui/ModalController'
 
 /**
@@ -74,7 +73,6 @@ export class ItemSelectionState extends BaseState {
   private readonly allowedKeys: string[]
 
   constructor(
-    private stateManager: GameStateManager,
     private modalController: ModalController,
     private gameState: GameState,
     private prompt: string,

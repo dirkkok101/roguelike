@@ -177,7 +177,7 @@ export class SerializationWorkerService {
    * Duplicates logic from worker (unfortunate but necessary for fallback)
    */
   private prepareStateForSerializationSync(state: any, saveVersion: number): any {
-    const serializedLevels: Array<[number, any]> = Array.from(state.levels.entries()).map(
+    const serializedLevels: Array<[number, any]> = (Array.from(state.levels.entries()) as Array<[number, any]>).map(
       ([depth, level]: [number, any]) => {
         const serializedLevel = {
           ...level,

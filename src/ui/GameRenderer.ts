@@ -1,4 +1,4 @@
-import { GameState, Position, ItemType, StatusEffectType, Level } from '@game/core/core'
+import { GameState, Position, StatusEffectType } from '@game/core/core'
 import { RenderingService } from '@services/RenderingService'
 import { AssetLoaderService } from '@services/AssetLoaderService'
 import { HungerService } from '@services/HungerService'
@@ -39,15 +39,14 @@ export class GameRenderer {
   // CSS class name for mode change notification overlay
   private static readonly MODE_CHANGE_NOTIFICATION_CLASS = 'mode-change-notification'
 
-  // Display thresholds for color-coded warnings
-  private static readonly HP_THRESHOLDS = {
-    HEALTHY: 75,
-    WOUNDED: 50,
-    CRITICAL: 25,
-    BLINKING: 10,
-  }
-
-  private static readonly HUNGER_MAX = 1300
+  // Display thresholds for color-coded warnings (inline in renderStats)
+  // private static readonly HP_THRESHOLDS = {
+  //   HEALTHY: 75,
+  //   WOUNDED: 50,
+  //   CRITICAL: 25,
+  //   BLINKING: 10,
+  // }
+  // private static readonly HUNGER_MAX = 1300
 
   private dungeonContainer: HTMLElement
   private statsContainer: HTMLElement
@@ -67,7 +66,7 @@ export class GameRenderer {
   private currentGameState: GameState | null = null
   private canvasNeedsResize = true // Flag to resize canvas on first render (after DOM is constructed)
   private resizeHandler: (() => void) | null = null // Window resize event handler
-  private resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null // Debounce timer for resize events
+  private resizeDebounceTimer: number | null = null // Debounce timer for resize events
 
   constructor(
     private renderingService: RenderingService,
@@ -87,14 +86,14 @@ export class GameRenderer {
     private onReturnToMenu: () => void,
     private onStartNewGame: (characterName: string) => void,
     private onReplaySeed: (seed: string, characterName: string) => void,
-    config = {
+    _config = {
       dungeonWidth: 80,
       dungeonHeight: 22,
       showItemsInMemory: false,
       showGoldInMemory: false,
     }
   ) {
-    // FUTURE: Config parameter will be used for customizable rendering options
+    // FUTURE: _config parameter will be used for customizable rendering options
     // Initialize ASCII renderer (always available)
     this.asciiRenderer = new AsciiDungeonRenderer(renderingService)
 
@@ -724,89 +723,6 @@ export class GameRenderer {
       default:
         return { icon: '•', label: 'Unknown', color: '#FFFFFF' }
     }
-  }
-
-  /**
-   * Render equipment slots display
-   */
-  private renderEquipmentSlots(state: GameState): string {
-    const { equipment } = state.player
-
-    // Weapon slot
-    const weaponSlot = equipment.weapon
-      ? `Weapon: ${equipment.weapon.name}${equipment.weapon.bonus !== 0 ? ` ${equipment.weapon.bonus > 0 ? '+' : ''}${equipment.weapon.bonus}` : ''}`
-      : 'Weapon: (empty)'
-    const weaponClass = equipment.weapon?.cursed ? 'equipment-slot cursed' : equipment.weapon ? 'equipment-slot' : 'equipment-slot empty'
-    const weaponCursed = equipment.weapon?.cursed ? ' 🔒' : ''
-
-    // Armor slot
-    const armorSlot = equipment.armor
-      ? `Armor: ${equipment.armor.name}${equipment.armor.bonus !== 0 ? ` ${equipment.armor.bonus > 0 ? '+' : ''}${equipment.armor.bonus}` : ''}`
-      : 'Armor: (empty)'
-    const armorClass = equipment.armor?.cursed ? 'equipment-slot cursed' : equipment.armor ? 'equipment-slot' : 'equipment-slot empty'
-    const armorCursed = equipment.armor?.cursed ? ' 🔒' : ''
-
-    // Left ring slot
-    const leftRingSlot = equipment.leftRing
-      ? `Left Hand: ${equipment.leftRing.name}${equipment.leftRing.bonus !== 0 ? ` ${equipment.leftRing.bonus > 0 ? '+' : ''}${equipment.leftRing.bonus}` : ''}`
-      : 'Left Hand: (empty)'
-    const leftRingClass = equipment.leftRing?.cursed ? 'equipment-slot cursed' : equipment.leftRing ? 'equipment-slot' : 'equipment-slot empty'
-    const leftRingCursed = equipment.leftRing?.cursed ? ' 🔒' : ''
-
-    // Right ring slot
-    const rightRingSlot = equipment.rightRing
-      ? `Right Hand: ${equipment.rightRing.name}${equipment.rightRing.bonus !== 0 ? ` ${equipment.rightRing.bonus > 0 ? '+' : ''}${equipment.rightRing.bonus}` : ''}`
-      : 'Right Hand: (empty)'
-    const rightRingClass = equipment.rightRing?.cursed ? 'equipment-slot cursed' : equipment.rightRing ? 'equipment-slot' : 'equipment-slot empty'
-    const rightRingCursed = equipment.rightRing?.cursed ? ' 🔒' : ''
-
-    return `
-      <div class="stats-panel equipment-section">
-        <div class="stats-panel-header equipment-header">Equipment</div>
-        <div class="stats-panel-content">
-          <div class="${weaponClass}">${weaponSlot}${weaponCursed}</div>
-          <div class="${armorClass}">${armorSlot}${armorCursed}</div>
-          <div class="${leftRingClass}">${leftRingSlot}${leftRingCursed}</div>
-          <div class="${rightRingClass}">${rightRingSlot}${rightRingCursed}</div>
-        </div>
-      </div>
-    `
-  }
-
-  /**
-   * Render status effects section
-   */
-  private renderStatusEffects(state: GameState): string {
-    const { statusEffects } = state.player
-
-    if (statusEffects.length === 0) {
-      return `
-        <div class="stats-panel status-section">
-          <div class="stats-panel-header status-header">Status</div>
-          <div class="stats-panel-content">
-            <div class="status-empty">None</div>
-          </div>
-        </div>
-      `
-    }
-
-    const effectsHTML = statusEffects
-      .map((effect) => {
-        const display = this.getStatusEffectDisplay(effect.type)
-        return `<div class="status-effect-item" style="color: ${display.color};">
-          ${display.icon} ${display.label} (${effect.duration})
-        </div>`
-      })
-      .join('')
-
-    return `
-      <div class="stats-panel status-section">
-        <div class="stats-panel-header status-header">Status</div>
-        <div class="stats-panel-content">
-          ${effectsHTML}
-        </div>
-      </div>
-    `
   }
 
   /**
