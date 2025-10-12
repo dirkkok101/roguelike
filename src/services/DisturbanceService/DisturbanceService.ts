@@ -1,4 +1,4 @@
-import { GameState, RunState, Position, Level } from '@game/core/core'
+import { GameState, RunState, Position, Level, Direction } from '@game/core/core'
 
 export interface DisturbanceResult {
   disturbed: boolean
@@ -86,7 +86,7 @@ export class DisturbanceService {
     return { disturbed: false }
   }
 
-  private checkNavigation(state: GameState, _runState: RunState): DisturbanceResult {
+  private checkNavigation(state: GameState, runState: RunState): DisturbanceResult {
     const currentLevel = state.levels.get(state.currentLevel)
     if (!currentLevel) return { disturbed: false }
 
@@ -102,25 +102,42 @@ export class DisturbanceService {
       }
     }
 
-    // Check for corridor branches (3+ walkable directions)
-    const walkableDirections = this.countWalkableDirections(currentLevel, player.position)
-    if (walkableDirections >= 3) {
+    // Check for corridor branches (perpendicular choices)
+    const perpendicularChoices = this.countPerpendicularChoices(
+      currentLevel,
+      player.position,
+      runState.direction
+    )
+    if (perpendicularChoices > 0) {
       return { disturbed: true, reason: 'The corridor branches.' }
     }
 
     return { disturbed: false }
   }
 
-  private countWalkableDirections(level: Level, position: Position): number {
-    const directions = [
-      { x: 0, y: -1 }, // up
-      { x: 0, y: 1 }, // down
-      { x: -1, y: 0 }, // left
-      { x: 1, y: 0 }, // right
-    ]
+  /**
+   * Count walkable directions perpendicular to the running direction.
+   * This determines if there are new choices available (corridor branching).
+   *
+   * For example, if running right:
+   * - Check up and down (perpendicular to horizontal)
+   * - Don't count left (behind) or right (ahead) since those aren't new choices
+   *
+   * @param level - Current level
+   * @param position - Current player position
+   * @param direction - Direction of run
+   * @returns Number of walkable perpendicular directions (0+ choices)
+   */
+  private countPerpendicularChoices(
+    level: Level,
+    position: Position,
+    direction: Direction
+  ): number {
+    // Get perpendicular directions based on running direction
+    const perpendicularDirs = this.getPerpendicularDirections(direction)
 
     let count = 0
-    for (const dir of directions) {
+    for (const dir of perpendicularDirs) {
       const newX = position.x + dir.x
       const newY = position.y + dir.y
 
@@ -136,5 +153,55 @@ export class DisturbanceService {
     }
 
     return count
+  }
+
+  /**
+   * Get perpendicular direction vectors for a given direction.
+   *
+   * For cardinal directions (up/down/left/right):
+   * - Horizontal (left/right) → perpendicular = up/down
+   * - Vertical (up/down) → perpendicular = left/right
+   *
+   * For diagonal directions (up-left, up-right, down-left, down-right):
+   * - Returns all four perpendicular directions (forming a cross pattern)
+   *
+   * @param direction - Running direction
+   * @returns Array of perpendicular direction vectors
+   */
+  private getPerpendicularDirections(direction: Direction): Array<{ x: number; y: number }> {
+    switch (direction) {
+      case 'left':
+      case 'right':
+        // Horizontal movement → check vertical (up/down)
+        return [
+          { x: 0, y: -1 }, // up
+          { x: 0, y: 1 },  // down
+        ]
+
+      case 'up':
+      case 'down':
+        // Vertical movement → check horizontal (left/right)
+        return [
+          { x: -1, y: 0 }, // left
+          { x: 1, y: 0 },  // right
+        ]
+
+      case 'up-left':
+      case 'up-right':
+      case 'down-left':
+      case 'down-right':
+        // Diagonal movement → check all perpendicular directions
+        // For diagonals, perpendiculars form a + pattern (not X)
+        return [
+          { x: 0, y: -1 }, // up
+          { x: 0, y: 1 },  // down
+          { x: -1, y: 0 }, // left
+          { x: 1, y: 0 },  // right
+        ]
+
+      default:
+        // Fallback: return empty array (no perpendicular directions)
+        return []
+    }
   }
 }
