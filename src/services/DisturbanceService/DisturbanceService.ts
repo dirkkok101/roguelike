@@ -26,7 +26,7 @@ export class DisturbanceService {
     return { disturbed: false }
   }
 
-  private checkSafety(state: GameState, runState: RunState): DisturbanceResult {
+  private checkSafety(state: GameState, _runState: RunState): DisturbanceResult {
     const { player } = state
 
     // HP below 30%
@@ -86,7 +86,7 @@ export class DisturbanceService {
     return { disturbed: false }
   }
 
-  private checkNavigation(state: GameState, runState: RunState): DisturbanceResult {
+  private checkNavigation(state: GameState, _runState: RunState): DisturbanceResult {
     const currentLevel = state.levels.get(state.currentLevel)
     if (!currentLevel) return { disturbed: false }
 
