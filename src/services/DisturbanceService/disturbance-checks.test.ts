@@ -183,11 +183,11 @@ describe('DisturbanceService - Disturbance Checks', () => {
         // Layout:
         //     |
         // ----+---- (player at junction, running right)
-        level.tiles[4][5] = { walkable: true, type: 'CORRIDOR' } as any // up (perpendicular)
-        level.tiles[5][4] = { walkable: true, type: 'CORRIDOR' } as any // left (behind)
-        level.tiles[5][5] = { walkable: true, type: 'CORRIDOR' } as any // player position
-        level.tiles[5][6] = { walkable: true, type: 'CORRIDOR' } as any // right (ahead)
-        level.tiles[6][5] = { walkable: false, type: 'WALL' } as any // down (blocked)
+        level.tiles[4][5] = { walkable: true, type: 'CORRIDOR', isRoom: false } as any // up (perpendicular)
+        level.tiles[5][4] = { walkable: true, type: 'CORRIDOR', isRoom: false } as any // left (behind)
+        level.tiles[5][5] = { walkable: true, type: 'CORRIDOR', isRoom: false } as any // player position
+        level.tiles[5][6] = { walkable: true, type: 'CORRIDOR', isRoom: false } as any // right (ahead)
+        level.tiles[6][5] = { walkable: false, type: 'WALL', isRoom: false } as any // down (blocked)
 
         const state: GameState = createMockGameState({ currentLevel: 1 })
         state.player = player
@@ -382,6 +382,77 @@ describe('DisturbanceService - Disturbance Checks', () => {
 
         const result = service.checkDisturbance(state, runState)
 
+        expect(result.disturbed).toBe(true)
+        expect(result.reason).toContain('corridor branches')
+      })
+
+      it('continues run in room (perpendicular tiles are expected in rooms)', () => {
+        const player = createTestPlayer({ position: { x: 5, y: 5 } })
+        const level = createMockLevel()
+
+        // Create room with open floor (walkable in all directions)
+        // Layout:
+        //   ###
+        //   #@#  (player in room, running right, perpendicular tiles exist but this is normal)
+        //   ###
+        for (let y = 0; y < level.height; y++) {
+          for (let x = 0; x < level.width; x++) {
+            level.tiles[y][x] = { walkable: false, type: 'WALL', isRoom: false } as any
+          }
+        }
+        // Create a 3x3 room around player
+        for (let y = 4; y <= 6; y++) {
+          for (let x = 4; x <= 6; x++) {
+            level.tiles[y][x] = { walkable: true, type: 'ROOM_FLOOR', isRoom: true } as any
+          }
+        }
+
+        const state: GameState = createMockGameState({ currentLevel: 1 })
+        state.player = player
+        state.levels.set(1, level)
+
+        const runState: RunState = {
+          direction: 'right',
+          startingFOV: new Set(),
+          startingPosition: { x: 4, y: 5 },
+          previousHP: 20
+        }
+
+        const result = service.checkDisturbance(state, runState)
+
+        // Should NOT stop - perpendicular tiles in rooms are expected
+        expect(result.disturbed).toBe(false)
+      })
+
+      it('stops run in corridor even when perpendicular tiles exist (not a room)', () => {
+        const player = createTestPlayer({ position: { x: 5, y: 5 } })
+        const level = createMockLevel()
+
+        // Create T-junction in corridor (isRoom = false)
+        for (let y = 0; y < level.height; y++) {
+          for (let x = 0; x < level.width; x++) {
+            level.tiles[y][x] = { walkable: false, type: 'WALL', isRoom: false } as any
+          }
+        }
+        level.tiles[4][5] = { walkable: true, type: 'CORRIDOR', isRoom: false } as any // up (perpendicular)
+        level.tiles[5][4] = { walkable: true, type: 'CORRIDOR', isRoom: false } as any // left (behind)
+        level.tiles[5][5] = { walkable: true, type: 'CORRIDOR', isRoom: false } as any // player position
+        level.tiles[5][6] = { walkable: true, type: 'CORRIDOR', isRoom: false } as any // right (ahead)
+
+        const state: GameState = createMockGameState({ currentLevel: 1 })
+        state.player = player
+        state.levels.set(1, level)
+
+        const runState: RunState = {
+          direction: 'right',
+          startingFOV: new Set(),
+          startingPosition: { x: 4, y: 5 },
+          previousHP: 20
+        }
+
+        const result = service.checkDisturbance(state, runState)
+
+        // SHOULD stop - this is a corridor branch (isRoom = false)
         expect(result.disturbed).toBe(true)
         expect(result.reason).toContain('corridor branches')
       })

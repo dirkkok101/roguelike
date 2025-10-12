@@ -102,13 +102,17 @@ export class DisturbanceService {
     }
 
     // Check for corridor branches (perpendicular choices)
-    const perpendicularChoices = this.countPerpendicularChoices(
-      currentLevel,
-      player.position,
-      runState.direction
-    )
-    if (perpendicularChoices > 0) {
-      return { disturbed: true, reason: 'The corridor branches.' }
+    // Skip this check if player is in a room - rooms are meant to have open floors
+    const currentTile = currentLevel.tiles[player.position.y]?.[player.position.x]
+    if (currentTile && !currentTile.isRoom) {
+      const perpendicularChoices = this.countPerpendicularChoices(
+        currentLevel,
+        player.position,
+        runState.direction
+      )
+      if (perpendicularChoices > 0) {
+        return { disturbed: true, reason: 'The corridor branches.' }
+      }
     }
 
     return { disturbed: false }
