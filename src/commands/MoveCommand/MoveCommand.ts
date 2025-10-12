@@ -17,6 +17,7 @@ import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
 import { MonsterAIService } from '@services/MonsterAIService'
+import { DisturbanceService } from '@services/DisturbanceService'
 import { AttackCommand } from '../AttackCommand'
 
 // ============================================================================
@@ -300,10 +301,51 @@ export class MoveCommand implements ICommand {
       finalMessages = this.messageService.addMessage(finalMessages, msg, 'info', state.turnCount + 1)
     })
 
+    // 8.5. Check for run disturbances (if running)
+    let finalPlayer = updatedPlayer
+    if (updatedPlayer.runState) {
+      const disturbanceService = new DisturbanceService()
+      const stateWithUpdatedPlayer = {
+        ...stateWithUpdatedLevel,
+        player: updatedPlayer,
+        messages: finalMessages,
+      }
+      const disturbanceCheck = disturbanceService.checkDisturbance(
+        stateWithUpdatedPlayer,
+        updatedPlayer.runState
+      )
+
+      if (disturbanceCheck.disturbed) {
+        // Stop running
+        finalPlayer = {
+          ...updatedPlayer,
+          isRunning: false,
+          runState: null,
+        }
+
+        // Add disturbance message
+        finalMessages = this.messageService.addMessage(
+          finalMessages,
+          `You stop running. ${disturbanceCheck.reason}`,
+          'info',
+          state.turnCount + 1
+        )
+      } else {
+        // Update runState with current HP for next iteration
+        finalPlayer = {
+          ...updatedPlayer,
+          runState: {
+            ...updatedPlayer.runState,
+            previousHP: updatedPlayer.hp,
+          },
+        }
+      }
+    }
+
     // 9. Return with turn increment
     return this.turnService.incrementTurn({
       ...state,
-      player: updatedPlayer,
+      player: finalPlayer,
       visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
       messages: finalMessages,
