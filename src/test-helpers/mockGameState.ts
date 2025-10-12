@@ -110,6 +110,7 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
     },
     statusEffects: [],
     energy: 0,
+    runState: null,
   }
 
   const level = createMockLevel({ width: mapDims.width, height: mapDims.height })

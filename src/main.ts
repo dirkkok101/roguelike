@@ -272,6 +272,7 @@ async function initializeGame() {
     statusEffects: [],
     energy: 100, // Start with full energy (can act immediately)
     isRunning: false, // Not running initially
+    runState: null, // Not running initially
   }
 
   // Compute initial FOV
@@ -436,6 +437,7 @@ async function initializeGame() {
       statusEffects: [],
       energy: 100, // Start with full energy (can act immediately)
       isRunning: false, // Not running initially
+      runState: null, // Not running initially
     }
 
     const visibleCells = fovService.computeFOV(
