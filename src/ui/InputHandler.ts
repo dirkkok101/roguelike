@@ -58,6 +58,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { CurseService } from '@services/CurseService'
 import { GoldService } from '@services/GoldService'
 import { TargetingService } from '@services/TargetingService'
+import { DisturbanceService } from '@services/DisturbanceService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { ModalController } from './ModalController'
@@ -104,6 +105,7 @@ export class InputHandler {
   private readonly curseService: CurseService
   private readonly goldService: GoldService
   private readonly targetingService: TargetingService
+  private readonly disturbanceService: DisturbanceService
 
   constructor(
     services: GameDependencies,
@@ -142,6 +144,7 @@ export class InputHandler {
     this.curseService = services.curse
     this.goldService = services.gold
     this.targetingService = services.targeting
+    this.disturbanceService = new DisturbanceService()
   }
 
   /**
@@ -203,7 +206,9 @@ export class InputHandler {
           this.regenerationService,
           this.notificationService,
           this.turnService,
-          this.goldService
+          this.goldService,
+          undefined, // monsterAIService
+          this.disturbanceService
         )
 
       case 'ArrowDown':
@@ -221,7 +226,9 @@ export class InputHandler {
           this.regenerationService,
           this.notificationService,
           this.turnService,
-          this.goldService
+          this.goldService,
+          undefined, // monsterAIService
+          this.disturbanceService
         )
 
       case 'ArrowLeft':
@@ -239,7 +246,9 @@ export class InputHandler {
           this.regenerationService,
           this.notificationService,
           this.turnService,
-          this.goldService
+          this.goldService,
+          undefined, // monsterAIService
+          this.disturbanceService
         )
 
       case 'ArrowRight':
@@ -257,7 +266,9 @@ export class InputHandler {
           this.regenerationService,
           this.notificationService,
           this.turnService,
-          this.goldService
+          this.goldService,
+          undefined, // monsterAIService
+          this.disturbanceService
         )
 
       case 'o':

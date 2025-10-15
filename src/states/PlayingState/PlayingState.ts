@@ -1,5 +1,5 @@
 import { BaseState } from '@states/BaseState'
-import { GameState, Input } from '@game/core/core'
+import { GameState, Input, Direction } from '@game/core/core'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { MonsterTurnService } from '@services/MonsterTurnService'
@@ -8,6 +8,7 @@ import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { ToggleRenderModeCommand } from '@commands/ToggleRenderModeCommand'
 import { PreferencesService } from '@services/PreferencesService'
 import { MessageService } from '@services/MessageService'
+import { RunCommand } from '@commands/RunCommand'
 
 /**
  * PlayingState - Main gameplay state
@@ -122,6 +123,22 @@ export class PlayingState extends BaseState {
       return
     }
 
+    // Handle Shift+Arrow to initiate run command
+    // Only call RunCommand once when initiating a new run, not on every Shift+Arrow press
+    if (_input.shift && !this.gameState.player.isRunning) {
+      const direction = this.getDirectionFromKey(_input.key)
+      if (direction) {
+        // Initiate run with RunCommand
+        const runCommand = new RunCommand(direction)
+        this.gameState = runCommand.execute(this.gameState)
+
+        // Take first step with MoveCommand (needs all services from InputHandler)
+        // Note: InputHandler constructs MoveCommand with all required services
+        // For now, delegate to InputHandler by falling through
+        // The MoveCommand will be created by InputHandler with arrow key
+      }
+    }
+
     // Convert Input to KeyboardEvent for existing InputHandler
     // TODO: Phase 4 will refactor to use Input directly
     const keyboardEvent = this.inputToKeyboardEvent(_input)
@@ -150,6 +167,62 @@ export class PlayingState extends BaseState {
       }
 
       this.autoSaveMiddleware.afterTurn(this.gameState)
+
+      // PHASE 4: Continue running if player is still in run mode
+      // Keep executing MoveCommand until disturbance or run stops
+      let runMoveCount = 0
+      const maxRunMoves = 100 // Safety limit to prevent infinite loops
+
+      while (this.gameState.player.isRunning && this.gameState.player.runState && runMoveCount < maxRunMoves) {
+        runMoveCount++
+
+        // Grant energy for next move
+        do {
+          this.gameState = this.turnService.grantEnergyToAllActors(this.gameState)
+        } while (!this.turnService.canPlayerAct(this.gameState.player))
+
+        // Execute next move in run direction
+        const direction = this.gameState.player.runState!.direction
+        const runKeyEvent = this.directionToKeyboardEvent(direction)
+        const runCommand = this.inputHandler.handleKeyPress(runKeyEvent, this.gameState)
+
+        if (runCommand) {
+          this.gameState = runCommand.execute(this.gameState)
+
+          // Consume player energy
+          this.gameState = {
+            ...this.gameState,
+            player: this.turnService.consumePlayerEnergy(this.gameState.player),
+          }
+
+          // Process monsters if player exhausted energy
+          if (!this.turnService.canPlayerAct(this.gameState.player)) {
+            this.gameState = this.monsterTurnService.processMonsterTurns(this.gameState)
+            this.gameState = this.turnService.processWanderingSpawns(this.gameState)
+            this.gameState = this.turnService.incrementTurn(this.gameState)
+          }
+
+          // Render after each run move to show exploration progress
+          this.renderer.render(this.gameState)
+
+          this.autoSaveMiddleware.afterTurn(this.gameState)
+        } else {
+          // No command returned, stop running
+          break
+        }
+      }
+
+      if (runMoveCount >= maxRunMoves) {
+        // Safety limit reached - stop running
+        this.gameState = {
+          ...this.gameState,
+          player: {
+            ...this.gameState.player,
+            isRunning: false,
+            runState: null
+          }
+        }
+      }
     }
 
     // Rendering is now handled by main loop after handleInput() returns
@@ -226,5 +299,68 @@ export class PlayingState extends BaseState {
       ctrlKey: input.ctrl,
       altKey: input.alt,
     })
+  }
+
+  /**
+   * Convert arrow key to Direction
+   * Supports all 8 directions (4 cardinal + 4 diagonal)
+   *
+   * @param key - Arrow key name
+   * @returns Direction or null if not an arrow key
+   */
+  private getDirectionFromKey(key: string): Direction | null {
+    switch (key) {
+      case 'ArrowUp':
+        return 'up'
+      case 'ArrowDown':
+        return 'down'
+      case 'ArrowLeft':
+        return 'left'
+      case 'ArrowRight':
+        return 'right'
+      default:
+        return null
+    }
+  }
+
+  /**
+   * Convert Direction to KeyboardEvent for InputHandler
+   * Used when continuing a run to simulate arrow key press
+   *
+   * @param direction - Direction to convert
+   * @returns KeyboardEvent with corresponding arrow key
+   */
+  private directionToKeyboardEvent(direction: Direction): KeyboardEvent {
+    let key: string
+    switch (direction) {
+      case 'up':
+        key = 'ArrowUp'
+        break
+      case 'down':
+        key = 'ArrowDown'
+        break
+      case 'left':
+        key = 'ArrowLeft'
+        break
+      case 'right':
+        key = 'ArrowRight'
+        break
+      case 'up-left':
+        key = 'ArrowUp' // Diagonal - use primary direction
+        break
+      case 'up-right':
+        key = 'ArrowUp'
+        break
+      case 'down-left':
+        key = 'ArrowDown'
+        break
+      case 'down-right':
+        key = 'ArrowDown'
+        break
+      default:
+        key = 'ArrowUp' // Fallback
+        break
+    }
+    return new KeyboardEvent('keydown', { key })
   }
 }

@@ -146,6 +146,7 @@ export interface Player {
   statusEffects: StatusEffect[]
   energy: number // Energy for turn system (0-199 typical range)
   isRunning: boolean // Track if player is running (increases monster detection range)
+  runState: RunState | null // Active run state (null when not running)
 }
 
 export interface Monster {
@@ -522,6 +523,17 @@ export enum TargetingMode {
  * Direction vector for directional targeting
  */
 export type Direction = 'up' | 'down' | 'left' | 'right' | 'up-left' | 'up-right' | 'down-left' | 'down-right'
+
+/**
+ * Player run state - tracks continuous movement in one direction
+ * Used by RunCommand and MoveCommand for automatic movement with disturbance detection
+ */
+export interface RunState {
+  direction: Direction                // Direction of run (up/down/left/right, etc.)
+  startingFOV: Set<string>            // Monster IDs visible when run started
+  startingPosition: Position          // Where run began (for corridor logic)
+  previousHP: number                  // HP when run started (to detect damage)
+}
 
 /**
  * Request for targeting (passed from command to UI)

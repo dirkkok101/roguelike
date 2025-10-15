@@ -10,6 +10,7 @@ Complete reference for all player commands in the ASCII Roguelike.
 |-----|---------|-------|-------------|
 | **Movement & Combat** ||||
 | `↑` `↓` `←` `→` | [Move](./move.md) | Yes | Move in direction (bump-to-attack) |
+| Shift + Arrow | [Run](./RunCommand.md) | Yes | Run in direction until disturbed |
 | - | [Attack](./attack.md) | Yes | Triggered by moving into monster |
 | **Doors & Exploration** ||||
 | `o` + direction | [Open Door](./open-door.md) | Yes | Open closed/secret door |
@@ -67,6 +68,7 @@ Commands marked **"No"** are **instant** and do not advance the game state.
 
 ### Core Gameplay
 - [Move](./move.md) - Player movement
+- [Run](./RunCommand.md) - Automatic movement until disturbed
 - [Attack](./attack.md) - Combat via bump-to-attack
 - [Open Door](./open-door.md) - Open doors
 - [Close Door](./close-door.md) - Close doors

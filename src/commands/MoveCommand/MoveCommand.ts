@@ -17,6 +17,7 @@ import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
 import { MonsterAIService } from '@services/MonsterAIService'
+import { DisturbanceService } from '@services/DisturbanceService'
 import { AttackCommand } from '../AttackCommand'
 
 // ============================================================================
@@ -24,6 +25,8 @@ import { AttackCommand } from '../AttackCommand'
 // ============================================================================
 
 export class MoveCommand implements ICommand {
+  private disturbanceService: DisturbanceService
+
   constructor(
     private direction: 'up' | 'down' | 'left' | 'right',
     private movementService: MovementService,
@@ -38,8 +41,12 @@ export class MoveCommand implements ICommand {
     private notificationService: NotificationService,
     private turnService: TurnService,
     private goldService: GoldService,
-    private monsterAIService?: MonsterAIService // Optional for backward compatibility
-  ) {}
+    private monsterAIService?: MonsterAIService, // Optional for backward compatibility
+    disturbanceService?: DisturbanceService // Optional for backward compatibility
+  ) {
+    // If not injected, create instance (backward compatibility)
+    this.disturbanceService = disturbanceService ?? new DisturbanceService()
+  }
 
   execute(state: GameState): GameState {
     const level = state.levels.get(state.currentLevel)
@@ -125,8 +132,47 @@ export class MoveCommand implements ICommand {
       }
     }
 
-    // ROUTE 3: Wall → Blocked (no turn)
+    // ROUTE 3: Wall → Blocked (check for corridor turn if running)
     if (obstacle.type === 'wall') {
+      // Special case: If running and hit a wall, check for corridor turn
+      if (state.player.isRunning && state.player.runState) {
+        const disturbanceCheck = this.disturbanceService.checkDisturbance(state, state.player.runState)
+
+        // If there's a corridor turn available, change direction and continue
+        if (!disturbanceCheck.disturbed && disturbanceCheck.newDirection) {
+          // Update run direction
+          const updatedPlayer = {
+            ...state.player,
+            runState: {
+              ...state.player.runState,
+              direction: disturbanceCheck.newDirection
+            }
+          }
+
+          return {
+            ...state,
+            player: updatedPlayer
+          }
+        } else {
+          // No turn available or disturbed, stop running
+          const updatedPlayer = {
+            ...state.player,
+            isRunning: false,
+            runState: null
+          }
+
+          const messages = this.messageService.addMessage(
+            state.messages,
+            "You can't go that way.",
+            'info',
+            state.turnCount
+          )
+
+          return { ...state, player: updatedPlayer, messages }
+        }
+      }
+
+      // Not running, just show message
       const messages = this.messageService.addMessage(
         state.messages,
         "You can't go that way.",
@@ -300,10 +346,60 @@ export class MoveCommand implements ICommand {
       finalMessages = this.messageService.addMessage(finalMessages, msg, 'info', state.turnCount + 1)
     })
 
+    // 8.5. Check for run disturbances (if running)
+    let finalPlayer = updatedPlayer
+    if (updatedPlayer.runState) {
+      const stateWithUpdatedPlayer = {
+        ...stateWithUpdatedLevel,
+        player: updatedPlayer,
+        messages: finalMessages,
+      }
+      const disturbanceCheck = this.disturbanceService.checkDisturbance(
+        stateWithUpdatedPlayer,
+        updatedPlayer.runState
+      )
+
+      if (disturbanceCheck.disturbed) {
+        // Stop running
+        finalPlayer = {
+          ...updatedPlayer,
+          isRunning: false,
+          runState: null,
+        }
+
+        // Add disturbance message
+        finalMessages = this.messageService.addMessage(
+          finalMessages,
+          `You stop running. ${disturbanceCheck.reason}`,
+          'info',
+          state.turnCount + 1
+        )
+      } else if (disturbanceCheck.newDirection) {
+        // Continue running with new direction (corridor turn)
+        finalPlayer = {
+          ...updatedPlayer,
+          runState: {
+            ...updatedPlayer.runState,
+            direction: disturbanceCheck.newDirection,
+            previousHP: updatedPlayer.hp,
+          },
+        }
+      } else {
+        // Update runState with current HP for next iteration
+        finalPlayer = {
+          ...updatedPlayer,
+          runState: {
+            ...updatedPlayer.runState,
+            previousHP: updatedPlayer.hp,
+          },
+        }
+      }
+    }
+
     // 9. Return with turn increment
     return this.turnService.incrementTurn({
       ...state,
-      player: updatedPlayer,
+      player: finalPlayer,
       visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
       messages: finalMessages,
