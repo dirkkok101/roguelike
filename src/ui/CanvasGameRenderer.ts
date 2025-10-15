@@ -318,15 +318,14 @@ export class CanvasGameRenderer {
     // Update camera position using scroll margin system
     this.updateCamera(state)
 
-    // DEBUG: Log camera and viewport state
-    const playerPos = state.player.position
-    const playerScreen = this.worldToScreen(playerPos)
-    const level = state.levels.get(state.currentLevel)
-    const mapSize = level ? `${level.tiles[0]?.length || 0}×${level.tiles.length || 0}` : 'unknown'
-
-    console.log(`[Render] Player: world(${playerPos.x},${playerPos.y}) → screen(${playerScreen.x},${playerScreen.y})`)
-    console.log(`[Render] Camera: offset(${this.cameraOffsetX},${this.cameraOffsetY}) viewport(${this.config.gridWidth}×${this.config.gridHeight}) map(${mapSize})`)
-    console.log(`[Render] Viewport bounds: world X[${this.cameraOffsetX} to ${this.cameraOffsetX + this.config.gridWidth}], Y[${this.cameraOffsetY} to ${this.cameraOffsetY + this.config.gridHeight}]`)
+    // DEBUG: Log camera and viewport state (commented out to reduce console noise)
+    // const playerPos = state.player.position
+    // const playerScreen = this.worldToScreen(playerPos)
+    // const level = state.levels.get(state.currentLevel)
+    // const mapSize = level ? `${level.tiles[0]?.length || 0}×${level.tiles.length || 0}` : 'unknown'
+    // console.log(`[Render] Player: world(${playerPos.x},${playerPos.y}) → screen(${playerScreen.x},${playerScreen.y})`)
+    // console.log(`[Render] Camera: offset(${this.cameraOffsetX},${this.cameraOffsetY}) viewport(${this.config.gridWidth}×${this.config.gridHeight}) map(${mapSize})`)
+    // console.log(`[Render] Viewport bounds: world X[${this.cameraOffsetX} to ${this.cameraOffsetX + this.config.gridWidth}], Y[${this.cameraOffsetY} to ${this.cameraOffsetY + this.config.gridHeight}]`)
 
     // Calculate which tiles need to be redrawn (dirty rectangle optimization)
     const dirtyTiles = this.calculateDirtyTiles(state)

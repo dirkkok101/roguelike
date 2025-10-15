@@ -167,6 +167,63 @@ export class PlayingState extends BaseState {
       }
 
       this.autoSaveMiddleware.afterTurn(this.gameState)
+
+      // PHASE 4: Continue running if player is still in run mode
+      // Keep executing MoveCommand until disturbance or run stops
+      let runMoveCount = 0
+      const maxRunMoves = 100 // Safety limit to prevent infinite loops
+
+      while (this.gameState.player.isRunning && this.gameState.player.runState && runMoveCount < maxRunMoves) {
+        runMoveCount++
+
+        // Grant energy for next move
+        do {
+          this.gameState = this.turnService.grantEnergyToAllActors(this.gameState)
+        } while (!this.turnService.canPlayerAct(this.gameState.player))
+
+        // Execute next move in run direction
+        const direction = this.gameState.player.runState!.direction
+        const runKeyEvent = this.directionToKeyboardEvent(direction)
+        const runCommand = this.inputHandler.handleKeyPress(runKeyEvent, this.gameState)
+
+        if (runCommand) {
+          this.gameState = runCommand.execute(this.gameState)
+
+          // Consume player energy
+          this.gameState = {
+            ...this.gameState,
+            player: this.turnService.consumePlayerEnergy(this.gameState.player),
+          }
+
+          // Process monsters if player exhausted energy
+          if (!this.turnService.canPlayerAct(this.gameState.player)) {
+            this.gameState = this.monsterTurnService.processMonsterTurns(this.gameState)
+            this.gameState = this.turnService.processWanderingSpawns(this.gameState)
+            this.gameState = this.turnService.incrementTurn(this.gameState)
+          }
+
+          // Render after each run move to show exploration progress
+          this.renderer.render(this.gameState)
+
+          this.autoSaveMiddleware.afterTurn(this.gameState)
+        } else {
+          // No command returned, stop running
+          console.log('[PlayingState] No command returned, stopping run')
+          break
+        }
+      }
+
+      if (runMoveCount >= maxRunMoves) {
+        console.error('[PlayingState] Run safety limit reached! Stopping run to prevent infinite loop')
+        this.gameState = {
+          ...this.gameState,
+          player: {
+            ...this.gameState.player,
+            isRunning: false,
+            runState: null
+          }
+        }
+      }
     }
 
     // Rendering is now handled by main loop after handleInput() returns
@@ -265,5 +322,46 @@ export class PlayingState extends BaseState {
       default:
         return null
     }
+  }
+
+  /**
+   * Convert Direction to KeyboardEvent for InputHandler
+   * Used when continuing a run to simulate arrow key press
+   *
+   * @param direction - Direction to convert
+   * @returns KeyboardEvent with corresponding arrow key
+   */
+  private directionToKeyboardEvent(direction: Direction): KeyboardEvent {
+    let key: string
+    switch (direction) {
+      case 'up':
+        key = 'ArrowUp'
+        break
+      case 'down':
+        key = 'ArrowDown'
+        break
+      case 'left':
+        key = 'ArrowLeft'
+        break
+      case 'right':
+        key = 'ArrowRight'
+        break
+      case 'up-left':
+        key = 'ArrowUp' // Diagonal - use primary direction
+        break
+      case 'up-right':
+        key = 'ArrowUp'
+        break
+      case 'down-left':
+        key = 'ArrowDown'
+        break
+      case 'down-right':
+        key = 'ArrowDown'
+        break
+      default:
+        key = 'ArrowUp' // Fallback
+        break
+    }
+    return new KeyboardEvent('keydown', { key })
   }
 }

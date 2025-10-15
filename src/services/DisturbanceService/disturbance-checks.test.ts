@@ -23,7 +23,15 @@ describe('DisturbanceService - Disturbance Checks', () => {
         armor: null,
         leftRing: null,
         rightRing: null,
-        lightSource: null,
+        lightSource: {
+          id: 'torch-1',
+          type: ItemType.LIGHTSOURCE,
+          name: 'Torch',
+          spriteName: 'torch',
+          lightRadius: 2,
+          fuelRemaining: 500,
+          maxFuel: 650,
+        },
       },
       inventory: [],
       statusEffects: [],
@@ -350,14 +358,14 @@ describe('DisturbanceService - Disturbance Checks', () => {
         expect(result.reason).toContain('corridor branches')
       })
 
-      it('stops at L-junction (perpendicular turn only, running right)', () => {
+      it('automatically turns at L-junction (perpendicular turn only, running right)', () => {
         const player = createTestPlayer({ position: { x: 5, y: 5 } })
         const level = createMockLevel()
 
         // Create L-shaped corridor (no ahead path, only perpendicular)
         // Layout:
         //     |
-        // ----+ (player at corner, running right into dead-end but turn available up)
+        // ----+ (player at corner, running right into wall but can turn up)
         for (let y = 0; y < level.height; y++) {
           for (let x = 0; x < level.width; x++) {
             level.tiles[y][x] = { walkable: false, type: 'WALL' } as any
@@ -382,8 +390,9 @@ describe('DisturbanceService - Disturbance Checks', () => {
 
         const result = service.checkDisturbance(state, runState)
 
-        expect(result.disturbed).toBe(true)
-        expect(result.reason).toContain('corridor branches')
+        // Should automatically turn up (not stop) since only 1 perpendicular option
+        expect(result.disturbed).toBe(false)
+        expect(result.newDirection).toBe('up')
       })
 
       it('continues run in room (perpendicular tiles are expected in rooms)', () => {

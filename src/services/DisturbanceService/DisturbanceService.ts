@@ -3,6 +3,7 @@ import { GameState, RunState, Position, Level, Direction } from '@game/core/core
 export interface DisturbanceResult {
   disturbed: boolean
   reason?: string
+  newDirection?: Direction  // New direction for automatic corridor turns
 }
 
 export class DisturbanceService {
@@ -29,10 +30,14 @@ export class DisturbanceService {
     console.log('[DisturbanceService] Combat check result:', combatCheck)
     if (combatCheck.disturbed) return combatCheck
 
-    // Navigation checks
+    // Navigation checks (may include newDirection for corridor turns)
     const navCheck = this.checkNavigation(state, runState)
     console.log('[DisturbanceService] Navigation check result:', navCheck)
-    if (navCheck.disturbed) return navCheck
+
+    // Return navigation result (may have newDirection even if not disturbed)
+    if (navCheck.disturbed || navCheck.newDirection) {
+      return navCheck
+    }
 
     console.log('[DisturbanceService] No disturbances detected, continue running')
     return { disturbed: false }
@@ -50,6 +55,11 @@ export class DisturbanceService {
     // Hunger critical (below 300)
     if (player.hunger < 300) {
       return { disturbed: true, reason: 'You are very hungry!' }
+    }
+
+    // No light source (can't see where you're going)
+    if (!player.equipment.lightSource) {
+      return { disturbed: true, reason: 'You have no light!' }
     }
 
     // Status effects (confused, blind, paralyzed)
@@ -119,7 +129,7 @@ export class DisturbanceService {
       }
     }
 
-    // Check for corridor branches (perpendicular choices)
+    // Check for corridor turns and branches
     // Skip this check if player is in a room - rooms are meant to have open floors
     const currentTile = currentLevel.tiles[player.position.y]?.[player.position.x]
     console.log('[DisturbanceService] Navigation: Current tile', {
@@ -129,14 +139,47 @@ export class DisturbanceService {
     })
 
     if (currentTile && !currentTile.isRoom) {
-      const perpendicularChoices = this.countPerpendicularChoices(
-        currentLevel,
-        player.position,
-        runState.direction
-      )
-      console.log('[DisturbanceService] Navigation: Perpendicular choices in corridor:', perpendicularChoices)
+      // Check if we can continue in current direction
+      const canContinueAhead = this.isWalkable(currentLevel, positionAhead)
 
-      if (perpendicularChoices > 0) {
+      // Get available perpendicular directions
+      const perpendicularInfo = this.getPerpendicularDirections(runState.direction)
+      const walkablePerpendicular: Direction[] = []
+
+      for (const dirInfo of perpendicularInfo) {
+        const checkPos = {
+          x: player.position.x + dirInfo.x,
+          y: player.position.y + dirInfo.y
+        }
+        if (this.isWalkable(currentLevel, checkPos)) {
+          walkablePerpendicular.push(dirInfo.direction)
+        }
+      }
+
+      console.log('[DisturbanceService] Navigation: Corridor analysis', {
+        canContinueAhead,
+        perpendicularCount: walkablePerpendicular.length,
+        perpendicularDirs: walkablePerpendicular
+      })
+
+      // If blocked ahead but exactly one perpendicular option: corridor turn
+      if (!canContinueAhead && walkablePerpendicular.length === 1) {
+        console.log('[DisturbanceService] Navigation: Corridor turn detected, new direction:', walkablePerpendicular[0])
+        return {
+          disturbed: false,
+          newDirection: walkablePerpendicular[0]
+        }
+      }
+
+      // If multiple perpendicular options available: junction (stop running)
+      if (walkablePerpendicular.length >= 2) {
+        console.log('[DisturbanceService] Navigation: Junction detected')
+        return { disturbed: true, reason: 'The corridor branches.' }
+      }
+
+      // If we have perpendicular options while we can still go ahead: junction
+      if (canContinueAhead && walkablePerpendicular.length >= 1) {
+        console.log('[DisturbanceService] Navigation: Junction with forward path detected')
         return { disturbed: true, reason: 'The corridor branches.' }
       }
     } else if (currentTile?.isRoom) {
@@ -179,46 +222,6 @@ export class DisturbanceService {
   }
 
   /**
-   * Count walkable directions perpendicular to the running direction.
-   * This determines if there are new choices available (corridor branching).
-   *
-   * For example, if running right:
-   * - Check up and down (perpendicular to horizontal)
-   * - Don't count left (behind) or right (ahead) since those aren't new choices
-   *
-   * @param level - Current level
-   * @param position - Current player position
-   * @param direction - Direction of run
-   * @returns Number of walkable perpendicular directions (0+ choices)
-   */
-  private countPerpendicularChoices(
-    level: Level,
-    position: Position,
-    direction: Direction
-  ): number {
-    // Get perpendicular directions based on running direction
-    const perpendicularDirs = this.getPerpendicularDirections(direction)
-
-    let count = 0
-    for (const dir of perpendicularDirs) {
-      const newX = position.x + dir.x
-      const newY = position.y + dir.y
-
-      if (
-        newX >= 0 &&
-        newX < level.width &&
-        newY >= 0 &&
-        newY < level.height &&
-        level.tiles[newY][newX]?.walkable
-      ) {
-        count++
-      }
-    }
-
-    return count
-  }
-
-  /**
    * Get perpendicular direction vectors for a given direction.
    *
    * For cardinal directions (up/down/left/right):
@@ -229,24 +232,24 @@ export class DisturbanceService {
    * - Returns all four perpendicular directions (forming a cross pattern)
    *
    * @param direction - Running direction
-   * @returns Array of perpendicular direction vectors
+   * @returns Array of perpendicular direction info (offset + Direction enum)
    */
-  private getPerpendicularDirections(direction: Direction): Array<{ x: number; y: number }> {
+  private getPerpendicularDirections(direction: Direction): Array<{ x: number; y: number; direction: Direction }> {
     switch (direction) {
       case 'left':
       case 'right':
         // Horizontal movement → check vertical (up/down)
         return [
-          { x: 0, y: -1 }, // up
-          { x: 0, y: 1 },  // down
+          { x: 0, y: -1, direction: 'up' as Direction },
+          { x: 0, y: 1, direction: 'down' as Direction },
         ]
 
       case 'up':
       case 'down':
         // Vertical movement → check horizontal (left/right)
         return [
-          { x: -1, y: 0 }, // left
-          { x: 1, y: 0 },  // right
+          { x: -1, y: 0, direction: 'left' as Direction },
+          { x: 1, y: 0, direction: 'right' as Direction },
         ]
 
       case 'up-left':
@@ -256,15 +259,35 @@ export class DisturbanceService {
         // Diagonal movement → check all perpendicular directions
         // For diagonals, perpendiculars form a + pattern (not X)
         return [
-          { x: 0, y: -1 }, // up
-          { x: 0, y: 1 },  // down
-          { x: -1, y: 0 }, // left
-          { x: 1, y: 0 },  // right
+          { x: 0, y: -1, direction: 'up' as Direction },
+          { x: 0, y: 1, direction: 'down' as Direction },
+          { x: -1, y: 0, direction: 'left' as Direction },
+          { x: 1, y: 0, direction: 'right' as Direction },
         ]
 
       default:
         // Fallback: return empty array (no perpendicular directions)
         return []
     }
+  }
+
+  /**
+   * Check if a position is walkable (within bounds and not a wall)
+   *
+   * @param level - Current level
+   * @param position - Position to check
+   * @returns True if walkable, false otherwise
+   */
+  private isWalkable(level: Level, position: Position): boolean {
+    if (
+      position.x < 0 ||
+      position.x >= level.width ||
+      position.y < 0 ||
+      position.y >= level.height
+    ) {
+      return false
+    }
+
+    return level.tiles[position.y]?.[position.x]?.walkable ?? false
   }
 }
