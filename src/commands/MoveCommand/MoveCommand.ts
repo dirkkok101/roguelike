@@ -25,6 +25,8 @@ import { AttackCommand } from '../AttackCommand'
 // ============================================================================
 
 export class MoveCommand implements ICommand {
+  private disturbanceService: DisturbanceService
+
   constructor(
     private direction: 'up' | 'down' | 'left' | 'right',
     private movementService: MovementService,
@@ -39,8 +41,12 @@ export class MoveCommand implements ICommand {
     private notificationService: NotificationService,
     private turnService: TurnService,
     private goldService: GoldService,
-    private monsterAIService?: MonsterAIService // Optional for backward compatibility
-  ) {}
+    private monsterAIService?: MonsterAIService, // Optional for backward compatibility
+    disturbanceService?: DisturbanceService // Optional for backward compatibility
+  ) {
+    // If not injected, create instance (backward compatibility)
+    this.disturbanceService = disturbanceService ?? new DisturbanceService()
+  }
 
   execute(state: GameState): GameState {
     const level = state.levels.get(state.currentLevel)
@@ -130,18 +136,10 @@ export class MoveCommand implements ICommand {
     if (obstacle.type === 'wall') {
       // Special case: If running and hit a wall, check for corridor turn
       if (state.player.isRunning && state.player.runState) {
-        const disturbanceService = new DisturbanceService()
-        const disturbanceCheck = disturbanceService.checkDisturbance(state, state.player.runState)
-
-        console.log('[MoveCommand] Hit wall while running, checking for turn:', {
-          disturbed: disturbanceCheck.disturbed,
-          newDirection: disturbanceCheck.newDirection
-        })
+        const disturbanceCheck = this.disturbanceService.checkDisturbance(state, state.player.runState)
 
         // If there's a corridor turn available, change direction and continue
         if (!disturbanceCheck.disturbed && disturbanceCheck.newDirection) {
-          console.log('[MoveCommand] Corridor turn available, changing direction to:', disturbanceCheck.newDirection)
-
           // Update run direction
           const updatedPlayer = {
             ...state.player,
@@ -157,8 +155,6 @@ export class MoveCommand implements ICommand {
           }
         } else {
           // No turn available or disturbed, stop running
-          console.log('[MoveCommand] No corridor turn available, stopping run')
-
           const updatedPlayer = {
             ...state.player,
             isRunning: false,
@@ -353,34 +349,17 @@ export class MoveCommand implements ICommand {
     // 8.5. Check for run disturbances (if running)
     let finalPlayer = updatedPlayer
     if (updatedPlayer.runState) {
-      console.log('[MoveCommand:Run] Player has runState, checking for disturbances', {
-        direction: updatedPlayer.runState.direction,
-        currentPosition: position,
-        currentHP: updatedPlayer.hp,
-        previousHP: updatedPlayer.runState.previousHP,
-        isRunning: updatedPlayer.isRunning
-      })
-
-      const disturbanceService = new DisturbanceService()
       const stateWithUpdatedPlayer = {
         ...stateWithUpdatedLevel,
         player: updatedPlayer,
         messages: finalMessages,
       }
-      const disturbanceCheck = disturbanceService.checkDisturbance(
+      const disturbanceCheck = this.disturbanceService.checkDisturbance(
         stateWithUpdatedPlayer,
         updatedPlayer.runState
       )
 
-      console.log('[MoveCommand:Run] Disturbance check result:', {
-        disturbed: disturbanceCheck.disturbed,
-        reason: disturbanceCheck.reason,
-        newDirection: disturbanceCheck.newDirection
-      })
-
       if (disturbanceCheck.disturbed) {
-        console.log('[MoveCommand:Run] Stopping run due to disturbance:', disturbanceCheck.reason)
-
         // Stop running
         finalPlayer = {
           ...updatedPlayer,
@@ -396,8 +375,6 @@ export class MoveCommand implements ICommand {
           state.turnCount + 1
         )
       } else if (disturbanceCheck.newDirection) {
-        console.log('[MoveCommand:Run] Corridor turn detected, changing direction to:', disturbanceCheck.newDirection)
-
         // Continue running with new direction (corridor turn)
         finalPlayer = {
           ...updatedPlayer,
@@ -408,11 +385,6 @@ export class MoveCommand implements ICommand {
           },
         }
       } else {
-        console.log('[MoveCommand:Run] Continuing run, updating HP', {
-          previousHP: updatedPlayer.runState.previousHP,
-          newHP: updatedPlayer.hp
-        })
-
         // Update runState with current HP for next iteration
         finalPlayer = {
           ...updatedPlayer,

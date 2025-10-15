@@ -12,34 +12,22 @@ export class DisturbanceService {
    * Priority: Safety > Combat > Navigation
    */
   checkDisturbance(state: GameState, runState: RunState): DisturbanceResult {
-    console.log('[DisturbanceService] checkDisturbance called', {
-      playerPosition: state.player.position,
-      runDirection: runState.direction,
-      playerHP: state.player.hp,
-      previousHP: runState.previousHP,
-      visibleCellsCount: state.visibleCells.size
-    })
-
     // Safety critical checks
     const safetyCheck = this.checkSafety(state, runState)
-    console.log('[DisturbanceService] Safety check result:', safetyCheck)
     if (safetyCheck.disturbed) return safetyCheck
 
     // Combat threat checks
     const combatCheck = this.checkCombatThreats(state, runState)
-    console.log('[DisturbanceService] Combat check result:', combatCheck)
     if (combatCheck.disturbed) return combatCheck
 
     // Navigation checks (may include newDirection for corridor turns)
     const navCheck = this.checkNavigation(state, runState)
-    console.log('[DisturbanceService] Navigation check result:', navCheck)
 
     // Return navigation result (may have newDirection even if not disturbed)
     if (navCheck.disturbed || navCheck.newDirection) {
       return navCheck
     }
 
-    console.log('[DisturbanceService] No disturbances detected, continue running')
     return { disturbed: false }
   }
 
@@ -111,7 +99,6 @@ export class DisturbanceService {
   private checkNavigation(state: GameState, runState: RunState): DisturbanceResult {
     const currentLevel = state.levels.get(state.currentLevel)
     if (!currentLevel) {
-      console.log('[DisturbanceService] Navigation: No current level')
       return { disturbed: false }
     }
 
@@ -119,12 +106,10 @@ export class DisturbanceService {
 
     // Check for doors in the path of running (not perpendicular doors)
     const positionAhead = this.getPositionAhead(player.position, runState.direction)
-    console.log('[DisturbanceService] Navigation: Checking position ahead', positionAhead)
 
     for (const door of currentLevel.doors) {
       if (door.position.x === positionAhead.x && door.position.y === positionAhead.y) {
         // Door is directly in the path of running
-        console.log('[DisturbanceService] Navigation: Door detected ahead at', door.position)
         return { disturbed: true, reason: 'You reach a door.' }
       }
     }
@@ -132,11 +117,6 @@ export class DisturbanceService {
     // Check for corridor turns and branches
     // Skip this check if player is in a room - rooms are meant to have open floors
     const currentTile = currentLevel.tiles[player.position.y]?.[player.position.x]
-    console.log('[DisturbanceService] Navigation: Current tile', {
-      position: player.position,
-      isRoom: currentTile?.isRoom,
-      walkable: currentTile?.walkable
-    })
 
     if (currentTile && !currentTile.isRoom) {
       // Check if we can continue in current direction
@@ -156,15 +136,8 @@ export class DisturbanceService {
         }
       }
 
-      console.log('[DisturbanceService] Navigation: Corridor analysis', {
-        canContinueAhead,
-        perpendicularCount: walkablePerpendicular.length,
-        perpendicularDirs: walkablePerpendicular
-      })
-
       // If blocked ahead but exactly one perpendicular option: corridor turn
       if (!canContinueAhead && walkablePerpendicular.length === 1) {
-        console.log('[DisturbanceService] Navigation: Corridor turn detected, new direction:', walkablePerpendicular[0])
         return {
           disturbed: false,
           newDirection: walkablePerpendicular[0]
@@ -173,17 +146,13 @@ export class DisturbanceService {
 
       // If multiple perpendicular options available: junction (stop running)
       if (walkablePerpendicular.length >= 2) {
-        console.log('[DisturbanceService] Navigation: Junction detected')
         return { disturbed: true, reason: 'The corridor branches.' }
       }
 
       // If we have perpendicular options while we can still go ahead: junction
       if (canContinueAhead && walkablePerpendicular.length >= 1) {
-        console.log('[DisturbanceService] Navigation: Junction with forward path detected')
         return { disturbed: true, reason: 'The corridor branches.' }
       }
-    } else if (currentTile?.isRoom) {
-      console.log('[DisturbanceService] Navigation: In room, skipping branch check')
     }
 
     return { disturbed: false }

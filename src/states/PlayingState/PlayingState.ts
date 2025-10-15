@@ -208,13 +208,12 @@ export class PlayingState extends BaseState {
           this.autoSaveMiddleware.afterTurn(this.gameState)
         } else {
           // No command returned, stop running
-          console.log('[PlayingState] No command returned, stopping run')
           break
         }
       }
 
       if (runMoveCount >= maxRunMoves) {
-        console.error('[PlayingState] Run safety limit reached! Stopping run to prevent infinite loop')
+        // Safety limit reached - stop running
         this.gameState = {
           ...this.gameState,
           player: {
