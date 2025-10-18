@@ -8,6 +8,8 @@ import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { ToggleRenderModeCommand } from '@commands/ToggleRenderModeCommand'
 import { PreferencesService } from '@services/PreferencesService'
 import { MessageService } from '@services/MessageService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
 import { RunCommand } from '@commands/RunCommand'
 
 /**
@@ -46,13 +48,17 @@ export class PlayingState extends BaseState {
     private turnService: TurnService,
     private autoSaveMiddleware: AutoSaveMiddleware,
     preferencesService: PreferencesService,
-    messageService: MessageService
+    messageService: MessageService,
+    commandRecorder: CommandRecorderService,
+    randomService: IRandomService
   ) {
     super()
     this.gameState = initialState
     this.toggleRenderModeCommand = new ToggleRenderModeCommand(
       preferencesService,
-      messageService
+      messageService,
+      commandRecorder,
+      randomService
     )
   }
 

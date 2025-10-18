@@ -593,7 +593,9 @@ async function initializeGame() {
       turnService,
       autoSaveMiddleware,
       preferencesService,
-      messageService
+      messageService,
+      commandRecorderService,
+      random
     )
 
     // Clear any existing states and push PlayingState
