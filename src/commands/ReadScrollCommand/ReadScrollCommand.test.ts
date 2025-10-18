@@ -7,6 +7,7 @@ import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { FOVService } from '@services/FOVService'
 import { DungeonService } from '@services/DungeonService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
@@ -21,11 +22,13 @@ describe('ReadScrollCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     const levelService = new LevelService()
     const fovService = new FOVService(new StatusEffectService())
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
@@ -123,7 +126,9 @@ describe('ReadScrollCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      'potion-1'
+      'potion-1',
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -143,7 +148,10 @@ describe('ReadScrollCommand', () => {
       scrollService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      undefined,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -169,7 +177,10 @@ describe('ReadScrollCommand', () => {
       scrollService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      undefined,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -201,7 +212,9 @@ describe('ReadScrollCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      'armor-1'
+      'armor-1',
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -233,7 +246,9 @@ describe('ReadScrollCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      'potion-1'
+      'potion-1',
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 

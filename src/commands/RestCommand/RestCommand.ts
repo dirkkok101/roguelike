@@ -3,6 +3,9 @@ import { ICommand } from '../ICommand'
 import { RestService } from '@services/RestService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // REST COMMAND - Rest until HP full or interrupted
@@ -12,10 +15,25 @@ export class RestCommand implements ICommand {
   constructor(
     private restService: RestService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+
+    private recorder: CommandRecorderService,
+
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.REST,
+      actorType: 'player',
+      payload: {},
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     // Check for valid level
     const currentLevel = state.levels.get(state.currentLevel)
     if (!currentLevel) {

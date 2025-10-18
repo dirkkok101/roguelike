@@ -144,7 +144,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -169,7 +171,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -196,7 +200,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       state = right.execute(state)
@@ -228,7 +234,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -256,7 +264,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -282,7 +292,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -313,7 +325,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
       const left = new MoveCommand(
         'left',
@@ -330,7 +344,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       state = right.execute(state)
@@ -390,7 +406,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -418,7 +436,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -447,7 +467,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -474,7 +496,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -501,7 +525,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -530,7 +556,9 @@ describe('MoveCommand - FOV Updates', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       command.execute(state)

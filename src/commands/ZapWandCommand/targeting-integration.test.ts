@@ -23,6 +23,7 @@ import { CombatService } from '@services/CombatService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 // ============================================================================
 // TARGETING SYSTEM INTEGRATION TESTS
@@ -38,11 +39,13 @@ describe('Targeting System Integration', () => {
   let movementService: MovementService
   let identificationService: IdentificationService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
   let statusEffectService: StatusEffectService
   let levelService: LevelService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     inventoryService = new InventoryService()
     messageService = new MessageService()
@@ -226,7 +229,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        monsterPos // Target position instead of ID
+        monsterPos, // Target position instead of ID,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -313,7 +318,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        monsterPos // Target position instead of ID
+        monsterPos, // Target position instead of ID,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -400,7 +407,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        monsterPos // Target position instead of ID
+        monsterPos, // Target position instead of ID,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -484,7 +493,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        monsterPos // Target position instead of ID
+        monsterPos, // Target position instead of ID,
+        recorder,
+        mockRandom
       )
       const shortResult = shortCommand.execute(state)
 
@@ -504,7 +515,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        monsterPos // Target position instead of ID
+        monsterPos, // Target position instead of ID,
+        recorder,
+        mockRandom
       )
       const longResult = longCommand.execute(state)
 
@@ -600,7 +613,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        monsterPos // Target position instead of ID
+        monsterPos, // Target position instead of ID,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -683,7 +698,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        undefined // No target
+        undefined, // No target,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -754,15 +771,16 @@ describe('Targeting System Integration', () => {
       }
 
       // Act: Fire at empty tile
-      const command = new ZapWandCommand(
-        wand.id,
+      const command = new ZapWandCommand(wand.id,
         inventoryService,
         wandService,
         messageService,
         turnService,
         statusEffectService,
         targetingService,
-        emptyPos // Target empty position (no monster)
+        emptyPos, // Target empty position (no monster)
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -953,7 +971,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        targetPos // Target empty tile
+        targetPos, // Target empty tile,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -1042,7 +1062,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        targetPos
+        targetPos,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -1129,7 +1151,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        targetPos
+        targetPos,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -1220,7 +1244,9 @@ describe('Targeting System Integration', () => {
         turnService,
         statusEffectService,
         targetingService,
-        targetPos
+        targetPos,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 

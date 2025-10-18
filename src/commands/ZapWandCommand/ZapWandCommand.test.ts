@@ -11,6 +11,7 @@ import { TargetingService } from '@services/TargetingService'
 import { FOVService } from '@services/FOVService'
 import { MovementService } from '@services/MovementService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import {
   GameState,
   Player,
@@ -32,6 +33,7 @@ describe('ZapWandCommand', () => {
   let statusEffectService: StatusEffectService
   let targetingService: TargetingService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
   let combatService: CombatService
   let levelService: LevelService
 
@@ -39,6 +41,7 @@ describe('ZapWandCommand', () => {
     inventoryService = new InventoryService()
     const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     combatService = new CombatService(mockRandom)
     levelService = new LevelService()
@@ -182,15 +185,14 @@ describe('ZapWandCommand', () => {
 
     mockRandom.setValues([3, 4, 2, 5, 6, 3]) // Lightning damage (6d6 = 6 dice)
 
-    const command = new ZapWandCommand(
-      'wand-1',
+    const command = new ZapWandCommand('wand-1',
       inventoryService,
       wandService,
       messageService,
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location)
+      { x: 6, y: 5 } // Target position (monster location, recorder, mockRandom)
     )
     const result = command.execute(state)
 
@@ -211,7 +213,9 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      targetingService
+      targetingService,
+    recorder,
+    mockRandom
     )
     const result = command.execute(state)
 
@@ -239,7 +243,9 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      targetingService
+      targetingService,
+    recorder,
+    mockRandom
     )
     const result = command.execute(state)
 
@@ -254,15 +260,14 @@ describe('ZapWandCommand', () => {
     player.inventory = [wand]
     const state = createTestState(player)
 
-    const command = new ZapWandCommand(
-      'wand-1',
+    const command = new ZapWandCommand('wand-1',
       inventoryService,
       wandService,
       messageService,
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location)
+      { x: 6, y: 5 } // Target position (monster location, recorder, mockRandom)
     )
     const result = command.execute(state)
 
@@ -279,15 +284,14 @@ describe('ZapWandCommand', () => {
 
     mockRandom.setValues([3, 4, 2, 5, 6, 3]) // Lightning damage (6d6)
 
-    const command = new ZapWandCommand(
-      'wand-1',
+    const command = new ZapWandCommand('wand-1',
       inventoryService,
       wandService,
       messageService,
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location)
+      { x: 6, y: 5 } // Target position (monster location, recorder, mockRandom)
     )
     const result = command.execute(state)
 

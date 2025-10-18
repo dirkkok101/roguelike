@@ -6,6 +6,9 @@ import { TurnService } from '@services/TurnService'
 import { FOVService } from '@services/FOVService'
 import type { FOVUpdateResult } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // TAKE OFF COMMAND - Generic equipment removal (Angband's 't' command)
@@ -21,10 +24,25 @@ export class TakeOffCommand implements ICommand {
     private messageService: MessageService,
     private turnService: TurnService,
     private fovService: FOVService,
-    private lightingService: LightingService
+    private lightingService: LightingService,
+
+    private recorder: CommandRecorderService,
+
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.UNEQUIP,
+      actorType: 'player',
+      payload: {},
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     // If 'prompt', show modal to select which equipment to remove
     // This will be handled by the InputHandler/ModalController
     if (this.equipmentSlot === 'prompt') {

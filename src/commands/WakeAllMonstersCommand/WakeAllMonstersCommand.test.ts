@@ -4,6 +4,7 @@ import { MessageService } from '@services/MessageService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, TileType, MonsterState, MonsterBehavior } from '@game/core/core'
 import { mockItemData } from '@/test-utils'
 

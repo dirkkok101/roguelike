@@ -1,6 +1,9 @@
 import { GameState, Direction, RunState } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 export class RunCommand implements ICommand {
   private messageService: MessageService
@@ -10,6 +13,17 @@ export class RunCommand implements ICommand {
   }
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.RUN,
+      actorType: 'player',
+      payload: {},
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     // Check for blocking status effects
     const blockingEffects = state.player.statusEffects.filter(
       (effect) =>

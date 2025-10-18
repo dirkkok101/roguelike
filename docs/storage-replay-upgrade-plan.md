@@ -43,16 +43,28 @@ This plan implements a dual-storage system for debugging game state issues throu
 
 ### In Progress
 - ⏳ **Task 2.4**: Integrate recording into ~40 command classes
-  - **Progress**: 8/~40 commands complete (20%)
-    - MoveCommand ✅ (80 tests passing)
-    - AttackCommand ✅ (16 tests passing)
-    - PickUpCommand ✅ (21 tests passing)
-    - DropCommand ✅ (24 tests passing)
-    - EquipCommand ✅ (40 tests passing)
-    - UnequipCommand ✅ (18 tests passing)
-    - EatCommand ✅ (10 tests passing)
-    - QuaffPotionCommand ✅ (5 tests passing)
-  - **Next**: ReadScrollCommand / ZapWandCommand / Door commands
+  - **Progress**: 15/33 commands complete (45%) - **228 tests passing**
+    - **Fully passing** (15 commands):
+      - AttackCommand ✅ (16 tests)
+      - CloseDoorCommand ✅ (13 tests)
+      - DropCommand ✅ (24 tests)
+      - EatCommand ✅ (10 tests)
+      - EquipCommand ✅ (58 tests)
+      - OpenDoorCommand ✅ (13 tests)
+      - PickUpCommand ✅ (21 tests)
+      - QuaffPotionCommand ✅ (5 tests)
+      - ReadScrollCommand ✅ (5 tests)
+      - RefillLanternCommand ✅ (6 tests)
+      - RestCommand ✅ (17 tests)
+      - SearchCommand ✅ (14 tests)
+      - TakeOffCommand ✅ (8 tests)
+      - UnequipCommand ✅ (18 tests)
+      - ZapWandCommand ✅ (13 tests)
+    - **Still failing** (18 commands):
+      - MoveCommand (needs monsterAIService.detectDoorSlamAndWake mock)
+      - MoveStairsCommand, RunCommand, QuitCommand, SaveCommand
+      - Debug commands: IdentifyAll, KillAll, RevealMap, Spawn*, Wake*, Toggle*
+  - **Next**: Fix remaining 18 commands' test instantiations and mocks
 - ⏳ **Task 2.5**: Update GameStorageService to use CommandRecorder
 
 ### Pending

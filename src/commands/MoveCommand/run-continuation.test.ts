@@ -169,7 +169,9 @@ describe('MoveCommand - Run Continuation', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
       const newState = command.execute(state)
 
@@ -224,7 +226,9 @@ describe('MoveCommand - Run Continuation', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
       const newState = command.execute(state)
 
@@ -283,7 +287,9 @@ describe('MoveCommand - Run Continuation', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
       const newState = command.execute(state)
 

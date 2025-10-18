@@ -9,6 +9,7 @@ import { LevelService } from '@services/LevelService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Position, Level } from '@game/core/core'
 
 describe('MoveStairsCommand', () => {
@@ -150,7 +151,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -172,7 +175,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -197,7 +202,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -222,7 +229,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -246,7 +255,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -274,7 +285,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -299,7 +312,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -323,7 +338,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -343,7 +360,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -371,7 +390,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -396,7 +417,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -417,7 +440,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -444,7 +469,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 
@@ -467,7 +494,9 @@ describe('MoveStairsCommand', () => {
         victoryService,
         levelService,
         turnService,
-        statusEffectService
+        statusEffectService,
+        recorder,
+        mockRandom
       )
       const result = command.execute(state)
 

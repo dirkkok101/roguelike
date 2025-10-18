@@ -7,6 +7,8 @@ import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { GameState, Player, ItemType, OilFlask } from '@game/core/core'
 import { createTestLantern } from '../../test-utils'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 describe('RefillLanternCommand', () => {
   let inventoryService: InventoryService
@@ -14,6 +16,8 @@ describe('RefillLanternCommand', () => {
   let messageService: MessageService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
@@ -22,7 +26,9 @@ describe('RefillLanternCommand', () => {
     statusEffectService = new StatusEffectService()
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
-  })
+ 
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService() })
 
   function createTestPlayer(lanternFuel: number = 100): Player {
     return {
@@ -82,13 +88,11 @@ describe('RefillLanternCommand', () => {
     player.inventory = [oilFlask]
     const state = createTestState(player)
 
-    const command = new RefillLanternCommand(
-      'oil-1',
+    const command = new RefillLanternCommand('oil-1',
       inventoryService,
       lightingService,
       messageService,
-      turnService
-    )
+      turnService, recorder, mockRandom)
     const result = command.execute(state)
 
     expect(result.player.equipment.lightSource?.fuel).toBe(600) // 100 + 500
@@ -101,13 +105,11 @@ describe('RefillLanternCommand', () => {
     const player = createTestPlayer()
     const state = createTestState(player)
 
-    const command = new RefillLanternCommand(
-      'nonexistent',
+    const command = new RefillLanternCommand('nonexistent',
       inventoryService,
       lightingService,
       messageService,
-      turnService
-    )
+      turnService, recorder, mockRandom)
     const result = command.execute(state)
 
     expect(result.messages[0].text).toBe('You do not have that item.')
@@ -126,13 +128,11 @@ describe('RefillLanternCommand', () => {
     player.inventory = [notOil]
     const state = createTestState(player)
 
-    const command = new RefillLanternCommand(
-      'potion-1',
+    const command = new RefillLanternCommand('potion-1',
       inventoryService,
       lightingService,
       messageService,
-      turnService
-    )
+      turnService, recorder, mockRandom)
     const result = command.execute(state)
 
     expect(result.messages[0].text).toBe('You cannot use that to refill a lantern.')
@@ -147,13 +147,11 @@ describe('RefillLanternCommand', () => {
     player.inventory = [oilFlask]
     const state = createTestState(player)
 
-    const command = new RefillLanternCommand(
-      'oil-1',
+    const command = new RefillLanternCommand('oil-1',
       inventoryService,
       lightingService,
       messageService,
-      turnService
-    )
+      turnService, recorder, mockRandom)
     const result = command.execute(state)
 
     expect(result.player.inventory).toHaveLength(1) // Oil NOT consumed
@@ -167,13 +165,11 @@ describe('RefillLanternCommand', () => {
     player.inventory = [oilFlask]
     const state = createTestState(player)
 
-    const command = new RefillLanternCommand(
-      'oil-1',
+    const command = new RefillLanternCommand('oil-1',
       inventoryService,
       lightingService,
       messageService,
-      turnService
-    )
+      turnService, recorder, mockRandom)
     const result = command.execute(state)
 
     expect(result.player.inventory).toHaveLength(1) // Oil NOT consumed
@@ -187,13 +183,11 @@ describe('RefillLanternCommand', () => {
     player.inventory = [oilFlask]
     const state = createTestState(player)
 
-    const command = new RefillLanternCommand(
-      'oil-1',
+    const command = new RefillLanternCommand('oil-1',
       inventoryService,
       lightingService,
       messageService,
-      turnService
-    )
+      turnService, recorder, mockRandom)
     const result = command.execute(state)
 
     expect(result).not.toBe(state)

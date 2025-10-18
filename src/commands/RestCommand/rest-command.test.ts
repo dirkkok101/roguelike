@@ -10,6 +10,7 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import {
   GameState,
   Player,
@@ -33,9 +34,11 @@ describe('RestCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     const ringService = new RingService(mockRandom)
     regenerationService = new RegenerationService(ringService)
     hungerService = new HungerService(mockRandom, ringService)
@@ -57,7 +60,9 @@ describe('RestCommand', () => {
     command = new RestCommand(
       restService,
       messageService,
-      turnService
+      turnService,
+    recorder,
+    mockRandom
     )
   })
 

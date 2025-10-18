@@ -5,6 +5,9 @@ import { ScrollService } from '@services/ScrollService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // READ SCROLL COMMAND - Read a scroll from inventory
@@ -18,10 +21,24 @@ export class ReadScrollCommand implements ICommand {
     private messageService: MessageService,
     private turnService: TurnService,
     private statusEffectService: StatusEffectService,
-    private targetItemId?: string
+    private targetItemId: string | undefined,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.READ,
+      actorType: 'player',
+      payload: { itemId: this.itemId, targetItemId: this.targetItemId },
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
+
     // 0. Check if player can read (not blind or confused)
     if (this.statusEffectService.hasStatusEffect(state.player, StatusEffectType.BLIND)) {
       const messages = this.messageService.addMessage(

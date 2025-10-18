@@ -16,6 +16,7 @@ import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
 import { MonsterAIService } from '@services/MonsterAIService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { RingService } from '@services/RingService'
 import { LevelService } from '@services/LevelService'
@@ -223,7 +224,7 @@ describe('RunCommand - Integration', () => {
       const services = createServices()
 
       // Step 1: Start run with RunCommand
-      const runCommand = new RunCommand('right')
+      const runCommand = new RunCommand('right', recorder, mockRandom)
       state = runCommand.execute(state)
 
       // Verify run started
@@ -355,7 +356,7 @@ describe('RunCommand - Integration', () => {
       const services = createServices()
 
       // Step 1: Start run
-      const runCommand = new RunCommand('right')
+      const runCommand = new RunCommand('right', recorder, mockRandom)
       state = runCommand.execute(state)
 
       expect(state.player.isRunning).toBe(true)
@@ -464,7 +465,7 @@ describe('RunCommand - Integration', () => {
       const services = createServices()
 
       // Start run
-      const runCommand = new RunCommand('right')
+      const runCommand = new RunCommand('right', recorder, mockRandom)
       state = runCommand.execute(state)
       const initialFOV = new Set(state.player.runState?.startingFOV || [])
       expect(initialFOV.size).toBe(0) // No monsters visible initially
@@ -567,7 +568,7 @@ describe('RunCommand - Integration', () => {
       const services = createServices()
 
       // Start run
-      const runCommand = new RunCommand('right')
+      const runCommand = new RunCommand('right', recorder, mockRandom)
       state = runCommand.execute(state)
 
       // First move - should stop immediately due to low HP

@@ -1,15 +1,19 @@
 import { QuitCommand } from './QuitCommand'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 describe('QuitCommand', () => {
   let command: QuitCommand
   let localStorageService: LocalStorageService
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     localStorageService = new LocalStorageService()
     localStorageService.enableTestMode() // Use synchronous compression for tests
-    command = new QuitCommand(localStorageService, jest.fn())
+    command = new QuitCommand(localStorageService, jest.fn(), recorder, mockRandom)
     localStorage.clear()
 
     // Suppress JSDOM navigation errors (window.location.reload is not implemented in test environment)

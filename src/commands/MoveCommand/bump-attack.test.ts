@@ -190,7 +190,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -224,7 +226,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -257,7 +261,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -289,7 +295,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -324,7 +332,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -355,7 +365,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -388,7 +400,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)
@@ -421,7 +435,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom
+        mockRandom,
+      recorder,
+      mockRandom
       )
 
       const newState = command.execute(state)

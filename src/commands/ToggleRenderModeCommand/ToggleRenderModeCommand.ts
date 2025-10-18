@@ -2,6 +2,9 @@ import { GameState } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { PreferencesService } from '@services/PreferencesService'
 import { MessageService } from '@services/MessageService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // TOGGLE RENDER MODE COMMAND - Switch between ASCII and sprite rendering
@@ -24,10 +27,25 @@ import { MessageService } from '@services/MessageService'
 export class ToggleRenderModeCommand implements ICommand {
   constructor(
     private preferencesService: PreferencesService,
-    private messageService: MessageService
+    private messageService: MessageService,
+
+    private recorder: CommandRecorderService,
+
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.TOGGLE_RENDER_MODE,
+      actorType: 'player',
+      payload: {},
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     // Get current preferences
     const prefs = this.preferencesService.getPreferences()
 

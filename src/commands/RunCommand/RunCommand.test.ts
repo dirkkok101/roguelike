@@ -1,6 +1,8 @@
 import { RunCommand } from './RunCommand'
 import { GameState, Direction, Level, TileType, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
 import { createTestTorch } from '../../test-utils'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 describe('RunCommand', () => {
   function createTestState(): GameState {
@@ -130,7 +132,7 @@ describe('RunCommand', () => {
     it('sets runState and isRunning flag on player', () => {
       const state = createTestState()
 
-      const command = new RunCommand('right')
+      const command = new RunCommand('right', recorder, mockRandom)
       const newState = command.execute(state)
 
       expect(newState.player.isRunning).toBe(true)
@@ -152,7 +154,7 @@ describe('RunCommand', () => {
       // Only orc is visible
       state.visibleCells = new Set(['5,5', '6,5'])
 
-      const command = new RunCommand('right')
+      const command = new RunCommand('right', recorder, mockRandom)
       const newState = command.execute(state)
 
       expect(newState.player.runState?.startingFOV.has('orc-1')).toBe(true)
@@ -164,7 +166,7 @@ describe('RunCommand', () => {
       const state = createTestState()
       state.player.statusEffects = [{ type: 'CONFUSED', duration: 5 }]
 
-      const command = new RunCommand('right')
+      const command = new RunCommand('right', recorder, mockRandom)
       const newState = command.execute(state)
 
       expect(newState.player.isRunning).toBe(false)
@@ -177,7 +179,7 @@ describe('RunCommand', () => {
       const state = createTestState()
       state.player.statusEffects = [{ type: 'BLIND', duration: 5 }]
 
-      const command = new RunCommand('right')
+      const command = new RunCommand('right', recorder, mockRandom)
       const newState = command.execute(state)
 
       expect(newState.player.isRunning).toBe(false)
@@ -189,7 +191,7 @@ describe('RunCommand', () => {
       const state = createTestState()
       state.player.statusEffects = [{ type: 'PARALYZED', duration: 3 }]
 
-      const command = new RunCommand('right')
+      const command = new RunCommand('right', recorder, mockRandom)
       const newState = command.execute(state)
 
       expect(newState.player.isRunning).toBe(false)
@@ -201,7 +203,7 @@ describe('RunCommand', () => {
       const state = createTestState()
       state.player.statusEffects = [{ type: 'HELD', duration: 4 }]
 
-      const command = new RunCommand('right')
+      const command = new RunCommand('right', recorder, mockRandom)
       const newState = command.execute(state)
 
       expect(newState.player.isRunning).toBe(false)
@@ -212,7 +214,7 @@ describe('RunCommand', () => {
     it('captures empty startingFOV when no monsters are visible', () => {
       const state = createTestState()
 
-      const command = new RunCommand('up')
+      const command = new RunCommand('up', recorder, mockRandom)
       const newState = command.execute(state)
 
       expect(newState.player.runState?.startingFOV.size).toBe(0)
@@ -224,7 +226,7 @@ describe('RunCommand', () => {
 
       directions.forEach(direction => {
         const state = createTestState()
-        const command = new RunCommand(direction)
+        const command = new RunCommand(direction, recorder, mockRandom)
         const newState = command.execute(state)
 
         expect(newState.player.runState?.direction).toBe(direction)
@@ -237,7 +239,7 @@ describe('RunCommand', () => {
       const originalIsRunning = state.player.isRunning
       const originalRunState = state.player.runState
 
-      const command = new RunCommand('down')
+      const command = new RunCommand('down', recorder, mockRandom)
       command.execute(state)
 
       expect(state.player.isRunning).toBe(originalIsRunning)

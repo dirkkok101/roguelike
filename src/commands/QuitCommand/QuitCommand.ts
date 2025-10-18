@@ -1,6 +1,9 @@
 import { ICommand } from '../ICommand'
 import { GameState } from '@game/core/core'
 import { LocalStorageService } from '@services/LocalStorageService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 /**
  * QuitCommand - Auto-saves game and quits
@@ -13,6 +16,17 @@ export class QuitCommand implements ICommand {
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.QUIT,
+      actorType: 'player',
+      payload: {},
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     // Don't save if game is over (permadeath already deleted save)
     if (state.isGameOver) {
       this.onReturnToMenu()

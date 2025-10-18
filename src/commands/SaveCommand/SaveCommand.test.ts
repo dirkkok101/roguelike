@@ -3,21 +3,27 @@ import { LocalStorageService } from '@services/LocalStorageService'
 import { MessageService } from '@services/MessageService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 describe('SaveCommand', () => {
   let command: SaveCommand
   let localStorageService: LocalStorageService
   let messageService: MessageService
   let toastNotificationService: ToastNotificationService
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     localStorageService = new LocalStorageService()
     localStorageService.enableTestMode() // Use synchronous compression for tests
     messageService = new MessageService()
     toastNotificationService = new ToastNotificationService()
-    command = new SaveCommand(localStorageService, messageService, toastNotificationService)
+    command = new SaveCommand(localStorageService, messageService, toastNotificationService, recorder, mockRandom)
     localStorage.clear()
-  })
+ 
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService() })
 
   afterEach(() => {
     localStorage.clear()
