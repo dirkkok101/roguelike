@@ -437,6 +437,99 @@ npm test -- --testNamePattern="fuel"
 
 ---
 
+## Regression Testing with Replay System
+
+The replay system enables regression testing via canonical game replays. This catches breaking changes to game logic by validating that replays from previous versions still execute correctly.
+
+### Workflow
+
+1. **Play test game** to completion (manually or scripted)
+2. **Export replay** to `tests/fixtures/replays/canonical-game-N.json`
+3. **Add to regression test suite** with validation assertions
+4. **CI runs** on every commit to catch breaking changes
+
+### Benefits
+
+- **Catches breaking changes** to game logic across versions
+- **Validates determinism** - ensures game logic remains deterministic
+- **Provides "known good" replays** for reference and debugging
+- **Automated validation** - no manual testing required
+- **Version compatibility** - detects when replay format changes
+
+### Example Test
+
+```typescript
+import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
+import { loadFixture } from '@utils/testHelpers'
+
+describe('Regression Tests - Canonical Replays', () => {
+  it('should replay canonical-game-1 without desyncs', async () => {
+    // Load canonical replay fixture
+    const replayData = loadFixture('canonical-game-1.json')
+
+    // Reconstruct state to final turn
+    const reconstructed = await replayDebugger.reconstructToTurn(
+      replayData,
+      replayData.metadata.turnCount
+    )
+
+    // Validate determinism (no desyncs)
+    const result = await replayDebugger.validateDeterminism(replayData, reconstructed)
+
+    expect(result.valid).toBe(true)
+    expect(result.desyncs).toHaveLength(0)
+  })
+
+  it('should replay canonical-game-2 (combat-heavy) without desyncs', async () => {
+    const replayData = loadFixture('canonical-game-2.json')
+    const reconstructed = await replayDebugger.reconstructToTurn(
+      replayData,
+      replayData.metadata.turnCount
+    )
+    const result = await replayDebugger.validateDeterminism(replayData, reconstructed)
+
+    expect(result.valid).toBe(true)
+    expect(result.desyncs).toHaveLength(0)
+  })
+})
+```
+
+### Creating Canonical Replays
+
+**Manual Process:**
+1. Play test game with specific scenario (e.g., heavy combat, many items, deep dungeon)
+2. Ensure game completes successfully (death or victory)
+3. Export replay data from IndexedDB
+4. Save as `tests/fixtures/replays/canonical-game-N.json`
+5. Document scenario in test name
+
+**Automated Process (Future):**
+```bash
+# Script to generate canonical replay
+npm run generate-canonical-replay -- --scenario=combat-heavy --turns=100
+```
+
+### Fixture Management
+
+**Fixture Directory:**
+```
+tests/fixtures/replays/
+├── canonical-game-1.json      # Basic movement & exploration
+├── canonical-game-2.json      # Combat-heavy scenario
+├── canonical-game-3.json      # Item usage & inventory
+├── canonical-game-4.json      # Deep dungeon (level 20+)
+└── canonical-game-5.json      # Victory scenario (with Amulet)
+```
+
+**Versioning:**
+- Include replay format version in fixture metadata
+- Tests skip incompatible versions (graceful degradation)
+- Update fixtures when format changes intentionally
+
+**See**: [Replay System Documentation](./replay-system.md) for complete details on replay format and validation.
+
+---
+
 ## Examples by Service Type
 
 ### Service with Simple Logic (MessageService)

@@ -1269,10 +1269,57 @@ See [Testing Strategy](./testing-strategy.md) for complete testing guidelines.
 
 ---
 
+## 10. Replay System
+
+The replay system uses an **event sourcing** pattern to enable deterministic debugging and bug reproduction:
+
+**Core Concept**:
+- **Commands are events** - Every command execution is recorded before it runs
+- **State reconstruction** - Game state can be reconstructed by replaying events from initial state
+- **Dual storage** - Saves both full state snapshots and event logs for safety and debugging
+
+**Architecture**:
+```
+Initial State (turn 0) + Command Events (with RNG state)
+    ↓
+Replay from start
+    ↓
+Deterministic State Reconstruction
+```
+
+**Key Services**:
+- **CommandRecorderService**: Records commands with RNG state before execution
+- **GameStorageService**: Atomically saves game state + replay data to IndexedDB
+- **ReplayDebuggerService**: Loads and reconstructs state to any turn for debugging
+- **CommandFactory**: Reconstructs command instances from recorded events
+
+**Storage Model**:
+- **`saves` store**: Full GameState snapshots (fast loading)
+- **`replays` store**: Initial state + command log (debugging)
+- Both stores updated atomically via IndexedDB transactions
+
+**Determinism Requirements**:
+- Always use `IRandomService` (never `Math.random()`)
+- RNG state captured **before** command execution
+- No timing-dependent logic (use turn counter, not `Date.now()`)
+- No browser API randomness
+
+**Debug Workflow**:
+1. Bug reported at turn N
+2. Load replay data from IndexedDB
+3. Reconstruct state to turn N by replaying commands
+4. Inspect state to identify root cause
+5. Automatic validation in debug mode catches non-determinism early
+
+**See**: [Replay System Documentation](./replay-system.md) for complete details, debug workflows, and troubleshooting.
+
+---
+
 ## References
 
 - **Game Design**: [game-design/](./game-design/README.md)
 - **Core Systems**: [systems-core.md](./systems-core.md)
 - **Advanced Systems**: [systems-advanced.md](./systems-advanced.md)
 - **Testing Strategy**: [testing-strategy.md](./testing-strategy.md)
+- **Replay System**: [replay-system.md](./replay-system.md)
 - **Development Plan**: [plan.md](./plan.md)

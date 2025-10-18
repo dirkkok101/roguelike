@@ -1,12 +1,12 @@
 # Storage and Replay Debug System Implementation Plan
 
-**Status**: In Progress (Phase 3 Partial)
+**Status**: In Progress (Phase 5 Complete - Documentation)
 **Created**: 2025-10-18
 **Refined**: 2025-10-18
-**Last Updated**: 2025-10-18 (Tasks 3.1 & 3.2 Complete)
+**Last Updated**: 2025-10-18 (Task 5.1 Complete - Documentation)
 **Target Version**: 5.0
 **Estimated Duration**: 8-12 days
-**Progress**: 9/15 tasks complete (60%)
+**Progress**: 12/15 tasks complete (80%)
 
 ---
 
@@ -32,7 +32,7 @@ This plan implements a dual-storage system for debugging game state issues throu
 
 ## Implementation Progress
 
-**Overall**: 9/15 tasks complete (60%)
+**Overall**: 12/15 tasks complete (80%)
 
 ### Completed Tasks
 - ✅ **Task 1.1**: IndexedDBService - Full CRUD operations with 20 tests passing
@@ -72,9 +72,30 @@ This plan implements a dual-storage system for debugging game state issues throu
   - Injects all necessary service dependencies
   - Clear expansion path for remaining 28 command types
   - Included in Task 3.1 commit (ac887e2)
+- ✅ **Task 4.1**: Add Automatic Validation in Debug Mode - **COMPLETE**
+  - **Progress**: AutoSaveMiddleware validates determinism after saves in debug mode
+  - Migrated from LocalStorageService to GameStorageService
+  - Added ReplayDebuggerService as optional dependency
+  - Automatic validation in development environment
+  - 14/14 tests passing (11 basic + 3 validation)
+  - Git commit: 71ca117
+- ✅ **Task 4.2**: Create Integration Test Suite - **COMPLETE**
+  - **Progress**: Comprehensive integration tests for full save/load/replay cycle
+  - Created `src/__tests__/integration/replay-system.test.ts`
+  - 11/11 integration tests passing
+  - Tests command recording, save/load cycle, large games (1000+ commands), edge cases
+  - All 265/265 test suites passing, 3,279/3,279 tests passing
+  - Git commit: 2e3b63b
+- ✅ **Task 5.1**: Update Documentation - **COMPLETE**
+  - **Progress**: All documentation updated and cross-linked
+  - Created comprehensive `docs/replay-system.md` (500+ lines)
+  - Updated `docs/architecture.md` with Replay System section
+  - Updated `docs/testing-strategy.md` with Regression Testing section
+  - Updated `CLAUDE.md` with Quick Links and Common Pitfalls
+  - Git commit: [pending]
 
 ### In Progress
-- **None** - Moving to Phase 4
+- **Task 5.1 Git Commit** - Creating commit for documentation updates
 
 ### Deferred (Optional for MVP)
 - **Task 3.3**: ReplayDebugState UI - Visual replay viewer (not essential for debug workflow)
@@ -82,8 +103,9 @@ This plan implements a dual-storage system for debugging game state issues throu
 - **Note**: Core replay infrastructure is complete. Claude can debug using direct JSON access and console logging.
 
 ### Pending
-- **Phase 4**: Testing & Validation (Tasks 4.1-4.3) - **Starting next**
-- **Phase 5**: Documentation & Polish (Task 5.1)
+- **Task 4.3**: Determinism Regression Tests (optional for MVP)
+  - Canonical replay fixtures for CI/CD
+  - Core determinism validation already works via Task 4.1
 
 ### Test Results
 - **Total Test Suites**: 263/263 passing ✅
@@ -1910,7 +1932,29 @@ Add to `.github/workflows/test.yml` (or equivalent):
 
 **Goal**: Document the system and clean up.
 
-#### Task 5.1: Update Documentation
+#### Task 5.1: Update Documentation ✅ COMPLETE
+
+**Status**: ✅ COMPLETE - All documentation updated and cross-linked
+
+**Completion Notes:**
+- ✅ Created `docs/replay-system.md` (comprehensive 500+ line documentation)
+  - Overview, architecture, debug workflow
+  - Determinism requirements and troubleshooting
+  - Data structures and implementation status
+  - Best practices for command/service authors
+- ✅ Updated `docs/architecture.md` (added Section 10: Replay System)
+  - Event sourcing pattern overview
+  - Key services and storage model
+  - Determinism requirements
+  - Debug workflow summary
+- ✅ Updated `docs/testing-strategy.md` (added Regression Testing section)
+  - Canonical replay workflow
+  - Example regression tests
+  - Fixture management strategy
+- ✅ Updated `CLAUDE.md` (added two sections)
+  - Quick Links: "Debugging & Replay" section
+  - Common Pitfalls #5: "Non-Deterministic Replay"
+- ✅ All documentation cross-linked and integrated
 
 **Files to Create/Update:**
 
