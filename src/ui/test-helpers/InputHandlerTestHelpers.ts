@@ -32,6 +32,9 @@ import { CommandRecorderService } from '@services/CommandRecorderService'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { IndexedDBService } from '@services/IndexedDBService'
 import { DownloadService } from '@services/DownloadService'
+import { MonsterSpawnService } from '@services/MonsterSpawnService'
+import { RoomDetectionService } from '@services/RoomDetectionService'
+import { mockItemData } from '@/test-utils'
 
 /**
  * Creates a minimal but valid test player
@@ -56,6 +59,10 @@ export function createTestPlayer(): Player {
       lightSource: null,
     },
     inventory: [],
+    statusEffects: [],
+    energy: 0,
+    isRunning: false,
+    runState: null,
   }
 }
 
@@ -131,27 +138,43 @@ export function createTestGameState(): GameState {
  */
 export function createTestDependencies(): GameDependencies {
   const random = new MockRandom()
+
+  // Mock MonsterSpawnService
+  const mockMonsterSpawnService = {
+    loadMonsterData: jest.fn().mockResolvedValue(undefined),
+    spawnMonsters: jest.fn().mockReturnValue([]),
+    getSpawnCount: jest.fn().mockReturnValue(5),
+  } as unknown as MonsterSpawnService
+
   const dungeonConfig: DungeonConfig = {
+    width: 80,
+    height: 22,
     minRooms: 4,
     maxRooms: 9,
     minRoomSize: 3,
     maxRoomSize: 8,
-    maxCorridorLength: 20,
-    loopProbability: 0.3,
+    minSpacing: 2,
+    loopChance: 0.3,
   }
+
+  const statusEffect = new StatusEffectService()
+  const ring = new RingService()
+  const debug = new DebugService()
+  const roomDetection = new RoomDetectionService()
+  const level = new LevelService()
 
   return {
     // Core gameplay services
-    movement: new MovementService(),
+    movement: new MovementService(random, statusEffect),
     lighting: new LightingService(),
-    fov: new FOVService(),
+    fov: new FOVService(statusEffect, roomDetection),
     message: new MessageService(),
     random,
-    turn: new TurnService(),
-    level: new LevelService(),
+    turn: new TurnService(statusEffect, level, ring),
+    level,
 
     // World generation
-    dungeon: new DungeonService(random, dungeonConfig),
+    dungeon: new DungeonService(random, mockMonsterSpawnService, mockItemData),
     stairsNavigation: new StairsNavigationService(),
     dungeonConfig,
 
@@ -160,16 +183,16 @@ export function createTestDependencies(): GameDependencies {
     gold: new GoldService(),
 
     // Player stats and progression
-    hunger: new HungerService(),
+    hunger: new HungerService(random, ring, debug),
     regeneration: new RegenerationService(),
     leveling: new LevelingService(),
-    statusEffect: new StatusEffectService(),
+    statusEffect,
 
     // Inventory and items
     inventory: new InventoryService(),
     identification: new IdentificationService(),
     curse: new CurseService(),
-    ring: new RingService(),
+    ring,
 
     // Item usage
     potion: new PotionService(random),
@@ -185,7 +208,7 @@ export function createTestDependencies(): GameDependencies {
     notification: new NotificationService(),
     toastNotification: new ToastNotificationService(),
     victory: new VictoryService(),
-    debug: new DebugService(),
+    debug,
 
     // Replay and debugging
     commandRecorder: new CommandRecorderService(),
