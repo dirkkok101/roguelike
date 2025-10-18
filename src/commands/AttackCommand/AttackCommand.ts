@@ -5,6 +5,9 @@ import { MessageService } from '@services/MessageService'
 import { LevelingService } from '@services/LevelingService'
 import { TurnService } from '@services/TurnService'
 import { GoldService } from '@services/GoldService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // ATTACK COMMAND - Player attacks monster
@@ -17,10 +20,23 @@ export class AttackCommand implements ICommand {
     private messageService: MessageService,
     private levelingService: LevelingService,
     private turnService: TurnService,
-    private goldService: GoldService
+    private goldService: GoldService,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.ATTACK,
+      actorType: 'player',
+      payload: { monsterId: this.monsterId },
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     const level = state.levels.get(state.currentLevel)
     if (!level) return state
 
