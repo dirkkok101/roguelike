@@ -16,6 +16,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { NotificationService } from '@services/NotificationService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, TileType } from '@game/core/core'
 import { createTestTorch } from '../../test-utils'
 
@@ -36,9 +37,11 @@ describe('MoveCommand - Basic Movement', () => {
   let goldService: GoldService
   let ringService: RingService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
     ringService = new RingService(mockRandom)
@@ -139,7 +142,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -162,7 +167,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -185,7 +192,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -208,7 +217,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -233,7 +244,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -257,7 +270,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
       const down = new MoveCommand(
         'down',
@@ -272,7 +287,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       state = right.execute(state)
@@ -302,7 +319,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       command.execute(state)
@@ -326,7 +345,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -354,7 +375,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
       const left = new MoveCommand(
         'left',
@@ -369,7 +392,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState1 = up.execute(state)
@@ -396,7 +421,9 @@ describe('MoveCommand - Basic Movement', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = up.execute(state)
@@ -410,10 +437,10 @@ describe('MoveCommand - Basic Movement', () => {
       let state = createTestState()
 
       const commands = [
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
-        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
-        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
-        new MoveCommand('left', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService, recorder, mockRandom),
+        new MoveCommand('right', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService, recorder, mockRandom),
+        new MoveCommand('down', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService, recorder, mockRandom),
+        new MoveCommand('left', movementService, lightingService, fovService, messageService, combatService, levelingService, doorService, hungerService, regenerationService, notificationService, turnService, goldService, recorder, mockRandom),
       ]
 
       for (const command of commands) {
