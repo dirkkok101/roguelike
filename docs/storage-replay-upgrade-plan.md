@@ -1,12 +1,12 @@
 # Storage and Replay Debug System Implementation Plan
 
-**Status**: In Progress (Phase 1 & 2 Partial)
+**Status**: In Progress (Phase 3 Partial)
 **Created**: 2025-10-18
 **Refined**: 2025-10-18
-**Last Updated**: 2025-10-18 (Task 2.5 Complete)
+**Last Updated**: 2025-10-18 (Tasks 3.1 & 3.2 Complete)
 **Target Version**: 5.0
 **Estimated Duration**: 8-12 days
-**Progress**: 7/15 tasks complete (47%)
+**Progress**: 9/15 tasks complete (60%)
 
 ---
 
@@ -32,7 +32,7 @@ This plan implements a dual-storage system for debugging game state issues throu
 
 ## Implementation Progress
 
-**Overall**: 7/15 tasks complete (47%)
+**Overall**: 9/15 tasks complete (60%)
 
 ### Completed Tasks
 - ✅ **Task 1.1**: IndexedDBService - Full CRUD operations with 20 tests passing
@@ -56,23 +56,40 @@ This plan implements a dual-storage system for debugging game state issues throu
   - Added 6 new replay integration tests (28 total tests passing)
   - All 262/262 test suites passing, 3,260/3,260 tests passing
   - Git commit: 1da373d
+- ✅ **Task 3.1**: Create ReplayDebuggerService - **COMPLETE**
+  - **Progress**: Replay debugging infrastructure fully functional
+  - Implemented loadReplay() with version checking
+  - Implemented reconstructToTurn() with RNG state restoration
+  - Implemented validateDeterminism() for desync detection
+  - Deep state comparison (player stats, monsters, items, turn count)
+  - Added 8 new ReplayDebuggerService tests (all passing)
+  - All 263/263 test suites passing, 3,268/3,268 tests passing
+  - Git commit: ac887e2
+- ✅ **Task 3.2**: Create CommandFactory - **COMPLETE**
+  - **Progress**: Command reconstruction from events working
+  - Interface ICommandFactory defined
+  - Phase 1 commands supported (MOVE, REST, SEARCH, PICKUP, DROP)
+  - Injects all necessary service dependencies
+  - Clear expansion path for remaining 28 command types
+  - Included in Task 3.1 commit (ac887e2)
 
 ### In Progress
-- **None** - Ready to start Phase 3
+- ⏳ **Task 3.3**: Create ReplayDebugState UI - Starting next
 
 ### Pending
-- **Phase 3**: Replay Debugging System (Tasks 3.1-3.4)
+- **Phase 3**: Replay Debugging System (Tasks 3.3-3.4 remaining)
 - **Phase 4**: Testing & Validation (Tasks 4.1-4.3)
 - **Phase 5**: Documentation & Polish (Task 5.1)
 
 ### Test Results
-- **Total Test Suites**: 262/262 passing ✅
-- **Total Tests**: 3,260/3,260 passing ✅
+- **Total Test Suites**: 263/263 passing ✅
+- **Total Tests**: 3,268/3,268 passing ✅
 - **Coverage**:
   - IndexedDB (20 tests)
   - GameStorage (28 tests - includes 6 replay integration tests)
   - ReplayTypes (8 tests)
   - CommandRecorder (17 tests)
+  - ReplayDebugger (8 tests - load, reconstruct, validate)
   - All commands updated and tested (33 commands)
   - Integration tests passing (2 test files)
 
