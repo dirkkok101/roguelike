@@ -51,6 +51,8 @@ function createTestPlayer(): Player {
     inventory: [],
     statusEffects: [],
     energy: 100,
+    isRunning: false,
+    runState: null,
   }
 }
 

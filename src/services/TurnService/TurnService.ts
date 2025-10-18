@@ -40,6 +40,29 @@ export class TurnService {
   ) {}
 
   /**
+   * Validate Player has all required fields initialized
+   *
+   * Throws early with clear error message if fields are missing.
+   * This catches initialization bugs before they cause cryptic runtime errors.
+   *
+   * @throws Error with field name and fix suggestion
+   */
+  private validatePlayer(player: Player): void {
+    const missing: string[] = []
+
+    if (player.energy === undefined) missing.push('energy')
+    if (!player.statusEffects) missing.push('statusEffects')
+    if (player.isRunning === undefined) missing.push('isRunning')
+
+    if (missing.length > 0) {
+      throw new Error(
+        `Player missing required fields: ${missing.join(', ')}. ` +
+        `Check Player initialization in DungeonService or use PlayerFactory.`
+      )
+    }
+  }
+
+  /**
    * Increment turn counter by 1
    * Also ticks all player status effects (decrement duration, remove expired)
    * Also removes deteriorated SCARE_MONSTER scrolls (>100 turns old)
@@ -206,6 +229,10 @@ export class TurnService {
    * @returns New actor with energy - ENERGY_THRESHOLD
    */
   consumeEnergy<T extends Actor>(actor: T): T {
+    // Validate Player if this is a Player object
+    if ('statusEffects' in actor) {
+      this.validatePlayer(actor as any as Player)
+    }
     return { ...actor, energy: actor.energy - ENERGY_THRESHOLD }
   }
 
@@ -218,6 +245,7 @@ export class TurnService {
    * @returns Speed value (10 or 20)
    */
   getPlayerSpeed(player: Player): number {
+    this.validatePlayer(player)
     const hasHaste = this.statusEffectService.hasStatusEffect(player, StatusEffectType.HASTED)
     return hasHaste ? HASTED_SPEED : NORMAL_SPEED
   }
@@ -280,6 +308,7 @@ export class TurnService {
    * @returns New Player with energy - ENERGY_THRESHOLD
    */
   consumePlayerEnergy(player: Player): Player {
+    this.validatePlayer(player)
     return this.consumeEnergy(player)
   }
 

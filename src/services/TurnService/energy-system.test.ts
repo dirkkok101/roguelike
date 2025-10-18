@@ -32,6 +32,8 @@ function createTestPlayer(): Player {
     inventory: [],
     statusEffects: [],
     energy: 100, // Start with full energy
+    isRunning: false,
+    runState: null,
   }
 }
 
