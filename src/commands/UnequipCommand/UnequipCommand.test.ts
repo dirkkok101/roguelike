@@ -5,6 +5,8 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { CurseService } from '@services/CurseService'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Ring, ItemType, Position, RingType } from '@game/core/core'
 
 describe('UnequipCommand', () => {
@@ -13,8 +15,12 @@ describe('UnequipCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let curseService: CurseService
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     inventoryService = new InventoryService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
@@ -130,7 +136,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing).toBeNull()
@@ -146,7 +152,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'right')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('right', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('right', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.player.equipment.rightRing).toBeNull()
@@ -162,7 +168,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(1)
@@ -176,7 +182,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -192,7 +198,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
 
       command.execute(state)
 
@@ -206,7 +212,7 @@ describe('UnequipCommand', () => {
       const player = createTestPlayer()
       const state = createTestState(player)
 
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.player.inventory).toHaveLength(0)
@@ -217,7 +223,7 @@ describe('UnequipCommand', () => {
       const player = createTestPlayer()
       const state = createTestState(player)
 
-      const command = new UnequipCommand('right', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('right', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.player.inventory).toHaveLength(0)
@@ -228,7 +234,7 @@ describe('UnequipCommand', () => {
       const player = createTestPlayer()
       const state = createTestState(player)
 
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -244,7 +250,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, ring, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('right', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('right', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       // Left ring still equipped, right hand empty
@@ -272,7 +278,7 @@ describe('UnequipCommand', () => {
       playerWithRing.inventory = fullInventory as any
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing?.id).toBe('ring-1')
@@ -295,7 +301,7 @@ describe('UnequipCommand', () => {
       playerWithRing.inventory = fullInventory as any
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -319,7 +325,7 @@ describe('UnequipCommand', () => {
       playerWithRing.inventory = fullInventory as any
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(0)
@@ -337,7 +343,7 @@ describe('UnequipCommand', () => {
       result = inventoryService.equipRing(result, rightRing, 'right')
 
       const state = createTestState(result)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const finalResult = command.execute(state)
 
       expect(finalResult.player.equipment.leftRing).toBeNull()
@@ -359,7 +365,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, cursedRing, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       // Ring should still be equipped
@@ -378,7 +384,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, cursedRing, 'right')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('right', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('right', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       // Ring should still be equipped
@@ -397,7 +403,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, cursedRing, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.messages).toHaveLength(1)
@@ -416,7 +422,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, cursedRing, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.turnCount).toBe(0)
@@ -433,7 +439,7 @@ describe('UnequipCommand', () => {
       const playerWithRing = inventoryService.equipRing(player, uncursedRing, 'left')
 
       const state = createTestState(playerWithRing)
-      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService)
+      const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.player.equipment.leftRing).toBeNull()
