@@ -1,6 +1,7 @@
 import { GameState, Position, Torch, ItemType, Input, Level } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { SeededRandom } from '@services/RandomService'
+import { PlayerFactory } from '@factories/PlayerFactory'
 import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
@@ -263,17 +264,11 @@ async function initializeGame() {
   }
 
   const player = {
-    position: startPos,
-    hp: 12,
-    maxHp: 12,
+    ...PlayerFactory.create(startPos),
     strength: startingStrength,
     maxStrength: startingStrength,
     strengthPercentile,
     ac: 8, // With starting leather armor equipped (AC 8)
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
     equipment: {
       weapon: null,
       armor: leatherArmor, // Start with leather armor equipped
@@ -281,11 +276,7 @@ async function initializeGame() {
       rightRing: null,
       lightSource: torch,
     },
-    inventory: [],
-    statusEffects: [],
     energy: 100, // Start with full energy (can act immediately)
-    isRunning: false, // Not running initially
-    runState: null, // Not running initially
   }
 
   // Compute initial FOV
@@ -428,17 +419,11 @@ async function initializeGame() {
     }
 
     const player = {
-      position: startPos,
-      hp: 12,
-      maxHp: 12,
+      ...PlayerFactory.create(startPos),
       strength: startingStrength,
       maxStrength: startingStrength,
       strengthPercentile,
       ac: 8, // With starting leather armor equipped (AC 8)
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
       equipment: {
         weapon: null,
         armor: leatherArmor, // Start with leather armor equipped
@@ -446,11 +431,7 @@ async function initializeGame() {
         rightRing: null,
         lightSource: torch,
       },
-      inventory: [],
-      statusEffects: [],
       energy: 100, // Start with full energy (can act immediately)
-      isRunning: false, // Not running initially
-      runState: null, // Not running initially
     }
 
     const visibleCells = fovService.computeFOV(

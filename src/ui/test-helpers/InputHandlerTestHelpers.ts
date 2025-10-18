@@ -35,35 +35,13 @@ import { DownloadService } from '@services/DownloadService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { RoomDetectionService } from '@services/RoomDetectionService'
 import { mockItemData } from '@/test-utils'
+import { PlayerFactory } from '@factories/PlayerFactory'
 
 /**
  * Creates a minimal but valid test player
  */
 export function createTestPlayer(): Player {
-  return {
-    position: { x: 10, y: 10 },
-    hp: 12,
-    maxHp: 12,
-    strength: 16,
-    maxStrength: 16,
-    ac: 8,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment: {
-      weapon: null,
-      armor: null,
-      leftRing: null,
-      rightRing: null,
-      lightSource: null,
-    },
-    inventory: [],
-    statusEffects: [],
-    energy: 0,
-    isRunning: false,
-    runState: null,
-  }
+  return PlayerFactory.create({ x: 10, y: 10 })
 }
 
 /**
