@@ -47,6 +47,7 @@ import { TerrainSpriteService } from '@services/TerrainSpriteService'
 import { WanderingMonsterService } from '@services/WanderingMonsterService'
 import { StairsNavigationService } from '@services/StairsNavigationService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -147,6 +148,7 @@ async function initializeGame() {
   const leaderboardStorageService = new LeaderboardStorageService()
   const scoreCalculationService = new ScoreCalculationService()
   const preferencesService = new PreferencesService()
+  const commandRecorderService = new CommandRecorderService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const levelService = new LevelService()
   const combatService = new CombatService(random, ringService, hungerService, debugService)
@@ -567,6 +569,7 @@ async function initializeGame() {
       toastNotification: toastNotificationService,
       victory: victoryService,
       debug: debugService,
+      commandRecorder: commandRecorderService,
     }
 
     inputHandler = new InputHandler(

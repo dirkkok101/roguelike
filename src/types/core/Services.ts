@@ -31,6 +31,7 @@ import { TargetingService } from '@services/TargetingService'
 import { RingService } from '@services/RingService'
 import { StairsNavigationService } from '@services/StairsNavigationService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 /**
  * Dependency injection container for game services and configuration
@@ -98,4 +99,7 @@ export interface GameDependencies {
   toastNotification: ToastNotificationService
   victory: VictoryService
   debug: DebugService
+
+  // Replay and debugging
+  commandRecorder: CommandRecorderService
 }

@@ -59,6 +59,7 @@ import { CurseService } from '@services/CurseService'
 import { GoldService } from '@services/GoldService'
 import { TargetingService } from '@services/TargetingService'
 import { DisturbanceService } from '@services/DisturbanceService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { ModalController } from './ModalController'
@@ -106,6 +107,7 @@ export class InputHandler {
   private readonly goldService: GoldService
   private readonly targetingService: TargetingService
   private readonly disturbanceService: DisturbanceService
+  private readonly commandRecorder: CommandRecorderService
 
   constructor(
     services: GameDependencies,
@@ -145,6 +147,7 @@ export class InputHandler {
     this.goldService = services.gold
     this.targetingService = services.targeting
     this.disturbanceService = new DisturbanceService()
+    this.commandRecorder = services.commandRecorder
   }
 
   /**
@@ -207,6 +210,8 @@ export class InputHandler {
           this.notificationService,
           this.turnService,
           this.goldService,
+          this.commandRecorder,
+          this.random,
           undefined, // monsterAIService
           this.disturbanceService
         )
@@ -227,6 +232,8 @@ export class InputHandler {
           this.notificationService,
           this.turnService,
           this.goldService,
+          this.commandRecorder,
+          this.random,
           undefined, // monsterAIService
           this.disturbanceService
         )
@@ -247,6 +254,8 @@ export class InputHandler {
           this.notificationService,
           this.turnService,
           this.goldService,
+          this.commandRecorder,
+          this.random,
           undefined, // monsterAIService
           this.disturbanceService
         )
@@ -267,6 +276,8 @@ export class InputHandler {
           this.notificationService,
           this.turnService,
           this.goldService,
+          this.commandRecorder,
+          this.random,
           undefined, // monsterAIService
           this.disturbanceService
         )
@@ -291,7 +302,13 @@ export class InputHandler {
 
       case 'S':
         event.preventDefault()
-        return new SaveCommand(this.localStorageService, this.messageService, this.toastNotificationService)
+        return new SaveCommand(
+          this.localStorageService,
+          this.messageService,
+          this.toastNotificationService,
+          this.commandRecorder,
+          this.random
+        )
 
       case 'Q':
         event.preventDefault()
