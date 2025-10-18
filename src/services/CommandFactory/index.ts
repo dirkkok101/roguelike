@@ -1,2 +1,2 @@
 export { CommandFactory } from './CommandFactory'
-export { ICommandFactory } from './ICommandFactory'
+export type { ICommandFactory } from './ICommandFactory'
