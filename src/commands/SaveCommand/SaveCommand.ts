@@ -50,18 +50,26 @@ export class SaveCommand implements ICommand {
     // Capture references to avoid `this` context issues after command is garbage collected
     const toastService = this.toastNotificationService
 
+    // Capture recorder reference to avoid `this` context issues
+    const recorder = this.recorder
+
     // PERFORMANCE: Defer save to next tick to avoid blocking game loop
     // This gives control back to the UI immediately
-    setTimeout(() => {
+    setTimeout(async () => {
       // Fire-and-forget save with callbacks for user feedback
       // IMPORTANT: Do NOT await this! It will run in the background
       // LocalStorageService now handles debouncing (max 1 save per second)
       this.localStorageService.saveGame(
         state,
-        () => {
-          // Success callback
+        async () => {
+          // Success callback - save succeeded, now persist replay
           console.log('✅ Save completed successfully')
           toastService.success('Game saved successfully')
+
+          // Persist replay data to IndexedDB
+          if (state.gameId) {
+            await recorder.persistToIndexedDB(state.gameId)
+          }
         },
         (error) => {
           // Error callback

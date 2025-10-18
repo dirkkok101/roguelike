@@ -192,4 +192,57 @@ describe('SaveCommand', () => {
 
     expect(result.turnCount).toBe(100)
   })
+
+  test('persists replay data when saving', async () => {
+    // Create mock IndexedDBService
+    const mockIndexedDB = {
+      put: jest.fn().mockResolvedValue(undefined),
+      get: jest.fn(),
+      delete: jest.fn(),
+      getAll: jest.fn(),
+      query: jest.fn(),
+      checkQuota: jest.fn(),
+      deleteDatabase: jest.fn(),
+      initDatabase: jest.fn(),
+      openDatabase: jest.fn(),
+    } as any
+
+    // Create CommandRecorderService with mock IndexedDB
+    const testRecorder = new CommandRecorderService(mockIndexedDB)
+    const state = createTestState({ gameId: 'save-replay-test' })
+
+    // Start recording
+    testRecorder.startRecording(state, state.gameId)
+
+    // Record a command
+    testRecorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: 'move' as any,
+      actorType: 'player',
+      payload: { direction: { x: 1, y: 0 } },
+      rngState: 'seed-123',
+    })
+
+    // Create command with test recorder
+    const testCommand = new SaveCommand(
+      localStorageService,
+      messageService,
+      toastNotificationService,
+      testRecorder,
+      mockRandom
+    )
+
+    // Spy on persistToIndexedDB
+    const persistSpy = jest.spyOn(testRecorder, 'persistToIndexedDB')
+
+    // Execute save command
+    testCommand.execute(state)
+
+    // Wait for async operations (setTimeout + save + persist)
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // Verify persistToIndexedDB was called
+    expect(persistSpy).toHaveBeenCalledWith('save-replay-test')
+  })
 })
