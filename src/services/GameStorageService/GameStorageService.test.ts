@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { GameStorageService } from './GameStorageService'
 import { GameState } from '@game/core/core'
 import { IndexedDBService } from '@services/IndexedDBService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 // Polyfill for structuredClone
 if (typeof globalThis.structuredClone === 'undefined') {
@@ -84,12 +85,15 @@ function createTestGameState(overrides?: Partial<GameState>): GameState {
 describe('GameStorageService', () => {
   let service: GameStorageService
   let indexedDB: IndexedDBService
+  let recorder: CommandRecorderService
 
   beforeEach(async () => {
     indexedDB = new IndexedDBService()
     await indexedDB.initDatabase()
 
-    service = new GameStorageService(indexedDB)
+    recorder = new CommandRecorderService()
+
+    service = new GameStorageService(recorder, indexedDB)
     service.enableTestMode()
   })
 
@@ -98,6 +102,12 @@ describe('GameStorageService', () => {
     const allGames = await service.listGames()
     for (const game of allGames) {
       await service.deleteSave(game.gameId)
+      // Also delete replay data
+      try {
+        await indexedDB.delete('replays', game.gameId)
+      } catch {
+        // Ignore error if not exists
+      }
     }
 
     // Delete continue pointer
@@ -384,6 +394,155 @@ describe('GameStorageService', () => {
 
       // Should fail gracefully
       expect(loaded).toBeNull()
+    })
+  })
+
+  describe('Replay Integration', () => {
+    it('should save replay data when commands are recorded', async () => {
+      const state = createTestGameState()
+
+      // Set initial state and record some commands
+      recorder.setInitialState(state)
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'right',
+        turnCount: 0,
+        rngState: 'test-rng-state',
+      })
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'down',
+        turnCount: 1,
+        rngState: 'test-rng-state-2',
+      })
+
+      await service.saveGame(state)
+
+      // Check that replay data was saved to replays store
+      const replayData = await indexedDB.get('replays', 'test-game-1')
+
+      expect(replayData).not.toBeNull()
+      expect(replayData.gameId).toBe('test-game-1')
+      expect(replayData.version).toBe(1)
+      expect(replayData.seed).toBe('test-seed')
+      expect(replayData.commands).toHaveLength(2)
+      expect(replayData.commands[0].type).toBe('move')
+      expect(replayData.commands[0].direction).toBe('right')
+      expect(replayData.initialState).toBeDefined()
+      expect(replayData.metadata).toBeDefined()
+      expect(replayData.metadata.turnCount).toBe(0)
+      expect(replayData.metadata.characterName).toBe('Test Hero')
+    })
+
+    it('should not save replay data when no commands recorded', async () => {
+      const state = createTestGameState()
+
+      // Don't set initial state or record any commands
+      await service.saveGame(state)
+
+      // Check that replay data was NOT saved
+      const replayData = await indexedDB.get('replays', 'test-game-1')
+
+      expect(replayData).toBeNull()
+    })
+
+    it('should clear recorder and set initial state on load', async () => {
+      const state = createTestGameState()
+
+      // Record some commands before save
+      recorder.setInitialState(state)
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'right',
+        turnCount: 0,
+        rngState: 'test-rng-state',
+      })
+
+      await service.saveGame(state)
+
+      // Record more commands after save
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'down',
+        turnCount: 1,
+        rngState: 'test-rng-state-2',
+      })
+
+      // Load game
+      const loaded = await service.loadGame('test-game-1')
+
+      expect(loaded).not.toBeNull()
+
+      // Recorder should be cleared (no commands)
+      const commands = recorder.getCommandLog()
+      expect(commands).toHaveLength(0)
+
+      // Recorder should have new initial state set to loaded state
+      const initialState = recorder.getInitialState()
+      expect(initialState).toBeDefined()
+      expect(initialState?.gameId).toBe('test-game-1')
+    })
+
+    it('should include correct outcome metadata for ongoing game', async () => {
+      const state = createTestGameState({
+        isGameOver: false,
+      })
+
+      recorder.setInitialState(state)
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'right',
+        turnCount: 0,
+        rngState: 'test-rng-state',
+      })
+
+      await service.saveGame(state)
+
+      const replayData = await indexedDB.get('replays', 'test-game-1')
+
+      expect(replayData.metadata.outcome).toBe('ongoing')
+    })
+
+    it('should include correct outcome metadata for won game', async () => {
+      const state = createTestGameState({
+        isGameOver: true,
+        hasWon: true,
+      })
+
+      recorder.setInitialState(state)
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'right',
+        turnCount: 0,
+        rngState: 'test-rng-state',
+      })
+
+      await service.saveGame(state)
+
+      const replayData = await indexedDB.get('replays', 'test-game-1')
+
+      expect(replayData.metadata.outcome).toBe('won')
+    })
+
+    it('should include correct outcome metadata for died game', async () => {
+      const state = createTestGameState({
+        isGameOver: true,
+        hasWon: false,
+      })
+
+      recorder.setInitialState(state)
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'right',
+        turnCount: 0,
+        rngState: 'test-rng-state',
+      })
+
+      await service.saveGame(state)
+
+      const replayData = await indexedDB.get('replays', 'test-game-1')
+
+      expect(replayData.metadata.outcome).toBe('died')
     })
   })
 })

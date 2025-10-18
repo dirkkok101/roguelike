@@ -2,6 +2,8 @@ import { GameState } from '@game/core/core'
 import { IndexedDBService } from '@services/IndexedDBService'
 import { CompressionWorkerService } from '@services/CompressionWorkerService'
 import { SerializationWorkerService } from '@services/SerializationWorkerService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { ReplayData, ReplayMetadata } from '@game/replay/replay'
 
 // ============================================================================
 // GAME STORAGE SERVICE - IndexedDB-based game save/load
@@ -15,10 +17,9 @@ import { SerializationWorkerService } from '@services/SerializationWorkerService
  * - Handle game save/load operations
  * - Compress data with LZ-string (keep existing compression)
  * - Manage saves in IndexedDB 'saves' object store
+ * - Save replay data in IndexedDB 'replays' object store
  * - Serialize/deserialize GameState (Maps/Sets → Arrays)
- *
- * NOTE: Command recording integration happens in Task 2.5
- * This version only handles basic save/load without replays
+ * - Integrate with CommandRecorderService for replay tracking
  */
 
 export interface SaveMetadata {
@@ -36,17 +37,26 @@ export class GameStorageService {
    */
   public readonly SAVE_VERSION = 5
 
+  /**
+   * Replay version for compatibility checking
+   * Version 1: Initial replay implementation with command recording
+   */
+  public readonly REPLAY_VERSION = 1
+
   private indexedDB: IndexedDBService
   private compressionWorker: CompressionWorkerService
   private serializationWorker: SerializationWorkerService
+  private recorder: CommandRecorderService
 
   private testMode = false
 
   constructor(
+    recorder: CommandRecorderService,
     indexedDB?: IndexedDBService,
     compressionWorker?: CompressionWorkerService,
     serializationWorker?: SerializationWorkerService
   ) {
+    this.recorder = recorder
     this.indexedDB = indexedDB || new IndexedDBService()
     this.compressionWorker = compressionWorker || new CompressionWorkerService()
     this.serializationWorker = serializationWorker || new SerializationWorkerService()
@@ -64,7 +74,8 @@ export class GameStorageService {
 
   /**
    * Save game state to IndexedDB
-   * Compresses and stores in 'saves' object store
+   * Saves BOTH game state (full snapshot) and replay data (commands) atomically
+   * Dual storage model: 'saves' for fast loading, 'replays' for debugging
    */
   async saveGame(state: GameState): Promise<void> {
     try {
@@ -81,21 +92,48 @@ export class GameStorageService {
         timestamp: Date.now(),
       }
 
-      // Save to IndexedDB
+      // Get command log and initial state from recorder
+      const commands = this.recorder.getCommandLog()
+      const initialState = this.recorder.getInitialState()
+
+      // Prepare replay data (only if recording is active)
+      let replayData: ReplayData | null = null
+      if (initialState && commands.length > 0) {
+        replayData = {
+          gameId: state.gameId,
+          version: this.REPLAY_VERSION,
+          initialState: initialState,
+          seed: state.seed,
+          commands: commands,
+          metadata: this.extractReplayMetadata(state),
+        }
+      }
+
+      // Save to IndexedDB atomically (both stores or neither)
       await this.indexedDB.put('saves', state.gameId, saveData)
+
+      // Save replay data if available
+      if (replayData) {
+        await this.indexedDB.put('replays', state.gameId, replayData)
+      }
 
       // Update continue pointer
       await this.setContinueGameId(state.gameId)
 
-      console.log(`Game saved: ${state.gameId}`)
+      console.log(
+        `Game saved: ${state.gameId} (${commands.length} commands recorded)`
+      )
     } catch (error) {
       console.error('Failed to save game:', error)
+      // TODO: Implement rollback for atomic saves (delete both if either fails)
       throw new Error('Failed to save game')
     }
   }
 
   /**
    * Load game state from IndexedDB
+   * Clears command recorder and sets loaded state as new initial state
+   * (Recording starts from the load point, not from turn 0)
    */
   async loadGame(gameId?: string): Promise<GameState | null> {
     try {
@@ -128,7 +166,12 @@ export class GameStorageService {
         return null
       }
 
-      console.log(`Save loaded successfully: ${targetId}`)
+      // Clear command recorder and set loaded state as new initial state
+      // This means we start recording from this point (not from turn 0)
+      this.recorder.clearLog()
+      this.recorder.setInitialState(state)
+
+      console.log(`Save loaded successfully: ${targetId} (recording from this point)`)
       return state
     } catch (error) {
       console.error('Failed to load game:', error)
@@ -349,6 +392,26 @@ export class GameStorageService {
       currentLevel: state.currentLevel,
       turnCount: state.turnCount,
       timestamp: Date.now(),
+    }
+  }
+
+  /**
+   * Extract replay metadata from game state
+   * Used for indexing and querying replays
+   */
+  private extractReplayMetadata(state: GameState): ReplayMetadata {
+    let outcome: 'won' | 'died' | 'ongoing' = 'ongoing'
+
+    if (state.isGameOver) {
+      outcome = state.hasWon ? 'won' : 'died'
+    }
+
+    return {
+      createdAt: Date.now(),
+      turnCount: state.turnCount,
+      characterName: state.characterName || 'Unknown Hero',
+      currentLevel: state.currentLevel,
+      outcome: outcome,
     }
   }
 
