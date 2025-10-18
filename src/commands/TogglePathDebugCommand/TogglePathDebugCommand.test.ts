@@ -45,6 +45,7 @@ describe('TogglePathDebugCommand', () => {
   beforeEach(async () => {
     const messageService = new MessageService()
     const mockRandom = new MockRandom()
+    const recorder = new CommandRecorderService()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
     const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
@@ -55,7 +56,7 @@ describe('TogglePathDebugCommand', () => {
       mockRandom,
       true
     )
-    command = new TogglePathDebugCommand(debugService)
+    command = new TogglePathDebugCommand(debugService, recorder, mockRandom)
   })
 
   test('executes debugService.togglePathDebug', () => {

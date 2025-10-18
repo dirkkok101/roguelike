@@ -8,7 +8,11 @@ import { COMMAND_TYPES } from '@game/replay/replay'
 export class RunCommand implements ICommand {
   private messageService: MessageService
 
-  constructor(private direction: Direction) {
+  constructor(
+    private direction: Direction,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
+  ) {
     this.messageService = new MessageService()
   }
 

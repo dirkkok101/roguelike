@@ -156,9 +156,7 @@ describe('MoveCommand - Starvation Death', () => {
       turnService,
       goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
     const state = createTestState()
@@ -186,9 +184,7 @@ describe('MoveCommand - Starvation Death', () => {
       turnService,
       goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
     const state = createTestState()
@@ -218,9 +214,7 @@ describe('MoveCommand - Starvation Death', () => {
       turnService,
       goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
     const state = createTestState({
@@ -250,9 +244,7 @@ describe('MoveCommand - Starvation Death', () => {
       turnService,
       goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
     const state = createTestState({
@@ -282,9 +274,7 @@ describe('MoveCommand - Starvation Death', () => {
       turnService,
       goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
     const state = createTestState({ turnCount: 50 })

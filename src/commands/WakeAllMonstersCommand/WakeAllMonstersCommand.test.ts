@@ -46,6 +46,7 @@ describe('WakeAllMonstersCommand', () => {
   beforeEach(async () => {
     const messageService = new MessageService()
     const mockRandom = new MockRandom()
+    const recorder = new CommandRecorderService()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
     const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
@@ -56,7 +57,7 @@ describe('WakeAllMonstersCommand', () => {
       mockRandom,
       true
     )
-    command = new WakeAllMonstersCommand(debugService)
+    command = new WakeAllMonstersCommand(debugService, recorder, mockRandom)
 
     const level: Level = {
       depth: 1,

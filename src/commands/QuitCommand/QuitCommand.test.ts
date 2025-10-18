@@ -13,6 +13,8 @@ describe('QuitCommand', () => {
   beforeEach(() => {
     localStorageService = new LocalStorageService()
     localStorageService.enableTestMode() // Use synchronous compression for tests
+    recorder = new CommandRecorderService()
+    mockRandom = new MockRandom()
     command = new QuitCommand(localStorageService, jest.fn(), recorder, mockRandom)
     localStorage.clear()
 

@@ -5,6 +5,14 @@ import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 
 describe('RunCommand', () => {
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
+
+  beforeEach(() => {
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
+  })
+
   function createTestState(): GameState {
     const level: Level = {
       depth: 1,

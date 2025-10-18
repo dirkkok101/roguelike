@@ -19,11 +19,11 @@ describe('SaveCommand', () => {
     localStorageService.enableTestMode() // Use synchronous compression for tests
     messageService = new MessageService()
     toastNotificationService = new ToastNotificationService()
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     command = new SaveCommand(localStorageService, messageService, toastNotificationService, recorder, mockRandom)
     localStorage.clear()
- 
-    mockRandom = new MockRandom()
-    recorder = new CommandRecorderService() })
+  })
 
   afterEach(() => {
     localStorage.clear()

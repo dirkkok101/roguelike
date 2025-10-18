@@ -149,9 +149,7 @@ describe('MoveCommand - Gold Pickup', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -181,9 +179,7 @@ describe('MoveCommand - Gold Pickup', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -213,9 +209,7 @@ describe('MoveCommand - Gold Pickup', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -247,9 +241,7 @@ describe('MoveCommand - Gold Pickup', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -278,9 +270,7 @@ describe('MoveCommand - Gold Pickup', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -312,9 +302,7 @@ describe('MoveCommand - Gold Pickup', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -348,9 +336,7 @@ describe('MoveCommand - Gold Pickup', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -380,9 +366,7 @@ describe('MoveCommand - Gold Pickup', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = command.execute(state)

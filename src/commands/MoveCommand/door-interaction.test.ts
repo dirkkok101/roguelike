@@ -164,9 +164,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -211,9 +209,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -261,9 +257,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -311,9 +305,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -358,9 +350,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -404,9 +394,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -453,9 +441,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -501,9 +487,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -548,9 +532,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -596,9 +578,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -642,9 +622,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -693,9 +671,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -740,9 +716,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -790,9 +764,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -837,9 +809,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -889,9 +859,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -957,9 +925,7 @@ describe('MoveCommand - Door Interaction', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)

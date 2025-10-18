@@ -1,12 +1,16 @@
 import { ToggleRenderModeCommand } from './ToggleRenderModeCommand'
 import { PreferencesService } from '@services/PreferencesService'
 import { MessageService } from '@services/MessageService'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { createMockGameState } from '../../test-helpers/mockGameState'
 
 describe('ToggleRenderModeCommand', () => {
   let command: ToggleRenderModeCommand
   let preferencesService: PreferencesService
   let messageService: MessageService
+  let recorder: CommandRecorderService
+  let mockRandom: MockRandom
 
   beforeEach(() => {
     // Clear localStorage before each test
@@ -14,7 +18,9 @@ describe('ToggleRenderModeCommand', () => {
 
     preferencesService = new PreferencesService()
     messageService = new MessageService()
-    command = new ToggleRenderModeCommand(preferencesService, messageService)
+    recorder = new CommandRecorderService()
+    mockRandom = new MockRandom()
+    command = new ToggleRenderModeCommand(preferencesService, messageService, recorder, mockRandom)
   })
 
   afterEach(() => {

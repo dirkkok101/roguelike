@@ -185,14 +185,17 @@ describe('ZapWandCommand', () => {
 
     mockRandom.setValues([3, 4, 2, 5, 6, 3]) // Lightning damage (6d6 = 6 dice)
 
-    const command = new ZapWandCommand('wand-1',
+    const command = new ZapWandCommand(
+      'wand-1',
       inventoryService,
       wandService,
       messageService,
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location, recorder, mockRandom)
+      { x: 6, y: 5 }, // Target position (monster location)
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -214,8 +217,9 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-    recorder,
-    mockRandom
+      undefined,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -244,8 +248,9 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-    recorder,
-    mockRandom
+      undefined,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -260,14 +265,17 @@ describe('ZapWandCommand', () => {
     player.inventory = [wand]
     const state = createTestState(player)
 
-    const command = new ZapWandCommand('wand-1',
+    const command = new ZapWandCommand(
+      'wand-1',
       inventoryService,
       wandService,
       messageService,
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location, recorder, mockRandom)
+      { x: 6, y: 5 }, // Target position (monster location)
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -284,14 +292,17 @@ describe('ZapWandCommand', () => {
 
     mockRandom.setValues([3, 4, 2, 5, 6, 3]) // Lightning damage (6d6)
 
-    const command = new ZapWandCommand('wand-1',
+    const command = new ZapWandCommand(
+      'wand-1',
       inventoryService,
       wandService,
       messageService,
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location, recorder, mockRandom)
+      { x: 6, y: 5 }, // Target position (monster location)
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 

@@ -365,9 +365,7 @@ describe('MoveCommand - Door Slam Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       moveCommand.execute(state)
@@ -413,9 +411,7 @@ describe('MoveCommand - Door Slam Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       moveCommand.execute(state)
@@ -461,9 +457,7 @@ describe('MoveCommand - Door Slam Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       moveCommand.execute(state)
@@ -495,9 +489,7 @@ describe('MoveCommand - Door Slam Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = moveCommand.execute(state)
@@ -534,9 +526,7 @@ describe('MoveCommand - Door Slam Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const result = moveCommand.execute(state)

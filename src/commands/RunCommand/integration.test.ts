@@ -24,6 +24,14 @@ import { PathfindingService } from '@services/PathfindingService'
 import { IdentificationService } from '@services/IdentificationService'
 
 describe('RunCommand - Integration', () => {
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
+
+  beforeEach(() => {
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
+  })
+
   // Helper to create test state
   function createTestState(): GameState {
     const level: Level = {
@@ -250,6 +258,8 @@ describe('RunCommand - Integration', () => {
         services.notificationService,
         services.turnService,
         services.goldService,
+        recorder,
+        mockRandom,
         services.monsterAIService
       )
       state = move1.execute(state)
@@ -275,6 +285,8 @@ describe('RunCommand - Integration', () => {
         services.notificationService,
         services.turnService,
         services.goldService,
+        recorder,
+        mockRandom,
         services.monsterAIService
       )
       state = move2.execute(state)
@@ -378,6 +390,8 @@ describe('RunCommand - Integration', () => {
         services.notificationService,
         services.turnService,
         services.goldService,
+        recorder,
+        mockRandom,
         services.monsterAIService
       )
       state = move1.execute(state)
@@ -402,6 +416,8 @@ describe('RunCommand - Integration', () => {
         services.notificationService,
         services.turnService,
         services.goldService,
+        recorder,
+        mockRandom,
         services.monsterAIService
       )
       state = move2.execute(state)
@@ -486,6 +502,8 @@ describe('RunCommand - Integration', () => {
         services.notificationService,
         services.turnService,
         services.goldService,
+        recorder,
+        mockRandom,
         services.monsterAIService
       )
       state = move1.execute(state)
@@ -510,6 +528,8 @@ describe('RunCommand - Integration', () => {
         services.notificationService,
         services.turnService,
         services.goldService,
+        recorder,
+        mockRandom,
         services.monsterAIService
       )
       state = move2.execute(state)
@@ -587,6 +607,8 @@ describe('RunCommand - Integration', () => {
         services.notificationService,
         services.turnService,
         services.goldService,
+        recorder,
+        mockRandom,
         services.monsterAIService
       )
       state = move1.execute(state)

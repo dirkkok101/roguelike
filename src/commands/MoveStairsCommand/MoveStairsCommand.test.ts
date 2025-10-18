@@ -21,10 +21,13 @@ describe('MoveStairsCommand', () => {
   let levelService: LevelService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     messageService = new MessageService()
-    const mockRandom = new MockRandom()
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
 
     // Mock MonsterSpawnService
     const mockMonsterSpawnService = {

@@ -185,9 +185,7 @@ describe('MoveCommand - Collision Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -223,9 +221,7 @@ describe('MoveCommand - Collision Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -263,9 +259,7 @@ describe('MoveCommand - Collision Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -296,9 +290,7 @@ describe('MoveCommand - Collision Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = up.execute(state)
@@ -325,9 +317,7 @@ describe('MoveCommand - Collision Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = right.execute(state)
@@ -354,9 +344,7 @@ describe('MoveCommand - Collision Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = left.execute(state)
@@ -398,9 +386,7 @@ describe('MoveCommand - Collision Detection', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = left.execute(state)

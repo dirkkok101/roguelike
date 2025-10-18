@@ -12,7 +12,9 @@ import { COMMAND_TYPES } from '@game/replay/replay'
 export class QuitCommand implements ICommand {
   constructor(
     private localStorageService: LocalStorageService,
-    private onReturnToMenu: () => void
+    private onReturnToMenu: () => void,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {

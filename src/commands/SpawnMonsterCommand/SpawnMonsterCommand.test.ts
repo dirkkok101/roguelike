@@ -11,6 +11,8 @@ import { mockItemData } from '@/test-utils'
 describe('SpawnMonsterCommand', () => {
   let originalFetch: typeof global.fetch
   let debugService: DebugService
+  let recorder: CommandRecorderService
+  let mockRandom: MockRandom
   let mockState: GameState
 
   const mockMonsterData = [
@@ -88,7 +90,7 @@ describe('SpawnMonsterCommand', () => {
     const messageService = new MessageService()
     // Set up MockRandom with values for monster spawning (radius, pickRandom index, HP rolls)
     // Each spawn needs: radius (1-3), pickRandom index (0-N), HP rolls (multiple)
-    const mockRandom = new MockRandom([
+    mockRandom = new MockRandom([
       2, 0,    // radius, pick index for first spawn
       8,       // HP roll
       2, 1,    // radius, pick index for second spawn
@@ -98,6 +100,7 @@ describe('SpawnMonsterCommand', () => {
       2, 1,    // radius, pick index for fourth spawn
       8,       // HP roll
     ])
+    recorder = new CommandRecorderService()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
     const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
@@ -146,7 +149,7 @@ describe('SpawnMonsterCommand', () => {
   })
 
   test('executes debugService.spawnMonster with specified letter', () => {
-    const command = new SpawnMonsterCommand('T', debugService)
+    const command = new SpawnMonsterCommand('T', debugService, recorder, mockRandom)
     const result = command.execute(mockState)
 
     const level = result.levels.get(1)!
@@ -155,8 +158,8 @@ describe('SpawnMonsterCommand', () => {
   })
 
   test('spawns different monster letters', () => {
-    const commandA = new SpawnMonsterCommand('A', debugService)
-    const commandB = new SpawnMonsterCommand('B', debugService)
+    const commandA = new SpawnMonsterCommand('A', debugService, recorder, mockRandom)
+    const commandB = new SpawnMonsterCommand('B', debugService, recorder, mockRandom)
 
     const resultA = commandA.execute(mockState)
     const resultB = commandB.execute(resultA)
@@ -168,7 +171,7 @@ describe('SpawnMonsterCommand', () => {
   })
 
   test('adds message indicating spawn', () => {
-    const command = new SpawnMonsterCommand('D', debugService)
+    const command = new SpawnMonsterCommand('D', debugService, recorder, mockRandom)
     const result = command.execute(mockState)
 
     expect(result.messages).toHaveLength(1)
@@ -176,7 +179,7 @@ describe('SpawnMonsterCommand', () => {
   })
 
   test('creates command with dragon letter', () => {
-    const command = new SpawnMonsterCommand('D', debugService)
+    const command = new SpawnMonsterCommand('D', debugService, recorder, mockRandom)
     expect(command).toBeInstanceOf(SpawnMonsterCommand)
   })
 })

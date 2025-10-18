@@ -144,9 +144,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -171,9 +169,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -198,9 +194,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -225,9 +219,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -254,9 +246,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -282,9 +272,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
       const down = new MoveCommand(
         'down',
@@ -301,9 +289,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       state = right.execute(state)
@@ -335,9 +321,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       command.execute(state)
@@ -363,9 +347,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -395,9 +377,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
       const left = new MoveCommand(
         'left',
@@ -414,9 +394,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState1 = up.execute(state)
@@ -445,9 +423,7 @@ describe('MoveCommand - Basic Movement', () => {
         turnService,
         goldService,
         recorder,
-        mockRandom,
-      recorder,
-      mockRandom
+        mockRandom
       )
 
       const newState = up.execute(state)

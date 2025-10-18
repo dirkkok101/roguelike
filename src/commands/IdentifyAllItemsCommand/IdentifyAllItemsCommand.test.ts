@@ -3,6 +3,7 @@ import { DebugService } from '@services/DebugService'
 import { MessageService } from '@services/MessageService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
+import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState } from '@game/core/core'
@@ -45,6 +46,7 @@ describe('IdentifyAllItemsCommand', () => {
   beforeEach(async () => {
     const messageService = new MessageService()
     const mockRandom = new MockRandom()
+    const recorder = new CommandRecorderService()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
     const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
@@ -55,7 +57,7 @@ describe('IdentifyAllItemsCommand', () => {
       mockRandom,
       true
     )
-    command = new IdentifyAllItemsCommand(debugService)
+    command = new IdentifyAllItemsCommand(debugService, recorder, mockRandom)
   })
 
   test('executes debugService.identifyAll', () => {

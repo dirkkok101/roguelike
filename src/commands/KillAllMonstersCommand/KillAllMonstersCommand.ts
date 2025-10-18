@@ -17,7 +17,11 @@ import { COMMAND_TYPES } from '@game/replay/replay'
  * - No logic in command
  */
 export class KillAllMonstersCommand implements ICommand {
-  constructor(private debugService: DebugService) {}
+  constructor(
+    private debugService: DebugService,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
+  ) {}
 
   execute(state: GameState): GameState {
     // STEP 1: Record command BEFORE execution (for deterministic replay)
