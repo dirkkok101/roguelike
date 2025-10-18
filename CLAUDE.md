@@ -581,7 +581,7 @@ The game supports two rendering modes that can be toggled at runtime:
 - Classic roguelike aesthetic
 
 ### Toggle Controls
-- **`T`** - Toggle between Sprite and ASCII rendering modes
+- **`Shift+T`** - Toggle between Sprite and ASCII rendering modes
 - Preference saved automatically to localStorage
 - Instant switch (no page reload required)
 - Visual feedback: overlay notification + game log message
@@ -623,6 +623,6 @@ See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 **Developer**: Dirk Kok
 **Repository**: https://github.com/dirkkok101/roguelike
 
-**Note**: Game supports dual rendering modes (Sprite + ASCII). Toggle with `T` key during gameplay. Preference persists to localStorage.
+**Note**: Game supports dual rendering modes (Sprite + ASCII). Toggle with `Shift+T` key during gameplay. Preference persists to localStorage.
 
 **Recent Major Update**: Extended dungeon from 10 to 26 levels with authentic 1980 Rogue vorpal spawning system, Amulet of Yendor quest, and return journey with monster respawning.

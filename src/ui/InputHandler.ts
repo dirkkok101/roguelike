@@ -796,6 +796,10 @@ export class InputHandler {
         return null
 
       case 't':
+        // Skip if Shift is pressed (Shift+T is for toggle renderer in PlayingState)
+        if (event.shiftKey) {
+          return null
+        }
         // Take off equipment (Angband-style)
         event.preventDefault()
         // TODO: Show modal to select which equipment to remove
@@ -976,8 +980,9 @@ export class InputHandler {
         }
         return null
 
-      // NOTE: 'T' key is handled in PlayingState.ts for ToggleRenderModeCommand
+      // NOTE: 'Shift+T' key is handled in PlayingState.ts for ToggleRenderModeCommand
       // (free action that doesn't consume a turn - switches between sprite/ASCII rendering)
+      // lowercase 't' is handled above for TakeOffCommand (remove equipment)
       default:
         return null
     }

@@ -117,7 +117,8 @@ export class PlayingState extends BaseState {
     }
 
     // Handle render mode toggle (free action - doesn't consume turn)
-    if (_input.key === 'T') {
+    // Shift+T to toggle between sprite and ASCII rendering
+    if (_input.key === 'T' && _input.shift) {
       this.gameState = this.toggleRenderModeCommand.execute(this.gameState)
       this.renderer.render(this.gameState)
       return

@@ -17,7 +17,7 @@ Classic dungeon crawler with permadeath, procedural generation, turn-based gamep
 🎨 **Dual Rendering Modes**
 - **Sprite Mode** (default) - Modern graphical tiles (Angband TK tileset), hardware-accelerated
 - **ASCII Mode** - Classic text-based rendering, better accessibility and lower resource usage
-- Toggle instantly during gameplay with `T` key
+- Toggle instantly during gameplay with `Shift+T` key
 - Preference saved automatically to localStorage
 
 💡 **Dynamic Lighting System**
@@ -92,7 +92,7 @@ npm run preview
 - `>` - Go down stairs
 
 **Display**:
-- `T` - Toggle rendering mode (Sprite ↔ ASCII)
+- `Shift+T` - Toggle rendering mode (Sprite ↔ ASCII)
 - `~` - Toggle debug console (dev mode)
 
 ---

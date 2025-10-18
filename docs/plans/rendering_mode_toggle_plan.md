@@ -1,10 +1,12 @@
 # ASCII/Sprite Rendering Mode Toggle - Implementation Plan
 
-**Status**: 📋 Planning
-**Version**: 1.0
+**Status**: ✅ Complete (Updated 2025-10-18)
+**Version**: 1.1
 **Created**: 2025-10-10
 **Owner**: Dirk Kok
 **Related Docs**: [Architecture](../architecture.md) | [Sprite Rendering Plan](./sprite_rendering_plan.md) | [CLAUDE.md](../../CLAUDE.md)
+
+**⚠️ Keybinding Update**: Originally implemented with `T` key, but changed to `Shift+T` to avoid conflict with `t` (take off equipment) command. Historical references to 'T' in this plan refer to the original implementation.
 
 ---
 

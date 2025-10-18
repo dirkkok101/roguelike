@@ -43,7 +43,7 @@
 | `r` | Read | Read a scroll |
 | `w` | Wield | Equip a weapon |
 | `W` | Wear | Put on armor |
-| `T` | Take off | Remove armor |
+| `t` | Take off | Remove equipment (armor/weapon/light) |
 | `P` | Put on | Wear a ring |
 | `R` | Remove | Take off a ring |
 | `z` | Zap | Use a wand/staff |
@@ -78,6 +78,7 @@
 | `S` | Save | Save current game |
 | `Q` | Quit | Quit game (prompts to save) |
 | `?` | Help | Show help screen |
+| `Shift+T` | Toggle Render | Toggle between Sprite and ASCII rendering modes |
 | `~` | Debug | Open debug console (dev only) |
 
 ---
@@ -167,6 +168,8 @@ Result: "You drink the blue potion. You feel better! (+8 HP)"
 ## 8. Keybinding Tips
 
 **Case Sensitive**: `w` (wield weapon) ≠ `W` (wear armor)
+
+**Shift Modifiers**: Some keys use Shift for different functions (e.g., `t` = take off equipment, `Shift+T` = toggle rendering)
 
 **Numpad**: `5` key as alternative to `.` for resting
 
