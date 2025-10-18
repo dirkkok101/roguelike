@@ -8,6 +8,9 @@ import { CurseService } from '@services/CurseService'
 import { FOVService } from '@services/FOVService'
 import type { FOVUpdateResult } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // EQUIP COMMAND - Equip weapons, armor, and rings
@@ -23,10 +26,23 @@ export class EquipCommand implements ICommand {
     private identificationService: IdentificationService,
     private curseService: CurseService,
     private fovService: FOVService,
-    private lightingService: LightingService
+    private lightingService: LightingService,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.EQUIP,
+      actorType: 'player',
+      payload: { itemId: this.itemId, ringSlot: this.ringSlot },
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     // Check if already equipped (equipped items are not in inventory)
     if (this.inventoryService.isEquipped(state.player, this.itemId)) {
       const equippedItems = this.inventoryService.getEquippedItems(state.player)
