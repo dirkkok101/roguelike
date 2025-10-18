@@ -16,6 +16,8 @@ import { NotificationService } from '@services/NotificationService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { GoldService } from '@services/GoldService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import {
   GameState,
   Player,
@@ -36,6 +38,8 @@ describe('RegenerationService - Integration Tests', () => {
   let moveCommand: MoveCommand
   let restCommand: RestCommand
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
+  let goldService: GoldService
   let movementService: MovementService
   let lightingService: LightingService
   let fovService: FOVService
@@ -49,6 +53,7 @@ describe('RegenerationService - Integration Tests', () => {
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     const ringService = new RingService(mockRandom)
     regenerationService = new RegenerationService(ringService)
     hungerService = new HungerService(mockRandom, ringService)
@@ -61,6 +66,7 @@ describe('RegenerationService - Integration Tests', () => {
     levelingService = new LevelingService()
     doorService = new DoorService(mockRandom)
     notificationService = new NotificationService()
+    goldService = new GoldService(mockRandom)
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
 
@@ -76,7 +82,10 @@ describe('RegenerationService - Integration Tests', () => {
       hungerService,
       regenerationService,
       notificationService,
-      turnService
+      turnService,
+      goldService,
+      recorder,
+      mockRandom
     )
 
     const restService = new RestService(
@@ -90,7 +99,9 @@ describe('RegenerationService - Integration Tests', () => {
     restCommand = new RestCommand(
       restService,
       messageService,
-      turnService
+      turnService,
+      recorder,
+      mockRandom
     )
   })
 
@@ -287,8 +298,11 @@ describe('RegenerationService - Integration Tests', () => {
           hungerService,
           regenerationService,
           notificationService,
-          turnService
-        )
+          turnService,
+      goldService,
+      recorder,
+      mockRandom
+    )
         state = moveRight.execute(state)
       }
 
@@ -327,8 +341,11 @@ describe('RegenerationService - Integration Tests', () => {
           hungerService,
           regenerationService,
           notificationService,
-          turnService
-        )
+          turnService,
+      goldService,
+      recorder,
+      mockRandom
+    )
         // Keep monster visible by manually setting visibleCells
         state = { ...moveCommand.execute(state), visibleCells: new Set(['6,5']) }
       }
@@ -363,8 +380,11 @@ describe('RegenerationService - Integration Tests', () => {
           hungerService,
           regenerationService,
           notificationService,
-          turnService
-        )
+          turnService,
+      goldService,
+      recorder,
+      mockRandom
+    )
         state = moveCommand.execute(state)
       }
 
@@ -419,8 +439,11 @@ describe('RegenerationService - Integration Tests', () => {
           hungerService,
           regenerationService,
           notificationService,
-          turnService
-        )
+          turnService,
+      goldService,
+      recorder,
+      mockRandom
+    )
         stateWith = moveWithRing.execute(stateWith)
 
         const moveWithoutRing = new MoveCommand(
@@ -435,8 +458,11 @@ describe('RegenerationService - Integration Tests', () => {
           hungerService,
           regenerationService,
           notificationService,
-          turnService
-        )
+          turnService,
+      goldService,
+      recorder,
+      mockRandom
+    )
         stateWithout = moveWithoutRing.execute(stateWithout)
       }
 
@@ -521,8 +547,11 @@ describe('RegenerationService - Integration Tests', () => {
           hungerService,
           regenerationService,
           notificationService,
-          turnService
-        )
+          turnService,
+      goldService,
+      recorder,
+      mockRandom
+    )
         currentState = moveCommand.execute(currentState)
       }
 

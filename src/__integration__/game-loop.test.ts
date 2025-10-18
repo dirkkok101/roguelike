@@ -18,8 +18,10 @@ import { DoorService } from '@services/DoorService'
 import { NotificationService } from '@services/NotificationService'
 import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
-import { SeededRandom } from '@services/RandomService'
+import { SeededRandom, MockRandom } from '@services/RandomService'
 import { LevelService } from '@services/LevelService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { GoldService } from '@services/GoldService'
 import { createTestTorch } from '../test-utils'
 
 /**
@@ -53,6 +55,9 @@ describe('Integration: Game Loop', () => {
     ai: MonsterAIService
     ability: SpecialAbilityService
     monsterTurn: MonsterTurnService
+    gold: GoldService
+    recorder: CommandRecorderService
+    mockRandom: MockRandom
   }
 
   beforeEach(() => {
@@ -76,6 +81,9 @@ describe('Integration: Game Loop', () => {
     const ai = new MonsterAIService(pathfinding, random, fov, levelService)
     const ability = new SpecialAbilityService(random)
     const monsterTurn = new MonsterTurnService(random, ai, combat, ability, message, turn)
+    const gold = new GoldService(random)
+    const recorder = new CommandRecorderService()
+    const mockRandom = new MockRandom()
 
     services = {
       random,
@@ -94,6 +102,9 @@ describe('Integration: Game Loop', () => {
       ai,
       ability,
       monsterTurn,
+      gold,
+      recorder,
+      mockRandom,
     }
   })
 
@@ -254,7 +265,10 @@ describe('Integration: Game Loop', () => {
         services.hunger,
         services.regeneration,
         services.notification,
-        services.turn
+        services.turn,
+        services.gold,
+        services.recorder,
+        services.mockRandom
       )
 
       const newState = moveCommand.execute(state)
@@ -288,7 +302,10 @@ describe('Integration: Game Loop', () => {
         services.hunger,
         services.regeneration,
         services.notification,
-        services.turn
+        services.turn,
+        services.gold,
+        services.recorder,
+        services.mockRandom
       )
 
       let newState = moveCommand.execute(state)
@@ -337,7 +354,10 @@ describe('Integration: Game Loop', () => {
         services.hunger,
         services.regeneration,
         services.notification,
-        services.turn
+        services.turn,
+        services.gold,
+        services.recorder,
+        services.mockRandom
       )
 
       // Execute first right move
@@ -388,8 +408,11 @@ describe('Integration: Game Loop', () => {
           services.hunger,
         services.regeneration,
           services.notification,
-          services.turn
-        )
+          services.turn,
+        services.gold,
+        services.recorder,
+        services.mockRandom
+      )
         currentState = moveCommand.execute(currentState)
         currentState = services.monsterTurn.processMonsterTurns(currentState)
       }
@@ -423,8 +446,11 @@ describe('Integration: Game Loop', () => {
           services.hunger,
         services.regeneration,
           services.notification,
-          services.turn
-        )
+          services.turn,
+        services.gold,
+        services.recorder,
+        services.mockRandom
+      )
         currentState = moveCommand.execute(currentState)
         currentState = services.monsterTurn.processMonsterTurns(currentState)
       }
@@ -452,7 +478,10 @@ describe('Integration: Game Loop', () => {
         services.hunger,
         services.regeneration,
         services.notification,
-        services.turn
+        services.turn,
+        services.gold,
+        services.recorder,
+        services.mockRandom
       )
 
       const newState = moveCommand.execute(state)
@@ -487,7 +516,10 @@ describe('Integration: Game Loop', () => {
         services.hunger,
         services.regeneration,
         services.notification,
-        services.turn
+        services.turn,
+        services.gold,
+        services.recorder,
+        services.mockRandom
       )
 
       const newState = moveCommand.execute(state)
