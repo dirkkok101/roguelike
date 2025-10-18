@@ -117,33 +117,30 @@ describe('QuitCommand', () => {
   test('saves game before quitting', async () => {
     const state = createTestState({ gameId: 'quit-test' })
 
-    command.execute(state)
-
-    // Wait for async save
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await command.execute(state)
 
     expect(localStorageService.hasSave('quit-test')).toBe(true)
   })
 
-  test('does not save if game is over', () => {
+  test('does not save if game is over', async () => {
     const state = createTestState({
       gameId: 'dead-game',
       isGameOver: true,
     })
 
-    command.execute(state)
+    await command.execute(state)
 
     expect(localStorageService.hasSave('dead-game')).toBe(false)
   })
 
-  test('does not save if player has won', () => {
+  test('does not save if player has won', async () => {
     const state = createTestState({
       gameId: 'won-game',
       isGameOver: true,
       hasWon: true,
     })
 
-    command.execute(state)
+    await command.execute(state)
 
     expect(localStorageService.hasSave('won-game')).toBe(false)
   })
@@ -158,19 +155,16 @@ describe('QuitCommand', () => {
     const state = createTestState()
 
     // Should not throw
-    expect(() => command.execute(state)).not.toThrow()
-
-    // Wait for async error handling
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await expect(command.execute(state)).resolves.not.toThrow()
 
     // Restore
     localStorageService.saveGame = originalSaveGame
   })
 
-  test('returns unchanged state', () => {
+  test('returns unchanged state', async () => {
     const state = createTestState()
 
-    const result = command.execute(state)
+    const result = await command.execute(state)
 
     expect(result).toBe(state)
   })
@@ -183,15 +177,61 @@ describe('QuitCommand', () => {
       hasAmulet: true,
     })
 
-    command.execute(state)
-
-    // Wait for async save
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await command.execute(state)
 
     const loaded = await localStorageService.loadGame('complete-quit')
     expect(loaded).not.toBeNull()
     expect(loaded?.turnCount).toBe(500)
     expect(loaded?.currentLevel).toBe(3)
     expect(loaded?.hasAmulet).toBe(true)
+  })
+
+  test('should persist replay data before quitting', async () => {
+    // Create a mock IndexedDBService
+    const mockIndexedDB = {
+      put: jest.fn().mockResolvedValue(undefined),
+    } as any
+
+    const mockCommandRecorder = new CommandRecorderService(mockIndexedDB)
+    const mockReturnToMenu = jest.fn()
+
+    const command = new QuitCommand(
+      localStorageService,
+      mockReturnToMenu,
+      mockCommandRecorder,
+      mockRandom
+    )
+
+    const state = createTestState({ gameId: 'game-quit-replay' })
+
+    // Initialize recording
+    mockCommandRecorder.startRecording(state, 'game-quit-replay')
+
+    // Record a command so there's data to persist
+    mockCommandRecorder.recordCommand({
+      turnNumber: 1,
+      timestamp: Date.now(),
+      commandType: 'move',
+      actorType: 'player',
+      payload: { direction: { x: 1, y: 0 } },
+      rngState: 'seed-123',
+    })
+
+    await command.execute(state)
+
+    expect(mockIndexedDB.put).toHaveBeenCalledWith(
+      'replays',
+      'game-quit-replay',
+      expect.objectContaining({
+        gameId: 'game-quit-replay',
+        commands: expect.arrayContaining([
+          expect.objectContaining({
+            commandType: 'move',
+            actorType: 'player',
+          }),
+        ]),
+      })
+    )
+    expect(mockReturnToMenu).toHaveBeenCalled()
   })
 })

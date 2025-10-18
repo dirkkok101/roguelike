@@ -218,13 +218,13 @@ describe('InputHandler - Actions Commands', () => {
       expect(saveSpy).toHaveBeenCalledWith(state)
     })
 
-    it('should return same state object for quit', () => {
+    it('should return same state object for quit', async () => {
       // Arrange
       const event = createKeyboardEvent('Q', false, true)
 
       // Act
       const command = handler.handleKeyPress(event, state)
-      const newState = command!.execute(state)
+      const newState = await command!.execute(state)
 
       // Assert: QuitCommand returns state unchanged (no turn increment)
       expect(newState).toBe(state)
