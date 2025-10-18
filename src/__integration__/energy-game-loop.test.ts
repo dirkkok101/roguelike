@@ -54,6 +54,8 @@ function createTestPlayer(energy: number = 100, statusEffects: any[] = []): Play
     inventory: [],
     statusEffects,
     energy,
+    isRunning: false,
+    runState: null,
   }
 }
 
