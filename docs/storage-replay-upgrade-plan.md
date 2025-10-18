@@ -3,10 +3,10 @@
 **Status**: In Progress (Phase 1 & 2 Partial)
 **Created**: 2025-10-18
 **Refined**: 2025-10-18
-**Last Updated**: 2025-10-18 (Task 2.4 Complete)
+**Last Updated**: 2025-10-18 (Task 2.5 Complete)
 **Target Version**: 5.0
 **Estimated Duration**: 8-12 days
-**Progress**: 6/15 tasks complete (40%)
+**Progress**: 7/15 tasks complete (47%)
 
 ---
 
@@ -32,7 +32,7 @@ This plan implements a dual-storage system for debugging game state issues throu
 
 ## Implementation Progress
 
-**Overall**: 6/15 tasks complete (40%)
+**Overall**: 7/15 tasks complete (47%)
 
 ### Completed Tasks
 - ✅ **Task 1.1**: IndexedDBService - Full CRUD operations with 20 tests passing
@@ -47,11 +47,18 @@ This plan implements a dual-storage system for debugging game state issues throu
   - All debug commands updated (12 commands)
   - Integration tests updated (game-loop.test.ts, regeneration-integration.test.ts)
   - Git commits: 8884825 (commands) + 22caab8 (integration tests)
+- ✅ **Task 2.5**: Update GameStorageService to use CommandRecorder - **COMPLETE**
+  - **Progress**: GameStorageService fully integrated with dual storage model
+  - Added CommandRecorderService as constructor dependency
+  - Updated saveGame() to save both game state and replay data atomically
+  - Added extractReplayMetadata() helper with outcome tracking
+  - Updated loadGame() to clear recorder and set new initial state
+  - Added 6 new replay integration tests (28 total tests passing)
+  - All 262/262 test suites passing, 3,260/3,260 tests passing
+  - Git commit: 1da373d
 
 ### In Progress
-- ⏳ **Task 2.5**: Update GameStorageService to use CommandRecorder
-  - **Status**: Ready to start
-  - **Blocked by**: None (all dependencies complete)
+- **None** - Ready to start Phase 3
 
 ### Pending
 - **Phase 3**: Replay Debugging System (Tasks 3.1-3.4)
@@ -60,10 +67,10 @@ This plan implements a dual-storage system for debugging game state issues throu
 
 ### Test Results
 - **Total Test Suites**: 262/262 passing ✅
-- **Total Tests**: 3,254/3,254 passing ✅
+- **Total Tests**: 3,260/3,260 passing ✅
 - **Coverage**:
   - IndexedDB (20 tests)
-  - GameStorage (22 tests)
+  - GameStorage (28 tests - includes 6 replay integration tests)
   - ReplayTypes (8 tests)
   - CommandRecorder (17 tests)
   - All commands updated and tested (33 commands)
@@ -810,11 +817,11 @@ describe('MoveCommand', () => {
 
 ---
 
-#### Task 2.5: Update GameStorageService to Use Recorder ⏳ READY TO START
+#### Task 2.5: Update GameStorageService to Use Recorder ✅ COMPLETE
 
 **File**: `src/services/GameStorageService/GameStorageService.ts`
 
-**Status**: ⏳ Ready to start (all dependencies complete)
+**Status**: ✅ COMPLETE - GameStorageService fully integrated with dual storage model
 
 **Changes:**
 Integrate `CommandRecorderService` into save flow.
@@ -929,6 +936,35 @@ describe('GameStorageService with Recording', () => {
 **Dependencies**: CommandRecorderService
 
 **Estimated Time**: 0.5 days
+
+**Completion Notes**:
+- ✅ Added CommandRecorderService as required first parameter to constructor
+- ✅ Updated saveGame() to retrieve command log and initial state from recorder
+- ✅ Implemented dual storage model: saves both game state and replay data atomically
+- ✅ Replay data only saved when recording is active (initialState and commands exist)
+- ✅ Added REPLAY_VERSION constant (version 1) for compatibility checking
+- ✅ Implemented extractReplayMetadata() helper with outcome tracking ('won', 'died', 'ongoing')
+- ✅ Updated loadGame() to clear recorder and set loaded state as new initial state
+  - Recording starts from load point, not from turn 0
+  - Enables continuous recording across save/load cycles
+- ✅ Updated test file to integrate recorder in beforeEach setup
+- ✅ Added 6 new replay integration tests:
+  - Save replay data when commands recorded
+  - Don't save replay data when no commands
+  - Clear recorder and set initial state on load
+  - Correct outcome metadata for ongoing games
+  - Correct outcome metadata for won games
+  - Correct outcome metadata for died games
+- ✅ Fixed afterEach cleanup to delete replay data from IndexedDB
+- ✅ All 28/28 GameStorageService tests passing (22 original + 6 new)
+- ✅ All 262/262 test suites passing, 3,260/3,260 tests passing
+- ✅ Git commit: 1da373d
+
+**Implementation follows dual storage model:**
+- 'saves' store: Full GameState snapshots for fast loading
+- 'replays' store: Initial state + command log for deterministic replay debugging
+- Atomic saves: Both stores updated together or neither
+- Safety: Full state provides fast loading, commands enable debugging
 
 ---
 
