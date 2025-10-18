@@ -1,0 +1,1 @@
+export { PlayerFactory } from './PlayerFactory'

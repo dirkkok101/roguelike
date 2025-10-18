@@ -9,6 +9,7 @@ export default {
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@commands/(.*)$': '<rootDir>/src/commands/$1',
     '^@states/(.*)$': '<rootDir>/src/states/$1',
+    '^@factories/(.*)$': '<rootDir>/src/factories/$1',
     '^@game/(.*)$': '<rootDir>/src/types/$1',
     '^@ui/(.*)$': '<rootDir>/src/ui/$1',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
