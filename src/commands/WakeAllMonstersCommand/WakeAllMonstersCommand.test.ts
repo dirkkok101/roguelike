@@ -4,6 +4,7 @@ import { MessageService } from '@services/MessageService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, TileType, MonsterState, MonsterBehavior } from '@game/core/core'
 import { mockItemData } from '@/test-utils'
 
@@ -45,6 +46,7 @@ describe('WakeAllMonstersCommand', () => {
   beforeEach(async () => {
     const messageService = new MessageService()
     const mockRandom = new MockRandom()
+    const recorder = new CommandRecorderService()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
     const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
@@ -55,7 +57,7 @@ describe('WakeAllMonstersCommand', () => {
       mockRandom,
       true
     )
-    command = new WakeAllMonstersCommand(debugService)
+    command = new WakeAllMonstersCommand(debugService, recorder, mockRandom)
 
     const level: Level = {
       depth: 1,

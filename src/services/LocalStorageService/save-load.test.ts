@@ -1,5 +1,6 @@
 import { LocalStorageService } from './LocalStorageService'
 import { GameState, Player, Level, TileType, Monster, MonsterState } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('LocalStorageService - Save/Load', () => {
   let service: LocalStorageService
@@ -13,29 +14,6 @@ describe('LocalStorageService - Save/Load', () => {
   afterEach(() => {
     localStorage.clear()
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 3,
-      xp: 500,
-      gold: 100,
-      hunger: 1200,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   function createTestLevel(depth: number): Level {
     return {
@@ -94,7 +72,7 @@ describe('LocalStorageService - Save/Load', () => {
 
   function createTestState(overrides: Partial<GameState> = {}): GameState {
     return {
-      player: createTestPlayer(),
+      player: createTestPlayer({ level: 3, gold: 100 }), // Set level and gold for save/load tests
       currentLevel: 1,
       levels: new Map([[1, createTestLevel(1)]]),
       visibleCells: new Set(['5,5', '6,6']),

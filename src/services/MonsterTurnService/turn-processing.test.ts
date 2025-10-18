@@ -64,6 +64,8 @@ describe('MonsterTurnService - Turn Processing', () => {
       inventory: [],
       statusEffects: [],
       energy: 100,
+      isRunning: false,
+      runState: null,
     }
 
     const tiles = Array(20)

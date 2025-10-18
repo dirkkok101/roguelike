@@ -8,7 +8,9 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, ItemType, Potion, PotionType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('QuaffPotionCommand', () => {
   let inventoryService: InventoryService
@@ -17,10 +19,12 @@ describe('QuaffPotionCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     const identificationService = new IdentificationService()
     const levelingService = new LevelingService(mockRandom)
     statusEffectService = new StatusEffectService()
@@ -100,7 +104,9 @@ describe('QuaffPotionCommand', () => {
       potionService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -120,7 +126,9 @@ describe('QuaffPotionCommand', () => {
       potionService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -146,7 +154,9 @@ describe('QuaffPotionCommand', () => {
       potionService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -170,7 +180,9 @@ describe('QuaffPotionCommand', () => {
       potionService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -192,7 +204,9 @@ describe('QuaffPotionCommand', () => {
       potionService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 

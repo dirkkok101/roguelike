@@ -760,7 +760,7 @@ export interface IGameState {
   render(): void
 
   /** Input processing - only called for top state */
-  handleInput(input: Input): void
+  handleInput(input: Input): void | Promise<void>
 
   /** Should lower states in stack continue updating? */
   isPaused(): boolean

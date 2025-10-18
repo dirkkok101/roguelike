@@ -19,6 +19,9 @@ import { GoldService } from '@services/GoldService'
 import { MonsterAIService } from '@services/MonsterAIService'
 import { DisturbanceService } from '@services/DisturbanceService'
 import { AttackCommand } from '../AttackCommand'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // MOVE COMMAND - Handle player movement and combat
@@ -41,6 +44,8 @@ export class MoveCommand implements ICommand {
     private notificationService: NotificationService,
     private turnService: TurnService,
     private goldService: GoldService,
+    private recorder: CommandRecorderService, // Command recording
+    private randomService: IRandomService, // RNG state capture
     private monsterAIService?: MonsterAIService, // Optional for backward compatibility
     disturbanceService?: DisturbanceService // Optional for backward compatibility
   ) {
@@ -49,6 +54,17 @@ export class MoveCommand implements ICommand {
   }
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.MOVE,
+      actorType: 'player',
+      payload: { direction: this.direction },
+      rngState: this.randomService.getState() // Capture RNG state
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     const level = state.levels.get(state.currentLevel)
     if (!level) return state
 
@@ -71,7 +87,9 @@ export class MoveCommand implements ICommand {
         this.messageService,
         this.levelingService,
         this.turnService,
-        this.goldService
+        this.goldService,
+        this.recorder,
+        this.randomService
       )
       return attackCommand.execute(state)
       // AttackCommand handles: combat, XP, level-up, messages, turn increment

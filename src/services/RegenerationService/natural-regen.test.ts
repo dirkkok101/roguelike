@@ -2,6 +2,7 @@ import { RegenerationService, REGEN_CONFIG } from './RegenerationService'
 import { MockRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 import { Player, Equipment, RingType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('RegenerationService - Natural Regeneration', () => {
   let service: RegenerationService

@@ -2,36 +2,11 @@ import { FOVService } from './FOVService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { RoomDetectionService } from '@services/RoomDetectionService'
 import { Player, Level, Equipment, StatusEffectType, Position } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 // ============================================================================
 // TEST SETUP
 // ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 5, y: 5 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-  }
-}
 
 function createTestLevel(): Level {
   const width = 20

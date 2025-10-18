@@ -1,4 +1,5 @@
 import { GameState, Level, Tile, Player, Position, ItemType, TileType } from '@game/core/core'
+import { PlayerFactory } from '@factories/PlayerFactory'
 
 // ============================================================================
 // MOCK GAME STATE HELPERS FOR TESTING
@@ -78,18 +79,9 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
   const turnCount = options.turnCount !== undefined ? options.turnCount : 0
 
   const player: Player = {
-    position: playerPos,
-    maxHp: 12,
-    hp: 12,
-    strength: 16,
-    maxStrength: 16,
+    ...PlayerFactory.create(playerPos),
     ac: 4,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    isRunning: false,
     hunger: 1000,
-    inventory: [],
     equipment: {
       weapon: null,
       armor: null,
@@ -108,9 +100,6 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
         isPermanent: false,
       },
     },
-    statusEffects: [],
-    energy: 0,
-    runState: null,
   }
 
   const level = createMockLevel({ width: mapDims.width, height: mapDims.height })

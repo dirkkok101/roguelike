@@ -16,6 +16,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { NotificationService } from '@services/NotificationService'
 import { GoldService } from '@services/GoldService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, TileType, GoldPile } from '@game/core/core'
 import { createTestTorch } from '../../test-utils'
 
@@ -36,9 +37,11 @@ describe('MoveCommand - Gold Pickup', () => {
   let notificationService: NotificationService
   let goldService: GoldService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
     ringService = new RingService(mockRandom)
@@ -144,7 +147,9 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -172,7 +177,9 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -200,7 +207,9 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -230,7 +239,9 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -257,7 +268,9 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -287,7 +300,9 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -319,7 +334,9 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const result = command.execute(state)
@@ -347,7 +364,9 @@ describe('MoveCommand - Gold Pickup', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const result = command.execute(state)

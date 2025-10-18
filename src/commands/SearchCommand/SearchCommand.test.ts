@@ -6,7 +6,9 @@ import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { DoorService } from '@services/DoorService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, DoorState, Door, Player, Trap, TrapType, Position } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SearchCommand', () => {
   let searchService: SearchService
@@ -14,9 +16,11 @@ describe('SearchCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     const doorService = new DoorService()
     searchService = new SearchService(mockRandom, doorService)
     messageService = new MessageService()
@@ -135,7 +139,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1]) // chance() returns true (50% base + 5%)
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       const level = result.levels.get(1)!
@@ -154,7 +158,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       const level = result.levels.get(1)!
@@ -172,7 +176,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([0]) // chance() returns false
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       const level = result.levels.get(1)!
@@ -189,7 +193,7 @@ describe('SearchCommand', () => {
       // Level 10: 50% + 10*5% = 100% chance
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.doors[0].discovered).toBe(true)
@@ -204,7 +208,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       const level = result.levels.get(1)!
@@ -221,7 +225,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([0])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.traps[0].discovered).toBe(false)
@@ -235,7 +239,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       // Should find nothing since trap is already discovered
@@ -251,7 +255,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.doors[0].discovered).toBe(true)
@@ -264,7 +268,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.doors[0].discovered).toBe(true)
@@ -277,7 +281,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.doors[0].discovered).toBe(true)
@@ -290,7 +294,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.levels.get(1)!.traps[0].discovered).toBe(true)
@@ -304,7 +308,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('You search but find nothing.')
@@ -318,7 +322,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('You search but find nothing.')
@@ -334,7 +338,7 @@ describe('SearchCommand', () => {
 
       mockRandom.setValues([1])
 
-      const command = new SearchCommand(searchService, messageService, turnService)
+      const command = new SearchCommand(searchService, messageService, turnService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result).not.toBe(state)

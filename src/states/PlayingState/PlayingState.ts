@@ -110,7 +110,7 @@ export class PlayingState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(_input: Input): void {
+  async handleInput(_input: Input): Promise<void> {
     // Don't process input if death or victory screen is visible
     if (this.renderer.isDeathScreenVisible() || this.renderer.isVictoryScreenVisible()) {
       return
@@ -151,7 +151,9 @@ export class PlayingState extends BaseState {
     // PHASE 2: Player acts
     const command = this.inputHandler.handleKeyPress(keyboardEvent, this.gameState)
     if (command) {
-      this.gameState = command.execute(this.gameState)
+      const result = command.execute(this.gameState)
+      // Handle both sync and async commands
+      this.gameState = result instanceof Promise ? await result : result
 
       // Consume player energy after action
       this.gameState = {
@@ -187,7 +189,9 @@ export class PlayingState extends BaseState {
         const runCommand = this.inputHandler.handleKeyPress(runKeyEvent, this.gameState)
 
         if (runCommand) {
-          this.gameState = runCommand.execute(this.gameState)
+          const result = runCommand.execute(this.gameState)
+          // Handle both sync and async commands
+          this.gameState = result instanceof Promise ? await result : result
 
           // Consume player energy
           this.gameState = {
@@ -256,14 +260,16 @@ export class PlayingState extends BaseState {
    * Called when state becomes active (via enter()) to handle commands
    * left by states that popped themselves (like TargetSelectionState)
    */
-  private checkAndExecutePendingCommand(): void {
+  private async checkAndExecutePendingCommand(): Promise<void> {
     // Create a dummy keyboard event to check for pending commands
     const dummyEvent = new KeyboardEvent('keydown', { key: '' })
     const command = this.inputHandler.handleKeyPress(dummyEvent, this.gameState)
 
     if (command) {
       // Execute the pending command and update game state
-      this.gameState = command.execute(this.gameState)
+      const result = command.execute(this.gameState)
+      // Handle both sync and async commands
+      this.gameState = result instanceof Promise ? await result : result
 
       // Consume player energy after action
       this.gameState = {

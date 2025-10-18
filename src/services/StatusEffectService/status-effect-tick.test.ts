@@ -1,35 +1,6 @@
 import { StatusEffectService } from './StatusEffectService'
-import { Player, StatusEffectType, Equipment } from '@game/core/core'
-
-// ============================================================================
-// TEST SETUP
-// ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 0, y: 0 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-  }
-}
+import { StatusEffectType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 // ============================================================================
 // TESTS
@@ -165,6 +136,36 @@ describe('StatusEffectService - Tick System', () => {
       expect(result.expired).toHaveLength(2)
       expect(result.expired).toContain(StatusEffectType.CONFUSED)
       expect(result.expired).toContain(StatusEffectType.BLIND)
+    })
+
+    test('preserves all Player fields (isRunning, runState, energy)', () => {
+      // Regression test: tickStatusEffects must preserve ALL Player fields
+      // Bug: Previously only spread statusEffects, losing isRunning/runState
+      let player = createTestPlayer()
+      player = service.addStatusEffect(player, StatusEffectType.CONFUSED, 5)
+
+      // Set running state
+      player = {
+        ...player,
+        isRunning: true,
+        runState: {
+          direction: 'right' as const,
+          previousHP: player.hp,
+        },
+        energy: 100,
+      }
+
+      const result = service.tickStatusEffects(player)
+
+      // Verify Player fields preserved
+      expect(result.player.isRunning).toBe(true)
+      expect(result.player.runState).toEqual({
+        direction: 'right',
+        previousHP: player.hp,
+      })
+      expect(result.player.energy).toBe(100)
+      expect(result.player.hp).toBe(player.hp) // Sanity check
+      expect(result.player.position).toEqual(player.position) // Sanity check
     })
   })
 })

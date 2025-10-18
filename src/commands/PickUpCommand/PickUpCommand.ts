@@ -5,6 +5,9 @@ import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelService } from '@services/LevelService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // PICK UP COMMAND - Pick up items from the dungeon floor
@@ -16,10 +19,23 @@ export class PickUpCommand implements ICommand {
     private messageService: MessageService,
     private turnService: TurnService,
     private identificationService: IdentificationService,
-    private levelService: LevelService
+    private levelService: LevelService,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.PICKUP,
+      actorType: 'player',
+      payload: { position: state.player.position },
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     const level = state.levels.get(state.currentLevel)
     if (!level) return state
 

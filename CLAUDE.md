@@ -39,6 +39,9 @@
 - **[Advanced Systems](./docs/systems-advanced.md)** - AI, pathfinding, generation
 - **[Testing Strategy](./docs/testing-strategy.md)** - Test organization
 
+**Debugging & Replay:**
+- **[Replay System](./docs/replay-system.md)** - Event sourcing debug workflow, deterministic replay
+
 **Implementation Guides:**
 - **[Services Guide](./docs/services/README.md)** - All 35 services reference
 - **[Commands Guide](./docs/commands/README.md)** - All 40+ commands reference
@@ -450,6 +453,35 @@ newArray = [...oldArray, newItem]
 ```
 
 **Details**: [Architecture - Immutability](./docs/architecture.md#testing-best-practices)
+
+---
+
+### 5. Non-Deterministic Replay
+**Violates**: Dependency Inversion (using `Math.random()` or timing)
+
+✅ **Solution**:
+- Always use `IRandomService` (never `Math.random()`)
+- Capture RNG state **before** command execution
+- No `Date.now()` in game logic (use turn counter instead)
+- No browser API randomness
+
+**Red Flags**:
+- `Math.random()` anywhere in game logic
+- `Date.now()` for gameplay decisions
+- `crypto.getRandomValues()` for game randomness
+- Uncontrolled iteration order (Set/Map)
+
+**Pattern**: Inject RandomService
+```typescript
+// ✅ Good - Deterministic
+constructor(private randomService: IRandomService) {}
+const damage = this.randomService.nextInt(1, 10)
+
+// ❌ Bad - Non-deterministic
+const damage = Math.floor(Math.random() * 10)
+```
+
+**Details**: [Replay System - Determinism Requirements](./docs/replay-system.md#determinism-requirements)
 
 ---
 

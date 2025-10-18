@@ -5,7 +5,10 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, Player, TileType, ItemType, Item, Potion, PotionType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('DropCommand - Amulet Restrictions', () => {
   let inventoryService: InventoryService
@@ -13,8 +16,12 @@ describe('DropCommand - Amulet Restrictions', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockIdentificationService: jest.Mocked<IdentificationService>
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     inventoryService = new InventoryService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
@@ -131,7 +138,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const amulet = createAmulet()
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService, recorder, mockRandom)
 
     const result = command.execute(state)
 
@@ -144,7 +151,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const amulet = createAmulet()
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService, recorder, mockRandom)
 
     const result = command.execute(state)
 
@@ -157,7 +164,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const amulet = createAmulet()
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService, recorder, mockRandom)
 
     const result = command.execute(state)
 
@@ -169,7 +176,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const amulet = createAmulet()
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService, recorder, mockRandom)
 
     const result = command.execute(state)
 
@@ -180,7 +187,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const potion = createPotion()
     const player = createTestPlayer([potion])
     const state = createTestState(player)
-    const command = new DropCommand(potion.id, inventoryService, messageService, turnService, mockIdentificationService)
+    const command = new DropCommand(potion.id, inventoryService, messageService, turnService, mockIdentificationService, recorder, mockRandom)
 
     const result = command.execute(state)
 
@@ -199,7 +206,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const potion = createPotion()
     const player = createTestPlayer([amulet, potion])
     const state = createTestState(player)
-    const command = new DropCommand(potion.id, inventoryService, messageService, turnService, mockIdentificationService)
+    const command = new DropCommand(potion.id, inventoryService, messageService, turnService, mockIdentificationService, recorder, mockRandom)
 
     const result = command.execute(state)
 
@@ -218,7 +225,7 @@ describe('DropCommand - Amulet Restrictions', () => {
     const player = createTestPlayer([amulet])
     const state = createTestState(player)
     const originalInventoryLength = state.player.inventory.length
-    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService)
+    const command = new DropCommand(amulet.id, inventoryService, messageService, turnService, mockIdentificationService, recorder, mockRandom)
 
     command.execute(state)
 

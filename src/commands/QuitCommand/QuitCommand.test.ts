@@ -1,15 +1,22 @@
 import { QuitCommand } from './QuitCommand'
 import { LocalStorageService } from '@services/LocalStorageService'
-import { GameState, Player, Level, TileType } from '@game/core/core'
+import { GameState, Level, TileType } from '@game/core/core'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 
 describe('QuitCommand', () => {
   let command: QuitCommand
   let localStorageService: LocalStorageService
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     localStorageService = new LocalStorageService()
     localStorageService.enableTestMode() // Use synchronous compression for tests
-    command = new QuitCommand(localStorageService, jest.fn())
+    recorder = new CommandRecorderService()
+    mockRandom = new MockRandom()
+    command = new QuitCommand(localStorageService, jest.fn(), recorder, mockRandom)
     localStorage.clear()
 
     // Suppress JSDOM navigation errors (window.location.reload is not implemented in test environment)
@@ -29,29 +36,6 @@ describe('QuitCommand', () => {
     localStorage.clear()
     jest.restoreAllMocks()
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   function createTestLevel(depth: number): Level {
     return {
@@ -111,33 +95,30 @@ describe('QuitCommand', () => {
   test('saves game before quitting', async () => {
     const state = createTestState({ gameId: 'quit-test' })
 
-    command.execute(state)
-
-    // Wait for async save
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await command.execute(state)
 
     expect(localStorageService.hasSave('quit-test')).toBe(true)
   })
 
-  test('does not save if game is over', () => {
+  test('does not save if game is over', async () => {
     const state = createTestState({
       gameId: 'dead-game',
       isGameOver: true,
     })
 
-    command.execute(state)
+    await command.execute(state)
 
     expect(localStorageService.hasSave('dead-game')).toBe(false)
   })
 
-  test('does not save if player has won', () => {
+  test('does not save if player has won', async () => {
     const state = createTestState({
       gameId: 'won-game',
       isGameOver: true,
       hasWon: true,
     })
 
-    command.execute(state)
+    await command.execute(state)
 
     expect(localStorageService.hasSave('won-game')).toBe(false)
   })
@@ -152,19 +133,16 @@ describe('QuitCommand', () => {
     const state = createTestState()
 
     // Should not throw
-    expect(() => command.execute(state)).not.toThrow()
-
-    // Wait for async error handling
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await expect(command.execute(state)).resolves.not.toThrow()
 
     // Restore
     localStorageService.saveGame = originalSaveGame
   })
 
-  test('returns unchanged state', () => {
+  test('returns unchanged state', async () => {
     const state = createTestState()
 
-    const result = command.execute(state)
+    const result = await command.execute(state)
 
     expect(result).toBe(state)
   })
@@ -177,15 +155,108 @@ describe('QuitCommand', () => {
       hasAmulet: true,
     })
 
-    command.execute(state)
-
-    // Wait for async save
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await command.execute(state)
 
     const loaded = await localStorageService.loadGame('complete-quit')
     expect(loaded).not.toBeNull()
     expect(loaded?.turnCount).toBe(500)
     expect(loaded?.currentLevel).toBe(3)
     expect(loaded?.hasAmulet).toBe(true)
+  })
+
+  test('should persist replay data before quitting', async () => {
+    // Create a mock IndexedDBService
+    const mockIndexedDB = {
+      put: jest.fn().mockResolvedValue(undefined),
+    } as any
+
+    const mockCommandRecorder = new CommandRecorderService(mockIndexedDB)
+    const mockReturnToMenu = jest.fn()
+
+    const command = new QuitCommand(
+      localStorageService,
+      mockReturnToMenu,
+      mockCommandRecorder,
+      mockRandom
+    )
+
+    const state = createTestState({ gameId: 'game-quit-replay' })
+
+    // Initialize recording
+    mockCommandRecorder.startRecording(state, 'game-quit-replay')
+
+    // Record a command so there's data to persist
+    mockCommandRecorder.recordCommand({
+      turnNumber: 1,
+      timestamp: Date.now(),
+      commandType: 'move',
+      actorType: 'player',
+      payload: { direction: { x: 1, y: 0 } },
+      rngState: 'seed-123',
+    })
+
+    await command.execute(state)
+
+    expect(mockIndexedDB.put).toHaveBeenCalledWith(
+      'replays',
+      'game-quit-replay',
+      expect.objectContaining({
+        gameId: 'game-quit-replay',
+        commands: expect.arrayContaining([
+          expect.objectContaining({
+            commandType: 'move',
+            actorType: 'player',
+          }),
+        ]),
+      })
+    )
+    expect(mockReturnToMenu).toHaveBeenCalled()
+  })
+
+  test('should handle replay persistence errors gracefully', async () => {
+    // Mock IndexedDB to throw an error
+    const mockIndexedDB = {
+      put: jest.fn().mockRejectedValue(new Error('IndexedDB quota exceeded')),
+    } as any
+
+    const mockCommandRecorder = new CommandRecorderService(mockIndexedDB)
+    const mockReturnToMenu = jest.fn()
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+    const command = new QuitCommand(
+      localStorageService,
+      mockReturnToMenu,
+      mockCommandRecorder,
+      mockRandom
+    )
+
+    const state = createTestState({ gameId: 'game-quit-replay-fail' })
+
+    // Initialize recording
+    mockCommandRecorder.startRecording(state, 'game-quit-replay-fail')
+
+    // Record a command
+    mockCommandRecorder.recordCommand({
+      turnNumber: 1,
+      timestamp: Date.now(),
+      commandType: 'move',
+      actorType: 'player',
+      payload: { direction: { x: 1, y: 0 } },
+      rngState: 'seed-123',
+    })
+
+    // Should not throw despite persistence error
+    await expect(command.execute(state)).resolves.not.toThrow()
+
+    // Should still call returnToMenu
+    expect(mockReturnToMenu).toHaveBeenCalled()
+
+    // Should log warning from CommandRecorderService
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      '⚠️ Could not persist replay data (IndexedDB unavailable):',
+      expect.any(Error)
+    )
+
+    consoleWarnSpy.mockRestore()
   })
 })

@@ -3,6 +3,7 @@ import { HungerService } from '@services/HungerService'
 import { RingService } from '@services/RingService'
 import { MockRandom } from '@services/RandomService'
 import { Player, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('CombatService - Hunger Penalties', () => {
   let combatService: CombatService

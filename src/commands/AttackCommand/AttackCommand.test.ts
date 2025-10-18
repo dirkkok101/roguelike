@@ -8,8 +8,10 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
 import { GoldService } from '@services/GoldService'
+import { createTestPlayer } from '@test-helpers'
 
 describe('AttackCommand', () => {
   let combatService: CombatService
@@ -19,9 +21,11 @@ describe('AttackCommand', () => {
   let goldService: GoldService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     messageService = new MessageService()
     const ringService = new RingService(mockRandom)
     const hungerService = new HungerService(mockRandom, ringService)
@@ -32,31 +36,6 @@ describe('AttackCommand', () => {
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-    }
-  }
 
   function createTestMonster(hp: number = 10): Monster {
     return {
@@ -141,7 +120,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3]) // Hit roll, damage roll
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const updatedMonster = result.levels.get(1)!.monsters[0]
@@ -159,7 +138,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5]) // Hit roll, high damage
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const monsters = result.levels.get(1)!.monsters
@@ -175,7 +154,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.player.xp).toBe(5)
@@ -188,7 +167,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result.messages.some((m) => m.text === 'You killed the Test Monster!')).toBe(true)
@@ -204,7 +183,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([1, 3]) // Low roll = miss
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const updatedMonster = result.levels.get(1)!.monsters[0]
@@ -224,7 +203,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('monster-1', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('monster-1', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const monsters = result.levels.get(1)!.monsters
@@ -240,7 +219,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5])
 
-      const command = new AttackCommand('weak-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('weak-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const monsters = result.levels.get(1)!.monsters
@@ -257,7 +236,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('non-existent-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('non-existent-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result).toBe(state)
@@ -273,7 +252,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result).not.toBe(state)
@@ -288,7 +267,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result).not.toBe(state)
@@ -304,7 +283,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([1, 3])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       expect(result).not.toBe(state)
@@ -324,7 +303,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3]) // Hit roll, damage roll
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const updatedMonster = result.levels.get(1)!.monsters[0]
@@ -345,7 +324,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([1, 3]) // Low roll = miss
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const updatedMonster = result.levels.get(1)!.monsters[0]
@@ -365,7 +344,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       // Find the indices of the messages
@@ -388,7 +367,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const updatedMonster = result.levels.get(1)!.monsters[0]
@@ -418,7 +397,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService, recorder, mockRandom)
       const result = command.execute(state)
 
       const updatedMonster = result.levels.get(1)!.monsters[0]

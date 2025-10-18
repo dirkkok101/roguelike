@@ -5,6 +5,9 @@ import { PotionService } from '@services/PotionService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // QUAFF POTION COMMAND - Drink a potion from inventory
@@ -17,10 +20,23 @@ export class QuaffPotionCommand implements ICommand {
     private potionService: PotionService,
     private messageService: MessageService,
     private turnService: TurnService,
-    private statusEffectService: StatusEffectService
+    private statusEffectService: StatusEffectService,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.QUAFF,
+      actorType: 'player',
+      payload: { itemId: this.itemId },
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     // 0. Check if player can drink (not confused)
     // Note: Blind players CAN drink potions (they can feel the bottle by touch)
     // but confused players cannot (too disoriented to complete the action)

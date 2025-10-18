@@ -3,6 +3,9 @@ import { ICommand } from '../ICommand'
 import { MessageService } from '@services/MessageService'
 import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // CLOSE DOOR COMMAND - Close open doors
@@ -13,10 +16,24 @@ export class CloseDoorCommand implements ICommand {
     private direction: Position,
     private messageService: MessageService,
     private doorService: DoorService,
-    private turnService: TurnService
+    private turnService: TurnService,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.CLOSE_DOOR,
+      actorType: 'player',
+      payload: { direction: this.direction },
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
+
     const level = state.levels.get(state.currentLevel)
     if (!level) return state
 

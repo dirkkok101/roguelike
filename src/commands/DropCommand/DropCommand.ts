@@ -4,6 +4,9 @@ import { InventoryService } from '@services/InventoryService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { IdentificationService } from '@services/IdentificationService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // DROP COMMAND - Drop items from inventory to the dungeon floor
@@ -15,10 +18,23 @@ export class DropCommand implements ICommand {
     private inventoryService: InventoryService,
     private messageService: MessageService,
     private turnService: TurnService,
-    private identificationService: IdentificationService
+    private identificationService: IdentificationService,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.DROP,
+      actorType: 'player',
+      payload: { itemId: this.itemId },
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     const level = state.levels.get(state.currentLevel)
     if (!level) return state
 

@@ -1,6 +1,7 @@
 import { GameState, Position, Torch, ItemType, Input, Level } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { SeededRandom } from '@services/RandomService'
+import { PlayerFactory } from '@factories/PlayerFactory'
 import { RingService } from '@services/RingService'
 import { LightingService } from '@services/LightingService'
 import { FOVService } from '@services/FOVService'
@@ -47,6 +48,10 @@ import { TerrainSpriteService } from '@services/TerrainSpriteService'
 import { WanderingMonsterService } from '@services/WanderingMonsterService'
 import { StairsNavigationService } from '@services/StairsNavigationService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
+import { IndexedDBService } from '@services/IndexedDBService'
+import { DownloadService } from '@services/DownloadService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -147,7 +152,16 @@ async function initializeGame() {
   const leaderboardStorageService = new LeaderboardStorageService()
   const scoreCalculationService = new ScoreCalculationService()
   const preferencesService = new PreferencesService()
-  const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
+  const indexedDBService = new IndexedDBService()
+  await indexedDBService.initDatabase() // Initialize IndexedDB for replay storage
+  const commandRecorderService = new CommandRecorderService(indexedDBService)
+  const replayDebuggerService = new ReplayDebuggerService(indexedDBService)
+  const downloadService = new DownloadService()
+  const autoSaveMiddleware = new AutoSaveMiddleware(
+    localStorageService,
+    10,
+    commandRecorderService
+  )
   const levelService = new LevelService()
   const combatService = new CombatService(random, ringService, hungerService, debugService)
   const pathfindingService = new PathfindingService(levelService)
@@ -250,17 +264,11 @@ async function initializeGame() {
   }
 
   const player = {
-    position: startPos,
-    hp: 12,
-    maxHp: 12,
+    ...PlayerFactory.create(startPos),
     strength: startingStrength,
     maxStrength: startingStrength,
     strengthPercentile,
     ac: 8, // With starting leather armor equipped (AC 8)
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
     equipment: {
       weapon: null,
       armor: leatherArmor, // Start with leather armor equipped
@@ -268,11 +276,7 @@ async function initializeGame() {
       rightRing: null,
       lightSource: torch,
     },
-    inventory: [],
-    statusEffects: [],
     energy: 100, // Start with full energy (can act immediately)
-    isRunning: false, // Not running initially
-    runState: null, // Not running initially
   }
 
   // Compute initial FOV
@@ -415,17 +419,11 @@ async function initializeGame() {
     }
 
     const player = {
-      position: startPos,
-      hp: 12,
-      maxHp: 12,
+      ...PlayerFactory.create(startPos),
       strength: startingStrength,
       maxStrength: startingStrength,
       strengthPercentile,
       ac: 8, // With starting leather armor equipped (AC 8)
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
       equipment: {
         weapon: null,
         armor: leatherArmor, // Start with leather armor equipped
@@ -433,11 +431,7 @@ async function initializeGame() {
         rightRing: null,
         lightSource: torch,
       },
-      inventory: [],
-      statusEffects: [],
       energy: 100, // Start with full energy (can act immediately)
-      isRunning: false, // Not running initially
-      runState: null, // Not running initially
     }
 
     const visibleCells = fovService.computeFOV(
@@ -567,6 +561,10 @@ async function initializeGame() {
       toastNotification: toastNotificationService,
       victory: victoryService,
       debug: debugService,
+      commandRecorder: commandRecorderService,
+      replayDebugger: replayDebuggerService,
+      indexedDB: indexedDBService,
+      download: downloadService,
     }
 
     inputHandler = new InputHandler(
@@ -613,7 +611,7 @@ async function initializeGame() {
 
     // Input handling - delegate to current state
     // The state manager will call handleInput() on the top state
-    currentKeydownHandler = (event: KeyboardEvent) => {
+    currentKeydownHandler = async (event: KeyboardEvent) => {
       const currentState = stateManager.getCurrentState()
       if (currentState) {
         // Check if state allows this key (input filtering)
@@ -631,7 +629,7 @@ async function initializeGame() {
           ctrl: event.ctrlKey,
           alt: event.altKey,
         }
-        currentState.handleInput(input)
+        await currentState.handleInput(input)
 
         // Render all visible states after input is processed
         // This ensures transparent states (targeting, inventory) show correctly

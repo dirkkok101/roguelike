@@ -1,6 +1,7 @@
 import { LevelingService } from './LevelingService'
 import { MockRandom } from '@services/RandomService'
 import { Player } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 // ============================================================================
 // LEVELING SERVICE - Level Up Tests

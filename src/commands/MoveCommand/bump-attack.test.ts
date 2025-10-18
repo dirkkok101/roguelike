@@ -16,6 +16,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import {
   GameState,
   Level,
@@ -43,9 +44,11 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
   let goldService: GoldService
   let ringService: RingService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
     ringService = new RingService(mockRandom)
@@ -185,7 +188,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -217,7 +222,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -248,7 +255,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -278,7 +287,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -311,7 +322,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -340,7 +353,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -371,7 +386,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -402,7 +419,9 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)

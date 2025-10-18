@@ -18,41 +18,13 @@ import {
   Monster,
   MonsterBehavior,
   MonsterState,
-  Player,
-  Equipment,
   Tile,
 } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 // ============================================================================
 // TEST SETUP
 // ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 10, y: 10 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-    energy: 100,
-  }
-}
 
 function createTestMonster(id: string, x: number, y: number, speed: number, energy: number): Monster {
   return {
@@ -200,7 +172,7 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
   test('monster with speed 10 acts once per turn (after energy grant)', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 90) // Start with 90 energy
     const level = createTestLevel([monster])
-    const player = createTestPlayer()
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     let state = createTestState(player, level)
 
     // Grant energy to all actors (simulating Phase 1 of game loop)
@@ -218,7 +190,7 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
   test('monster with speed 20 acts twice per turn', () => {
     const monster = createTestMonster('m1', 5, 5, 20, 90) // Start with 90 energy
     const level = createTestLevel([monster])
-    const player = createTestPlayer()
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     let state = createTestState(player, level)
 
     // Grant energy to all actors (simulating Phase 1 of game loop)
@@ -238,7 +210,7 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
   test('monster with speed 5 does not act if starting with 94 energy', () => {
     const monster = createTestMonster('m1', 5, 5, 5, 94) // Start with 94 energy
     const level = createTestLevel([monster])
-    const player = createTestPlayer()
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     let state = createTestState(player, level)
 
     // Grant energy to all actors (simulating Phase 1 of game loop)
@@ -257,7 +229,7 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
   test('energy carries over between turns', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 95) // Start with 95 energy
     const level = createTestLevel([monster])
-    const player = createTestPlayer()
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     let state = createTestState(player, level)
 
     // Grant energy to all actors (simulating Phase 1 of game loop)
@@ -278,7 +250,7 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const m2 = createTestMonster('m2', 6, 6, 10, 90) // Normal
     const m3 = createTestMonster('m3', 7, 7, 20, 85) // Fast
     const level = createTestLevel([m1, m2, m3])
-    const player = createTestPlayer()
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     let state = createTestState(player, level)
 
     // Grant energy to all actors (simulating Phase 1 of game loop)
@@ -304,7 +276,7 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
   test('monster with 150 energy acts once, 50 energy remains', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 140) // Start with 140 energy
     const level = createTestLevel([monster])
-    const player = createTestPlayer()
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     let state = createTestState(player, level)
 
     // Grant energy to all actors (simulating Phase 1 of game loop)
@@ -323,7 +295,7 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
   test('monster with 99 energy does not act', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 89) // Start with 89 energy
     const level = createTestLevel([monster])
-    const player = createTestPlayer()
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     let state = createTestState(player, level)
 
     // Grant energy to all actors (simulating Phase 1 of game loop)
@@ -343,7 +315,7 @@ describe('MonsterTurnService - Energy Turn Processing', () => {
     const monster = createTestMonster('m1', 5, 5, 10, 90)
     monster.hp = 0 // Dead monster
     const level = createTestLevel([monster])
-    const player = createTestPlayer()
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     const state = createTestState(player, level)
 
     const result = service.processMonsterTurns(state)

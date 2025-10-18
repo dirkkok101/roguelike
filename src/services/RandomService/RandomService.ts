@@ -8,6 +8,8 @@ export interface IRandomService {
   shuffle<T>(array: T[]): T[]
   chance(probability: number): boolean
   pickRandom<T>(array: T[]): T
+  getState(): string  // Capture RNG internal state for replay
+  setState(state: string): void  // Restore RNG internal state for replay
 }
 
 // ============================================================================
@@ -73,6 +75,16 @@ export class SeededRandom implements IRandomService {
   pickRandom<T>(array: T[]): T {
     return array[this.nextInt(0, array.length - 1)]
   }
+
+  getState(): string {
+    // Return internal seed state as string for deterministic replay
+    return this.seed.toString()
+  }
+
+  setState(state: string): void {
+    // Restore internal seed state from string
+    this.seed = parseInt(state, 10)
+  }
 }
 
 // ============================================================================
@@ -113,5 +125,17 @@ export class MockRandom implements IRandomService {
 
   pickRandom<T>(array: T[]): T {
     return array[0]
+  }
+
+  getState(): string {
+    // MockRandom state: current index and values
+    return JSON.stringify({ index: this.index, values: this.values })
+  }
+
+  setState(state: string): void {
+    // Restore MockRandom state
+    const parsed = JSON.parse(state)
+    this.index = parsed.index
+    this.values = parsed.values
   }
 }

@@ -1,5 +1,6 @@
 import { VictoryService } from './VictoryService'
 import { GameState, Player } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('VictoryService - Victory Condition', () => {
   let service: VictoryService
@@ -7,29 +8,6 @@ describe('VictoryService - Victory Condition', () => {
   beforeEach(() => {
     service = new VictoryService()
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 30,
-      maxHp: 30,
-      strength: 16,
-      maxStrength: 16,
-      ac: 4,
-      level: 10,
-      xp: 5000,
-      gold: 500,
-      hunger: 1000,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   function createTestState(currentLevel: number, hasAmulet: boolean): GameState {
     return {

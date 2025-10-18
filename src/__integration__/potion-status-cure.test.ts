@@ -4,6 +4,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
 import { MockRandom } from '@services/RandomService'
+import { createTestPlayer } from '@test-helpers'
 import {
   Player,
   Level,
@@ -41,33 +42,6 @@ describe('Integration: Potion Status Cure', () => {
     levelingService = new LevelingService(mockRandom)
     potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
   })
-
-  function createTestPlayer(): Player {
-    const equipment: Equipment = {
-      weapon: null,
-      armor: null,
-      leftRing: null,
-      rightRing: null,
-      lightSource: null,
-    }
-
-    return {
-      position: { x: 5, y: 5 },
-      hp: 15,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment,
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-    }
-  }
 
   function createTestLevel(): Level {
     const width = 20
@@ -144,7 +118,8 @@ describe('Integration: Potion Status Cure', () => {
   describe('Blindness → Heal Potion → Vision Restored', () => {
     test('heal potion restores vision to blind player', () => {
       const level = createTestLevel()
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       const state = createTestState(player)
 
       // 1. Apply blindness status effect
@@ -172,7 +147,8 @@ describe('Integration: Potion Status Cure', () => {
 
     test('extra heal potion restores vision to blind player', () => {
       const level = createTestLevel()
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       const state = createTestState(player)
 
       // Apply blindness
@@ -207,7 +183,8 @@ describe('Integration: Potion Status Cure', () => {
 
     test('vision quality matches normal sight after cure', () => {
       const level = createTestLevel()
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       const state = createTestState(player)
 
       // Get baseline FOV for normal vision
@@ -233,7 +210,8 @@ describe('Integration: Potion Status Cure', () => {
 
   describe('Confusion → Heal Potion → Clear Head', () => {
     test('heal potion cures confusion', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       const state = createTestState(player)
 
       // Apply confusion
@@ -251,7 +229,8 @@ describe('Integration: Potion Status Cure', () => {
     })
 
     test('extra heal potion cures confusion', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       const state = createTestState(player)
 
       // Apply confusion
@@ -281,7 +260,8 @@ describe('Integration: Potion Status Cure', () => {
   describe('Multiple Status Effects → Heal Potion → All Cured', () => {
     test('heal potion cures both blindness and confusion simultaneously', () => {
       const level = createTestLevel()
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       const state = createTestState(player)
 
       // Apply both status effects
@@ -317,7 +297,8 @@ describe('Integration: Potion Status Cure', () => {
     })
 
     test('heal potion only cures confusion and blindness, preserves other status effects', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       const state = createTestState(player)
 
       // Apply multiple status effects

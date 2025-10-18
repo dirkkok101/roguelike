@@ -8,6 +8,9 @@ import { FOVService } from '@services/FOVService'
 import { LightingService } from '@services/LightingService'
 import { SeededRandom } from '@services/RandomService'
 import { createTestTorch, createTestLantern } from '@test-utils/fixtures'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   Player,
@@ -22,6 +25,8 @@ describe('TakeOffCommand - FOV Updates', () => {
   let statusEffectService: StatusEffectService
   let fovService: FOVService
   let lightingService: LightingService
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
@@ -32,7 +37,9 @@ describe('TakeOffCommand - FOV Updates', () => {
     turnService = new TurnService(statusEffectService, levelService)
     fovService = new FOVService(statusEffectService)
     lightingService = new LightingService(random)
-  })
+ 
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService() })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {
     return {
@@ -137,7 +144,9 @@ describe('TakeOffCommand - FOV Updates', () => {
         messageService,
         turnService,
         fovService,
-        lightingService
+        lightingService,
+      recorder,
+      mockRandom
       )
       const result = command.execute(state)
 
@@ -170,7 +179,9 @@ describe('TakeOffCommand - FOV Updates', () => {
         messageService,
         turnService,
         fovService,
-        lightingService
+        lightingService,
+      recorder,
+      mockRandom
       )
       const result = command.execute(state)
 
@@ -206,7 +217,9 @@ describe('TakeOffCommand - FOV Updates', () => {
         messageService,
         turnService,
         fovService,
-        lightingService
+        lightingService,
+      recorder,
+      mockRandom
       )
       const result = command.execute(state)
 
@@ -233,7 +246,9 @@ describe('TakeOffCommand - FOV Updates', () => {
         messageService,
         turnService,
         fovService,
-        lightingService
+        lightingService,
+      recorder,
+      mockRandom
       )
       const result = command.execute(state)
 
@@ -257,7 +272,9 @@ describe('TakeOffCommand - FOV Updates', () => {
         messageService,
         turnService,
         fovService,
-        lightingService
+        lightingService,
+      recorder,
+      mockRandom
       )
       const result = command.execute(state)
 
@@ -291,7 +308,9 @@ describe('TakeOffCommand - FOV Updates', () => {
         messageService,
         turnService,
         fovService,
-        lightingService
+        lightingService,
+      recorder,
+      mockRandom
       )
       const result = command.execute(state)
 
@@ -319,7 +338,9 @@ describe('TakeOffCommand - FOV Updates', () => {
         messageService,
         turnService,
         fovService,
-        lightingService
+        lightingService,
+      recorder,
+      mockRandom
       )
       const result = command.execute(state)
 
@@ -348,7 +369,9 @@ describe('TakeOffCommand - FOV Updates', () => {
         messageService,
         turnService,
         fovService,
-        lightingService
+        lightingService,
+      recorder,
+      mockRandom
       )
       command.execute(state)
 

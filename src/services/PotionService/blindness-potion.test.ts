@@ -3,6 +3,7 @@ import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { createTestPlayer } from '@test-helpers'
 import {
   Player,
   Potion,
@@ -20,32 +21,6 @@ import {
 // ============================================================================
 // TEST SETUP
 // ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 5, y: 5 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-  }
-}
 
 function createTestLevel(): Level {
   const width = 20
@@ -158,7 +133,8 @@ describe('PotionService - BLINDNESS Potion', () => {
 
   describe('applyPotion - BLINDNESS', () => {
     test('applies BLIND status effect to player', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createBlindnessPotion()
       const state = createTestState(player)
       mockRandom.setValues([10]) // 1d21 roll for duration (39 + 10 = 49)
@@ -170,7 +146,8 @@ describe('PotionService - BLINDNESS Potion', () => {
     })
 
     test('duration is 40-60 turns (balanced for gameplay)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createBlindnessPotion()
       const state = createTestState(player)
 
@@ -191,7 +168,8 @@ describe('PotionService - BLINDNESS Potion', () => {
     })
 
     test('returns blindness message with duration', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createBlindnessPotion()
       const state = createTestState(player)
       mockRandom.setValues([15]) // Duration: 39 + 15 = 54
@@ -203,7 +181,8 @@ describe('PotionService - BLINDNESS Potion', () => {
     })
 
     test('auto-identifies potion when consumed', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createBlindnessPotion()
       const state = createTestState(player)
       mockRandom.setValues([10])
@@ -214,7 +193,8 @@ describe('PotionService - BLINDNESS Potion', () => {
     })
 
     test('does not kill player', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createBlindnessPotion()
       const state = createTestState(player)
       mockRandom.setValues([10])
@@ -226,7 +206,8 @@ describe('PotionService - BLINDNESS Potion', () => {
     })
 
     test('does not modify player stats', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createBlindnessPotion()
       const state = createTestState(player)
       mockRandom.setValues([10])
@@ -241,7 +222,8 @@ describe('PotionService - BLINDNESS Potion', () => {
     })
 
     test('can stack with other status effects', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       // Player already has HASTED status
       player = statusEffectService.addStatusEffect(player, StatusEffectType.HASTED, 5)
 
@@ -257,7 +239,8 @@ describe('PotionService - BLINDNESS Potion', () => {
     })
 
     test('replaces existing BLIND effect (does not stack)', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       // Player already blind for 10 turns
       player = statusEffectService.addStatusEffect(player, StatusEffectType.BLIND, 10)
 
@@ -273,7 +256,8 @@ describe('PotionService - BLINDNESS Potion', () => {
     })
 
     test('does not modify game state (no state field in result)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createBlindnessPotion()
       const state = createTestState(player)
       mockRandom.setValues([10])

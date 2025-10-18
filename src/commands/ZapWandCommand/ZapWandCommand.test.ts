@@ -11,6 +11,8 @@ import { TargetingService } from '@services/TargetingService'
 import { FOVService } from '@services/FOVService'
 import { MovementService } from '@services/MovementService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   Player,
@@ -32,6 +34,7 @@ describe('ZapWandCommand', () => {
   let statusEffectService: StatusEffectService
   let targetingService: TargetingService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
   let combatService: CombatService
   let levelService: LevelService
 
@@ -39,6 +42,7 @@ describe('ZapWandCommand', () => {
     inventoryService = new InventoryService()
     const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     combatService = new CombatService(mockRandom)
     levelService = new LevelService()
@@ -49,31 +53,6 @@ describe('ZapWandCommand', () => {
     messageService = new MessageService()
     turnService = new TurnService(statusEffectService, levelService)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-    }
-  }
 
   function createWand(
     type: WandType = WandType.LIGHTNING,
@@ -190,7 +169,9 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location)
+      { x: 6, y: 5 }, // Target position (monster location)
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -211,7 +192,10 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      targetingService
+      targetingService,
+      undefined,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -239,7 +223,10 @@ describe('ZapWandCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      targetingService
+      targetingService,
+      undefined,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -262,7 +249,9 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location)
+      { x: 6, y: 5 }, // Target position (monster location)
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -287,7 +276,9 @@ describe('ZapWandCommand', () => {
       turnService,
       statusEffectService,
       targetingService,
-      { x: 6, y: 5 } // Target position (monster location)
+      { x: 6, y: 5 }, // Target position (monster location)
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 

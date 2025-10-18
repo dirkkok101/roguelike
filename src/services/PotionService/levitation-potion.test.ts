@@ -3,6 +3,7 @@ import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { createTestPlayer } from '@test-helpers'
 import {
   Player,
   Potion,
@@ -20,33 +21,6 @@ import {
 // ============================================================================
 // TEST SETUP
 // ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 5, y: 5 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-    energy: 100,
-  }
-}
 
 function createTestLevel(): Level {
   const width = 20
@@ -159,7 +133,8 @@ describe('PotionService - LEVITATION Potion', () => {
 
   describe('applyPotion - LEVITATION', () => {
     test('applies LEVITATING status effect to player', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
       mockRandom.setValues([30]) // Duration value
@@ -171,7 +146,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('duration is 29-32 turns (matches Original Rogue)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
 
@@ -192,7 +168,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('returns correct message matching design spec', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
       mockRandom.setValues([30])
@@ -203,7 +180,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('auto-identifies potion when consumed', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
       mockRandom.setValues([30])
@@ -214,7 +192,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('does not kill player', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
       mockRandom.setValues([30])
@@ -226,7 +205,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('does not modify player stats (HP, strength, level)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
       mockRandom.setValues([30])
@@ -241,7 +221,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('can stack with other status effects (LEVITATING + SEE_INVISIBLE)', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       // Player already has SEE_INVISIBLE status
       player = statusEffectService.addStatusEffect(player, StatusEffectType.SEE_INVISIBLE, 999)
 
@@ -257,7 +238,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('replaces existing LEVITATING effect (does not stack with itself)', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       // Player already levitating for 5 turns
       player = statusEffectService.addStatusEffect(player, StatusEffectType.LEVITATING, 5)
 
@@ -273,7 +255,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('does not modify game state (no state field in result)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
       mockRandom.setValues([30])
@@ -284,7 +267,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('status effect persists when integrated with StatusEffectService', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
       mockRandom.setValues([30])
@@ -300,7 +284,8 @@ describe('PotionService - LEVITATION Potion', () => {
     })
 
     test('duration randomization uses correct range (29-32)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createLevitationPotion()
       const state = createTestState(player)
 

@@ -6,6 +6,9 @@ import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { TargetingService } from '@services/TargetingService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // ZAP WAND COMMAND - Use a wand from inventory
@@ -22,10 +25,24 @@ export class ZapWandCommand implements ICommand {
     private turnService: TurnService,
     private statusEffectService: StatusEffectService,
     private targetingService: TargetingService,
-    private targetPosition?: Position
+    private targetPosition: Position | undefined,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.ZAP,
+      actorType: 'player',
+      payload: { itemId: this.itemId, targetPosition: this.targetPosition },
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
+
     // 0. Check if player can use wands (not confused)
     // Note: Blind players CAN zap wands (they can point in a direction)
     // but confused players cannot (too disoriented to aim properly)

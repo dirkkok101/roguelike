@@ -2,49 +2,33 @@ import { SaveCommand } from './SaveCommand'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { MessageService } from '@services/MessageService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
-import { GameState, Player, Level, TileType } from '@game/core/core'
+import { GameState, Level, TileType } from '@game/core/core'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SaveCommand', () => {
   let command: SaveCommand
   let localStorageService: LocalStorageService
   let messageService: MessageService
   let toastNotificationService: ToastNotificationService
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     localStorageService = new LocalStorageService()
     localStorageService.enableTestMode() // Use synchronous compression for tests
     messageService = new MessageService()
     toastNotificationService = new ToastNotificationService()
-    command = new SaveCommand(localStorageService, messageService, toastNotificationService)
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
+    command = new SaveCommand(localStorageService, messageService, toastNotificationService, recorder, mockRandom)
     localStorage.clear()
   })
 
   afterEach(() => {
     localStorage.clear()
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   function createTestLevel(depth: number): Level {
     return {
@@ -185,5 +169,58 @@ describe('SaveCommand', () => {
     const result = command.execute(state)
 
     expect(result.turnCount).toBe(100)
+  })
+
+  test('persists replay data when saving', async () => {
+    // Create mock IndexedDBService
+    const mockIndexedDB = {
+      put: jest.fn().mockResolvedValue(undefined),
+      get: jest.fn(),
+      delete: jest.fn(),
+      getAll: jest.fn(),
+      query: jest.fn(),
+      checkQuota: jest.fn(),
+      deleteDatabase: jest.fn(),
+      initDatabase: jest.fn(),
+      openDatabase: jest.fn(),
+    } as any
+
+    // Create CommandRecorderService with mock IndexedDB
+    const testRecorder = new CommandRecorderService(mockIndexedDB)
+    const state = createTestState({ gameId: 'save-replay-test' })
+
+    // Start recording
+    testRecorder.startRecording(state, state.gameId)
+
+    // Record a command
+    testRecorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: 'move' as any,
+      actorType: 'player',
+      payload: { direction: { x: 1, y: 0 } },
+      rngState: 'seed-123',
+    })
+
+    // Create command with test recorder
+    const testCommand = new SaveCommand(
+      localStorageService,
+      messageService,
+      toastNotificationService,
+      testRecorder,
+      mockRandom
+    )
+
+    // Spy on persistToIndexedDB
+    const persistSpy = jest.spyOn(testRecorder, 'persistToIndexedDB')
+
+    // Execute save command
+    testCommand.execute(state)
+
+    // Wait for async operations (setTimeout + save + persist)
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // Verify persistToIndexedDB was called
+    expect(persistSpy).toHaveBeenCalledWith('save-replay-test')
   })
 })

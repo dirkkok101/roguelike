@@ -4,6 +4,9 @@ import { InventoryService } from '@services/InventoryService'
 import { LightingService } from '@services/LightingService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IRandomService } from '@services/RandomService'
+import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
 // REFILL LANTERN COMMAND - Use oil flask to refill lantern
@@ -15,10 +18,25 @@ export class RefillLanternCommand implements ICommand {
     private inventoryService: InventoryService,
     private lightingService: LightingService,
     private messageService: MessageService,
-    private turnService: TurnService
+    private turnService: TurnService,
+
+    private recorder: CommandRecorderService,
+
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
+    // STEP 1: Record command BEFORE execution (for deterministic replay)
+    this.recorder.recordCommand({
+      turnNumber: state.turnCount,
+      timestamp: Date.now(),
+      commandType: COMMAND_TYPES.REFILL,
+      actorType: 'player',
+      payload: {},
+      rngState: this.randomService.getState(),
+    })
+
+    // STEP 2: Execute normally (existing logic unchanged)
     // 1. Find item in inventory
     const item = this.inventoryService.findItem(state.player, this.itemId)
 

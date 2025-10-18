@@ -7,12 +7,14 @@ import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { FOVService } from '@services/FOVService'
 import { DungeonService } from '@services/DungeonService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { CurseService } from '@services/CurseService'
 import { GameState, Player, ItemType, Scroll, ScrollType, Armor, Potion, PotionType } from '@game/core/core'
 import { mockItemData } from '@/test-utils'
+import { createTestPlayer } from '@test-helpers'
 
 describe('ReadScrollCommand', () => {
   let inventoryService: InventoryService
@@ -21,11 +23,13 @@ describe('ReadScrollCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     const levelService = new LevelService()
     const fovService = new FOVService(new StatusEffectService())
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
@@ -44,31 +48,6 @@ describe('ReadScrollCommand', () => {
     statusEffectService = new StatusEffectService()
     turnService = new TurnService(statusEffectService, levelService)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-    }
-  }
 
   function createScroll(type: ScrollType = ScrollType.IDENTIFY, id: string = 'scroll-1'): Scroll {
     return {
@@ -123,7 +102,9 @@ describe('ReadScrollCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      'potion-1'
+      'potion-1',
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -143,7 +124,10 @@ describe('ReadScrollCommand', () => {
       scrollService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      undefined,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -169,7 +153,10 @@ describe('ReadScrollCommand', () => {
       scrollService,
       messageService,
       turnService,
-      statusEffectService
+      statusEffectService,
+      undefined,
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -201,7 +188,9 @@ describe('ReadScrollCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      'armor-1'
+      'armor-1',
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 
@@ -233,7 +222,9 @@ describe('ReadScrollCommand', () => {
       messageService,
       turnService,
       statusEffectService,
-      'potion-1'
+      'potion-1',
+      recorder,
+      mockRandom
     )
     const result = command.execute(state)
 

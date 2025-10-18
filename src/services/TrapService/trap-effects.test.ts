@@ -2,6 +2,7 @@ import { TrapService } from './TrapService'
 import { MockRandom } from '@services/RandomService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { Player, Trap, TrapType, GameState, StatusEffectType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('TrapService - Trap Effects', () => {
   let service: TrapService
@@ -13,31 +14,6 @@ describe('TrapService - Trap Effects', () => {
     statusEffectService = new StatusEffectService()
     service = new TrapService(mockRandom, statusEffectService)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-    }
-  }
 
   function createTestState(): GameState {
     const tiles = Array(20)

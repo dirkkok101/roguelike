@@ -7,6 +7,8 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   Player,
@@ -23,11 +25,13 @@ describe('EatCommand', () => {
   let turnService: TurnService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
   let command: EatCommand
 
   beforeEach(() => {
     inventoryService = new InventoryService()
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     const ringService = new RingService(mockRandom)
     hungerService = new HungerService(mockRandom, ringService)
     messageService = new MessageService()
@@ -137,7 +141,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -161,7 +167,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -184,7 +192,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -206,7 +216,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -230,7 +242,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -250,7 +264,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -276,7 +292,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -298,7 +316,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -324,7 +344,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act
@@ -353,7 +375,9 @@ describe('EatCommand', () => {
         inventoryService,
         hungerService,
         messageService,
-        turnService
+        turnService,
+        recorder,
+        mockRandom
       )
 
       // Act

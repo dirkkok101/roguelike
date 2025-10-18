@@ -29,6 +29,9 @@ import { ToggleAIDebugCommand } from '@commands/ToggleAIDebugCommand'
 import { ToggleFOVModeCommand } from '@commands/ToggleFOVModeCommand'
 import { IdentifyAllItemsCommand } from '@commands/IdentifyAllItemsCommand'
 import { SpawnItemCommand } from '@commands/SpawnItemCommand'
+import { LaunchReplayDebuggerCommand } from '@commands/LaunchReplayDebuggerCommand'
+import { ChooseReplayCommand } from '@commands/ChooseReplayCommand'
+import { ExportReplayCommand } from '@commands/ExportReplayCommand'
 import { RestService } from '@services/RestService'
 import { SearchService } from '@services/SearchService'
 import { MovementService } from '@services/MovementService'
@@ -59,6 +62,10 @@ import { CurseService } from '@services/CurseService'
 import { GoldService } from '@services/GoldService'
 import { TargetingService } from '@services/TargetingService'
 import { DisturbanceService } from '@services/DisturbanceService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
+import { IndexedDBService } from '@services/IndexedDBService'
+import { DownloadService } from '@services/DownloadService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { ModalController } from './ModalController'
@@ -106,6 +113,10 @@ export class InputHandler {
   private readonly goldService: GoldService
   private readonly targetingService: TargetingService
   private readonly disturbanceService: DisturbanceService
+  private readonly commandRecorder: CommandRecorderService
+  private readonly replayDebugger: ReplayDebuggerService
+  private readonly indexedDB: IndexedDBService
+  private readonly downloadService: DownloadService
 
   constructor(
     services: GameDependencies,
@@ -145,6 +156,10 @@ export class InputHandler {
     this.goldService = services.gold
     this.targetingService = services.targeting
     this.disturbanceService = new DisturbanceService()
+    this.commandRecorder = services.commandRecorder
+    this.replayDebugger = services.replayDebugger
+    this.indexedDB = services.indexedDB
+    this.downloadService = services.download
   }
 
   /**
@@ -175,8 +190,8 @@ export class InputHandler {
         event.preventDefault()
         const command =
           this.mode === 'open_door'
-            ? new OpenDoorCommand(direction, this.messageService, this.doorService, this.turnService)
-            : new CloseDoorCommand(direction, this.messageService, this.doorService, this.turnService)
+            ? new OpenDoorCommand(direction, this.messageService, this.doorService, this.turnService, this.commandRecorder, this.random)
+            : new CloseDoorCommand(direction, this.messageService, this.doorService, this.turnService, this.commandRecorder, this.random)
         this.mode = 'normal'
         return command
       }
@@ -207,6 +222,8 @@ export class InputHandler {
           this.notificationService,
           this.turnService,
           this.goldService,
+          this.commandRecorder,
+          this.random,
           undefined, // monsterAIService
           this.disturbanceService
         )
@@ -227,6 +244,8 @@ export class InputHandler {
           this.notificationService,
           this.turnService,
           this.goldService,
+          this.commandRecorder,
+          this.random,
           undefined, // monsterAIService
           this.disturbanceService
         )
@@ -247,6 +266,8 @@ export class InputHandler {
           this.notificationService,
           this.turnService,
           this.goldService,
+          this.commandRecorder,
+          this.random,
           undefined, // monsterAIService
           this.disturbanceService
         )
@@ -267,6 +288,8 @@ export class InputHandler {
           this.notificationService,
           this.turnService,
           this.goldService,
+          this.commandRecorder,
+          this.random,
           undefined, // monsterAIService
           this.disturbanceService
         )
@@ -287,15 +310,21 @@ export class InputHandler {
         event.preventDefault()
         // Create SearchService (stateless, can be instantiated on demand)
         const searchService = new SearchService(this.random, this.doorService)
-        return new SearchCommand(searchService, this.messageService, this.turnService)
+        return new SearchCommand(searchService, this.messageService, this.turnService, this.commandRecorder, this.random)
 
       case 'S':
         event.preventDefault()
-        return new SaveCommand(this.localStorageService, this.messageService, this.toastNotificationService)
+        return new SaveCommand(
+          this.localStorageService,
+          this.messageService,
+          this.toastNotificationService,
+          this.commandRecorder,
+          this.random
+        )
 
       case 'Q':
         event.preventDefault()
-        return new QuitCommand(this.localStorageService, this.onReturnToMenu)
+        return new QuitCommand(this.localStorageService, this.onReturnToMenu, this.commandRecorder, this.random)
 
       case '>':
         event.preventDefault()
@@ -308,7 +337,9 @@ export class InputHandler {
           this.victoryService,
           this.levelService,
           this.turnService,
-          this.statusEffectService
+          this.statusEffectService,
+          this.commandRecorder,
+          this.random
         )
 
       case '<':
@@ -322,7 +353,9 @@ export class InputHandler {
           this.victoryService,
           this.levelService,
           this.turnService,
-          this.statusEffectService
+          this.statusEffectService,
+          this.commandRecorder,
+          this.random
         )
 
       // =====================================================================
@@ -332,7 +365,7 @@ export class InputHandler {
       case ',':
         // Pickup item at current position
         event.preventDefault()
-        return new PickUpCommand(this.inventoryService, this.messageService, this.turnService, this.identificationService, this.levelService)
+        return new PickUpCommand(this.inventoryService, this.messageService, this.turnService, this.identificationService, this.levelService, this.commandRecorder, this.random)
 
       case 'i':
         // Show inventory
@@ -356,7 +389,9 @@ export class InputHandler {
                   this.inventoryService,
                   this.messageService,
                   this.turnService,
-                  this.identificationService
+                  this.identificationService,
+                  this.commandRecorder,
+                  this.random
                 )
               }
               this.stateManager.popState()
@@ -383,7 +418,9 @@ export class InputHandler {
                   this.potionService,
                   this.messageService,
                   this.turnService,
-                  this.statusEffectService
+                  this.statusEffectService,
+                  this.commandRecorder,
+                  this.random
                 )
               }
               this.stateManager.popState()
@@ -431,7 +468,9 @@ export class InputHandler {
                           this.messageService,
                           this.turnService,
                           this.statusEffectService,
-                          targetItem.id
+                          targetItem.id,
+                          this.commandRecorder,
+                          this.random
                         )
                       }
                       this.stateManager.popState()
@@ -460,7 +499,9 @@ export class InputHandler {
                           this.messageService,
                           this.turnService,
                           this.statusEffectService,
-                          targetItem.id
+                          targetItem.id,
+                          this.commandRecorder,
+                          this.random
                         )
                       }
                       this.stateManager.popState()
@@ -488,7 +529,9 @@ export class InputHandler {
                           this.messageService,
                           this.turnService,
                           this.statusEffectService,
-                          targetItem.id
+                          targetItem.id,
+                          this.commandRecorder,
+                          this.random
                         )
                       }
                       this.stateManager.popState()
@@ -504,7 +547,10 @@ export class InputHandler {
                   this.scrollService,
                   this.messageService,
                   this.turnService,
-                  this.statusEffectService
+                  this.statusEffectService,
+                  undefined,
+                  this.commandRecorder,
+                  this.random
                 )
                 this.stateManager.popState()
               }
@@ -549,7 +595,9 @@ export class InputHandler {
                       this.turnService,
                       this.statusEffectService,
                       this.targetingService,
-                      targetPosition
+                      targetPosition,
+                      this.commandRecorder,
+                      this.random
                     )
                     // Pop targeting state
                     this.stateManager.popState()
@@ -580,7 +628,9 @@ export class InputHandler {
           this.inventoryService,
           this.hungerService,
           this.messageService,
-          this.turnService
+          this.turnService,
+          this.commandRecorder,
+          this.random
         )
 
       case '5':
@@ -596,7 +646,9 @@ export class InputHandler {
         return new RestCommand(
           restService,
           this.messageService,
-          this.turnService
+          this.turnService,
+          this.commandRecorder,
+          this.random
         )
 
       case 'F':
@@ -615,7 +667,9 @@ export class InputHandler {
                   this.inventoryService,
                   this.lightingService,
                   this.messageService,
-                  this.turnService
+                  this.turnService,
+                  this.commandRecorder,
+                  this.random
                 )
               }
               this.stateManager.popState()
@@ -645,7 +699,9 @@ export class InputHandler {
                   this.identificationService,
                   this.curseService,
                   this.fovService,
-                  this.lightingService
+                  this.lightingService,
+                  this.commandRecorder,
+                  this.random
                 )
               }
               this.stateManager.popState()
@@ -675,7 +731,9 @@ export class InputHandler {
                   this.identificationService,
                   this.curseService,
                   this.fovService,
-                  this.lightingService
+                  this.lightingService,
+                  this.commandRecorder,
+                  this.random
                 )
               }
               this.stateManager.popState()
@@ -707,7 +765,9 @@ export class InputHandler {
                   this.identificationService,
                   this.curseService,
                   this.fovService,
-                  this.lightingService
+                  this.lightingService,
+                  this.commandRecorder,
+                  this.random
                 )
               }
               this.stateManager.popState()
@@ -727,7 +787,9 @@ export class InputHandler {
               this.inventoryService,
               this.messageService,
               this.turnService,
-              this.curseService
+              this.curseService,
+              this.commandRecorder,
+              this.random
             )
           }
         })
@@ -739,11 +801,11 @@ export class InputHandler {
         // TODO: Show modal to select which equipment to remove
         // For now, prioritize light source removal (most common use case)
         if (state.player.equipment.lightSource) {
-          return new TakeOffCommand('lightSource', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService)
+          return new TakeOffCommand('lightSource', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService, this.commandRecorder, this.random)
         } else if (state.player.equipment.weapon) {
-          return new TakeOffCommand('weapon', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService)
+          return new TakeOffCommand('weapon', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService, this.commandRecorder, this.random)
         } else if (state.player.equipment.armor) {
-          return new TakeOffCommand('armor', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService)
+          return new TakeOffCommand('armor', this.inventoryService, this.messageService, this.turnService, this.fovService, this.lightingService, this.commandRecorder, this.random)
         } else {
           this.messageService.addMessage(
             state.messages,
@@ -762,7 +824,7 @@ export class InputHandler {
         // Toggle debug console
         if (this.debugService.isEnabled()) {
           event.preventDefault()
-          return new ToggleDebugConsoleCommand(this.debugService)
+          return new ToggleDebugConsoleCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -770,7 +832,7 @@ export class InputHandler {
         // Toggle god mode (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new ToggleGodModeCommand(this.debugService)
+          return new ToggleGodModeCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -778,7 +840,7 @@ export class InputHandler {
         // Reveal map (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new RevealMapCommand(this.debugService)
+          return new RevealMapCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -786,7 +848,7 @@ export class InputHandler {
         // Spawn monster (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new SpawnMonsterCommand('T', this.debugService)
+          return new SpawnMonsterCommand('T', this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -794,7 +856,7 @@ export class InputHandler {
         // Wake all monsters (requires debug console open) OR show message history
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new WakeAllMonstersCommand(this.debugService)
+          return new WakeAllMonstersCommand(this.debugService, this.commandRecorder, this.random)
         } else if (this.messageHistoryModal) {
           event.preventDefault()
           this.messageHistoryModal.show(state)
@@ -806,7 +868,7 @@ export class InputHandler {
         // Kill all monsters (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new KillAllMonstersCommand(this.debugService)
+          return new KillAllMonstersCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -814,7 +876,7 @@ export class InputHandler {
         // Toggle FOV debug overlay (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new ToggleFOVDebugCommand(this.debugService)
+          return new ToggleFOVDebugCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -822,7 +884,7 @@ export class InputHandler {
         // Toggle pathfinding debug overlay (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new TogglePathDebugCommand(this.debugService)
+          return new TogglePathDebugCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -830,7 +892,7 @@ export class InputHandler {
         // Toggle AI debug overlay (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new ToggleAIDebugCommand(this.debugService)
+          return new ToggleAIDebugCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -838,7 +900,7 @@ export class InputHandler {
         // Identify all items (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new IdentifyAllItemsCommand(this.debugService)
+          return new IdentifyAllItemsCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -846,7 +908,31 @@ export class InputHandler {
         // Toggle FOV mode (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new ToggleFOVModeCommand(this.debugService)
+          return new ToggleFOVModeCommand(this.debugService, this.commandRecorder, this.random)
+        }
+        return null
+
+      case 'L':
+        // Launch replay debugger for current game (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
+          event.preventDefault()
+          return new LaunchReplayDebuggerCommand(this.replayDebugger, this.stateManager)
+        }
+        return null
+
+      case 'C':
+        // Choose replay from list (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
+          event.preventDefault()
+          return new ChooseReplayCommand(this.replayDebugger, this.stateManager, this.indexedDB)
+        }
+        return null
+
+      case 'E':
+        // Export/download current replay (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
+          event.preventDefault()
+          return new ExportReplayCommand(this.replayDebugger, this.downloadService)
         }
         return null
 
@@ -869,12 +955,12 @@ export class InputHandler {
               // Show subtype selection modal
               this.modalController.showSpawnItemSubtype(category, (subtype) => {
                 if (subtype) {
-                  this.pendingCommand = new SpawnItemCommand(category, subtype, this.debugService)
+                  this.pendingCommand = new SpawnItemCommand(category, subtype, this.debugService, this.commandRecorder, this.random)
                 }
               })
             } else {
               // No subtype needed, spawn directly
-              this.pendingCommand = new SpawnItemCommand(category, undefined, this.debugService)
+              this.pendingCommand = new SpawnItemCommand(category, undefined, this.debugService, this.commandRecorder, this.random)
             }
           })
           return null

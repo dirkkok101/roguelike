@@ -3,6 +3,7 @@ import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { createTestPlayer } from '@test-helpers'
 import {
   Player,
   Potion,
@@ -20,33 +21,6 @@ import {
 // ============================================================================
 // TEST SETUP
 // ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 5, y: 5 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-    energy: 100,
-  }
-}
 
 function createTestLevel(): Level {
   const width = 20
@@ -159,7 +133,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
 
   describe('applyPotion - HASTE_SELF', () => {
     test('applies HASTED status effect to player', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createHasteSelfPotion()
       const state = createTestState(player)
       mockRandom.setValues([3]) // 1d5 roll for duration (3 + 3 = 6)
@@ -171,7 +146,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
     })
 
     test('duration is 4-8 turns (matches Original Rogue)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createHasteSelfPotion()
       const state = createTestState(player)
 
@@ -192,7 +168,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
     })
 
     test('returns haste message with duration', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createHasteSelfPotion()
       const state = createTestState(player)
       mockRandom.setValues([4]) // Duration: 3 + 4 = 7
@@ -204,7 +181,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
     })
 
     test('auto-identifies potion when consumed', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createHasteSelfPotion()
       const state = createTestState(player)
       mockRandom.setValues([3])
@@ -215,7 +193,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
     })
 
     test('does not kill player', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createHasteSelfPotion()
       const state = createTestState(player)
       mockRandom.setValues([3])
@@ -227,7 +206,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
     })
 
     test('does not modify player stats (HP, strength, level)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createHasteSelfPotion()
       const state = createTestState(player)
       mockRandom.setValues([3])
@@ -242,7 +222,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
     })
 
     test('can stack with other status effects (HASTED + CONFUSED)', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       // Player already has CONFUSED status
       player = statusEffectService.addStatusEffect(player, StatusEffectType.CONFUSED, 10)
 
@@ -258,7 +239,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
     })
 
     test('replaces existing HASTED effect (does not stack with itself)', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       // Player already hasted for 2 turns
       player = statusEffectService.addStatusEffect(player, StatusEffectType.HASTED, 2)
 
@@ -274,7 +256,8 @@ describe('PotionService - HASTE_SELF Potion', () => {
     })
 
     test('does not modify game state (no state field in result)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createHasteSelfPotion()
       const state = createTestState(player)
       mockRandom.setValues([3])

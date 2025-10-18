@@ -1,35 +1,6 @@
 import { StatusEffectService } from './StatusEffectService'
-import { Player, StatusEffectType, Equipment, StatusEffect } from '@game/core/core'
-
-// ============================================================================
-// TEST SETUP
-// ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 0, y: 0 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-  }
-}
+import { StatusEffectType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 // ============================================================================
 // TESTS

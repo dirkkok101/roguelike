@@ -5,5 +5,5 @@ import { GameState } from '@game/core/core'
 // ============================================================================
 
 export interface ICommand {
-  execute(state: GameState): GameState
+  execute(state: GameState): GameState | Promise<GameState>
 }

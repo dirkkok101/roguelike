@@ -4,12 +4,15 @@ import { MessageService } from '@services/MessageService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, TileType } from '@game/core/core'
 import { mockItemData } from '@/test-utils'
 
 describe('SpawnItemCommand', () => {
   let originalFetch: typeof global.fetch
   let debugService: DebugService
+  let recorder: CommandRecorderService
+  let mockRandom: MockRandom
   let mockState: GameState
 
   const mockMonsterData = [
@@ -45,11 +48,12 @@ describe('SpawnItemCommand', () => {
     const messageService = new MessageService()
     // Set up MockRandom with values for item spawning (radius, pickRandom index)
     // Each spawn needs: radius (1-3), pickRandom index (0-N)
-    const mockRandom = new MockRandom([
+    mockRandom = new MockRandom([
       2, 0,    // radius, pick index for first spawn
       2, 1,    // radius, pick index for second spawn
       2, 0,    // radius, pick index for third spawn
     ])
+    recorder = new CommandRecorderService()
     const monsterSpawnService = new MonsterSpawnService(mockRandom)
     await monsterSpawnService.loadMonsterData()
     const itemSpawnService = new ItemSpawnService(mockRandom, mockItemData)
@@ -104,7 +108,7 @@ describe('SpawnItemCommand', () => {
   })
 
   test('spawns potion with specified type', () => {
-    const command = new SpawnItemCommand('potion', undefined, debugService)
+    const command = new SpawnItemCommand('potion', undefined, debugService, recorder, mockRandom)
     const result = command.execute(mockState)
 
     const level = result.levels.get(1)!
@@ -113,8 +117,8 @@ describe('SpawnItemCommand', () => {
   })
 
   test('spawns different item types', () => {
-    const commandPotion = new SpawnItemCommand('potion', undefined, debugService)
-    const commandScroll = new SpawnItemCommand('scroll', undefined, debugService)
+    const commandPotion = new SpawnItemCommand('potion', undefined, debugService, recorder, mockRandom)
+    const commandScroll = new SpawnItemCommand('scroll', undefined, debugService, recorder, mockRandom)
 
     const result1 = commandPotion.execute(mockState)
     const result2 = commandScroll.execute(result1)
@@ -124,7 +128,7 @@ describe('SpawnItemCommand', () => {
   })
 
   test('adds message indicating spawn', () => {
-    const command = new SpawnItemCommand('food', undefined, debugService)
+    const command = new SpawnItemCommand('food', undefined, debugService, recorder, mockRandom)
     const result = command.execute(mockState)
 
     expect(result.messages).toHaveLength(1)

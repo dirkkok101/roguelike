@@ -79,7 +79,7 @@ export abstract class BaseState implements IGameState {
    *
    * @param input - Input event with key and modifiers
    */
-  abstract handleInput(_input: Input): void
+  abstract handleInput(_input: Input): void | Promise<void>
 
   /**
    * Should lower states in stack continue updating?
