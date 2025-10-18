@@ -48,6 +48,9 @@ import { WanderingMonsterService } from '@services/WanderingMonsterService'
 import { StairsNavigationService } from '@services/StairsNavigationService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
+import { IndexedDBService } from '@services/IndexedDBService'
+import { DownloadService } from '@services/DownloadService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -149,6 +152,10 @@ async function initializeGame() {
   const scoreCalculationService = new ScoreCalculationService()
   const preferencesService = new PreferencesService()
   const commandRecorderService = new CommandRecorderService()
+  const indexedDBService = new IndexedDBService()
+  await indexedDBService.initDatabase() // Initialize IndexedDB for replay storage
+  const replayDebuggerService = new ReplayDebuggerService(indexedDBService)
+  const downloadService = new DownloadService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
   const levelService = new LevelService()
   const combatService = new CombatService(random, ringService, hungerService, debugService)
@@ -570,6 +577,9 @@ async function initializeGame() {
       victory: victoryService,
       debug: debugService,
       commandRecorder: commandRecorderService,
+      replayDebugger: replayDebuggerService,
+      indexedDB: indexedDBService,
+      download: downloadService,
     }
 
     inputHandler = new InputHandler(

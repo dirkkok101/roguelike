@@ -29,6 +29,9 @@ import { ToggleAIDebugCommand } from '@commands/ToggleAIDebugCommand'
 import { ToggleFOVModeCommand } from '@commands/ToggleFOVModeCommand'
 import { IdentifyAllItemsCommand } from '@commands/IdentifyAllItemsCommand'
 import { SpawnItemCommand } from '@commands/SpawnItemCommand'
+import { LaunchReplayDebuggerCommand } from '@commands/LaunchReplayDebuggerCommand'
+import { ChooseReplayCommand } from '@commands/ChooseReplayCommand'
+import { ExportReplayCommand } from '@commands/ExportReplayCommand'
 import { RestService } from '@services/RestService'
 import { SearchService } from '@services/SearchService'
 import { MovementService } from '@services/MovementService'
@@ -60,6 +63,9 @@ import { GoldService } from '@services/GoldService'
 import { TargetingService } from '@services/TargetingService'
 import { DisturbanceService } from '@services/DisturbanceService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
+import { IndexedDBService } from '@services/IndexedDBService'
+import { DownloadService } from '@services/DownloadService'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { ModalController } from './ModalController'
@@ -108,6 +114,9 @@ export class InputHandler {
   private readonly targetingService: TargetingService
   private readonly disturbanceService: DisturbanceService
   private readonly commandRecorder: CommandRecorderService
+  private readonly replayDebugger: ReplayDebuggerService
+  private readonly indexedDB: IndexedDBService
+  private readonly downloadService: DownloadService
 
   constructor(
     services: GameDependencies,
@@ -148,6 +157,9 @@ export class InputHandler {
     this.targetingService = services.targeting
     this.disturbanceService = new DisturbanceService()
     this.commandRecorder = services.commandRecorder
+    this.replayDebugger = services.replayDebugger
+    this.indexedDB = services.indexedDB
+    this.downloadService = services.download
   }
 
   /**
@@ -779,7 +791,7 @@ export class InputHandler {
         // Toggle debug console
         if (this.debugService.isEnabled()) {
           event.preventDefault()
-          return new ToggleDebugConsoleCommand(this.debugService)
+          return new ToggleDebugConsoleCommand(this.debugService, this.commandRecorder, this.random)
         }
         return null
 
@@ -864,6 +876,30 @@ export class InputHandler {
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
           return new ToggleFOVModeCommand(this.debugService)
+        }
+        return null
+
+      case 'r':
+        // Launch replay debugger for current game (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
+          event.preventDefault()
+          return new LaunchReplayDebuggerCommand(this.replayDebugger, this.stateManager)
+        }
+        return null
+
+      case 'R':
+        // Choose replay from list (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
+          event.preventDefault()
+          return new ChooseReplayCommand(this.replayDebugger, this.stateManager, this.indexedDB)
+        }
+        return null
+
+      case 'D':
+        // Export/download current replay (requires debug console open)
+        if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
+          event.preventDefault()
+          return new ExportReplayCommand(this.replayDebugger, this.downloadService)
         }
         return null
 
