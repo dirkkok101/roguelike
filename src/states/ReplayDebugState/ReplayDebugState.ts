@@ -131,7 +131,7 @@ export class ReplayDebugState extends BaseState {
 
     switch (input.key) {
       case ' ':  // Space
-        if (input.shiftKey) {
+        if (input.shift) {
           this.stepBackward()
         } else {
           this.stepForward()
