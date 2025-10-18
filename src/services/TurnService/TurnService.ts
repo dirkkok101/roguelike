@@ -230,7 +230,8 @@ export class TurnService {
    */
   consumeEnergy<T extends Actor>(actor: T): T {
     // Validate Player if this is a Player object
-    if ('statusEffects' in actor) {
+    // Check for 'inventory' field which only Players have (Monsters don't have inventory)
+    if ('inventory' in actor) {
       this.validatePlayer(actor as any as Player)
     }
     return { ...actor, energy: actor.energy - ENERGY_THRESHOLD }
