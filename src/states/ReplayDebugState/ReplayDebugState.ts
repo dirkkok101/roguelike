@@ -44,14 +44,30 @@ export class ReplayDebugState extends BaseState {
   }
 
   /**
-   * Load replay data when state becomes active
+   * Initialize replay debugger when state becomes active
+   *
+   * Note: Uses async loading pattern since enter() must be synchronous.
+   * The actual data loading happens in loadReplayData() which is called
+   * from here but not awaited.
    */
-  async enter(): Promise<void> {
+  enter(): void {
     console.log('='.repeat(60))
     console.log('REPLAY DEBUGGER')
     console.log('='.repeat(60))
     console.log(`Loading replay for game: ${this.gameId}`)
 
+    // Start loading asynchronously (fire-and-forget)
+    // The isLoading flag will be cleared once loading completes
+    this.loadReplayData()
+  }
+
+  /**
+   * Load replay data asynchronously
+   *
+   * Called from enter() as a fire-and-forget async operation.
+   * Updates isLoading flag when complete.
+   */
+  private async loadReplayData(): Promise<void> {
     try {
       this.replayData = await this.replayDebugger.loadReplay(this.gameId)
 
