@@ -144,6 +144,33 @@ export function createTestDependencies(): GameDependencies {
     loadMonsterData: jest.fn().mockResolvedValue(undefined),
     spawnMonsters: jest.fn().mockReturnValue([]),
     getSpawnCount: jest.fn().mockReturnValue(5),
+    getMonsterByLetter: jest.fn().mockReturnValue({
+      letter: 'T',
+      name: 'Troll',
+      hp: 30,
+      ac: 6,
+      damage: '1d8',
+      xp: 50,
+      behavior: 'SIMPLE',
+      aggroRange: 5,
+    }),
+    createMonsterFromTemplate: jest.fn().mockImplementation((template, position, id) => ({
+      id,
+      position,
+      letter: template.letter,
+      name: template.name,
+      hp: template.hp,
+      maxHp: template.hp,
+      ac: template.ac,
+      damage: template.damage,
+      xp: template.xp,
+      behavior: template.behavior,
+      isAsleep: true,
+      isAwake: false,
+      state: 'SLEEPING' as any,
+      path: null,
+      target: null,
+    })),
   } as unknown as MonsterSpawnService
 
   const dungeonConfig: DungeonConfig = {
@@ -159,16 +186,37 @@ export function createTestDependencies(): GameDependencies {
 
   const statusEffect = new StatusEffectService()
   const ring = new RingService()
-  const debug = new DebugService()
   const roomDetection = new RoomDetectionService()
   const level = new LevelService()
+  const message = new MessageService()
+
+  // Mock ItemSpawnService (required by DebugService)
+  const mockItemSpawnService = {
+    createPotion: jest.fn(),
+    createScroll: jest.fn(),
+    createRing: jest.fn(),
+    createWand: jest.fn(),
+    createFood: jest.fn(),
+    createTorch: jest.fn(),
+    createLantern: jest.fn(),
+    createOilFlask: jest.fn(),
+  } as any
+
+  // Create DebugService with required dependencies and enable dev mode
+  const debug = new DebugService(
+    message,
+    mockMonsterSpawnService,
+    mockItemSpawnService,
+    random,
+    true // Enable dev mode for tests
+  )
 
   return {
     // Core gameplay services
     movement: new MovementService(random, statusEffect),
     lighting: new LightingService(),
     fov: new FOVService(statusEffect, roomDetection),
-    message: new MessageService(),
+    message,
     random,
     turn: new TurnService(statusEffect, level, ring),
     level,
