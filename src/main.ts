@@ -630,7 +630,7 @@ async function initializeGame() {
 
     // Input handling - delegate to current state
     // The state manager will call handleInput() on the top state
-    currentKeydownHandler = (event: KeyboardEvent) => {
+    currentKeydownHandler = async (event: KeyboardEvent) => {
       const currentState = stateManager.getCurrentState()
       if (currentState) {
         // Check if state allows this key (input filtering)
@@ -648,7 +648,7 @@ async function initializeGame() {
           ctrl: event.ctrlKey,
           alt: event.altKey,
         }
-        currentState.handleInput(input)
+        await currentState.handleInput(input)
 
         // Render all visible states after input is processed
         // This ensures transparent states (targeting, inventory) show correctly

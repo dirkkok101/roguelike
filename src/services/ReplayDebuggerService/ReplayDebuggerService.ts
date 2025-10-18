@@ -98,7 +98,9 @@ export class ReplayDebuggerService {
 
         // Reconstruct and execute command
         const command = this.commandFactory.createFromEvent(commandEvent)
-        currentState = command.execute(currentState)
+        const result = command.execute(currentState)
+        // Handle both sync and async commands
+        currentState = result instanceof Promise ? await result : result
       } catch (error) {
         console.error(
           `Failed to replay command at turn ${commandEvent.turnNumber}:`,

@@ -110,7 +110,7 @@ export class PlayingState extends BaseState {
    *
    * @param input - Key press and modifiers
    */
-  handleInput(_input: Input): void {
+  async handleInput(_input: Input): Promise<void> {
     // Don't process input if death or victory screen is visible
     if (this.renderer.isDeathScreenVisible() || this.renderer.isVictoryScreenVisible()) {
       return
@@ -189,7 +189,9 @@ export class PlayingState extends BaseState {
         const runCommand = this.inputHandler.handleKeyPress(runKeyEvent, this.gameState)
 
         if (runCommand) {
-          this.gameState = runCommand.execute(this.gameState)
+          const result = runCommand.execute(this.gameState)
+          // Handle both sync and async commands
+          this.gameState = result instanceof Promise ? await result : result
 
           // Consume player energy
           this.gameState = {

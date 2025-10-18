@@ -234,4 +234,51 @@ describe('QuitCommand', () => {
     )
     expect(mockReturnToMenu).toHaveBeenCalled()
   })
+
+  test('should handle replay persistence errors gracefully', async () => {
+    // Mock IndexedDB to throw an error
+    const mockIndexedDB = {
+      put: jest.fn().mockRejectedValue(new Error('IndexedDB quota exceeded')),
+    } as any
+
+    const mockCommandRecorder = new CommandRecorderService(mockIndexedDB)
+    const mockReturnToMenu = jest.fn()
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+    const command = new QuitCommand(
+      localStorageService,
+      mockReturnToMenu,
+      mockCommandRecorder,
+      mockRandom
+    )
+
+    const state = createTestState({ gameId: 'game-quit-replay-fail' })
+
+    // Initialize recording
+    mockCommandRecorder.startRecording(state, 'game-quit-replay-fail')
+
+    // Record a command
+    mockCommandRecorder.recordCommand({
+      turnNumber: 1,
+      timestamp: Date.now(),
+      commandType: 'move',
+      actorType: 'player',
+      payload: { direction: { x: 1, y: 0 } },
+      rngState: 'seed-123',
+    })
+
+    // Should not throw despite persistence error
+    await expect(command.execute(state)).resolves.not.toThrow()
+
+    // Should still call returnToMenu
+    expect(mockReturnToMenu).toHaveBeenCalled()
+
+    // Should log warning from CommandRecorderService
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      '⚠️ Could not persist replay data (IndexedDB unavailable):',
+      expect.any(Error)
+    )
+
+    consoleWarnSpy.mockRestore()
+  })
 })
