@@ -16,6 +16,7 @@ import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, TileType, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
 import { createTestTorch } from '../../test-utils'
 
@@ -36,9 +37,11 @@ describe('MoveCommand - Collision Detection', () => {
   let goldService: GoldService
   let ringService: RingService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
     ringService = new RingService(mockRandom)
@@ -180,7 +183,9 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -214,7 +219,9 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -250,7 +257,9 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = command.execute(state)
@@ -279,7 +288,9 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = up.execute(state)
@@ -300,7 +311,13 @@ describe('MoveCommand - Collision Detection', () => {
         combatService,
         levelingService,
         doorService,
-        hungerService
+        hungerService,
+        regenerationService,
+        notificationService,
+        turnService,
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = right.execute(state)
@@ -325,7 +342,9 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = left.execute(state)
@@ -365,7 +384,9 @@ describe('MoveCommand - Collision Detection', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
 
       const newState = left.execute(state)

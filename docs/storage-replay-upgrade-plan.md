@@ -1,12 +1,12 @@
 # Storage and Replay Debug System Implementation Plan
 
-**Status**: In Progress (Phase 1 & 2 Complete)
+**Status**: In Progress (Phase 1 & 2 Partial)
 **Created**: 2025-10-18
 **Refined**: 2025-10-18
 **Last Updated**: 2025-10-18
 **Target Version**: 5.0
 **Estimated Duration**: 8-12 days
-**Progress**: 4/15 tasks complete (27%)
+**Progress**: 5/15 tasks complete (33%)
 
 ---
 
@@ -32,17 +32,19 @@ This plan implements a dual-storage system for debugging game state issues throu
 
 ## Implementation Progress
 
-**Overall**: 4/15 tasks complete (27%)
+**Overall**: 5/15 tasks complete (33%)
 
 ### Completed Tasks
 - ✅ **Task 1.1**: IndexedDBService - Full CRUD operations with 20 tests passing
 - ✅ **Task 1.2**: GameStorageService - IndexedDB backend with compression, 22 tests passing
 - ✅ **Task 2.1**: Command Event Schema - Complete type definitions, 8 tests passing
 - ✅ **Task 2.2**: CommandRecorderService - In-memory command tracking, 17 tests passing
+- ✅ **Task 2.3**: RandomService determinism - getState/setState with 10 tests passing
 
 ### In Progress
-- ⏳ **Task 2.3**: Update RandomService for determinism (getState/setState)
 - ⏳ **Task 2.4**: Integrate recording into ~40 command classes
+  - **Progress**: 1/~40 commands complete (MoveCommand ✅ - all 80 tests passing)
+  - **Next**: AttackCommand
 - ⏳ **Task 2.5**: Update GameStorageService to use CommandRecorder
 
 ### Pending

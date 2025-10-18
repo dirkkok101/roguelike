@@ -18,6 +18,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { NotificationService } from '@services/NotificationService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 describe('MoveCommand - Run Continuation', () => {
   let movementService: MovementService
@@ -36,9 +37,11 @@ describe('MoveCommand - Run Continuation', () => {
   let goldService: GoldService
   let ringService: RingService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
     ringService = new RingService(mockRandom)
@@ -164,7 +167,9 @@ describe('MoveCommand - Run Continuation', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
       const newState = command.execute(state)
 
@@ -217,7 +222,9 @@ describe('MoveCommand - Run Continuation', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
       const newState = command.execute(state)
 
@@ -274,7 +281,9 @@ describe('MoveCommand - Run Continuation', () => {
         regenerationService,
         notificationService,
         turnService,
-        goldService
+        goldService,
+        recorder,
+        mockRandom
       )
       const newState = command.execute(state)
 

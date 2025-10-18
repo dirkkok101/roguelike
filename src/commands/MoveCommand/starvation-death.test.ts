@@ -16,6 +16,7 @@ import { DoorService } from '@services/DoorService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
 
 describe('MoveCommand - Starvation Death', () => {
@@ -35,9 +36,11 @@ describe('MoveCommand - Starvation Death', () => {
   let goldService: GoldService
   let ringService: RingService
   let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
     mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     identificationService = new IdentificationService()
     ringService = new RingService(mockRandom)
@@ -151,7 +154,9 @@ describe('MoveCommand - Starvation Death', () => {
       regenerationService,
       notificationService,
       turnService,
-      goldService
+      goldService,
+        recorder,
+        mockRandom
       )
 
     const state = createTestState()
@@ -177,7 +182,9 @@ describe('MoveCommand - Starvation Death', () => {
       regenerationService,
       notificationService,
       turnService,
-      goldService
+      goldService,
+        recorder,
+        mockRandom
       )
 
     const state = createTestState()
@@ -205,7 +212,9 @@ describe('MoveCommand - Starvation Death', () => {
       regenerationService,
       notificationService,
       turnService,
-      goldService
+      goldService,
+        recorder,
+        mockRandom
       )
 
     const state = createTestState({
@@ -233,7 +242,9 @@ describe('MoveCommand - Starvation Death', () => {
       regenerationService,
       notificationService,
       turnService,
-      goldService
+      goldService,
+        recorder,
+        mockRandom
       )
 
     const state = createTestState({
@@ -261,7 +272,9 @@ describe('MoveCommand - Starvation Death', () => {
       regenerationService,
       notificationService,
       turnService,
-      goldService
+      goldService,
+        recorder,
+        mockRandom
       )
 
     const state = createTestState({ turnCount: 50 })
