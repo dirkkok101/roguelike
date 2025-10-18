@@ -60,7 +60,8 @@ describe('CommandRecorderService', () => {
   let service: CommandRecorderService
 
   beforeEach(() => {
-    service = new CommandRecorderService()
+    const mockIndexedDB = {} as any // Mock not needed for basic tests
+    service = new CommandRecorderService(mockIndexedDB)
   })
 
   describe('Recording Commands', () => {

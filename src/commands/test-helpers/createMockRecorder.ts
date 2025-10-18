@@ -1,4 +1,5 @@
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IndexedDBService } from '@services/IndexedDBService'
 
 /**
  * Creates a mock CommandRecorderService for testing.
@@ -6,5 +7,6 @@ import { CommandRecorderService } from '@services/CommandRecorderService'
  * Tests that need to verify recording can spy on recordCommand.
  */
 export function createMockRecorder(): CommandRecorderService {
-  return new CommandRecorderService()
+  const mockIndexedDB = new IndexedDBService()
+  return new CommandRecorderService(mockIndexedDB)
 }

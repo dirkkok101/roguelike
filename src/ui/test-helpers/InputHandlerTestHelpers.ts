@@ -259,9 +259,9 @@ export function createTestDependencies(): GameDependencies {
     debug,
 
     // Replay and debugging
-    commandRecorder: new CommandRecorderService(),
-    replayDebugger: new ReplayDebuggerService(new IndexedDBService()),
     indexedDB: new IndexedDBService(),
+    commandRecorder: new CommandRecorderService(new IndexedDBService()),
+    replayDebugger: new ReplayDebuggerService(new IndexedDBService()),
     download: new DownloadService(),
   }
 }

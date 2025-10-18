@@ -151,9 +151,9 @@ async function initializeGame() {
   const leaderboardStorageService = new LeaderboardStorageService()
   const scoreCalculationService = new ScoreCalculationService()
   const preferencesService = new PreferencesService()
-  const commandRecorderService = new CommandRecorderService()
   const indexedDBService = new IndexedDBService()
   await indexedDBService.initDatabase() // Initialize IndexedDB for replay storage
+  const commandRecorderService = new CommandRecorderService(indexedDBService)
   const replayDebuggerService = new ReplayDebuggerService(indexedDBService)
   const downloadService = new DownloadService()
   const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
