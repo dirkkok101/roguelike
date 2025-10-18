@@ -92,10 +92,10 @@ This plan implements a dual-storage system for debugging game state issues throu
   - Updated `docs/architecture.md` with Replay System section
   - Updated `docs/testing-strategy.md` with Regression Testing section
   - Updated `CLAUDE.md` with Quick Links and Common Pitfalls
-  - Git commit: [pending]
+  - Git commit: 49764d4
 
 ### In Progress
-- **Task 5.1 Git Commit** - Creating commit for documentation updates
+- **None** - Task 5.1 complete, 80% of plan finished
 
 ### Deferred (Optional for MVP)
 - **Task 3.3**: ReplayDebugState UI - Visual replay viewer (not essential for debug workflow)
