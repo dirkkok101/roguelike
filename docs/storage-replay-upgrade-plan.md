@@ -3,10 +3,10 @@
 **Status**: In Progress (Phase 1 & 2 Partial)
 **Created**: 2025-10-18
 **Refined**: 2025-10-18
-**Last Updated**: 2025-10-18
+**Last Updated**: 2025-10-18 (Task 2.4 Complete)
 **Target Version**: 5.0
 **Estimated Duration**: 8-12 days
-**Progress**: 5/15 tasks complete (33%)
+**Progress**: 6/15 tasks complete (40%)
 
 ---
 
@@ -32,7 +32,7 @@ This plan implements a dual-storage system for debugging game state issues throu
 
 ## Implementation Progress
 
-**Overall**: 5/15 tasks complete (33%)
+**Overall**: 6/15 tasks complete (40%)
 
 ### Completed Tasks
 - ✅ **Task 1.1**: IndexedDBService - Full CRUD operations with 20 tests passing
@@ -40,32 +40,18 @@ This plan implements a dual-storage system for debugging game state issues throu
 - ✅ **Task 2.1**: Command Event Schema - Complete type definitions, 8 tests passing
 - ✅ **Task 2.2**: CommandRecorderService - In-memory command tracking, 17 tests passing
 - ✅ **Task 2.3**: RandomService determinism - getState/setState with 10 tests passing
+- ✅ **Task 2.4**: Integrate recording into command layer - **COMPLETE**
+  - **Progress**: 33/33 commands complete (100%) - **ALL 3,254 tests passing**
+  - All player commands updated (MoveCommand, AttackCommand, EquipCommand, etc.)
+  - All system commands updated (RestCommand, SearchCommand, etc.)
+  - All debug commands updated (12 commands)
+  - Integration tests updated (game-loop.test.ts, regeneration-integration.test.ts)
+  - Git commits: 8884825 (commands) + 22caab8 (integration tests)
 
 ### In Progress
-- ⏳ **Task 2.4**: Integrate recording into ~40 command classes
-  - **Progress**: 15/33 commands complete (45%) - **228 tests passing**
-    - **Fully passing** (15 commands):
-      - AttackCommand ✅ (16 tests)
-      - CloseDoorCommand ✅ (13 tests)
-      - DropCommand ✅ (24 tests)
-      - EatCommand ✅ (10 tests)
-      - EquipCommand ✅ (58 tests)
-      - OpenDoorCommand ✅ (13 tests)
-      - PickUpCommand ✅ (21 tests)
-      - QuaffPotionCommand ✅ (5 tests)
-      - ReadScrollCommand ✅ (5 tests)
-      - RefillLanternCommand ✅ (6 tests)
-      - RestCommand ✅ (17 tests)
-      - SearchCommand ✅ (14 tests)
-      - TakeOffCommand ✅ (8 tests)
-      - UnequipCommand ✅ (18 tests)
-      - ZapWandCommand ✅ (13 tests)
-    - **Still failing** (18 commands):
-      - MoveCommand (needs monsterAIService.detectDoorSlamAndWake mock)
-      - MoveStairsCommand, RunCommand, QuitCommand, SaveCommand
-      - Debug commands: IdentifyAll, KillAll, RevealMap, Spawn*, Wake*, Toggle*
-  - **Next**: Fix remaining 18 commands' test instantiations and mocks
 - ⏳ **Task 2.5**: Update GameStorageService to use CommandRecorder
+  - **Status**: Ready to start
+  - **Blocked by**: None (all dependencies complete)
 
 ### Pending
 - **Phase 3**: Replay Debugging System (Tasks 3.1-3.4)
@@ -73,8 +59,15 @@ This plan implements a dual-storage system for debugging game state issues throu
 - **Phase 5**: Documentation & Polish (Task 5.1)
 
 ### Test Results
-- **Total Tests**: 67/67 passing ✅
-- **Coverage**: IndexedDB (20), GameStorage (22), ReplayTypes (8), CommandRecorder (17)
+- **Total Test Suites**: 262/262 passing ✅
+- **Total Tests**: 3,254/3,254 passing ✅
+- **Coverage**:
+  - IndexedDB (20 tests)
+  - GameStorage (22 tests)
+  - ReplayTypes (8 tests)
+  - CommandRecorder (17 tests)
+  - All commands updated and tested (33 commands)
+  - Integration tests passing (2 test files)
 
 ---
 
@@ -676,9 +669,11 @@ describe('RandomService Determinism', () => {
 
 ---
 
-#### Task 2.4: Integrate Recording into Command Layer
+#### Task 2.4: Integrate Recording into Command Layer ✅ COMPLETE
 
 **Files**: Update ALL command classes in `src/commands/*/`
+
+**Status**: ✅ COMPLETE - All 33 commands updated, all tests passing (3,254/3,254)
 
 **Pattern for Each Command:**
 ```typescript
@@ -803,11 +798,23 @@ describe('MoveCommand', () => {
 
 **Estimated Time**: 2 days (many files, but repetitive pattern)
 
+**Completion Notes**:
+- ✅ All 33 commands updated with CommandRecorderService injection
+- ✅ All command constructors include recorder and randomService parameters
+- ✅ All commands call recordCommand() before execution
+- ✅ All test files updated with recorder/mockRandom initialization
+- ✅ Integration tests updated (game-loop.test.ts, regeneration-integration.test.ts)
+- ✅ MoveCommand creates AttackCommand with proper parameters
+- ✅ All 262/262 test suites passing, 3,254/3,254 tests passing
+- ✅ Git commits: 8884825 (commands), 22caab8 (integration tests)
+
 ---
 
-#### Task 2.5: Update GameStorageService to Use Recorder
+#### Task 2.5: Update GameStorageService to Use Recorder ⏳ READY TO START
 
 **File**: `src/services/GameStorageService/GameStorageService.ts`
+
+**Status**: ⏳ Ready to start (all dependencies complete)
 
 **Changes:**
 Integrate `CommandRecorderService` into save flow.
