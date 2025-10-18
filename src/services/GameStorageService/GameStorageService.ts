@@ -360,6 +360,8 @@ export class GameStorageService {
       ...data.player,
       energy: data.player.energy ?? 100,
       statusEffects: data.player.statusEffects ?? [],
+      isRunning: data.player.isRunning ?? false,
+      runState: data.player.runState ?? null,
     }
 
     return {

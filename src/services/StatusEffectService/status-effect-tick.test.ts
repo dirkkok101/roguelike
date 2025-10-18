@@ -28,6 +28,11 @@ function createTestPlayer(): Player {
     equipment,
     inventory: [],
     statusEffects: [],
+    // FIX: Add missing Player fields (energy, isRunning, runState)
+    // These are required by TurnService validation
+    energy: 0,
+    isRunning: false,
+    runState: null,
   }
 }
 
@@ -165,6 +170,36 @@ describe('StatusEffectService - Tick System', () => {
       expect(result.expired).toHaveLength(2)
       expect(result.expired).toContain(StatusEffectType.CONFUSED)
       expect(result.expired).toContain(StatusEffectType.BLIND)
+    })
+
+    test('preserves all Player fields (isRunning, runState, energy)', () => {
+      // Regression test: tickStatusEffects must preserve ALL Player fields
+      // Bug: Previously only spread statusEffects, losing isRunning/runState
+      let player = createTestPlayer()
+      player = service.addStatusEffect(player, StatusEffectType.CONFUSED, 5)
+
+      // Set running state
+      player = {
+        ...player,
+        isRunning: true,
+        runState: {
+          direction: 'right' as const,
+          previousHP: player.hp,
+        },
+        energy: 100,
+      }
+
+      const result = service.tickStatusEffects(player)
+
+      // Verify Player fields preserved
+      expect(result.player.isRunning).toBe(true)
+      expect(result.player.runState).toEqual({
+        direction: 'right',
+        previousHP: player.hp,
+      })
+      expect(result.player.energy).toBe(100)
+      expect(result.player.hp).toBe(player.hp) // Sanity check
+      expect(result.player.position).toEqual(player.position) // Sanity check
     })
   })
 })

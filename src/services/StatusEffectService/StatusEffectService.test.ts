@@ -28,6 +28,11 @@ function createTestPlayer(): Player {
     equipment,
     inventory: [],
     statusEffects: [],
+    // FIX: Add missing Player fields (energy, isRunning, runState)
+    // These are required by TurnService validation
+    energy: 0,
+    isRunning: false,
+    runState: null,
   }
 }
 
