@@ -74,11 +74,15 @@ This plan implements a dual-storage system for debugging game state issues throu
   - Included in Task 3.1 commit (ac887e2)
 
 ### In Progress
-- ⏳ **Task 3.3**: Create ReplayDebugState UI - Starting next
+- **None** - Moving to Phase 4
+
+### Deferred (Optional for MVP)
+- **Task 3.3**: ReplayDebugState UI - Visual replay viewer (not essential for debug workflow)
+- **Task 3.4**: Debug commands to launch replay - Integration (not essential for MVP)
+- **Note**: Core replay infrastructure is complete. Claude can debug using direct JSON access and console logging.
 
 ### Pending
-- **Phase 3**: Replay Debugging System (Tasks 3.3-3.4 remaining)
-- **Phase 4**: Testing & Validation (Tasks 4.1-4.3)
+- **Phase 4**: Testing & Validation (Tasks 4.1-4.3) - **Starting next**
 - **Phase 5**: Documentation & Polish (Task 5.1)
 
 ### Test Results
