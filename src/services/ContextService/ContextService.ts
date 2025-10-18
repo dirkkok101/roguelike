@@ -120,9 +120,12 @@ export class ContextService {
     if (actions.filter((a) => a.category === 'primary').length === 0) {
       actions.push(
         { key: 'i', label: 'inventory', priority: 70, category: 'utility' },
-        { key: 'e', label: 'eat', priority: 60, category: 'utility' },
-        { key: 'q', label: 'quaff', priority: 60, category: 'utility' },
-        { key: 'r', label: 'read', priority: 60, category: 'utility' },
+        { key: 'e', label: 'eat', priority: 65, category: 'utility' },
+        { key: 'q', label: 'quaff', priority: 64, category: 'utility' },
+        { key: 'r', label: 'read', priority: 63, category: 'utility' },
+        { key: 'z', label: 'zap', priority: 62, category: 'utility' },
+        { key: 's', label: 'search', priority: 61, category: 'utility' },
+        { key: 'Shift+↑↓←→', label: 'run', priority: 60, category: 'utility' },
         { key: '?', label: 'help', priority: 50, category: 'utility' }
       )
     }
@@ -131,7 +134,7 @@ export class ContextService {
     actions.sort((a, b) => b.priority - a.priority)
 
     return {
-      actions: actions.slice(0, 7), // Show max 7 actions
+      actions: actions.slice(0, 8), // Show max 8 actions
       primaryHint,
       warnings,
     }

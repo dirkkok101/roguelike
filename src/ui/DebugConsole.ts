@@ -190,6 +190,9 @@ export class DebugConsole {
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">p</span> Path Overlay</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">n</span> AI Overlay</div>
           <div style="margin-bottom: 2px;"><span style="color: #0f0;">x</span> Toggle FOV Mode</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">L</span> Launch Replay Debugger</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">C</span> Choose Replay</div>
+          <div style="margin-bottom: 2px;"><span style="color: #0f0;">E</span> Export Replay</div>
         </div>
       </div>
     `

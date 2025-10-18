@@ -592,17 +592,32 @@ The game supports two rendering modes that can be toggled at runtime:
 
 ## Debug Tools
 
-Debug mode enabled in development:
+Debug mode enabled in development (press **`~`** to open debug console):
+
+**Core Debug:**
 - **`~`** - Toggle debug console
 - **`g`** - God mode (invincible, infinite hunger/light)
 - **`v`** - Reveal entire map
+- **`a`** - Identify all items
+
+**Monster Debug:**
 - **`m`** - Spawn test monster
 - **`M`** - Wake all sleeping monsters
 - **`K`** - Kill all monsters
-- **`a`** - Identify all items
+
+**Item Debug:**
+- **`I`** - Spawn item
+
+**Visual Debug Overlays:**
 - **`f`** - Toggle FOV overlay
 - **`p`** - Toggle pathfinding overlay
 - **`n`** - Toggle AI overlay
+- **`x`** - Toggle FOV mode (radius/realistic)
+
+**Replay System:**
+- **`L`** - Launch replay debugger for current game
+- **`C`** - Choose replay from list
+- **`E`** - Export/download current replay
 
 See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 

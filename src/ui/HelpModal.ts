@@ -80,12 +80,14 @@ export class HelpModal {
       <h3 style="color: #00FFFF;">Movement & Actions</h3>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
         <div><span style="color: #00FF00;">↑↓←→</span> Move/Attack</div>
+        <div><span style="color: #00FF00;">[Shift+↑↓←→]</span> Run</div>
         <div><span style="color: #00FF00;">[,]</span> Pick up item</div>
         <div><span style="color: #00FF00;">[i]</span> Inventory</div>
         <div><span style="color: #00FF00;">[d]</span> Drop item</div>
+        <div><span style="color: #00FF00;">[5] or [.]</span> Rest</div>
+        <div><span style="color: #00FF00;">[s]</span> Search</div>
         <div><span style="color: #00FF00;">[o]</span> Open door</div>
         <div><span style="color: #00FF00;">[c]</span> Close door</div>
-        <div><span style="color: #00FF00;">[s]</span> Search</div>
         <div><span style="color: #00FF00;">[>]</span> Descend stairs</div>
         <div><span style="color: #00FF00;">[<]</span> Ascend stairs</div>
         <div><span style="color: #00FF00;">[S]</span> Save game</div>
@@ -97,10 +99,19 @@ export class HelpModal {
         <div><span style="color: #00FF00;">[r]</span> Read scroll</div>
         <div><span style="color: #00FF00;">[z]</span> Zap wand</div>
         <div><span style="color: #00FF00;">[e]</span> Eat food</div>
-        <div><span style="color: #00FF00;">[w]</span> Wield weapon</div>
+        <div><span style="color: #00FF00;">[w]</span> Wield weapon/light</div>
         <div><span style="color: #00FF00;">[W]</span> Wear armor</div>
         <div><span style="color: #00FF00;">[P]</span> Put on ring</div>
         <div><span style="color: #00FF00;">[R]</span> Remove ring</div>
+        <div><span style="color: #00FF00;">[t]</span> Take off equipment</div>
+        <div><span style="color: #00FF00;">[F]</span> Refill lantern</div>
+      </div>
+
+      <h3 style="color: #00FFFF;">System</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+        <div><span style="color: #00FF00;">[Q]</span> Quit game</div>
+        <div><span style="color: #00FF00;">[~]</span> Debug console</div>
+        <div><span style="color: #00FF00;">[Shift+T]</span> Toggle renderer</div>
       </div>
 
       <h3 style="color: #00FFFF;">Symbols</h3>

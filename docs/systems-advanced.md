@@ -1035,18 +1035,40 @@ class DebugService {
 
 ### 4.2 Debug Commands
 
+**Core Debug:**
 | Key | Command | Effect |
 |-----|---------|--------|
 | `~` | Toggle Debug Console | Show/hide debug panel |
 | `g` | God Mode | Invincible, infinite hunger/light |
 | `v` | Reveal Map | Show entire level |
+| `a` | Identify All | Reveal all item identities |
+
+**Monster Debug:**
+| Key | Command | Effect |
+|-----|---------|--------|
 | `m` | Spawn Monster | Create test monster |
 | `M` | Wake All Monsters | Wake all sleeping monsters |
 | `K` | Kill All Monsters | Remove all monsters |
-| `a` | Identify All | Reveal all item identities |
+
+**Item Debug:**
+| Key | Command | Effect |
+|-----|---------|--------|
+| `I` | Spawn Item | Create test item |
+
+**Visual Debug Overlays:**
+| Key | Command | Effect |
+|-----|---------|--------|
 | `f` | Toggle FOV Debug | Highlight visible tiles |
 | `p` | Toggle Path Debug | Show A* paths |
 | `n` | Toggle AI Debug | Display monster states |
+| `x` | Toggle FOV Mode | Switch between radius/realistic FOV |
+
+**Replay System:**
+| Key | Command | Effect |
+|-----|---------|--------|
+| `L` | Launch Replay Debugger | Open replay debugger for current game |
+| `C` | Choose Replay | Select replay from list |
+| `E` | Export Replay | Download current replay file |
 
 ---
 
