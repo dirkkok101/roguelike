@@ -43,10 +43,11 @@ This plan implements a dual-storage system for debugging game state issues throu
 
 ### In Progress
 - ⏳ **Task 2.4**: Integrate recording into ~40 command classes
-  - **Progress**: 2/~40 commands complete
+  - **Progress**: 3/~40 commands complete
     - MoveCommand ✅ (80 tests passing)
     - AttackCommand ✅ (16 tests passing)
-  - **Next**: PickupCommand
+    - PickUpCommand ✅ (21 tests passing)
+  - **Next**: DropCommand / EquipCommand
 - ⏳ **Task 2.5**: Update GameStorageService to use CommandRecorder
 
 ### Pending

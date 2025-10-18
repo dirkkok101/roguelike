@@ -5,6 +5,8 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Item, ItemType, Position } from '@game/core/core'
 
 describe('PickUpCommand', () => {
@@ -14,9 +16,13 @@ describe('PickUpCommand', () => {
   let statusEffectService: StatusEffectService
   let levelService: LevelService
   let mockIdentificationService: jest.Mocked<IdentificationService>
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
   let command: PickUpCommand
 
   beforeEach(() => {
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     inventoryService = new InventoryService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
@@ -28,7 +34,7 @@ describe('PickUpCommand', () => {
       getDisplayName: jest.fn((item: Item) => item.name),
     } as any
 
-    command = new PickUpCommand(inventoryService, messageService, turnService, mockIdentificationService, levelService)
+    command = new PickUpCommand(inventoryService, messageService, turnService, mockIdentificationService, levelService, recorder, mockRandom)
   })
 
   function createTestPlayer(position: Position = { x: 5, y: 5 }): Player {

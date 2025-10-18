@@ -5,6 +5,8 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
+import { MockRandom } from '@services/RandomService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, Player, TileType, ItemType, Item } from '@game/core/core'
 
 describe('PickUpCommand - Amulet Pickup', () => {
@@ -15,8 +17,12 @@ describe('PickUpCommand - Amulet Pickup', () => {
   let statusEffectService: StatusEffectService
   let levelService: LevelService
   let mockIdentificationService: jest.Mocked<IdentificationService>
+  let mockRandom: MockRandom
+  let recorder: CommandRecorderService
 
   beforeEach(() => {
+    mockRandom = new MockRandom()
+    recorder = new CommandRecorderService()
     inventoryService = new InventoryService()
     messageService = new MessageService()
     statusEffectService = new StatusEffectService()
@@ -28,7 +34,7 @@ describe('PickUpCommand - Amulet Pickup', () => {
       getDisplayName: jest.fn((item: Item) => item.name),
     } as any
 
-    command = new PickUpCommand(inventoryService, messageService, turnService, mockIdentificationService, levelService)
+    command = new PickUpCommand(inventoryService, messageService, turnService, mockIdentificationService, levelService, recorder, mockRandom)
   })
 
   function createTestLevel(items: Item[]): Level {
