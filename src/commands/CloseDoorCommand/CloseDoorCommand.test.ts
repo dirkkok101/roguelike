@@ -6,6 +6,7 @@ import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   DoorState,

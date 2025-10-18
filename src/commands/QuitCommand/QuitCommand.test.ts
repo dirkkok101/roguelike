@@ -1,8 +1,9 @@
 import { QuitCommand } from './QuitCommand'
 import { LocalStorageService } from '@services/LocalStorageService'
-import { GameState, Player, Level, TileType } from '@game/core/core'
+import { GameState, Level, TileType } from '@game/core/core'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 
 describe('QuitCommand', () => {
   let command: QuitCommand
@@ -35,29 +36,6 @@ describe('QuitCommand', () => {
     localStorage.clear()
     jest.restoreAllMocks()
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   function createTestLevel(depth: number): Level {
     return {

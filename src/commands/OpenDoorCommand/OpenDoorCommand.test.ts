@@ -7,6 +7,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, DoorState, Door, Player, Position } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('OpenDoorCommand', () => {
   let messageService: MessageService

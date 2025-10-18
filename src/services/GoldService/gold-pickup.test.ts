@@ -1,6 +1,7 @@
 import { GoldService } from './GoldService'
 import { MockRandom } from '@services/RandomService'
 import { Player } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('GoldService - Gold Pickup', () => {
   let service: GoldService

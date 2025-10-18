@@ -1,6 +1,7 @@
 import { DisturbanceService } from './DisturbanceService'
 import { GameState, RunState, Monster, Position, Player, ItemType, MonsterBehavior, MonsterState } from '@game/core/core'
 import { createMockGameState, createMockLevel } from '../../test-helpers/mockGameState'
+import { createTestPlayer } from '@test-helpers'
 
 describe('DisturbanceService - Disturbance Checks', () => {
   let service: DisturbanceService

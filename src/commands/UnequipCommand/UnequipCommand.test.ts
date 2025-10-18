@@ -8,6 +8,7 @@ import { CurseService } from '@services/CurseService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Ring, ItemType, Position, RingType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('UnequipCommand', () => {
   let inventoryService: InventoryService

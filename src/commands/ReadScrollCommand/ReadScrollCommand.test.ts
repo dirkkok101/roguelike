@@ -14,6 +14,7 @@ import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { CurseService } from '@services/CurseService'
 import { GameState, Player, ItemType, Scroll, ScrollType, Armor, Potion, PotionType } from '@game/core/core'
 import { mockItemData } from '@/test-utils'
+import { createTestPlayer } from '@test-helpers'
 
 describe('ReadScrollCommand', () => {
   let inventoryService: InventoryService
@@ -47,31 +48,6 @@ describe('ReadScrollCommand', () => {
     statusEffectService = new StatusEffectService()
     turnService = new TurnService(statusEffectService, levelService)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-    }
-  }
 
   function createScroll(type: ScrollType = ScrollType.IDENTIFY, id: string = 'scroll-1'): Scroll {
     return {

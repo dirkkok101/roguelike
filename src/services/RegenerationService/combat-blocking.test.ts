@@ -2,6 +2,7 @@ import { RegenerationService } from './RegenerationService'
 import { MockRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 import { Player, Equipment, Ring, RingType, ItemType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('RegenerationService - Combat Blocking', () => {
   let service: RegenerationService

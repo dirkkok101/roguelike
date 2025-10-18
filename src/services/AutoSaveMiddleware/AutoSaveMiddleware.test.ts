@@ -7,6 +7,7 @@ import { IndexedDBService } from '@services/IndexedDBService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
 import { ValidationResult } from '@game/replay/replay'
+import { createTestPlayer } from '@test-helpers'
 
 // Polyfill for structuredClone
 if (typeof globalThis.structuredClone === 'undefined') {
@@ -41,32 +42,6 @@ describe('AutoSaveMiddleware', () => {
     }
     indexedDB.close()
   })
-
-  function createTestPlayer(): Player {
-    return {
-      id: 'player-1',
-      name: 'Test Hero',
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      ac: 5,
-      inventory: [],
-      equipment: {
-        weapon: null,
-        armor: null,
-        rings: [],
-        light: null,
-      },
-      energy: 100,
-      statusEffects: [],
-      hunger: 1300,
-      maxHunger: 2000,
-    }
-  }
 
   function createTestLevel(depth: number): Level {
     return {

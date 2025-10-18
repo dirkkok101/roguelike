@@ -18,6 +18,7 @@ import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Level, TileType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('MoveCommand - Starvation Death', () => {
   let movementService: MovementService

@@ -11,6 +11,7 @@ import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
 import { GoldService } from '@services/GoldService'
+import { createTestPlayer } from '@test-helpers'
 
 describe('AttackCommand', () => {
   let combatService: CombatService
@@ -35,31 +36,6 @@ describe('AttackCommand', () => {
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-    }
-  }
 
   function createTestMonster(hp: number = 10): Monster {
     return {

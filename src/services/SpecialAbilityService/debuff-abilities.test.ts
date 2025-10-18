@@ -1,6 +1,7 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
 import { MockRandom } from '@services/RandomService'
 import { Player, Monster, MonsterBehavior, Armor } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SpecialAbilityService - Debuff Abilities', () => {
   let service: SpecialAbilityService
@@ -10,29 +11,6 @@ describe('SpecialAbilityService - Debuff Abilities', () => {
     mockRandom = new MockRandom()
     service = new SpecialAbilityService(mockRandom)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 0, y: 0 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   function createTestMonster(): Monster {
     return {

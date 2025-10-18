@@ -9,6 +9,7 @@ import { GameState, Player, ItemType, OilFlask } from '@game/core/core'
 import { createTestLantern } from '../../test-utils'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 
 describe('RefillLanternCommand', () => {
   let inventoryService: InventoryService

@@ -8,6 +8,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Item, ItemType, Weapon, Position, Scroll, ScrollType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('DropCommand', () => {
   let inventoryService: InventoryService

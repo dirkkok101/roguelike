@@ -12,6 +12,7 @@ import { FOVService } from '@services/FOVService'
 import { MovementService } from '@services/MovementService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   Player,
@@ -52,31 +53,6 @@ describe('ZapWandCommand', () => {
     messageService = new MessageService()
     turnService = new TurnService(statusEffectService, levelService)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-    }
-  }
 
   function createWand(
     type: WandType = WandType.LIGHTNING,

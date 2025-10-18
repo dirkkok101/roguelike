@@ -23,6 +23,7 @@ import { LevelService } from '@services/LevelService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GoldService } from '@services/GoldService'
 import { createTestTorch } from '../test-utils'
+import { createTestPlayer } from '@test-helpers'
 
 /**
  * Integration test: Game Loop

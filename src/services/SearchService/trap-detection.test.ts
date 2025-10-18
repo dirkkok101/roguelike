@@ -2,6 +2,7 @@ import { SearchService } from './SearchService'
 import { DoorService } from '@services/DoorService'
 import { MockRandom } from '@services/RandomService'
 import { Player, Level, Trap, TrapType, Position, Door, DoorState } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SearchService - Trap Detection', () => {
   let service: SearchService

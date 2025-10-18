@@ -1,6 +1,7 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
 import { MockRandom } from '@services/RandomService'
 import { Player, Monster, MonsterBehavior, Armor } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SpecialAbilityService - Ability Orchestration', () => {
   let service: SpecialAbilityService
@@ -10,29 +11,6 @@ describe('SpecialAbilityService - Ability Orchestration', () => {
     mockRandom = new MockRandom()
     service = new SpecialAbilityService(mockRandom)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 0, y: 0 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 100,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   function createTestMonster(special: string[] = []): Monster {
     return {
@@ -159,7 +137,7 @@ describe('SpecialAbilityService - Ability Orchestration', () => {
     })
 
     test('applies drain XP ability', () => {
-      const player = createTestPlayer()
+      const player = createTestPlayer({ xp: 100 }) // Start with 100 XP, drain 30, expect 70
       const monster = createTestMonster(['drains_xp'])
 
       mockRandom.setValues([1, 30]) // Drain succeeds, drain 30
@@ -171,7 +149,7 @@ describe('SpecialAbilityService - Ability Orchestration', () => {
     })
 
     test('applies drain max HP ability', () => {
-      const player = createTestPlayer()
+      const player = createTestPlayer({ maxHp: 20 }) // Start with 20, drain 1, expect 19
       const monster = createTestMonster(['drains_max_hp'])
 
       mockRandom.setValues([1]) // Drain succeeds

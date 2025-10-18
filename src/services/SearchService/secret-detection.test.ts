@@ -2,6 +2,7 @@ import { SearchService } from './SearchService'
 import { DoorService } from '@services/DoorService'
 import { MockRandom } from '@services/RandomService'
 import { Player, Level, Door, DoorState, Position } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SearchService - Secret Door Detection', () => {
   let service: SearchService

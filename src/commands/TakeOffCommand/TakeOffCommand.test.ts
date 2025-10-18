@@ -10,6 +10,7 @@ import { SeededRandom } from '@services/RandomService'
 import { createTestTorch, createTestLantern } from '@test-utils/fixtures'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   Player,

@@ -21,43 +21,14 @@ import {
   MonsterBehavior,
   MonsterState,
   Player,
-  Equipment,
   StatusEffectType,
   Tile,
 } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 // ============================================================================
 // TEST SETUP - Simulating the main game loop with energy system
 // ============================================================================
-
-function createTestPlayer(energy: number = 100, statusEffects: any[] = []): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 10, y: 10 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects,
-    energy,
-    isRunning: false,
-    runState: null,
-  }
-}
 
 function createTestMonster(
   id: string,
@@ -276,7 +247,7 @@ describe('Energy Game Loop - Integration Tests', () => {
   })
 
   test('Scenario 1: Normal speed player (speed 10) acts once per turn cycle', () => {
-    const player = createTestPlayer(0) // Start with 0 energy
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 0 }) // Start with 0 energy
     const level = createTestLevel([])
     let state = createTestState(player, level)
 
@@ -289,7 +260,7 @@ describe('Energy Game Loop - Integration Tests', () => {
   })
 
   test('Scenario 2: Hasted player (speed 20) acts twice before monsters', () => {
-    let player = createTestPlayer(0) // Start with 0 energy
+    let player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 0 }) // Start with 0 energy
     player = statusEffectService.addStatusEffect(player, StatusEffectType.HASTED, 5)
     const level = createTestLevel([])
     let state = createTestState(player, level)
@@ -304,7 +275,7 @@ describe('Energy Game Loop - Integration Tests', () => {
   })
 
   test('Scenario 3: Slow monster (speed 5) acts once every 2 turns', () => {
-    const player = createTestPlayer(100)
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     const slowMonster = createTestMonster('m1', 5, 5, 5, 95) // Speed 5, 95 energy
     const level = createTestLevel([slowMonster])
     let state = createTestState(player, level)
@@ -325,7 +296,7 @@ describe('Energy Game Loop - Integration Tests', () => {
   })
 
   test('Scenario 4: Fast monster (speed 20) acts twice per monster phase', () => {
-    const player = createTestPlayer(100)
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     const fastMonster = createTestMonster('m1', 5, 5, 20, 85) // Speed 20, 85 energy
     const level = createTestLevel([fastMonster])
     let state = createTestState(player, level)
@@ -338,7 +309,7 @@ describe('Energy Game Loop - Integration Tests', () => {
   })
 
   test('Scenario 5: Energy carryover - player with 150 energy acts, 50 remains', () => {
-    const player = createTestPlayer(150) // Start with 150 energy
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 150 }) // Start with 150 energy
     const level = createTestLevel([])
     let state = createTestState(player, level)
 
@@ -354,7 +325,7 @@ describe('Energy Game Loop - Integration Tests', () => {
   })
 
   test('Scenario 6: Haste expires mid-turn - speed drops from 20 to 10', () => {
-    let player = createTestPlayer(100)
+    let player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     player = statusEffectService.addStatusEffect(player, StatusEffectType.HASTED, 1) // 1 turn of haste
     const level = createTestLevel([])
     let state = createTestState(player, level)
@@ -370,7 +341,7 @@ describe('Energy Game Loop - Integration Tests', () => {
   })
 
   test('Scenario 7: Multiple monsters with mixed speeds (5, 10, 20)', () => {
-    const player = createTestPlayer(100)
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 100 })
     const slowMonster = createTestMonster('m1', 5, 5, 5, 95)
     const normalMonster = createTestMonster('m2', 6, 6, 10, 90)
     const fastMonster = createTestMonster('m3', 7, 7, 20, 85)
@@ -395,7 +366,7 @@ describe('Energy Game Loop - Integration Tests', () => {
   })
 
   test('Scenario 8: Full turn cycle - player acts → monsters act → turn increments', () => {
-    const player = createTestPlayer(0) // Start with 0 energy
+    const player = createTestPlayer({ position: { x: 10, y: 10 }, energy: 0 }) // Start with 0 energy
     const monster = createTestMonster('m1', 5, 5, 10, 90)
     const level = createTestLevel([monster])
     let state = createTestState(player, level)

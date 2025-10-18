@@ -8,6 +8,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, Player, TileType, ItemType, Item } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('PickUpCommand - Amulet Pickup', () => {
   let command: PickUpCommand
@@ -61,31 +62,6 @@ describe('PickUpCommand - Amulet Pickup', () => {
       stairsUp: null,
       stairsDown: null,
       explored: Array(20).fill(null).map(() => Array(20).fill(false)),
-    }
-  }
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 30,
-      maxHp: 30,
-      strength: 16,
-      maxStrength: 16,
-      ac: 4,
-      level: 3,
-      xp: 100,
-      gold: 50,
-      hunger: 1000,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
     }
   }
 

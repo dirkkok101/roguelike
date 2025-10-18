@@ -8,6 +8,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Level, Player, TileType, ItemType, Item, Potion, PotionType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('DropCommand - Amulet Restrictions', () => {
   let inventoryService: InventoryService

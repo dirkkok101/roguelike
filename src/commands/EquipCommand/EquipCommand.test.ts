@@ -11,6 +11,7 @@ import { LightingService } from '@services/LightingService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { createTestTorch, createTestLantern } from '@test-utils/fixtures'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   Player,

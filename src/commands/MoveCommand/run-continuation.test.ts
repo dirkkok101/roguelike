@@ -19,6 +19,7 @@ import { IdentificationService } from '@services/IdentificationService'
 import { NotificationService } from '@services/NotificationService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 
 describe('MoveCommand - Run Continuation', () => {
   let movementService: MovementService

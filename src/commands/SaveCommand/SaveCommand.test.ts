@@ -2,9 +2,10 @@ import { SaveCommand } from './SaveCommand'
 import { LocalStorageService } from '@services/LocalStorageService'
 import { MessageService } from '@services/MessageService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
-import { GameState, Player, Level, TileType } from '@game/core/core'
+import { GameState, Level, TileType } from '@game/core/core'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SaveCommand', () => {
   let command: SaveCommand
@@ -28,29 +29,6 @@ describe('SaveCommand', () => {
   afterEach(() => {
     localStorage.clear()
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 5, y: 5 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   function createTestLevel(depth: number): Level {
     return {

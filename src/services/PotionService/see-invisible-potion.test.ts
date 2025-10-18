@@ -3,6 +3,7 @@ import { MockRandom } from '@services/RandomService'
 import { IdentificationService } from '@services/IdentificationService'
 import { LevelingService } from '@services/LevelingService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { createTestPlayer } from '@test-helpers'
 import {
   Player,
   Potion,
@@ -20,33 +21,6 @@ import {
 // ============================================================================
 // TEST SETUP
 // ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 5, y: 5 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-    energy: 100,
-  }
-}
 
 function createTestLevel(): Level {
   const width = 20
@@ -159,7 +133,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
 
   describe('applyPotion - SEE_INVISIBLE', () => {
     test('applies SEE_INVISIBLE status effect to player', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createSeeInvisiblePotion()
       const state = createTestState(player)
 
@@ -170,7 +145,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('duration is 999 turns (effectively permanent until stairs)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createSeeInvisiblePotion()
       const state = createTestState(player)
 
@@ -180,7 +156,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('returns correct message matching design spec', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createSeeInvisiblePotion()
       const state = createTestState(player)
 
@@ -190,7 +167,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('auto-identifies potion when consumed', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createSeeInvisiblePotion()
       const state = createTestState(player)
 
@@ -200,7 +178,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('does not kill player', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createSeeInvisiblePotion()
       const state = createTestState(player)
 
@@ -211,7 +190,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('does not modify player stats (HP, strength, level)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createSeeInvisiblePotion()
       const state = createTestState(player)
 
@@ -225,7 +205,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('can stack with other status effects (SEE_INVISIBLE + HASTED)', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       // Player already has HASTED status
       player = statusEffectService.addStatusEffect(player, StatusEffectType.HASTED, 10)
 
@@ -240,7 +221,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('replaces existing SEE_INVISIBLE effect (does not stack with itself)', () => {
-      let player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      let player = createTestPlayer({ hp: 20, maxHp: 20 })
       // Player already has SEE_INVISIBLE for 100 turns
       player = statusEffectService.addStatusEffect(player, StatusEffectType.SEE_INVISIBLE, 100)
 
@@ -255,7 +237,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('does not modify game state (no state field in result)', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createSeeInvisiblePotion()
       const state = createTestState(player)
 
@@ -265,7 +248,8 @@ describe('PotionService - SEE_INVISIBLE Potion', () => {
     })
 
     test('status effect persists when integrated with StatusEffectService', () => {
-      const player = createTestPlayer()
+      // Potion tests expect 20 HP (legacy test baseline)
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
       const potion = createSeeInvisiblePotion()
       const state = createTestState(player)
 

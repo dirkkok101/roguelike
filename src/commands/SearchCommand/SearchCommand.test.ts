@@ -8,6 +8,7 @@ import { DoorService } from '@services/DoorService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, DoorState, Door, Player, Trap, TrapType, Position } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SearchCommand', () => {
   let searchService: SearchService

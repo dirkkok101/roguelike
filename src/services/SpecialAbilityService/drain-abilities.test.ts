@@ -1,6 +1,7 @@
 import { SpecialAbilityService } from './SpecialAbilityService'
 import { MockRandom } from '@services/RandomService'
 import { Player } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('SpecialAbilityService - Drain Abilities', () => {
   let service: SpecialAbilityService
@@ -10,29 +11,6 @@ describe('SpecialAbilityService - Drain Abilities', () => {
     mockRandom = new MockRandom()
     service = new SpecialAbilityService(mockRandom)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 0, y: 0 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      ac: 5,
-      level: 1,
-      xp: 100,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-    }
-  }
 
   describe('drainStrength', () => {
     test('drains strength when chance succeeds', () => {
@@ -150,7 +128,7 @@ describe('SpecialAbilityService - Drain Abilities', () => {
 
   describe('drainMaxHP', () => {
     test('drains max HP when chance succeeds', () => {
-      const player = createTestPlayer()
+      const player = createTestPlayer({ maxHp: 20 }) // Start with 20, drain 1, expect 19
 
       mockRandom.setValues([1]) // 30% chance succeeds
 
@@ -162,7 +140,7 @@ describe('SpecialAbilityService - Drain Abilities', () => {
     })
 
     test('does not drain max HP when chance fails', () => {
-      const player = createTestPlayer()
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
 
       mockRandom.setValues([0]) // 30% chance fails
 
@@ -184,7 +162,7 @@ describe('SpecialAbilityService - Drain Abilities', () => {
     })
 
     test('reduces current HP if above new max', () => {
-      const player = createTestPlayer() // hp: 20, maxHp: 20
+      const player = createTestPlayer({ hp: 20, maxHp: 20 }) // hp: 20, maxHp: 20
 
       mockRandom.setValues([1])
 
@@ -206,7 +184,7 @@ describe('SpecialAbilityService - Drain Abilities', () => {
     })
 
     test('returns new player object (immutability)', () => {
-      const player = createTestPlayer()
+      const player = createTestPlayer({ hp: 20, maxHp: 20 })
 
       mockRandom.setValues([1])
 

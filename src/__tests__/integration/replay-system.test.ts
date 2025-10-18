@@ -7,6 +7,7 @@ import { IndexedDBService } from '@services/IndexedDBService'
 import { MockRandom } from '@services/RandomService'
 import { GameState, Player, Level } from '@game/core/core'
 import { COMMAND_TYPES } from '@game/replay/replay'
+import { createTestPlayer } from '@test-helpers'
 
 // Polyfill for structuredClone
 if (typeof globalThis.structuredClone === 'undefined') {
@@ -59,32 +60,6 @@ describe('Replay System Integration', () => {
     indexedDB.close()
   })
 
-  function createTestPlayer(): Player {
-    return {
-      id: 'player-1',
-      name: 'Test Hero',
-      position: { x: 10, y: 5 },
-      hp: 50,
-      maxHp: 100,
-      strength: 16,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      ac: 5,
-      inventory: [],
-      equipment: {
-        weapon: null,
-        armor: null,
-        rings: [],
-        light: null,
-      },
-      energy: 100,
-      statusEffects: [],
-      hunger: 1000,
-      maxHunger: 2000,
-    }
-  }
-
   function createTestLevel(depth: number): Level {
     return {
       depth,
@@ -107,7 +82,7 @@ describe('Replay System Integration', () => {
       seed: 'test-seed-123',
       currentLevel: 1,
       turnCount: 0,
-      player: createTestPlayer(),
+      player: createTestPlayer({ position: { x: 10, y: 5 }, hp: 50, maxHp: 50 }), // Start at (10,5) with 50 HP for replay tests
       levels: new Map([[1, createTestLevel(1)]]),
       visibleCells: new Set(['10,5']),
       identifiedItems: new Set(),

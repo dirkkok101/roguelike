@@ -6,6 +6,7 @@ import { FOVService } from '@services/FOVService'
 import { MovementService } from '@services/MovementService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   Level,

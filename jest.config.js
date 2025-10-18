@@ -14,6 +14,8 @@ export default {
     '^@ui/(.*)$': '<rootDir>/src/ui/$1',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@test-utils/(.*)$': '<rootDir>/src/__test-utils__/$1',
+    '^@test-helpers$': '<rootDir>/src/test-helpers',
+    '^@test-helpers/(.*)$': '<rootDir>/src/test-helpers/$1',
   },
   collectCoverageFrom: [
     'src/**/*.ts',

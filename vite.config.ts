@@ -12,6 +12,7 @@ export default defineConfig({
       '@game': path.resolve(__dirname, './src/types'),
       '@ui': path.resolve(__dirname, './src/ui'),
       '@utils': path.resolve(__dirname, './src/utils'),
+      '@test-helpers': path.resolve(__dirname, './src/test-helpers'),
     },
   },
   server: {

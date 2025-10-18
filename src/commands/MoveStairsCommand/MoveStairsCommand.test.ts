@@ -11,6 +11,7 @@ import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Position, Level } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('MoveStairsCommand', () => {
   let messageService: MessageService

@@ -1,5 +1,6 @@
 import { VictoryService } from './VictoryService'
 import { GameState, Player } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('VictoryService - Score Calculation', () => {
   let service: VictoryService

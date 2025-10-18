@@ -2,6 +2,7 @@ import { HungerService } from './HungerService'
 import { MockRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 import { Player, Equipment, Ring, RingType, ItemType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('HungerService - Ring of Regeneration Hunger Penalty', () => {
   let service: HungerService

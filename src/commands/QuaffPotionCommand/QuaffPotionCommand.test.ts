@@ -10,6 +10,7 @@ import { LevelingService } from '@services/LevelingService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, ItemType, Potion, PotionType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('QuaffPotionCommand', () => {
   let inventoryService: InventoryService

@@ -2,6 +2,7 @@ import { CombatService } from './CombatService'
 import { MockRandom } from '@services/RandomService'
 import { RingService } from '@services/RingService'
 import { Player, Monster, Ring, RingType, ItemType } from '@game/core/core'
+import { createTestPlayer } from '@test-helpers'
 
 describe('CombatService - Equipment Bonuses', () => {
   let service: CombatService
@@ -13,33 +14,6 @@ describe('CombatService - Equipment Bonuses', () => {
     ringService = new RingService(mockRandom)
     service = new CombatService(mockRandom, ringService)
   })
-
-  function createTestPlayer(): Player {
-    return {
-      position: { x: 0, y: 0 },
-      hp: 20,
-      maxHp: 20,
-      strength: 16,
-      maxStrength: 16,
-      strengthPercentile: undefined,
-      ac: 10,
-      level: 1,
-      xp: 0,
-      gold: 0,
-      hunger: 1300,
-      equipment: {
-        weapon: null,
-        armor: null,
-        leftRing: null,
-        rightRing: null,
-        lightSource: null,
-      },
-      inventory: [],
-      statusEffects: [],
-      energy: 100,
-      isRunning: false,
-    }
-  }
 
   function createTestMonster(): Monster {
     return {

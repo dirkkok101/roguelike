@@ -11,6 +11,7 @@ import { RingService } from '@services/RingService'
 import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { MockRandom } from '@services/RandomService'
+import { createTestPlayer } from '@test-helpers'
 import {
   GameState,
   Monster,

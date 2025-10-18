@@ -1,41 +1,13 @@
 import { TurnService } from './TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { LevelService } from '@services/LevelService'
-import { Player, GameState, Equipment, StatusEffectType } from '@game/core/core'
+import { GameState, Player, StatusEffectType } from '@game/core/core'
 import { ENERGY_THRESHOLD, NORMAL_SPEED, HASTED_SPEED, SLOWED_SPEED } from '../../constants/energy'
+import { createTestPlayer } from '@test-helpers'
 
 // ============================================================================
 // TEST SETUP
 // ============================================================================
-
-function createTestPlayer(): Player {
-  const equipment: Equipment = {
-    weapon: null,
-    armor: null,
-    leftRing: null,
-    rightRing: null,
-    lightSource: null,
-  }
-
-  return {
-    position: { x: 5, y: 5 },
-    hp: 20,
-    maxHp: 20,
-    strength: 16,
-    maxStrength: 16,
-    ac: 5,
-    level: 1,
-    xp: 0,
-    gold: 0,
-    hunger: 1300,
-    equipment,
-    inventory: [],
-    statusEffects: [],
-    energy: 100, // Start with full energy
-    isRunning: false,
-    runState: null,
-  }
-}
 
 function createTestState(player: Player): GameState {
   return {
