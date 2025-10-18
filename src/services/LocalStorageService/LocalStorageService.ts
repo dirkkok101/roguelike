@@ -367,6 +367,16 @@ export class LocalStorageService {
       return false
     }
 
+    // Check running fields (added in Task 7)
+    if (typeof state.player.isRunning !== 'boolean') {
+      return false
+    }
+
+    // runState can be null or an object
+    if (state.player.runState !== null && typeof state.player.runState !== 'object') {
+      return false
+    }
+
     // Check critical game state fields
     if (!state.levels || !state.visibleCells || !state.player.position) {
       return false
@@ -603,6 +613,8 @@ export class LocalStorageService {
       ...data.player,
       energy: data.player.energy ?? 100, // Default: can act immediately
       statusEffects: data.player.statusEffects ?? [], // Default: no effects
+      isRunning: data.player.isRunning ?? false, // Default: not running
+      runState: data.player.runState ?? null, // Default: no run state
     }
 
     return {
