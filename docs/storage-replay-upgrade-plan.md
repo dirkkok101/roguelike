@@ -1,192 +1,101 @@
-# Storage and Replay System Upgrade Plan
+# Storage and Replay Debug System Implementation Plan
 
-**Status**: Planning
+**Status**: Ready for Implementation
 **Created**: 2025-10-18
+**Refined**: 2025-10-18
 **Target Version**: 5.0
-**Estimated Duration**: 10-16 days
+**Estimated Duration**: 8-12 days
 
 ---
 
 ## Executive Summary
 
-This document outlines a major upgrade to the roguelike's save system and the addition of a comprehensive command recording/replay feature. The dual storage approach solves current localStorage quota limitations while enabling powerful testing, debugging, and user-facing replay capabilities.
+This plan implements a dual-storage system for debugging game state issues through deterministic replay. The system records all commands with RNG state, stores them in IndexedDB alongside full game state snapshots, and provides visual replay with live state inspection for debugging.
 
 **Key Objectives:**
-1. **Solve 5MB localStorage quota limit** by migrating to IndexedDB (gigabytes of storage)
-2. **Enable command recording** for all player and AI actions
-3. **Build replay system** for testing, debugging, and user-facing replay viewer
-4. **Maintain reliability** with dual storage (full state + command log)
+1. **Solve localStorage quota limits** - Migrate to IndexedDB (gigabytes of storage)
+2. **Enable debug workflow** - Record commands, replay deterministically, inspect state
+3. **Maintain reliability** - Dual storage (full state + command log) for safety
+4. **Fresh start** - No migration from localStorage v4 (breaking change acceptable)
+
+**Simplified Scope (Debug Focus):**
+- ❌ No user-facing replay viewer with full playback controls
+- ❌ No main menu replay list
+- ❌ No migration from localStorage
+- ❌ No periodic snapshots (replay from turn 0)
+- ❌ No preferences migration (stays in localStorage)
+- ✅ Focus: Debug workflow for Claude to analyze bugs from replays
 
 ---
 
-## Current State Analysis
+## Architecture Overview
 
-### Existing Save System
-
-**Storage Backend**: Browser localStorage
-**Current Version**: v4
-**Typical Save Size**: 0.5-1.5 MB (compressed), 2-5 MB (uncompressed)
-**Auto-Save Interval**: Every 10 turns
-
-**Architecture:**
-```
-localStorage (5-10MB quota)
-├── roguelike_save_${gameId}     // Compressed GameState
-└── roguelike_continue            // Last played game pointer
-```
-
-**Serialization Pipeline:**
-1. State Preparation (Web Worker) - Convert Maps/Sets → Arrays (5-15ms)
-2. JSON Stringify (Web Worker) - Serialize object (10-20ms)
-3. Compression (Web Worker) - LZ-string compression, 60-80% reduction (20-50ms)
-4. Storage - Synchronous localStorage write with retry logic
-
-**Services Involved:**
-- `LocalStorageService` - Main save/load orchestration (682 lines)
-- `SerializationWorkerService` - Manages serialization Web Worker (226 lines)
-- `CompressionWorkerService` - Manages compression Web Worker (250 lines)
-- `AutoSaveMiddleware` - Triggers auto-save every N turns (36 lines)
-- `PreferencesService` - User settings (163 lines)
-
-**Total Lines of Code**: ~1,500 lines
-
-### Limitations & Pain Points
-
-1. **Storage Quota**
-   - 5-10MB localStorage limit per domain
-   - 26-level games approaching quota limits
-   - Multiple saves compete for space
-   - Quota exceeded errors during save
-
-2. **Synchronous Operations**
-   - `localStorage.setItem()` blocks main thread
-   - Mitigated by Web Workers for prep/compression
-
-3. **No Replay Capability**
-   - Cannot reproduce bugs deterministically
-   - No regression testing with saved games
-   - No user-facing replay viewer
-
-4. **Version Incompatibility**
-   - Old saves deleted on version upgrade
-   - No forward/backward compatibility
-
----
-
-## Research Findings
-
-### Storage Alternatives Comparison
-
-| Feature | localStorage | IndexedDB | OPFS |
-|---------|-------------|-----------|------|
-| **Capacity** | 5-10 MB | Gigabytes (50% disk) | Gigabytes |
-| **Operations** | Synchronous | Asynchronous | Asynchronous |
-| **Data Types** | Strings only | Any structured data | Binary files |
-| **Querying** | None | Indexes, cursors | None |
-| **Browser Support** | Universal | Universal (modern) | Limited (2023+) |
-| **Service Workers** | ❌ Not accessible | ✅ Accessible | ✅ Accessible |
-| **Complexity** | Low | Medium | High |
-
-**Recommendation**: IndexedDB for structured game data (saves, replays, preferences)
-
-### Event Sourcing & Replay Patterns
-
-**Event Sourcing Pattern:**
-- Store append-only sequence of events/commands
-- Reconstruct state by replaying events from beginning
-- Enables perfect audit trail and time travel
-
-**Key Insights from Research:**
-1. **Determinism is critical** - Any RNG, timing, or floating-point variance breaks replay
-2. **Command vs Event** - Record commands (inputs), not events (outcomes)
-3. **Snapshots required** - Store periodic state checkpoints for fast seeking
-4. **Fragility** - Code changes can break old replays (versioning essential)
-5. **Validation** - Compare replayed state vs saved state to detect desyncs
-
-**Roguelike-Specific Considerations:**
-- Turn-based = naturally deterministic (no timing issues)
-- Discrete grid = no floating-point drift
-- Seeded RNG = reproducible random values
-- Pure functions = state transitions are predictable
-
----
-
-## Chosen Approach: Dual Storage (Hybrid)
-
-### Architecture Overview
+### Dual Storage Model
 
 ```
 IndexedDB Database: "roguelike_db"
-├── Object Store: "saves"           // Full GameState snapshots
+├── Object Store: "saves"
 │   ├── Key: gameId (string)
-│   ├── Value: {
-│   │     gameState: GameState,
-│   │     metadata: SaveMetadata,
-│   │     version: number,
-│   │     timestamp: number
-│   │   }
-│   └── Indexes: timestamp, characterName, currentLevel
+│   └── Value: Full GameState snapshot (for fast loading)
 │
-├── Object Store: "replays"         // Command event logs
-│   ├── Key: gameId (string)
-│   ├── Value: {
-│   │     gameId: string,
-│   │     version: number,
-│   │     initialState: GameState,    // Turn 0 state
-│   │     seed: string,                // RNG seed
-│   │     commands: CommandEvent[],    // All commands
-│   │     snapshots: Map<turn, GameState>  // Every 100 turns
-│   │   }
-│   └── Indexes: timestamp, turnCount
-│
-└── Object Store: "preferences"     // User settings
-    └── Key: "user_preferences"
+└── Object Store: "replays"
+    ├── Key: gameId (string)
+    └── Value: Initial state + command log (for debugging)
 ```
 
-### Why Dual Storage?
+### Game Flow
 
-**Advantages:**
-1. ✅ **Reliability** - Full state save as fallback if replay breaks
-2. ✅ **Validation** - Compare replayed state vs saved state to detect non-determinism
-3. ✅ **Less Fragile** - Can load game even if replay system broken
-4. ✅ **Incremental Development** - Can build replay feature separately from save migration
-5. ✅ **Multiple Use Cases** - Normal play uses saves, testing/debugging uses replays
-6. ✅ **Storage Quota Solved** - IndexedDB = gigabytes of space
+**Save Flow:**
+```
+1. Player plays game (commands auto-recorded in memory)
+2. Auto-save triggers every 10 turns
+3. Atomic transaction writes BOTH:
+   - Full GameState to "saves" store
+   - Initial state + command log to "replays" store
+4. If either fails, both rollback
+```
 
-**Trade-offs:**
-- ⚠️ Uses more storage (both representations, but IndexedDB handles it easily)
-- ⚠️ Some duplication (same game in two formats)
-- ⚠️ More complex save logic (atomic transaction to both stores)
+**Load Flow:**
+```
+1. Load full GameState from "saves" store
+2. Instant loading (no replay needed)
+3. Command log sits unused until debugging
+```
 
-**Alternatives Considered:**
-
-| Approach | Pros | Cons | Complexity |
-|----------|------|------|------------|
-| **Event Sourcing First** | Smallest saves, replay built-in | Requires perfect determinism, fragile | 🔴 HIGH (9/10) |
-| **Dual Storage** ✅ | Best reliability, validation, less fragile | More storage, duplication | 🟡 MEDIUM (6/10) |
-| **Incremental Migration** | Lowest risk, one change at a time | Longer timeline, replay feels like add-on | 🟢 LOW (4/10) |
+**Debug Flow:**
+```
+1. User: "Find my latest replay and debug this issue"
+2. Claude reads from "replays" store
+3. Triggers visual replay:
+   - Reconstructs state by replaying commands
+   - Game renders visually on screen
+   - State inspector shows live GameState JSON
+4. Claude can jump to specific turn
+5. Validates replayed state matches saved state (detects non-determinism)
+```
 
 ---
 
 ## Data Structures
 
-### CommandEvent Type
+### Command Event
 
 ```typescript
-interface CommandEvent {
-  turnNumber: number        // Turn when command executed
+// src/types/replay/replay.ts
+
+export interface CommandEvent {
+  turnNumber: number        // When command executed
   timestamp: number         // Real-world time (ms)
-  commandType: string       // 'move', 'attack', 'use-item', 'ai-move', etc.
+  commandType: string       // 'move', 'attack', 'use-item', etc.
   actorType: 'player' | 'monster'
   actorId?: string          // Monster ID if AI command
-  payload: any              // Command-specific data (direction, target, item, etc.)
-  rngState?: string         // RNG state before command execution
+  payload: any              // Command-specific data
+  rngState: string          // RNG internal state BEFORE execution
 }
 ```
 
-**Examples:**
+**Example:**
 ```typescript
-// Player movement
 {
   turnNumber: 42,
   timestamp: 1729267891234,
@@ -195,51 +104,66 @@ interface CommandEvent {
   payload: { direction: 'north' },
   rngState: '0.12345,0.67890,...'
 }
-
-// Monster AI attack
-{
-  turnNumber: 43,
-  timestamp: 1729267891456,
-  commandType: 'attack',
-  actorType: 'monster',
-  actorId: 'monster_123',
-  payload: { targetPosition: { x: 10, y: 5 } },
-  rngState: '0.23456,0.78901,...'
-}
 ```
 
-### ReplayData Type
+### Replay Data
 
 ```typescript
-interface ReplayData {
+export interface ReplayData {
   gameId: string
-  version: number                           // Replay format version
-  initialState: GameState                   // State at turn 0
-  seed: string                              // RNG seed
-  commands: CommandEvent[]                  // All recorded commands
-  snapshots: Map<number, GameState>         // Periodic state checkpoints (every 100 turns)
-  metadata: {
-    createdAt: number                       // Timestamp
-    turnCount: number                       // Total turns
-    characterName: string
-    outcome?: 'won' | 'died' | 'ongoing'   // Final outcome
-    maxDepth: number
-    monstersKilled: number
-  }
+  version: number           // Replay format version
+  initialState: GameState   // State at turn 0
+  seed: string              // RNG seed
+  commands: CommandEvent[]  // All recorded commands
+  metadata: ReplayMetadata
 }
-```
 
-### SaveMetadata Type
-
-```typescript
-interface SaveMetadata {
-  gameId: string
-  version: number
+export interface ReplayMetadata {
+  createdAt: number
+  turnCount: number
   characterName: string
   currentLevel: number
-  turnCount: number
-  timestamp: number
   outcome?: 'won' | 'died' | 'ongoing'
+}
+```
+
+### Validation Result
+
+```typescript
+export interface ValidationResult {
+  valid: boolean
+  desyncs: DesyncError[]
+}
+
+export interface DesyncError {
+  turn: number
+  field: string           // e.g., "player.hp"
+  expected: any
+  actual: any
+}
+```
+
+### IndexedDB Schema
+
+```typescript
+const DB_NAME = 'roguelike_db'
+const DB_VERSION = 1
+
+const OBJECT_STORES = {
+  saves: {
+    keyPath: 'gameId',
+    indexes: [
+      { name: 'timestamp', keyPath: 'timestamp', unique: false },
+      { name: 'characterName', keyPath: 'metadata.characterName', unique: false }
+    ]
+  },
+  replays: {
+    keyPath: 'gameId',
+    indexes: [
+      { name: 'timestamp', keyPath: 'metadata.createdAt', unique: false },
+      { name: 'turnCount', keyPath: 'metadata.turnCount', unique: false }
+    ]
+  }
 }
 ```
 
@@ -247,9 +171,9 @@ interface SaveMetadata {
 
 ## Implementation Plan
 
-### Phase 1: IndexedDB Storage Layer (Foundation)
+### Phase 1: IndexedDB Storage Layer (Days 1-3)
 
-**Goal**: Replace localStorage with IndexedDB for game saves and preferences.
+**Goal**: Replace localStorage with IndexedDB for game saves and replays.
 
 #### Task 1.1: Create IndexedDBService
 
@@ -257,7 +181,7 @@ interface SaveMetadata {
 
 **Responsibilities:**
 - Database initialization and version management
-- Create three object stores: `saves`, `replays`, `preferences`
+- Create two object stores: `saves`, `replays`
 - Add indexes for efficient querying
 - CRUD operations with Promise-based async API
 - Transaction handling
@@ -266,6 +190,8 @@ interface SaveMetadata {
 **Key Methods:**
 ```typescript
 class IndexedDBService {
+  private db: IDBDatabase | null = null
+
   async initDatabase(): Promise<IDBDatabase>
   async openDatabase(): Promise<IDBDatabase>
   async put(storeName: string, key: string, value: any): Promise<void>
@@ -277,46 +203,33 @@ class IndexedDBService {
 }
 ```
 
-**Database Schema:**
-```typescript
-const DB_NAME = 'roguelike_db'
-const DB_VERSION = 1
-
-const OBJECT_STORES = {
-  saves: {
-    keyPath: 'gameId',
-    indexes: [
-      { name: 'timestamp', keyPath: 'timestamp', unique: false },
-      { name: 'characterName', keyPath: 'metadata.characterName', unique: false },
-      { name: 'currentLevel', keyPath: 'metadata.currentLevel', unique: false }
-    ]
-  },
-  replays: {
-    keyPath: 'gameId',
-    indexes: [
-      { name: 'timestamp', keyPath: 'metadata.timestamp', unique: false },
-      { name: 'turnCount', keyPath: 'metadata.turnCount', unique: false }
-    ]
-  },
-  preferences: {
-    keyPath: 'key'
-  }
-}
-```
-
 **Error Handling:**
-- Handle `QuotaExceededError` (should be rare with IndexedDB)
+- Handle `QuotaExceededError` (rare with IndexedDB)
 - Handle `VersionError` (database upgrade failures)
 - Handle `NotFoundError` (missing data)
 - Retry logic for transient failures
 
+**Implementation Notes:**
+- Use Promises with `onsuccess`/`onerror` handlers
+- Implement transaction wrapper for atomic operations
+- Cache database connection after init
+
 **Test Coverage:**
-- Database creation and upgrade
-- All CRUD operations
-- Transaction commit and rollback
-- Concurrent access
-- Quota checking
-- Error scenarios
+```typescript
+describe('IndexedDBService', () => {
+  it('should create database with correct schema')
+  it('should save and retrieve data')
+  it('should handle transactions atomically')
+  it('should handle quota exceeded errors')
+  it('should delete data correctly')
+  it('should query by index')
+  it('should check quota correctly')
+})
+```
+
+**Dependencies**: None (foundation)
+
+**Estimated Time**: 1 day
 
 ---
 
@@ -326,190 +239,151 @@ const OBJECT_STORES = {
 
 **Responsibilities:**
 - Replace `LocalStorageService` with IndexedDB backend
-- Maintain same interface for easy migration
 - Handle game save/load operations
 - Compress data with LZ-string (keep existing compression)
-- Manage continue game pointer
+- Manage atomic saves to both stores (saves + replays)
+- Serialize/deserialize GameState (Maps/Sets → Arrays)
 
 **Key Methods:**
 ```typescript
 class GameStorageService {
-  async saveGame(state: GameState): Promise<void>
+  constructor(
+    private indexedDB: IndexedDBService,
+    private compressionWorker: CompressionWorkerService,
+    private serializationWorker: SerializationWorkerService
+  ) {}
+
+  async saveGame(state: GameState, commands: CommandEvent[]): Promise<void>
   async loadGame(gameId: string): Promise<GameState | null>
   async listGames(): Promise<SaveMetadata[]>
   async deleteGame(gameId: string): Promise<void>
   async getContinueGameId(): Promise<string | null>
   async setContinueGameId(gameId: string): Promise<void>
 
-  // Serialization methods (from LocalStorageService)
+  // Private serialization methods (from LocalStorageService)
   private async serializeGameState(state: GameState): Promise<string>
   private async deserializeGameState(data: string): Promise<GameState>
+  private extractMetadata(state: GameState): SaveMetadata
 }
 ```
 
 **Save Flow:**
-```
-saveGame(state)
-  → serializeGameState(state)  // Maps/Sets → Arrays
-  → compress(json)              // LZ-string compression
-  → indexedDB.put('saves', { gameState: compressed, metadata, version, timestamp })
-  → setContinueGameId(gameId)
-```
-
-**Load Flow:**
-```
-loadGame(gameId)
-  → indexedDB.get('saves', gameId)
-  → decompress(data.gameState)
-  → deserializeGameState(json)  // Arrays → Maps/Sets
-  → validate(state)
-  → return GameState
-```
-
-**Migration from LocalStorageService:**
-- Keep compression (LZ-string) for consistency
-- Reuse serialization logic (Maps/Sets conversion)
-- Keep validation logic
-- Keep retry/error handling patterns
-
-**Test Coverage:**
-- Save/load cycle preserves all game state
-- Map/Set type preservation
-- Compression/decompression
-- List games with sorting
-- Delete game removes from both stores
-- Continue game pointer management
-- Corrupted save detection
-
----
-
-#### Task 1.3: Migrate PreferencesService
-
-**File**: Update `src/services/PreferencesService/PreferencesService.ts`
-
-**Changes:**
-- Replace `localStorage` backend with `IndexedDBService`
-- Store preferences in `preferences` object store
-- Keep same API: `getPreference()`, `setPreference()`, `getAllPreferences()`
-- One-time migration from localStorage on first load
-
-**Migration Logic:**
 ```typescript
-async migrateFromLocalStorage(): Promise<void> {
-  const oldPrefs = localStorage.getItem('roguelike_preferences')
-  if (oldPrefs) {
-    const prefs = JSON.parse(oldPrefs)
-    await this.indexedDB.put('preferences', 'user_preferences', prefs)
-    localStorage.removeItem('roguelike_preferences')
+async saveGame(state: GameState, commands: CommandEvent[]): Promise<void> {
+  // 1. Serialize and compress game state
+  const serialized = await this.serializeGameState(state)
+  const compressed = await this.compressionWorker.compress(serialized)
+
+  // 2. Prepare save data
+  const saveData = {
+    gameId: state.gameId,
+    gameState: compressed,
+    metadata: this.extractMetadata(state),
+    version: SAVE_VERSION,
+    timestamp: Date.now()
+  }
+
+  // 3. Prepare replay data
+  const replayData = {
+    gameId: state.gameId,
+    version: REPLAY_VERSION,
+    initialState: this.getInitialState(state.gameId), // Cached at game start
+    seed: state.seed,
+    commands: commands,
+    metadata: {
+      createdAt: Date.now(),
+      turnCount: state.turnCount,
+      characterName: state.player.name,
+      currentLevel: state.currentLevel,
+      outcome: this.getOutcome(state)
+    }
+  }
+
+  // 4. Atomic transaction to both stores
+  const transaction = db.transaction(['saves', 'replays'], 'readwrite')
+
+  try {
+    await transaction.objectStore('saves').put(saveData)
+    await transaction.objectStore('replays').put(replayData)
+    await transaction.complete()
+    await this.setContinueGameId(state.gameId)
+  } catch (error) {
+    transaction.abort()
+    throw error
   }
 }
 ```
 
-**Test Coverage:**
-- Get/set preferences
-- Migration from localStorage
-- Default values
-
----
-
-#### Task 1.4: Create MigrationService
-
-**File**: `src/services/MigrationService/MigrationService.ts`
-
-**Responsibilities:**
-- One-time migration from localStorage v4 to IndexedDB
-- Detect localStorage saves on startup
-- Migrate each save to IndexedDB
-- Preserve continue game pointer
-- Delete localStorage saves after successful migration
-- Show progress notifications
-
-**Key Methods:**
+**Load Flow:**
 ```typescript
-class MigrationService {
-  async needsMigration(): Promise<boolean>
-  async migrateFromLocalStorage(): Promise<MigrationResult>
-  private async migrateSingleSave(key: string, data: string): Promise<void>
-  private async cleanupLocalStorage(): Promise<void>
+async loadGame(gameId: string): Promise<GameState | null> {
+  // 1. Get from IndexedDB
+  const data = await this.indexedDB.get('saves', gameId)
+  if (!data) return null
+
+  // 2. Decompress and deserialize
+  const decompressed = await this.compressionWorker.decompress(data.gameState)
+  const state = await this.deserializeGameState(decompressed)
+
+  // 3. Validate
+  if (!this.validateGameState(state)) {
+    throw new Error('Corrupted save data')
+  }
+
+  return state
 }
-
-interface MigrationResult {
-  success: boolean
-  migratedCount: number
-  failedCount: number
-  errors: string[]
-}
 ```
 
-**Migration Flow:**
-```
-1. Check for localStorage saves (keys starting with 'roguelike_save_')
-2. For each save:
-   a. Load and decompress
-   b. Validate version (v4 only)
-   c. Deserialize GameState
-   d. Save to IndexedDB 'saves' store
-   e. Create empty replay entry (no commands yet)
-3. Migrate continue pointer
-4. Delete localStorage saves
-5. Show notification: "Migrated X games to new storage system"
-```
+**Migration from LocalStorageService:**
+- Reuse compression logic (LZ-string)
+- Reuse serialization logic (Maps/Sets conversion)
+- Reuse validation logic
+- Keep retry/error handling patterns
+- **NO automatic migration** (fresh start)
 
-**Error Handling:**
-- Corrupted saves: Skip and log error
-- Migration failure: Leave localStorage intact
-- Partial migration: Track which saves migrated successfully
+**Implementation Notes:**
+- Cache initial state when game starts (for replay)
+- Track outcome ('won' / 'died' / 'ongoing') for metadata
+- Continue pointer stored in IndexedDB 'saves' store with key 'continue_pointer'
 
 **Test Coverage:**
-- Migrate v4 saves successfully
-- Handle corrupted saves
-- Preserve continue pointer
-- Cleanup localStorage after migration
-- Handle migration failures
+```typescript
+describe('GameStorageService', () => {
+  it('should save game to both stores atomically')
+  it('should load game from saves store')
+  it('should compress/decompress correctly')
+  it('should handle Maps/Sets serialization')
+  it('should preserve all game state through save/load cycle')
+  it('should rollback on transaction failure')
+  it('should list games sorted by timestamp')
+  it('should delete game from both stores')
+  it('should handle continue pointer')
+  it('should detect corrupted saves')
+})
+```
+
+**Dependencies**: IndexedDBService, CompressionWorkerService, SerializationWorkerService
+
+**Estimated Time**: 2 days
 
 ---
 
-### Phase 2: Command Recording Infrastructure
+### Phase 2: Command Recording Infrastructure (Days 4-6)
 
-**Goal**: Capture all player and AI commands for replay.
+**Goal**: Capture all player and AI commands with RNG state for replay.
 
 #### Task 2.1: Define Command Event Schema
 
 **File**: `src/types/replay/replay.ts`
 
-**Types:**
-```typescript
-export interface CommandEvent {
-  turnNumber: number
-  timestamp: number
-  commandType: string
-  actorType: 'player' | 'monster'
-  actorId?: string
-  payload: any
-  rngState?: string
-}
+**Create Types:**
+- `CommandEvent` interface
+- `ReplayData` interface
+- `ReplayMetadata` interface
+- `ValidationResult` interface
+- `DesyncError` interface
 
-export interface ReplayData {
-  gameId: string
-  version: number
-  initialState: GameState
-  seed: string
-  commands: CommandEvent[]
-  snapshots: Map<number, GameState>
-  metadata: ReplayMetadata
-}
-
-export interface ReplayMetadata {
-  createdAt: number
-  turnCount: number
-  characterName: string
-  outcome?: 'won' | 'died' | 'ongoing'
-  maxDepth: number
-  monstersKilled: number
-}
-```
-
-**Command Type Registry:**
+**Create Command Type Registry:**
 ```typescript
 export const COMMAND_TYPES = {
   // Player commands
@@ -534,9 +408,28 @@ export const COMMAND_TYPES = {
   AI_ATTACK: 'ai-attack',
   AI_FLEE: 'ai-flee',
   AI_WANDER: 'ai-wander',
-  AI_STEAL: 'ai-steal'
+  AI_STEAL: 'ai-steal',
+
+  // System commands
+  LIGHT_FUEL: 'light-fuel',
+  HUNGER_TICK: 'hunger-tick',
+  AUTO_SAVE: 'auto-save'
 } as const
+
+export type CommandType = typeof COMMAND_TYPES[keyof typeof COMMAND_TYPES]
 ```
+
+**Test Coverage:**
+```typescript
+describe('Replay Types', () => {
+  it('should have valid CommandEvent structure')
+  it('should have all command types defined')
+})
+```
+
+**Dependencies**: None
+
+**Estimated Time**: 0.5 days
 
 ---
 
@@ -547,44 +440,161 @@ export const COMMAND_TYPES = {
 **Responsibilities:**
 - Track current game's command log in memory
 - Record each command as it executes
-- Create periodic state snapshots
+- Store initial state (turn 0) for replay
 - Provide access to command log for saving
 
 **Key Methods:**
 ```typescript
 class CommandRecorderService {
   private commands: CommandEvent[] = []
-  private snapshots: Map<number, GameState> = new Map()
+  private initialState: GameState | null = null
+  private currentGameId: string | null = null
 
-  recordCommand(event: CommandEvent): void
-  getCommandLog(): CommandEvent[]
-  clearLog(): void
-  createSnapshot(state: GameState, turnNumber: number): void
-  getSnapshots(): Map<number, GameState>
-  shouldCreateSnapshot(turnNumber: number): boolean  // Every 100 turns
+  recordCommand(event: CommandEvent): void {
+    this.commands.push(event)
+  }
+
+  setInitialState(state: GameState): void {
+    this.initialState = { ...state }
+    this.currentGameId = state.gameId
+  }
+
+  getCommandLog(): CommandEvent[] {
+    return [...this.commands]
+  }
+
+  getInitialState(): GameState | null {
+    return this.initialState
+  }
+
+  clearLog(): void {
+    this.commands = []
+    this.initialState = null
+    this.currentGameId = null
+  }
+
+  getGameId(): string | null {
+    return this.currentGameId
+  }
 }
 ```
-
-**Snapshot Strategy:**
-- Create snapshot every 100 turns
-- Store compressed GameState
-- Used for fast seeking during replay
-- Keeps memory usage bounded
 
 **Memory Management:**
 - Commands stored in memory during active game
 - Flushed to IndexedDB on save
 - Cleared on new game start
+- Typical memory usage: ~1-5MB for 1000 turn game
+
+**Implementation Notes:**
+- Singleton service, instantiated at app startup
+- Initial state captured when new game starts (turn 0)
+- Commands cleared when loading existing game (start fresh recording)
 
 **Test Coverage:**
-- Record commands correctly
-- Create snapshots at right intervals
-- Retrieve command log
-- Clear log
+```typescript
+describe('CommandRecorderService', () => {
+  it('should record commands correctly')
+  it('should store initial state')
+  it('should return command log copy (immutable)')
+  it('should clear log on new game')
+  it('should track current game ID')
+})
+```
+
+**Dependencies**: None
+
+**Estimated Time**: 0.5 days
 
 ---
 
-#### Task 2.3: Integrate Recording into Command Layer
+#### Task 2.3: Update RandomService for Determinism
+
+**File**: `src/services/RandomService/RandomService.ts`
+
+**Changes:**
+Add state capture and restore methods to enable deterministic replay.
+
+**Current Implementation:**
+The `RandomService` already uses a seeded RNG. We need to add:
+
+```typescript
+export class RandomService implements IRandomService {
+  private rng: SeedableRNG
+  private seed: string
+
+  constructor(seed?: string) {
+    this.seed = seed || this.generateSeed()
+    this.rng = new SeedableRNG(this.seed)
+  }
+
+  // NEW: Capture RNG internal state
+  getState(): string {
+    return this.rng.serialize()
+  }
+
+  // NEW: Restore RNG internal state
+  setState(state: string): void {
+    this.rng.deserialize(state)
+  }
+
+  // Existing methods unchanged
+  next(): number { return this.rng.next() }
+  range(min: number, max: number): number { /* ... */ }
+  chance(probability: number): boolean { /* ... */ }
+  // etc.
+}
+```
+
+**SeedableRNG Enhancement:**
+```typescript
+class SeedableRNG {
+  private state: number // Internal state (Mulberry32 or similar)
+
+  serialize(): string {
+    // Return internal state as string
+    return this.state.toString()
+  }
+
+  deserialize(state: string): void {
+    // Restore internal state from string
+    this.state = parseInt(state, 10)
+  }
+
+  next(): number {
+    // Existing RNG algorithm
+    // ...
+  }
+}
+```
+
+**Why This Matters:**
+- Deterministic replay requires exact same random sequence
+- State capture before each command ensures reproducibility
+- Even if RNG called multiple times per turn, we can restore exact state
+
+**Implementation Notes:**
+- Check current RNG implementation (likely Mulberry32)
+- State is single integer for most simple RNGs
+- For more complex RNGs (Mersenne Twister), may be array of integers
+
+**Test Coverage:**
+```typescript
+describe('RandomService Determinism', () => {
+  it('should capture and restore state correctly')
+  it('should produce same sequence after state restore')
+  it('should handle multiple captures in sequence')
+  it('should serialize/deserialize state')
+  it('should work with existing seed-based tests')
+})
+```
+
+**Dependencies**: None
+
+**Estimated Time**: 0.5 days
+
+---
+
+#### Task 2.4: Integrate Recording into Command Layer
 
 **Files**: Update ALL command classes in `src/commands/*/`
 
@@ -594,31 +604,48 @@ export class MoveCommand implements ICommand {
   constructor(
     private direction: Direction,
     private recorder: CommandRecorderService,  // NEW: Inject recorder
-    private movementService: MovementService,
+    private randomService: IRandomService,     // Existing
+    private movementService: MovementService,  // Existing
     // ... other dependencies
   ) {}
 
   execute(state: GameState): GameState {
-    // NEW: Record command at START of execution
+    // STEP 1: Record command BEFORE execution
     this.recorder.recordCommand({
       turnNumber: state.turnCount,
       timestamp: Date.now(),
       commandType: COMMAND_TYPES.MOVE,
       actorType: 'player',
-      payload: { direction: this.direction }
+      payload: { direction: this.direction },
+      rngState: this.randomService.getState()  // Capture RNG state
     })
 
-    // Existing logic...
+    // STEP 2: Execute normally (existing logic unchanged)
     const newState = this.movementService.movePlayer(state, this.direction)
     return newState
   }
 }
 ```
 
-**Commands to Update (40+ files):**
-- Player commands: Move, Attack, Pickup, Drop, Equip, Unequip, UseItem, Quaff, Read, Zap, Throw, Rest, Search, Descend, Ascend, etc.
-- Monster AI commands: AIAction (records monster moves/attacks)
-- System commands: AutoSave, LightFuel, HungerTick
+**Commands to Update (~40 files):**
+
+**Player Commands:**
+- MoveCommand
+- AttackCommand
+- PickupCommand
+- DropCommand
+- EquipCommand
+- UnequipCommand
+- UseItemCommand
+- QuaffCommand
+- ReadCommand
+- ZapCommand
+- ThrowCommand
+- RestCommand
+- SearchCommand
+- DescendCommand
+- AscendCommand
+- (and all other player commands)
 
 **Monster AI Commands:**
 ```typescript
@@ -633,128 +660,133 @@ this.recorder.recordCommand({
     monsterId: monster.id,
     fromPosition: monster.position,
     toPosition: targetPosition
-  }
+  },
+  rngState: this.randomService.getState()
 })
 ```
+
+**System Commands:**
+- AutoSaveMiddleware
+- LightFuelCommand (or service)
+- HungerTickCommand (or service)
 
 **Dependency Injection Updates:**
 - Add `CommandRecorderService` to all command constructors
 - Update command factories/builders
-- Update test mocks
+- Update dependency injection setup (if using DI container)
+
+**Implementation Strategy:**
+1. Start with one command (e.g., MoveCommand) as prototype
+2. Write tests for that command
+3. Create script or pattern to apply to all commands
+4. Update commands in batches (player, monster, system)
+5. Test each batch
 
 **Test Updates:**
-- Add mock `CommandRecorderService` to tests
-- Verify `recordCommand()` called with correct data
-- Verify command execution still works
+```typescript
+describe('MoveCommand', () => {
+  let recorder: CommandRecorderService
+  let randomService: IRandomService
+
+  beforeEach(() => {
+    recorder = new CommandRecorderService()
+    randomService = new MockRandom([0.5])
+  })
+
+  it('should record command before execution', () => {
+    const command = new MoveCommand('north', recorder, randomService, ...)
+    const state = createTestState()
+
+    command.execute(state)
+
+    const log = recorder.getCommandLog()
+    expect(log).toHaveLength(1)
+    expect(log[0]).toEqual({
+      turnNumber: state.turnCount,
+      timestamp: expect.any(Number),
+      commandType: COMMAND_TYPES.MOVE,
+      actorType: 'player',
+      payload: { direction: 'north' },
+      rngState: expect.any(String)
+    })
+  })
+
+  it('should execute command normally', () => {
+    // Existing tests should still pass
+  })
+})
+```
+
+**Dependencies**: CommandRecorderService, RandomService (updated), COMMAND_TYPES
+
+**Estimated Time**: 2 days (many files, but repetitive pattern)
 
 ---
 
-#### Task 2.4: Update RandomService for Determinism
+#### Task 2.5: Update GameStorageService to Use Recorder
 
-**File**: `src/services/RandomService/RandomService.ts`
-
-**Current State:**
-- Already uses seeded RNG
-- Need to add state capture/restore
+**File**: `src/services/GameStorageService/GameStorageService.ts`
 
 **Changes:**
-```typescript
-export class RandomService implements IRandomService {
-  private rng: SeedableRNG
-  private seed: string
+Integrate `CommandRecorderService` into save flow.
 
-  constructor(seed?: string) {
-    this.seed = seed || generateSeed()
-    this.rng = new SeedableRNG(this.seed)
-  }
-
-  // NEW: Capture RNG state
-  getState(): string {
-    return this.rng.getState()
-  }
-
-  // NEW: Restore RNG state
-  setState(state: string): void {
-    this.rng.setState(state)
-  }
-
-  // Existing methods...
-  next(): number { return this.rng.next() }
-  range(min: number, max: number): number { /* ... */ }
-  // etc.
-}
-```
-
-**SeedableRNG Implementation:**
-- Use existing implementation (likely Mulberry32 or similar)
-- Add state serialization (capture internal state variables)
-- Add state deserialization (restore internal state)
-
-**Why This Matters:**
-- Deterministic replay requires exact same random sequence
-- State capture before each command ensures reproducibility
-- Even if RNG called multiple times per turn, we can restore exact state
-
-**Test Coverage:**
-- State capture and restore
-- Deterministic sequence with same seed + state
-- Multiple captures/restores in sequence
-
----
-
-#### Task 2.5: Store Replay Data in IndexedDB
-
-**File**: Update `src/services/GameStorageService/GameStorageService.ts`
-
-**New Methods:**
+**Updated Constructor:**
 ```typescript
 class GameStorageService {
-  // Existing methods...
-
-  // NEW: Replay storage
-  async saveReplay(replayData: ReplayData): Promise<void>
-  async loadReplay(gameId: string): Promise<ReplayData | null>
-  async deleteReplay(gameId: string): Promise<void>
-  async listReplays(): Promise<ReplayMetadata[]>
-
-  // NEW: Atomic save of both game state and replay
-  async saveGameWithReplay(
-    state: GameState,
-    commands: CommandEvent[],
-    snapshots: Map<number, GameState>
-  ): Promise<void>
+  constructor(
+    private indexedDB: IndexedDBService,
+    private compressionWorker: CompressionWorkerService,
+    private serializationWorker: SerializationWorkerService,
+    private recorder: CommandRecorderService  // NEW
+  ) {}
 }
 ```
 
-**Atomic Save Transaction:**
+**Updated Save Method:**
 ```typescript
-async saveGameWithReplay(state, commands, snapshots) {
+async saveGame(state: GameState): Promise<void> {
+  // Get command log from recorder
+  const commands = this.recorder.getCommandLog()
+  const initialState = this.recorder.getInitialState()
+
+  // Serialize and compress game state
+  const serialized = await this.serializeGameState(state)
+  const compressed = await this.compressionWorker.compress(serialized)
+
+  // Prepare save data
+  const saveData = {
+    gameId: state.gameId,
+    gameState: compressed,
+    metadata: this.extractMetadata(state),
+    version: SAVE_VERSION,
+    timestamp: Date.now()
+  }
+
+  // Prepare replay data
+  const replayData = {
+    gameId: state.gameId,
+    version: REPLAY_VERSION,
+    initialState: initialState,
+    seed: state.seed,
+    commands: commands,
+    metadata: {
+      createdAt: Date.now(),
+      turnCount: state.turnCount,
+      characterName: state.player.name,
+      currentLevel: state.currentLevel,
+      outcome: this.getOutcome(state)
+    }
+  }
+
+  // Atomic save to both stores
+  const db = await this.indexedDB.openDatabase()
   const transaction = db.transaction(['saves', 'replays'], 'readwrite')
 
   try {
-    // Save full game state
-    const saveData = {
-      gameId: state.gameId,
-      gameState: await this.serializeGameState(state),
-      metadata: this.extractMetadata(state),
-      version: SAVE_VERSION,
-      timestamp: Date.now()
-    }
     await transaction.objectStore('saves').put(saveData)
-
-    // Save replay data
-    const replayData = {
-      gameId: state.gameId,
-      version: REPLAY_VERSION,
-      initialState: this.getInitialState(state.gameId),  // Cached from game start
-      seed: state.seed,
-      commands: commands,
-      snapshots: snapshots,
-      metadata: this.extractReplayMetadata(state)
-    }
     await transaction.objectStore('replays').put(replayData)
-
     await transaction.complete()
+    await this.setContinueGameId(state.gameId)
   } catch (error) {
     transaction.abort()
     throw error
@@ -762,280 +794,501 @@ async saveGameWithReplay(state, commands, snapshots) {
 }
 ```
 
-**Initial State Caching:**
-- Cache GameState at turn 0 when game starts
-- Include in replay data
-- Required for replay reconstruction
+**Initial State Capture:**
+Update new game creation to capture initial state:
+
+```typescript
+// In main game initialization (wherever new game is created)
+function startNewGame(characterName: string): GameState {
+  const initialState = createNewGameState(characterName)
+
+  // Capture initial state for replay
+  this.recorder.setInitialState(initialState)
+
+  return initialState
+}
+```
+
+**Load Game Behavior:**
+When loading existing game, clear recorder (start fresh recording):
+
+```typescript
+async loadGame(gameId: string): Promise<GameState | null> {
+  const state = await this.loadGameFromIndexedDB(gameId)
+
+  if (state) {
+    // Clear recorder - we're resuming a game, start recording from here
+    this.recorder.clearLog()
+    this.recorder.setInitialState(state) // Current state becomes "initial" for new recording
+  }
+
+  return state
+}
+```
 
 **Test Coverage:**
-- Atomic transaction (both save or neither)
-- Replay save/load
-- List replays with metadata
-- Delete replay removes from store
+```typescript
+describe('GameStorageService with Recording', () => {
+  it('should save command log with game state')
+  it('should save initial state in replay data')
+  it('should atomic save both stores')
+  it('should clear recorder on load game')
+  it('should set initial state on new game')
+})
+```
+
+**Dependencies**: CommandRecorderService
+
+**Estimated Time**: 0.5 days
 
 ---
 
-### Phase 3: Replay System
+### Phase 3: Replay Debugging System (Days 7-9)
 
-**Goal**: Build replay engine and user-facing viewer.
+**Goal**: Build replay engine and debug interface for Claude to analyze bugs.
 
-#### Task 3.1: Create ReplayEngineService
+#### Task 3.1: Create ReplayDebuggerService
 
-**File**: `src/services/ReplayEngineService/ReplayEngineService.ts`
+**File**: `src/services/ReplayDebuggerService/ReplayDebuggerService.ts`
 
 **Responsibilities:**
+- Load replay data from IndexedDB
 - Reconstruct game state from command sequence
-- Use snapshots for fast seeking
+- Jump to specific turn for inspection
 - Validate replay against saved state
 - Detect non-determinism
 
 **Key Methods:**
 ```typescript
-class ReplayEngineService {
-  async loadReplay(gameId: string): Promise<ReplayData | null>
+class ReplayDebuggerService {
+  constructor(
+    private storageService: GameStorageService,
+    private randomService: IRandomService,
+    private commandFactory: ICommandFactory  // Creates command instances from events
+  ) {}
 
-  async reconstructState(
+  async loadReplay(gameId: string): Promise<ReplayData | null> {
+    const replay = await this.storageService.indexedDB.get('replays', gameId)
+
+    if (!replay) {
+      console.warn('No replay data found for game', gameId)
+      return null
+    }
+
+    if (replay.version !== CURRENT_REPLAY_VERSION) {
+      console.warn('Replay version incompatible', replay.version)
+      return null
+    }
+
+    return replay
+  }
+
+  async reconstructToTurn(
     replayData: ReplayData,
-    toTurn: number
-  ): Promise<GameState>
+    targetTurn: number
+  ): Promise<GameState> {
+    // Start from initial state (turn 0)
+    let currentState = replayData.initialState
 
-  async validateReplay(replayData: ReplayData): Promise<ValidationResult>
-
-  private findNearestSnapshot(snapshots: Map<number, GameState>, turn: number): {
-    snapshot: GameState,
-    snapshotTurn: number
-  }
-
-  private executeCommand(
-    state: GameState,
-    command: CommandEvent
-  ): GameState
-}
-
-interface ValidationResult {
-  valid: boolean
-  desyncs: DesyncError[]
-  finalStateDifference?: string
-}
-
-interface DesyncError {
-  turn: number
-  field: string
-  expected: any
-  actual: any
-}
-```
-
-**Reconstruction Algorithm:**
-```
-reconstructState(replayData, toTurn):
-  1. Find nearest snapshot ≤ toTurn
-     - If toTurn = 250, use snapshot at turn 200
-     - If no snapshot, use initialState (turn 0)
-
-  2. Filter commands from snapshotTurn to toTurn
-
-  3. For each command:
-     a. Restore RNG state (if recorded)
-     b. Execute command
-     c. Advance turn counter
-
-  4. Return reconstructed GameState
-```
-
-**Command Execution:**
-```typescript
-private executeCommand(state: GameState, command: CommandEvent): GameState {
-  // Restore RNG state
-  if (command.rngState) {
-    this.randomService.setState(command.rngState)
-  }
-
-  // Reconstruct command object
-  const cmd = this.commandFactory.createFromEvent(command)
-
-  // Execute command
-  return cmd.execute(state)
-}
-```
-
-**Validation:**
-```typescript
-async validateReplay(replayData: ReplayData): Promise<ValidationResult> {
-  // Load saved final state
-  const savedState = await this.storageService.loadGame(replayData.gameId)
-
-  // Reconstruct final state from commands
-  const finalTurn = replayData.metadata.turnCount
-  const reconstructedState = await this.reconstructState(replayData, finalTurn)
-
-  // Compare states
-  const desyncs = this.compareStates(savedState, reconstructedState)
-
-  return {
-    valid: desyncs.length === 0,
-    desyncs: desyncs,
-    finalStateDifference: desyncs.length > 0 ? this.formatDiff(desyncs) : undefined
-  }
-}
-```
-
-**Test Coverage:**
-- Reconstruct state from commands (simple game)
-- Use snapshots for seeking
-- Validate determinism (replay twice = same result)
-- Detect desyncs
-- Handle missing commands
-- Handle corrupted replay data
-
----
-
-#### Task 3.2: Create ReplayPlayerService
-
-**File**: `src/services/ReplayPlayerService/ReplayPlayerService.ts`
-
-**Responsibilities:**
-- Manage replay playback UI state
-- Control playback (play/pause/stop)
-- Seek to specific turn
-- Speed control (0.5x, 1x, 2x, 4x)
-- Emit events for UI updates
-
-**Key Methods:**
-```typescript
-class ReplayPlayerService {
-  private currentTurn: number = 0
-  private isPlaying: boolean = false
-  private speed: number = 1.0  // Multiplier
-  private replayData: ReplayData | null = null
-
-  async loadReplay(gameId: string): Promise<void>
-  play(): void
-  pause(): void
-  stop(): void
-  seekToTurn(turn: number): Promise<void>
-  setSpeed(multiplier: number): void
-
-  getCurrentState(): GameState
-  getMetadata(): ReplayMetadata
-  getProgress(): { currentTurn: number, totalTurns: number, percentage: number }
-
-  // Event emitters
-  onStateChange: (state: GameState) => void
-  onPlaybackChange: (isPlaying: boolean) => void
-  onProgressChange: (progress: number) => void
-}
-```
-
-**Playback Loop:**
-```typescript
-async play() {
-  this.isPlaying = true
-
-  while (this.isPlaying && this.currentTurn < this.replayData.metadata.turnCount) {
-    // Reconstruct state at current turn
-    const state = await this.replayEngine.reconstructState(
-      this.replayData,
-      this.currentTurn
+    // Filter commands up to target turn
+    const commandsToExecute = replayData.commands.filter(
+      cmd => cmd.turnNumber <= targetTurn
     )
 
-    // Emit to UI
-    this.onStateChange(state)
-    this.onProgressChange(this.currentTurn / this.totalTurns)
+    // Replay each command
+    for (const commandEvent of commandsToExecute) {
+      // Restore RNG state before command
+      this.randomService.setState(commandEvent.rngState)
 
-    // Advance turn
-    this.currentTurn++
+      // Reconstruct and execute command
+      const command = this.commandFactory.createFromEvent(commandEvent)
+      currentState = command.execute(currentState)
+    }
 
-    // Delay based on speed (e.g., 100ms / speed)
-    await this.delay(100 / this.speed)
+    return currentState
   }
 
-  this.isPlaying = false
+  async validateDeterminism(
+    replayData: ReplayData,
+    savedState: GameState
+  ): Promise<ValidationResult> {
+    // Reconstruct final state from commands
+    const finalTurn = replayData.metadata.turnCount
+    const reconstructed = await this.reconstructToTurn(replayData, finalTurn)
+
+    // Deep comparison
+    const desyncs = this.compareStates(savedState, reconstructed)
+
+    return {
+      valid: desyncs.length === 0,
+      desyncs: desyncs
+    }
+  }
+
+  private compareStates(
+    state1: GameState,
+    state2: GameState
+  ): DesyncError[] {
+    const desyncs: DesyncError[] = []
+
+    // Compare player state
+    if (state1.player.hp !== state2.player.hp) {
+      desyncs.push({
+        turn: state1.turnCount,
+        field: 'player.hp',
+        expected: state1.player.hp,
+        actual: state2.player.hp
+      })
+    }
+
+    // Compare position
+    if (!this.positionsEqual(state1.player.position, state2.player.position)) {
+      desyncs.push({
+        turn: state1.turnCount,
+        field: 'player.position',
+        expected: state1.player.position,
+        actual: state2.player.position
+      })
+    }
+
+    // Compare monsters (count, positions, HP)
+    const level1 = state1.levels.get(state1.currentLevel)
+    const level2 = state2.levels.get(state2.currentLevel)
+
+    if (level1 && level2) {
+      if (level1.monsters.length !== level2.monsters.length) {
+        desyncs.push({
+          turn: state1.turnCount,
+          field: 'monsters.length',
+          expected: level1.monsters.length,
+          actual: level2.monsters.length
+        })
+      }
+
+      // Deep monster comparison...
+    }
+
+    // Compare items, dungeon tiles, etc.
+    // (comprehensive comparison of all game state)
+
+    return desyncs
+  }
+
+  private positionsEqual(pos1: Position, pos2: Position): boolean {
+    return pos1.x === pos2.x && pos1.y === pos2.y
+  }
 }
 ```
 
-**Seeking Optimization:**
-- Use snapshots for fast seeking
-- Cache recently reconstructed states
-- Throttle UI updates during fast playback
+**Command Factory:**
+Create a factory to reconstruct command instances from events:
+
+```typescript
+// src/services/CommandFactory/CommandFactory.ts
+
+interface ICommandFactory {
+  createFromEvent(event: CommandEvent): ICommand
+}
+
+class CommandFactory implements ICommandFactory {
+  constructor(
+    // Inject all services needed by commands
+    private movementService: MovementService,
+    private combatService: CombatService,
+    private inventoryService: InventoryService,
+    private recorder: CommandRecorderService,
+    private randomService: IRandomService,
+    // etc.
+  ) {}
+
+  createFromEvent(event: CommandEvent): ICommand {
+    switch (event.commandType) {
+      case COMMAND_TYPES.MOVE:
+        return new MoveCommand(
+          event.payload.direction,
+          this.recorder,
+          this.randomService,
+          this.movementService
+        )
+
+      case COMMAND_TYPES.ATTACK:
+        return new AttackCommand(
+          event.payload.target,
+          this.recorder,
+          this.randomService,
+          this.combatService
+        )
+
+      // ... all other command types
+
+      default:
+        throw new Error(`Unknown command type: ${event.commandType}`)
+    }
+  }
+}
+```
+
+**Implementation Notes:**
+- Command factory must mirror original command creation
+- State comparison needs to be comprehensive (all fields)
+- Consider using deep equality library (lodash, fast-deep-equal)
 
 **Test Coverage:**
-- Load replay
-- Play/pause/stop controls
-- Seek to specific turn
-- Speed adjustment
-- Progress tracking
-- Event emission
+```typescript
+describe('ReplayDebuggerService', () => {
+  it('should load replay data')
+  it('should reconstruct state from commands')
+  it('should restore RNG state correctly')
+  it('should reconstruct to specific turn')
+  it('should validate determinism (match)')
+  it('should detect desyncs (player HP mismatch)')
+  it('should detect desyncs (monster count mismatch)')
+  it('should detect desyncs (position mismatch)')
+  it('should handle missing replay gracefully')
+  it('should handle incompatible version gracefully')
+})
+```
+
+**Dependencies**: GameStorageService, RandomService, CommandFactory
+
+**Estimated Time**: 2 days
 
 ---
 
-#### Task 3.3: Create ReplayViewerState
+#### Task 3.2: Create CommandFactory
 
-**File**: `src/states/ReplayViewerState/ReplayViewerState.ts`
+**File**: `src/services/CommandFactory/CommandFactory.ts`
 
 **Responsibilities:**
-- UI state for watching replays
+- Reconstruct command instances from `CommandEvent` objects
+- Mirror original command creation logic
+- Inject all necessary dependencies
+
+**Implementation:**
+See code example in Task 3.1 above.
+
+**Key Considerations:**
+- Factory needs ALL service dependencies that commands use
+- Payload structure must match command constructor expectations
+- Handle unknown command types gracefully
+
+**Test Coverage:**
+```typescript
+describe('CommandFactory', () => {
+  it('should create MoveCommand from event')
+  it('should create AttackCommand from event')
+  it('should create all player command types')
+  it('should create all monster AI command types')
+  it('should create all system command types')
+  it('should throw on unknown command type')
+})
+```
+
+**Dependencies**: All command classes, all services
+
+**Estimated Time**: 1 day
+
+---
+
+#### Task 3.3: Create ReplayDebugState (UI)
+
+**File**: `src/states/ReplayDebugState/ReplayDebugState.ts`
+
+**Responsibilities:**
+- UI state for debugging replays
 - Render game state from replay
-- Show playback controls
-- Handle user input
+- Show live state inspector panel
+- Handle playback controls (play, pause, jump to turn)
+- Log replay progress to console
 
 **UI Layout:**
 ```
 ┌─────────────────────────────────────────────┐
-│  REPLAY: Character Name (Victory/Death)     │
+│  REPLAY DEBUG: Character Name              │
+│  Turn: 142 / 5234                           │
 ├─────────────────────────────────────────────┤
 │                                             │
 │         Game Rendering Area                 │
 │       (Same as PlayingState)                │
 │                                             │
 ├─────────────────────────────────────────────┤
-│  Turn: 1234 / 5000                          │
-│  [◀◀] [◀] [▶/⏸] [▶▶]    Speed: 2.0x       │
-│  ═════════════════════════════════          │
-│                                  (scrubber) │
+│  State Inspector:                           │
+│  player: { hp: 45, position: {x: 10, y: 5} }│
+│  monsters: [...]                            │
+│  (Live GameState JSON)                      │
 └─────────────────────────────────────────────┘
 ```
 
 **Key Methods:**
 ```typescript
-export class ReplayViewerState extends BaseState {
-  private replayPlayer: ReplayPlayerService
-  private currentState: GameState
+export class ReplayDebugState extends BaseState {
+  private replayDebugger: ReplayDebuggerService
+  private replayData: ReplayData | null = null
+  private currentTurn: number = 0
+  private isPlaying: boolean = false
+  private currentState: GameState | null = null
+  private playbackSpeed: number = 100  // ms per turn
 
-  constructor(gameId: string, replayPlayer: ReplayPlayerService) {
+  constructor(
+    private gameId: string,
+    replayDebugger: ReplayDebuggerService,
+    private renderer: CanvasGameRenderer
+  ) {
     super()
-    this.replayPlayer = replayPlayer
+    this.replayDebugger = replayDebugger
   }
 
   async enter(): Promise<void> {
-    await this.replayPlayer.loadReplay(this.gameId)
-    this.replayPlayer.onStateChange = (state) => {
-      this.currentState = state
+    // Load replay data
+    this.replayData = await this.replayDebugger.loadReplay(this.gameId)
+
+    if (!this.replayData) {
+      console.error('Failed to load replay')
+      return
     }
+
+    // Start at turn 0
+    this.currentTurn = 0
+    this.currentState = this.replayData.initialState
+
+    console.log('Replay loaded:', this.replayData.metadata)
+    console.log('Total turns:', this.replayData.metadata.turnCount)
   }
 
   update(deltaTime: number): void {
-    // Update playback if needed
+    // Auto-advance if playing
+    if (this.isPlaying) {
+      this.advanceOneTurn()
+
+      if (this.currentTurn >= this.replayData.metadata.turnCount) {
+        this.pause()
+        console.log('Replay finished')
+      }
+    }
   }
 
   render(): void {
+    if (!this.currentState) return
+
     // Render current game state (same as PlayingState)
     this.renderer.render(this.currentState)
 
-    // Render replay controls
+    // Render state inspector panel
+    this.renderStateInspector()
+
+    // Render controls
     this.renderControls()
   }
 
   handleInput(input: Input): void {
     switch (input.key) {
-      case 'Space': this.togglePlayPause(); break
-      case 'ArrowLeft': this.seekBackward(); break
-      case 'ArrowRight': this.seekForward(); break
-      case '1': this.replayPlayer.setSpeed(0.5); break
-      case '2': this.replayPlayer.setSpeed(1.0); break
-      case '3': this.replayPlayer.setSpeed(2.0); break
-      case '4': this.replayPlayer.setSpeed(4.0); break
-      case 'Escape': this.exit(); break
+      case 'Space':
+        this.togglePlayPause()
+        break
+
+      case 'ArrowRight':
+        this.advanceOneTurn()
+        break
+
+      case 'ArrowLeft':
+        this.rewindOneTurn()
+        break
+
+      case 'g':
+        this.jumpToTurn()  // Prompt for turn number
+        break
+
+      case 'v':
+        this.validateReplay()
+        break
+
+      case 'Escape':
+        this.exit()
+        break
+    }
+  }
+
+  private togglePlayPause(): void {
+    this.isPlaying = !this.isPlaying
+    console.log(this.isPlaying ? 'Playing...' : 'Paused')
+  }
+
+  private async advanceOneTurn(): Promise<void> {
+    if (!this.replayData) return
+
+    this.currentTurn++
+    this.currentState = await this.replayDebugger.reconstructToTurn(
+      this.replayData,
+      this.currentTurn
+    )
+
+    console.log(`Turn ${this.currentTurn}:`, this.currentState.messages[0])
+  }
+
+  private async rewindOneTurn(): Promise<void> {
+    if (this.currentTurn === 0) return
+
+    this.currentTurn--
+    this.currentState = await this.replayDebugger.reconstructToTurn(
+      this.replayData,
+      this.currentTurn
+    )
+  }
+
+  private async jumpToTurn(): Promise<void> {
+    const turn = prompt(`Jump to turn (0-${this.replayData.metadata.turnCount}):`)
+    const targetTurn = parseInt(turn, 10)
+
+    if (isNaN(targetTurn) || targetTurn < 0 || targetTurn > this.replayData.metadata.turnCount) {
+      console.error('Invalid turn number')
+      return
+    }
+
+    this.currentTurn = targetTurn
+    this.currentState = await this.replayDebugger.reconstructToTurn(
+      this.replayData,
+      this.currentTurn
+    )
+
+    console.log(`Jumped to turn ${this.currentTurn}`)
+  }
+
+  private async validateReplay(): Promise<void> {
+    console.log('Validating determinism...')
+
+    const savedState = await this.storageService.loadGame(this.gameId)
+    const result = await this.replayDebugger.validateDeterminism(
+      this.replayData,
+      savedState
+    )
+
+    if (result.valid) {
+      console.log('✓ Validation passed - replay is deterministic')
+    } else {
+      console.error('✗ Validation failed - desyncs detected:')
+      result.desyncs.forEach(desync => {
+        console.error(`  Turn ${desync.turn}: ${desync.field}`)
+        console.error(`    Expected:`, desync.expected)
+        console.error(`    Actual:`, desync.actual)
+      })
+    }
+  }
+
+  private renderStateInspector(): void {
+    // Render JSON state in inspector panel
+    const inspectorEl = document.getElementById('state-inspector')
+    if (inspectorEl && this.currentState) {
+      inspectorEl.textContent = JSON.stringify(this.currentState, null, 2)
+    }
+  }
+
+  private renderControls(): void {
+    const controlsEl = document.getElementById('replay-controls')
+    if (controlsEl) {
+      controlsEl.textContent = `
+        Turn: ${this.currentTurn} / ${this.replayData.metadata.turnCount}
+        [Space] Play/Pause | [→] Next | [←] Prev | [g] Jump | [v] Validate | [Esc] Exit
+      `
     }
   }
 
@@ -1044,213 +1297,47 @@ export class ReplayViewerState extends BaseState {
 }
 ```
 
+**HTML Elements (add to index.html):**
+```html
+<div id="replay-debug-ui" style="display: none;">
+  <div id="replay-controls"></div>
+  <div id="state-inspector"></div>
+</div>
+```
+
 **Controls:**
-- **Space** - Play/Pause
-- **Arrow Left** - Seek backward 10 turns
-- **Arrow Right** - Seek forward 10 turns
-- **1-4** - Speed control (0.5x, 1x, 2x, 4x)
-- **Home** - Jump to start
-- **End** - Jump to end
-- **Escape** - Exit to replay list
+- **Space** - Play/Pause replay
+- **Arrow Right** - Advance one turn
+- **Arrow Left** - Rewind one turn
+- **g** - Jump to specific turn (prompt)
+- **v** - Validate replay (compare with saved state)
+- **Escape** - Exit to main menu
+
+**Implementation Notes:**
+- State inspector shows full GameState as formatted JSON
+- Console logs show game messages as replay advances
+- Playback advances one turn at a time (no speed controls for simplicity)
 
 **Test Coverage:**
-- Replay viewer initialization
-- Control input handling
-- Rendering updates
-- State transitions
-
----
-
-#### Task 3.4: Add Replay List to Main Menu
-
-**File**: Update `src/states/MainMenuState/MainMenuState.ts`
-
-**Changes:**
-- Add "Watch Replays" menu option
-- Create replay selection screen
-- List games with metadata (character name, outcome, turn count)
-- Launch `ReplayViewerState` on selection
-
-**UI Flow:**
-```
-Main Menu
-  ├─ New Game
-  ├─ Continue
-  ├─ Watch Replays  ← NEW
-  └─ Settings
-
-Watch Replays Screen
-  ├─ List of replays:
-  │  ├─ "Hero (Victory) - 5234 turns - Level 26"
-  │  ├─ "Warrior (Died) - 1023 turns - Level 8"
-  │  └─ "Mage (Victory) - 4567 turns - Level 26"
-  └─ ESC to return
-```
-
-**Implementation:**
 ```typescript
-private async showReplayList() {
-  const replays = await this.storageService.listReplays()
-
-  // Sort by timestamp (most recent first)
-  replays.sort((a, b) => b.timestamp - a.timestamp)
-
-  // Render list
-  this.renderReplayList(replays)
-
-  // Handle selection
-  const selected = await this.waitForSelection()
-  if (selected) {
-    this.stateManager.pushState(new ReplayViewerState(selected.gameId))
-  }
-}
-```
-
-**Test Coverage:**
-- Replay list display
-- Replay selection
-- Launch viewer
-
----
-
-### Phase 4: Validation & Testing
-
-**Goal**: Ensure determinism and build regression test suite.
-
-#### Task 4.1: Create DeterminismValidatorService
-
-**File**: `src/services/DeterminismValidatorService/DeterminismValidatorService.ts`
-
-**Responsibilities:**
-- Validate game determinism during development
-- Detect replay desyncs early
-- Log discrepancies for debugging
-
-**Key Methods:**
-```typescript
-class DeterminismValidatorService {
-  async validateCurrentGame(
-    state: GameState,
-    replayData: ReplayData
-  ): Promise<ValidationResult>
-
-  async quickValidation(
-    state: GameState,
-    replayData: ReplayData
-  ): Promise<boolean>  // Last 100 turns only
-
-  private compareStates(
-    state1: GameState,
-    state2: GameState
-  ): DesyncError[]
-
-  private formatDiff(desyncs: DesyncError[]): string
-}
-```
-
-**Validation Trigger:**
-- Run on every save in debug mode
-- Run periodically in production (every 100 turns)
-- Run manually via debug key
-
-**Comparison Logic:**
-```typescript
-private compareStates(state1: GameState, state2: GameState): DesyncError[] {
-  const desyncs: DesyncError[] = []
-
-  // Compare player state
-  if (!this.deepEqual(state1.player, state2.player)) {
-    desyncs.push(this.findPlayerDifferences(state1.player, state2.player))
-  }
-
-  // Compare monsters
-  if (!this.deepEqual(state1.levels.get(state1.currentLevel)?.monsters,
-                      state2.levels.get(state2.currentLevel)?.monsters)) {
-    desyncs.push(this.findMonsterDifferences(...))
-  }
-
-  // Compare items, dungeon, etc.
-
-  return desyncs
-}
-```
-
-**Logging:**
-```typescript
-if (desyncs.length > 0) {
-  console.error('DESYNC DETECTED at turn', state.turnCount)
-  desyncs.forEach(desync => {
-    console.error(`  Field: ${desync.field}`)
-    console.error(`  Expected:`, desync.expected)
-    console.error(`  Actual:`, desync.actual)
-  })
-}
-```
-
-**Test Coverage:**
-- Detect desyncs correctly
-- Pass for deterministic games
-- Format diff output
-
----
-
-#### Task 4.2: Add Regression Test Suite
-
-**File**: `tests/regression/replay-regression.test.ts`
-
-**Goal**: Use canonical replays to detect breaking changes.
-
-**Structure:**
-```typescript
-describe('Replay Regression Tests', () => {
-  const FIXTURES = [
-    'victory-game-1.json',
-    'death-game-1.json',
-    'long-game-1.json'
-  ]
-
-  FIXTURES.forEach(fixture => {
-    it(`should replay ${fixture} without desyncs`, async () => {
-      // Load canonical replay
-      const replayData = loadFixture(fixture)
-
-      // Reconstruct final state
-      const reconstructed = await replayEngine.reconstructState(
-        replayData,
-        replayData.metadata.turnCount
-      )
-
-      // Load expected final state
-      const expected = replayData.expectedFinalState
-
-      // Compare
-      const desyncs = validator.compareStates(expected, reconstructed)
-
-      expect(desyncs).toEqual([])
-    })
-  })
+describe('ReplayDebugState', () => {
+  it('should load replay on enter')
+  it('should render current state')
+  it('should advance one turn')
+  it('should rewind one turn')
+  it('should jump to specific turn')
+  it('should validate replay')
+  it('should toggle play/pause')
 })
 ```
 
-**Canonical Replay Creation:**
-```typescript
-// Run once to create fixture
-npm run create-fixture -- --game-id=abc123 --output=victory-game-1.json
-```
+**Dependencies**: ReplayDebuggerService, CanvasGameRenderer
 
-**CI Integration:**
-- Run on every pull request
-- Fail if any replay desyncs
-- Indicates breaking change to game logic
-
-**Test Coverage:**
-- Multiple game scenarios (victory, death, long games)
-- Different monster behaviors
-- Different item usage patterns
+**Estimated Time**: 1 day
 
 ---
 
-#### Task 4.3: Add Debug Tools
+#### Task 3.4: Add Debug Command to Launch Replay
 
 **File**: Update `src/services/DebugService/DebugService.ts`
 
@@ -1260,29 +1347,53 @@ handleInput(key: string, state: GameState): void {
   // Existing debug commands...
 
   switch (key) {
-    case 'r':  // Export replay
+    case 'r':  // Launch replay debugger for current game
+      this.launchReplayDebugger(state.gameId)
+      break
+
+    case 'R':  // Launch replay debugger (choose from list)
+      this.chooseAndLaunchReplay()
+      break
+
+    case 'e':  // Export replay to file
       this.exportReplay(state.gameId)
-      break
-
-    case 'R':  // Import replay
-      this.importReplay()
-      break
-
-    case 'y':  // Validate determinism
-      this.validateDeterminism(state)
-      break
-
-    case 'Y':  // Full validation (all turns)
-      this.fullValidation(state)
       break
   }
 }
-```
 
-**Export Replay:**
-```typescript
-async exportReplay(gameId: string) {
-  const replayData = await this.storageService.loadReplay(gameId)
+private launchReplayDebugger(gameId: string): void {
+  console.log('Launching replay debugger for game:', gameId)
+
+  // Push ReplayDebugState onto state stack
+  this.stateManager.pushState(
+    new ReplayDebugState(gameId, this.replayDebugger, this.renderer)
+  )
+}
+
+private async chooseAndLaunchReplay(): Promise<void> {
+  // List all replays
+  const replays = await this.storageService.listReplays()
+
+  console.log('Available replays:')
+  replays.forEach((replay, index) => {
+    console.log(`${index}: ${replay.characterName} - Turn ${replay.turnCount} - ${replay.outcome}`)
+  })
+
+  const choice = prompt('Choose replay number:')
+  const index = parseInt(choice, 10)
+
+  if (index >= 0 && index < replays.length) {
+    this.launchReplayDebugger(replays[index].gameId)
+  }
+}
+
+private async exportReplay(gameId: string): Promise<void> {
+  const replayData = await this.replayDebugger.loadReplay(gameId)
+
+  if (!replayData) {
+    console.error('No replay data found')
+    return
+  }
 
   // Convert to JSON
   const json = JSON.stringify(replayData, null, 2)
@@ -1295,307 +1406,503 @@ async exportReplay(gameId: string) {
   a.download = `replay-${gameId}.json`
   a.click()
 
-  this.log('Replay exported successfully')
+  console.log('Replay exported successfully')
 }
 ```
 
-**Validate Determinism:**
+**Usage for Claude:**
+1. User plays game, encounters bug
+2. User tells Claude: "Find my latest replay and debug this issue"
+3. Claude uses Read tool to access exported replay JSON, OR
+4. Claude tells user: "Press `R` key in debug mode to launch replay"
+5. Replay plays visually, Claude reads console logs and state
+6. Claude identifies bug from state inspection
+
+**Test Coverage:**
 ```typescript
-async validateDeterminism(state: GameState) {
-  this.log('Validating determinism (last 100 turns)...')
+describe('DebugService Replay Commands', () => {
+  it('should launch replay debugger')
+  it('should list available replays')
+  it('should export replay to file')
+})
+```
 
-  const replayData = await this.storageService.loadReplay(state.gameId)
-  const result = await this.validator.quickValidation(state, replayData)
+**Dependencies**: ReplayDebugState, ReplayDebuggerService
 
-  if (result) {
-    this.log('✓ Validation passed - game is deterministic')
-  } else {
-    this.log('✗ Validation failed - desync detected')
-    this.log('Check console for details')
+**Estimated Time**: 0.5 days
+
+---
+
+### Phase 4: Testing & Validation (Days 10-11)
+
+**Goal**: Ensure determinism and build test suite.
+
+#### Task 4.1: Add Automatic Validation in Debug Mode
+
+**File**: Update `src/middleware/AutoSaveMiddleware.ts`
+
+**Add validation check after save:**
+
+```typescript
+export class AutoSaveMiddleware implements IMiddleware {
+  constructor(
+    private storageService: GameStorageService,
+    private replayDebugger: ReplayDebuggerService,
+    private interval: number = 10
+  ) {}
+
+  async execute(state: GameState): Promise<GameState> {
+    // Auto-save every N turns
+    if (state.turnCount % this.interval === 0) {
+      await this.storageService.saveGame(state)
+
+      // In debug mode, validate determinism
+      if (DEBUG_MODE) {
+        await this.validateDeterminism(state)
+      }
+    }
+
+    return state
+  }
+
+  private async validateDeterminism(state: GameState): Promise<void> {
+    const replayData = await this.replayDebugger.loadReplay(state.gameId)
+
+    if (!replayData) {
+      console.warn('No replay data to validate')
+      return
+    }
+
+    const result = await this.replayDebugger.validateDeterminism(replayData, state)
+
+    if (!result.valid) {
+      console.error('NON-DETERMINISM DETECTED at turn', state.turnCount)
+      result.desyncs.forEach(desync => {
+        console.error(`  ${desync.field}: expected ${desync.expected}, got ${desync.actual}`)
+      })
+    } else {
+      console.log('✓ Determinism validated at turn', state.turnCount)
+    }
   }
 }
 ```
 
+**Why This Matters:**
+- Catches non-determinism bugs early during development
+- Validates replay system is working correctly
+- No manual validation needed
+
 **Test Coverage:**
-- Export replay to file
-- Import replay from file
-- Validation command execution
+```typescript
+describe('AutoSaveMiddleware Validation', () => {
+  it('should validate determinism after save in debug mode')
+  it('should log errors on desync')
+  it('should pass on deterministic game')
+})
+```
+
+**Dependencies**: ReplayDebuggerService
+
+**Estimated Time**: 0.5 days
 
 ---
 
-#### Task 4.4: Update Documentation
+#### Task 4.2: Create Integration Test Suite
 
-**Files to Update:**
+**File**: `tests/integration/replay-system.test.ts`
 
-**1. `docs/systems-advanced.md`** - Add Replay System section
-```markdown
-## Replay System
+**Goal**: Test full save/load/replay cycle.
 
-### Overview
-The replay system records all player and AI commands during gameplay, enabling:
-- Bug reproduction for debugging
-- Regression testing with canonical replays
-- User-facing replay viewer for watching past games
+**Test Cases:**
+```typescript
+describe('Replay System Integration', () => {
+  let storageService: GameStorageService
+  let replayDebugger: ReplayDebuggerService
+  let recorder: CommandRecorderService
 
-### Architecture
-[Dual storage explanation]
-[Command recording flow]
-[Replay reconstruction algorithm]
+  beforeEach(async () => {
+    // Setup services
+    storageService = new GameStorageService(...)
+    recorder = new CommandRecorderService()
+    replayDebugger = new ReplayDebuggerService(...)
+  })
 
-### Command Recording
-[How commands are captured]
-[CommandEvent structure]
-[RNG state management]
+  it('should record commands during gameplay', () => {
+    const state = createNewGame()
+    recorder.setInitialState(state)
 
-### Replay Viewer
-[UI controls]
-[Seeking]
-[Speed control]
+    // Execute commands
+    const moveCmd = new MoveCommand('north', recorder, ...)
+    const newState = moveCmd.execute(state)
 
-### Determinism Requirements
-[Why determinism matters]
-[Common sources of non-determinism]
-[How to maintain determinism]
+    // Verify recording
+    const log = recorder.getCommandLog()
+    expect(log).toHaveLength(1)
+    expect(log[0].commandType).toBe('move')
+  })
+
+  it('should save and load replay data', async () => {
+    const state = createTestGame()
+    recorder.setInitialState(state)
+
+    // Play some turns
+    const finalState = playNTurns(state, 10)
+
+    // Save
+    await storageService.saveGame(finalState)
+
+    // Load replay
+    const replayData = await replayDebugger.loadReplay(finalState.gameId)
+
+    expect(replayData).toBeDefined()
+    expect(replayData.commands).toHaveLength(10)
+    expect(replayData.metadata.turnCount).toBe(10)
+  })
+
+  it('should replay deterministically', async () => {
+    const state = createTestGame()
+    recorder.setInitialState(state)
+
+    // Play 100 turns
+    const finalState = playNTurns(state, 100)
+
+    // Save
+    await storageService.saveGame(finalState)
+
+    // Load and replay
+    const replayData = await replayDebugger.loadReplay(finalState.gameId)
+    const reconstructed = await replayDebugger.reconstructToTurn(replayData, 100)
+
+    // Should match exactly
+    expect(reconstructed.player.hp).toBe(finalState.player.hp)
+    expect(reconstructed.player.position).toEqual(finalState.player.position)
+    expect(reconstructed.turnCount).toBe(100)
+  })
+
+  it('should validate determinism', async () => {
+    const state = createTestGame()
+    recorder.setInitialState(state)
+
+    const finalState = playNTurns(state, 50)
+    await storageService.saveGame(finalState)
+
+    const replayData = await replayDebugger.loadReplay(finalState.gameId)
+    const result = await replayDebugger.validateDeterminism(replayData, finalState)
+
+    expect(result.valid).toBe(true)
+    expect(result.desyncs).toHaveLength(0)
+  })
+
+  it('should handle 1000+ turn game', async () => {
+    const state = createTestGame()
+    recorder.setInitialState(state)
+
+    const finalState = playNTurns(state, 1000)
+
+    // Save should succeed (no quota errors)
+    await expect(storageService.saveGame(finalState)).resolves.not.toThrow()
+
+    // Replay should succeed
+    const replayData = await replayDebugger.loadReplay(finalState.gameId)
+    const reconstructed = await replayDebugger.reconstructToTurn(replayData, 1000)
+
+    expect(reconstructed.turnCount).toBe(1000)
+  })
+})
 ```
 
-**2. `docs/testing-strategy.md`** - Add Regression Testing section
-```markdown
-## Regression Testing with Replays
+**Helper Functions:**
+```typescript
+function playNTurns(state: GameState, n: number): GameState {
+  let currentState = state
 
-### Creating Canonical Replays
-1. Play test game to completion
-2. Export replay: Press `r` in debug mode
-3. Save to `tests/fixtures/replays/`
-4. Add to regression test suite
+  for (let i = 0; i < n; i++) {
+    // Execute random command
+    const command = pickRandomCommand()
+    currentState = command.execute(currentState)
+  }
 
-### Running Regression Tests
-```bash
-npm run test:regression
+  return currentState
+}
 ```
 
-### Interpreting Results
-- Desync = breaking change to game logic
-- Check which field differs
-- Determine if intentional or bug
+**Test Coverage:**
+- Full save/load cycle
+- Command recording
+- Deterministic replay
+- Validation
+- Large games (1000+ turns)
 
-### Updating Canonical Replays
+**Dependencies**: All services
+
+**Estimated Time**: 1 day
+
+---
+
+#### Task 4.3: Create Determinism Regression Tests
+
+**File**: `tests/regression/determinism.test.ts`
+
+**Goal**: Use canonical replays to catch breaking changes.
+
+**Setup:**
+1. Play test game to completion (manually or scripted)
+2. Export replay: `exportReplay(gameId)`
+3. Save to `tests/fixtures/replays/canonical-game-1.json`
+4. Add to regression suite
+
+**Test Cases:**
+```typescript
+describe('Determinism Regression Tests', () => {
+  const FIXTURES = [
+    'canonical-game-1.json',  // Victory game
+    'canonical-game-2.json',  // Death game
+    'canonical-game-3.json',  // Long game (1000+ turns)
+  ]
+
+  FIXTURES.forEach(fixture => {
+    it(`should replay ${fixture} without desyncs`, async () => {
+      // Load canonical replay
+      const replayData = loadFixture(fixture)
+
+      // Reconstruct final state
+      const reconstructed = await replayDebugger.reconstructToTurn(
+        replayData,
+        replayData.metadata.turnCount
+      )
+
+      // Load expected final state (embedded in fixture)
+      const expected = replayData.expectedFinalState
+
+      // Compare
+      const result = await replayDebugger.validateDeterminism(replayData, expected)
+
+      expect(result.valid).toBe(true)
+      if (!result.valid) {
+        console.error('Desyncs detected:', result.desyncs)
+      }
+    })
+  })
+})
+```
+
+**CI Integration:**
+Add to `.github/workflows/test.yml` (or equivalent):
+```yaml
+- name: Run regression tests
+  run: npm run test:regression
+```
+
+**When to Update Fixtures:**
 - After intentional game logic change
 - Re-export replays with new behavior
 - Update expected states
+
+**Test Coverage:**
+- Multiple game scenarios (victory, death, long games)
+- Different command patterns
+- Edge cases (monster AI, item usage, etc.)
+
+**Dependencies**: Canonical replay fixtures
+
+**Estimated Time**: 0.5 days
+
+---
+
+### Phase 5: Documentation & Polish (Day 12)
+
+**Goal**: Document the system and clean up.
+
+#### Task 5.1: Update Documentation
+
+**Files to Create/Update:**
+
+**1. Create `docs/replay-system.md`**
+
+```markdown
+# Replay System
+
+## Overview
+The replay system records all player and AI commands during gameplay, enabling:
+- Bug reproduction for debugging
+- Deterministic replay for analysis
+- Validation of game logic
+
+## Architecture
+
+### Dual Storage
+- **saves** store: Full GameState snapshots (for fast loading)
+- **replays** store: Initial state + command log (for debugging)
+
+### Command Recording
+Every command records before execution:
+- Turn number
+- Command type
+- Actor (player/monster)
+- Payload (command data)
+- RNG state (for determinism)
+
+### Replay Reconstruction
+1. Start from initial state (turn 0)
+2. Restore RNG state before each command
+3. Execute command
+4. Advance turn counter
+5. Result is deterministic
+
+## Debug Workflow
+
+### For Claude
+1. User encounters bug during gameplay
+2. User says: "Find my latest replay and debug this issue"
+3. Claude reads replay data from IndexedDB
+4. Claude triggers replay debugger (or analyzes data directly)
+5. Claude identifies bug from state inspection
+
+### Debug Commands
+- **r** - Launch replay debugger for current game
+- **R** - Choose replay from list
+- **e** - Export replay to JSON file
+- **v** - Validate determinism
+
+### Replay Debug Controls
+- **Space** - Play/Pause
+- **Arrow Right** - Next turn
+- **Arrow Left** - Previous turn
+- **g** - Jump to turn
+- **v** - Validate replay
+- **Escape** - Exit
+
+## Determinism Requirements
+
+### Critical Rules
+1. **Always use `IRandomService`** - Never use `Math.random()`
+2. **Capture RNG state before commands** - Ensures reproducibility
+3. **No timing-dependent logic** - Turn-based only
+4. **No browser API randomness** - Use seeded RNG only
+
+### Common Sources of Non-Determinism
+- `Math.random()` instead of `RandomService`
+- `Date.now()` for game logic (OK for metadata)
+- Uncontrolled iteration order (use arrays, not Sets/Maps for critical order)
+- Floating-point arithmetic (minimize, use integers when possible)
+
+### Validation
+- Automatic validation in debug mode (every auto-save)
+- Manual validation via debug command (`v`)
+- Regression tests with canonical replays
+
+## Testing
+
+### Integration Tests
+- Full save/load/replay cycle
+- Determinism validation
+- Large games (1000+ turns)
+
+### Regression Tests
+- Canonical replays detect breaking changes
+- Run in CI/CD pipeline
+- Update fixtures after intentional changes
+
+## Troubleshooting
+
+### "Non-determinism detected"
+1. Check console for which field desynced
+2. Trace back to command that modified that field
+3. Check if command uses `Math.random()` instead of `RandomService`
+4. Check if RNG state was captured correctly
+
+### "Replay version incompatible"
+- Old replay format from previous version
+- Cannot be replayed (graceful degradation)
+- Game can still be loaded from saves store
+
+### "No replay data found"
+- Game was loaded (not started fresh)
+- Recording started from load point (no initial state)
+- Export current replay for debugging from this point forward
 ```
 
-**3. Create `docs/replay-system.md`** - Dedicated replay documentation
-- Complete guide to replay system
-- Developer guide (maintaining determinism)
-- User guide (watching replays)
-- Troubleshooting
+**2. Update `docs/architecture.md`**
+
+Add section on replay system:
+```markdown
+## Replay System
+
+The replay system uses **event sourcing** pattern:
+- Commands are events
+- State reconstructed by replaying events
+- Dual storage for safety (full state + event log)
+
+See [Replay System](./replay-system.md) for details.
+```
+
+**3. Update `docs/testing-strategy.md`**
+
+Add section on regression testing:
+```markdown
+## Regression Testing with Replays
+
+Canonical replays ensure game logic doesn't break:
+1. Export replay after manual testing
+2. Save to `tests/fixtures/replays/`
+3. Add to `determinism.test.ts`
+4. CI runs on every commit
+
+See [Replay System - Testing](./replay-system.md#testing) for details.
+```
+
+**4. Update `CLAUDE.md`**
+
+Add to Quick Links and Common Pitfalls:
+```markdown
+## Quick Links
+- **[Replay System](./docs/replay-system.md)** - Command recording and debugging
+
+## Common Pitfalls
+
+### Using Math.random() Instead of RandomService
+**Violates**: Determinism (breaks replay)
+
+✅ **Solution**: Always inject and use `IRandomService`
+
+**Details**: [Replay System - Determinism](./docs/replay-system.md#determinism-requirements)
+```
 
 **Test Coverage:**
 - Documentation completeness
 - Code examples are correct
 - Links are valid
 
----
+**Dependencies**: None
 
-### Phase 5: Performance Optimization
-
-**Goal**: Ensure smooth performance with large games.
-
-#### Task 5.1: Optimize Command Log Storage
-
-**Approaches:**
-
-1. **Compression** (Easy win)
-   ```typescript
-   async saveReplay(replayData: ReplayData) {
-     // Compress commands array before storage
-     const compressed = await this.compressionWorker.compress(
-       JSON.stringify(replayData.commands)
-     )
-
-     const optimized = {
-       ...replayData,
-       commands: compressed
-     }
-
-     await this.indexedDB.put('replays', optimized)
-   }
-   ```
-
-2. **Binary Format** (Advanced)
-   - Encode commands as binary (ArrayBuffer)
-   - Smaller size, faster serialization
-   - More complex to implement
-
-3. **Pruning Old Turns** (Optional)
-   - Keep only last N turns in full detail
-   - Older turns: keep snapshots only
-   - Reduces storage for very long games
-
-**Benchmark Target:**
-- 10,000 turn game should store/load in <1 second
-- Replay playback should maintain 60fps
-
-**Test Coverage:**
-- Large game (5000+ turns) save/load performance
-- Compression ratio
-- Memory usage
-
----
-
-#### Task 5.2: Add Background Saving (Optional)
-
-**If needed**, move IndexedDB writes to Web Worker:
-```typescript
-class IndexedDBWorkerService {
-  private worker: Worker
-
-  async saveInBackground(data: any): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.worker.postMessage({ action: 'save', data })
-      this.worker.onmessage = (e) => {
-        if (e.data.success) resolve()
-        else reject(e.data.error)
-      }
-    })
-  }
-}
-```
-
-**Benefits:**
-- Main thread stays responsive
-- No frame drops during save
-- Better UX for large saves
-
-**Trade-offs:**
-- More complexity
-- Harder to debug
-- May not be needed if IndexedDB already fast enough
-
----
-
-#### Task 5.3: Add Replay Caching
-
-**Cache recently reconstructed states:**
-```typescript
-class ReplayPlayerService {
-  private stateCache: Map<number, GameState> = new Map()
-  private cacheSize: number = 100  // Keep last 100 states
-
-  async seekToTurn(turn: number): Promise<void> {
-    // Check cache first
-    if (this.stateCache.has(turn)) {
-      this.currentState = this.stateCache.get(turn)
-      return
-    }
-
-    // Reconstruct and cache
-    const state = await this.replayEngine.reconstructState(this.replayData, turn)
-    this.cacheState(turn, state)
-    this.currentState = state
-  }
-
-  private cacheState(turn: number, state: GameState): void {
-    this.stateCache.set(turn, state)
-
-    // Evict oldest if over limit
-    if (this.stateCache.size > this.cacheSize) {
-      const oldest = Math.min(...this.stateCache.keys())
-      this.stateCache.delete(oldest)
-    }
-  }
-}
-```
-
-**Benefits:**
-- Faster seeking within recently viewed range
-- Smoother scrubbing
-- Better UX for replay viewer
-
-**Test Coverage:**
-- Cache hit/miss
-- Cache eviction
-- Seeking performance
-
----
-
-## Verification & Testing Strategy
-
-### Test Pyramid
-
-```
-           /\
-          /  \      E2E Tests (Regression)
-         /____\     - Canonical replay tests
-        /      \    Integration Tests
-       /        \   - Full save/load cycle
-      /          \  - Replay reconstruction
-     /____________\ Unit Tests
-                    - Individual services
-                    - Command recording
-                    - State comparison
-```
-
-### Coverage Goals
-
-| Layer | Target Coverage | Critical Areas |
-|-------|----------------|----------------|
-| **Services** | 100% | IndexedDB, Replay Engine, Validator |
-| **Commands** | >80% | Command recording integration |
-| **Integration** | >90% | Save/load, Replay reconstruction |
-| **Regression** | 100% | All canonical replays pass |
-
-### Manual Testing Checklist
-
-After each phase:
-- [ ] Play game for 100+ turns
-- [ ] Save and load successfully
-- [ ] No quota errors
-- [ ] Replay reconstruction matches saved state
-- [ ] Watch replay in viewer
-- [ ] All playback controls work
-- [ ] No performance issues
-- [ ] Check IndexedDB in DevTools
-- [ ] Test on multiple browsers (Chrome, Firefox, Safari)
-
-### Performance Benchmarks
-
-| Operation | Target | Acceptable |
-|-----------|--------|------------|
-| **Save game** (full state) | <50ms | <100ms |
-| **Load game** | <100ms | <200ms |
-| **Save replay** | <100ms | <200ms |
-| **Reconstruct state** (100 turns) | <50ms | <100ms |
-| **Replay playback** (FPS) | 60fps | 30fps |
-| **Seek operation** | <100ms | <200ms |
+**Estimated Time**: 1 day
 
 ---
 
 ## Success Criteria
 
 ### Functional Requirements
-- ✅ No localStorage quota errors (gigabytes available)
-- ✅ Save/load games with same UX as before
-- ✅ All player and AI commands recorded during gameplay
+- ✅ No localStorage quota errors (gigabytes available in IndexedDB)
+- ✅ Save/load games with same auto-save interval (10 turns)
+- ✅ All player and AI commands recorded with RNG state
 - ✅ Replays reconstruct game state deterministically
-- ✅ Replay viewer shows game playback with full controls
-- ✅ Regression tests use replays to catch breaking changes
-- ✅ Determinism validator detects desyncs
-- ✅ Debug tools for replay export/import/validation
+- ✅ Replay debugger shows visual playback + state inspector
+- ✅ Jump to specific turn capability
+- ✅ Validation detects desyncs (debug mode)
+- ✅ Debug commands for replay export/launch
 
 ### Performance Requirements
-- ✅ Save operation <100ms
+- ✅ Save operation <200ms
 - ✅ Load operation <200ms
-- ✅ Replay playback 60fps
-- ✅ Seeking <100ms
-- ✅ Handles 10,000+ turn games without issues
+- ✅ Replay reconstruction (100 turns) <100ms
+- ✅ Handles 1000+ turn games without issues
 
 ### Quality Requirements
-- ✅ All tests pass (>80% coverage overall)
+- ✅ All tests pass (>85% coverage overall)
 - ✅ No regression in existing functionality
 - ✅ Documentation complete and accurate
 - ✅ Code follows architectural patterns (SOLID, immutability)
-- ✅ Works in all modern browsers (Chrome, Firefox, Safari, Edge)
+- ✅ Works in modern browsers (Chrome, Firefox, Safari, Edge)
 
 ---
 
@@ -1606,20 +1913,18 @@ After each phase:
 **Likelihood**: MEDIUM
 **Impact**: HIGH
 
-**Sources of Non-Determinism:**
-- Floating-point arithmetic variations
-- Timing-dependent logic (setTimeout, Date.now())
-- Uncontrolled randomness (Math.random() instead of seeded RNG)
-- Race conditions (async operations)
-- Browser API variations (different browsers, different results)
+**Sources:**
+- `Math.random()` instead of seeded RNG
+- Timing-dependent logic
+- Browser API variations
 
 **Mitigations:**
-1. ✅ **Turn-based game** = naturally deterministic (no timing issues)
-2. ✅ **Seeded RNG** with state capture = reproducible randomness
-3. ✅ **Pure functions** = predictable state transitions
-4. ✅ **Validation layer** = catches desyncs early during development
-5. ✅ **Snapshot fallback** = can recover from desyncs
-6. ✅ **Regression tests** = detect breaking changes immediately
+1. ✅ Turn-based game (no timing issues)
+2. ✅ Seeded RNG with state capture
+3. ✅ Pure functions
+4. ✅ Validation layer (catches desyncs early)
+5. ✅ Dual storage (full state as fallback)
+6. ✅ Regression tests (detect breaking changes)
 
 ---
 
@@ -1628,39 +1933,34 @@ After each phase:
 **Likelihood**: LOW
 **Impact**: MEDIUM
 
-**Potential Issues:**
+**Issues:**
 - Safari auto-deletes IndexedDB if storage low
-- Quota limits vary by browser
-- Private browsing mode restrictions
-- Older browsers may not support IndexedDB
+- Private browsing restrictions
+- Quota limits vary
 
 **Mitigations:**
-1. ✅ All modern browsers support IndexedDB (2024+)
-2. ✅ Detect quota and warn user before save
-3. ✅ Graceful degradation (localStorage fallback if needed)
-4. ✅ Clear error messages if IndexedDB unavailable
-5. ✅ Test on multiple browsers (Chrome, Firefox, Safari, Edge)
+1. ✅ All modern browsers support IndexedDB
+2. ✅ Detect quota and warn user
+3. ✅ Clear error messages
+4. ✅ Test on multiple browsers
 
 ---
 
-### Risk 3: Large Command Logs Exceed Performance Budgets
+### Risk 3: Large Command Logs Performance
 
 **Likelihood**: MEDIUM
-**Impact**: MEDIUM
+**Impact**: LOW
 
 **Scenarios:**
 - Very long games (5000+ turns)
-- Many monsters = many AI commands per turn
-- Storage size grows large
+- Many monsters = many commands per turn
 - Reconstruction becomes slow
 
 **Mitigations:**
-1. ✅ **Compression** = 60-80% size reduction
-2. ✅ **Snapshots** = fast seeking without full replay
-3. ✅ **Binary format** (if needed) = smaller, faster
-4. ✅ **Pruning** (optional) = keep only recent turns in full detail
-5. ✅ **Benchmarking** = test with 10,000 turn games
-6. ✅ **IndexedDB handles large data** = designed for this
+1. ✅ Compression (60-80% size reduction)
+2. ✅ IndexedDB handles large data well
+3. ✅ Benchmarking (test 1000+ turn games)
+4. ✅ Reconstruction is one-time (not real-time)
 
 ---
 
@@ -1670,108 +1970,114 @@ After each phase:
 **Impact**: LOW
 
 **Scenarios:**
-- Refactor game logic = old commands may not execute correctly
-- Change monster AI = different behavior
-- Add new features = old replays missing data
+- Refactor game logic
+- Change command structure
+- Add new features
 
 **Mitigations:**
-1. ✅ **Version replays** = mark with game version
-2. ✅ **Graceful degradation** = show "incompatible version" message
-3. ✅ **Focus on recent replays** = old replays less critical
-4. ✅ **Full state save as backup** = can always load game normally
-5. ✅ **Migration logic** (if needed) = upgrade old replays to new format
-6. ⚠️ **Accept breakage** = replays are best-effort, not guaranteed forever
-
----
-
-### Risk 5: Migration Failures
-
-**Likelihood**: LOW
-**Impact**: MEDIUM
-
-**Scenarios:**
-- Corrupted localStorage saves
-- Migration script bugs
-- User closes browser mid-migration
-
-**Mitigations:**
-1. ✅ **Validate before migration** = check save is valid v4 format
-2. ✅ **Don't delete localStorage until success** = rollback capability
-3. ✅ **Skip corrupted saves** = migrate others successfully
-4. ✅ **Show progress** = user knows what's happening
-5. ✅ **Thorough testing** = test migration with real v4 saves
+1. ✅ Version replays
+2. ✅ Graceful degradation ("incompatible version")
+3. ✅ Full state save as backup
+4. ✅ Focus on recent replays (old ones less critical)
+5. ⚠️ Accept breakage (replays are best-effort)
 
 ---
 
 ## Timeline & Milestones
 
-### Week 1: Foundation (Phase 1)
-- Days 1-2: IndexedDBService + tests
-- Days 3-4: GameStorageService + tests
-- Day 5: PreferencesService migration + MigrationService
+### Days 1-3: IndexedDB Foundation
+- IndexedDBService
+- GameStorageService
+- Initial tests
 
-**Milestone**: Can save/load games via IndexedDB, localStorage migration working
-
----
-
-### Week 2: Recording (Phase 2)
-- Day 1: Define command event schema
-- Day 2: CommandRecorderService + tests
-- Days 3-4: Integrate into all 40+ commands
-- Day 5: RandomService updates + replay storage
-
-**Milestone**: All commands recorded, saved to IndexedDB alongside game state
+**Milestone**: Can save/load games via IndexedDB
 
 ---
 
-### Week 3: Replay (Phase 3)
-- Days 1-2: ReplayEngineService + tests
-- Day 3: ReplayPlayerService + tests
-- Days 4-5: ReplayViewerState UI + main menu integration
+### Days 4-6: Command Recording
+- Command event schema
+- CommandRecorderService
+- Update all commands
+- RandomService determinism
 
-**Milestone**: Can watch replays in full-featured viewer
+**Milestone**: All commands recorded and saved to IndexedDB
 
 ---
 
-### Week 4: Polish (Phases 4-5)
-- Days 1-2: DeterminismValidatorService + regression tests
-- Day 3: Debug tools + documentation
-- Days 4-5: Performance optimization + final testing
+### Days 7-9: Replay Debugging
+- ReplayDebuggerService
+- CommandFactory
+- ReplayDebugState UI
+- Debug commands
 
-**Milestone**: Production-ready with validation, tests, docs, and performance tuning
+**Milestone**: Can visually replay games with state inspection
+
+---
+
+### Days 10-11: Testing & Validation
+- Automatic validation
+- Integration tests
+- Regression tests
+
+**Milestone**: Determinism validated, test suite complete
+
+---
+
+### Day 12: Documentation & Polish
+- Documentation updates
+- Code cleanup
+- Final testing
+
+**Milestone**: Production-ready system
+
+---
+
+## Implementation Order
+
+**Critical Path:**
+1. IndexedDBService (foundation)
+2. GameStorageService (storage layer)
+3. CommandRecorderService (recording)
+4. Update RandomService (determinism)
+5. Update all commands (integration)
+6. ReplayDebuggerService (reconstruction)
+7. CommandFactory (command recreation)
+8. ReplayDebugState (UI)
+9. Testing & validation
+10. Documentation
+
+**Parallel Work (if multiple developers):**
+- IndexedDB layer + Command recording can happen in parallel
+- Testing can start early with incremental integration
 
 ---
 
 ## Open Questions
 
-1. **Command Payload Format**: Should we define strict TypeScript types for each command's payload, or keep it flexible with `any`?
-   - **Recommendation**: Start with `any`, refactor to strict types if needed
+1. **Command Payload Format**: Strict TypeScript types or flexible `any`?
+   - **Recommendation**: Start with `any`, refactor if needed
 
-2. **Snapshot Interval**: 100 turns seems reasonable, but may need tuning. Too frequent = large storage, too infrequent = slow seeking.
-   - **Recommendation**: Start with 100, benchmark, adjust if needed
+2. **State Comparison Depth**: Deep equality on entire GameState or selective fields?
+   - **Recommendation**: Deep equality, use library (fast-deep-equal)
 
-3. **Binary Format**: Worth the complexity for smaller size?
-   - **Recommendation**: Start with JSON + compression, add binary if needed
+3. **Replay Viewer Polish**: How much UI investment?
+   - **Recommendation**: Minimal (functional debug tool, not polished feature)
 
-4. **Replay Viewer Polish**: How much UI polish needed? (progress bar styling, metadata display, etc.)
-   - **Recommendation**: Start with functional UI, polish later if user-facing feature
-
-5. **Migration Timing**: Should migration happen on first startup, or provide manual trigger?
-   - **Recommendation**: Automatic on first startup with progress notification
+4. **Export Format**: JSON only or support binary?
+   - **Recommendation**: JSON only (human-readable for Claude)
 
 ---
 
 ## Future Enhancements (Out of Scope)
 
-These are potential future improvements, but NOT part of initial implementation:
-
-1. **Replay Sharing** - Export/import replays to share with other players
-2. **Replay Annotations** - Add comments/notes to specific turns
-3. **Replay Comparison** - Compare two replays side-by-side
-4. **Replay Search** - Find replays by criteria (won games, specific monster kills, etc.)
-5. **Cloud Sync** - Sync saves/replays across devices
-6. **Replay Highlights** - Auto-detect interesting moments (boss fights, close calls)
-7. **Replay Statistics** - Aggregate stats across all replays (win rate, avg turns, etc.)
+NOT part of initial implementation:
+- Replay sharing (export/import)
+- User-facing replay list in main menu
+- Playback speed controls (0.5x, 2x, etc.)
+- Periodic snapshots for fast seeking
+- Replay annotations
+- Cloud sync
+- Replay statistics
 
 ---
 
@@ -1785,11 +2091,13 @@ These are potential future improvements, but NOT part of initial implementation:
 ### Internal Documentation
 - [Architecture](./architecture.md)
 - [Testing Strategy](./testing-strategy.md)
-- [Core Systems](./systems-core.md)
-- [Advanced Systems](./systems-advanced.md)
+- [Replay System](./replay-system.md) (to be created)
+
+### Original Plan
+- [Storage Replay Upgrade Plan (Original)](./archive/storage-replay-upgrade-plan.md)
 
 ---
 
 **Last Updated**: 2025-10-18
 **Author**: Dirk Kok
-**Status**: Planning → Ready for Implementation
+**Status**: Ready for Implementation
