@@ -67,7 +67,7 @@ import { LevelService } from '@services/LevelService'
  * - Movement: MOVE, RUN
  * - Combat: ATTACK
  * - Exploration: REST, SEARCH
- * - Items: PICKUP, DROP, EQUIP, UNEQUIP, QUAFF, READ, ZAP, EAT, TAKE_OFF, REFILL_LANTERN
+ * - Items: PICKUP, DROP, EQUIP, WIELD, WEAR, UNEQUIP, QUAFF, READ, ZAP, EAT, TAKE_OFF, REFILL_LANTERN
  * - Doors: OPEN, CLOSE
  * - Navigation: DESCEND, ASCEND (MoveStairsCommand)
  *
@@ -223,6 +223,42 @@ export class CommandFactory implements ICommandFactory {
         return new EquipCommand(
           event.payload.itemId,
           event.payload.ringSlot || null,
+          this.inventoryService,
+          this.messageService,
+          this.turnService,
+          this.identificationService,
+          this.curseService,
+          this.fovService,
+          this.lightingService,
+          this.recorder,
+          this.randomService
+        )
+
+      case COMMAND_TYPES.WIELD:
+        if (!event.payload.itemId) {
+          throw new Error('WIELD command requires itemId in payload')
+        }
+        return new EquipCommand(
+          event.payload.itemId,
+          null, // No ring slot for weapons/light sources
+          this.inventoryService,
+          this.messageService,
+          this.turnService,
+          this.identificationService,
+          this.curseService,
+          this.fovService,
+          this.lightingService,
+          this.recorder,
+          this.randomService
+        )
+
+      case COMMAND_TYPES.WEAR:
+        if (!event.payload.itemId) {
+          throw new Error('WEAR command requires itemId in payload')
+        }
+        return new EquipCommand(
+          event.payload.itemId,
+          null, // No ring slot for armor
           this.inventoryService,
           this.messageService,
           this.turnService,
@@ -399,8 +435,8 @@ export class CommandFactory implements ICommandFactory {
       default:
         throw new Error(
           `Unsupported command type for replay: ${event.commandType}. ` +
-            `Supported: MOVE, RUN, ATTACK, REST, SEARCH, PICKUP, DROP, EQUIP, UNEQUIP, ` +
-            `REMOVE, QUAFF, READ, ZAP, EAT, OPEN, CLOSE, DESCEND, ASCEND, REFILL_LANTERN. ` +
+            `Supported: MOVE, RUN, ATTACK, REST, SEARCH, PICKUP, DROP, EQUIP, WIELD, WEAR, ` +
+            `UNEQUIP, REMOVE, QUAFF, READ, ZAP, EAT, OPEN, CLOSE, DESCEND, ASCEND, REFILL_LANTERN. ` +
             `Not supported: SAVE, QUIT (require UI callbacks), debug commands, AI commands.`
         )
     }
