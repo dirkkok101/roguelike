@@ -1583,9 +1583,9 @@ describe('DebugService Replay Commands', () => {
 
 **Goal**: Ensure determinism and build test suite.
 
-#### Task 4.1: Add Automatic Validation in Debug Mode
+#### Task 4.1: Add Automatic Validation in Debug Mode ✅ COMPLETE
 
-**File**: Update `src/middleware/AutoSaveMiddleware.ts`
+**File**: Update `src/services/AutoSaveMiddleware/AutoSaveMiddleware.ts`
 
 **Add validation check after save:**
 
@@ -1650,6 +1650,30 @@ describe('AutoSaveMiddleware Validation', () => {
 **Dependencies**: ReplayDebuggerService
 
 **Estimated Time**: 0.5 days
+
+**Completion Notes**:
+- ✅ Updated AutoSaveMiddleware.ts to use GameStorageService instead of LocalStorageService
+- ✅ Added ReplayDebuggerService as optional third constructor parameter
+- ✅ Implemented validateDeterminism() private method with full error reporting
+- ✅ Updated afterTurn() to call validation in debug mode (process.env.NODE_ENV === 'development')
+- ✅ Validation only runs when replayDebugger is provided (optional dependency)
+- ✅ Comprehensive error logging with desync details (field, expected, actual)
+- ✅ Updated AutoSaveMiddleware.test.ts to use GameStorageService and IndexedDB
+- ✅ Migrated all 11 existing tests from LocalStorageService to GameStorageService
+- ✅ Added 3 new validation tests:
+  - Validates determinism after save in debug mode
+  - Logs errors on desync detection (with detailed field comparison)
+  - Passes validation on deterministic game
+- ✅ All 14/14 tests passing (11 basic + 3 validation)
+- ✅ Uses fake-indexeddb for test isolation
+- ✅ Mock ReplayDebuggerService for validation tests
+- ✅ Debug mode check uses runtime environment variable (not compile-time constant)
+
+**Implementation highlights:**
+- Validation is fire-and-forget (doesn't block game loop)
+- Logs prefixed with `[Replay Validation]` for easy filtering
+- Catches validation errors gracefully (won't crash game)
+- Works in production (no-op when debugger not provided or NODE_ENV !== 'development')
 
 ---
 
