@@ -321,6 +321,7 @@ describe('AutoSaveMiddleware', () => {
       const middlewareWithDebugger = new AutoSaveMiddleware(
         storageService,
         10,
+        undefined, // commandRecorder
         mockReplayDebugger
       )
 
@@ -368,6 +369,7 @@ describe('AutoSaveMiddleware', () => {
       const middlewareWithDebugger = new AutoSaveMiddleware(
         storageService,
         10,
+        undefined, // commandRecorder
         mockReplayDebugger
       )
 
@@ -433,6 +435,7 @@ describe('AutoSaveMiddleware', () => {
       const middlewareWithDebugger = new AutoSaveMiddleware(
         storageService,
         10,
+        undefined, // commandRecorder
         mockReplayDebugger
       )
 

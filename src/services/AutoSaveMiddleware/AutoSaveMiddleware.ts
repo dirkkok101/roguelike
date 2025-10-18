@@ -1,6 +1,7 @@
 import { GameState } from '@game/core/core'
 import { GameStorageService } from '@services/GameStorageService'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 /**
  * AutoSaveMiddleware - Automatically saves game every N turns
@@ -11,6 +12,7 @@ export class AutoSaveMiddleware {
   constructor(
     private storageService: GameStorageService,
     private saveInterval: number = 10,
+    private commandRecorder?: CommandRecorderService,
     private replayDebugger?: ReplayDebuggerService
   ) {}
 
@@ -30,6 +32,11 @@ export class AutoSaveMiddleware {
         .saveGame(state)
         .then(async () => {
           console.log(`✅ Auto-saved at turn ${state.turnCount}`)
+
+          // Persist replay data to IndexedDB
+          if (this.commandRecorder && state.gameId) {
+            await this.commandRecorder.persistToIndexedDB(state.gameId)
+          }
 
           // In debug mode, validate determinism
           if (process.env.NODE_ENV === 'development' && this.replayDebugger) {

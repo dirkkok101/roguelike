@@ -156,7 +156,11 @@ async function initializeGame() {
   const commandRecorderService = new CommandRecorderService(indexedDBService)
   const replayDebuggerService = new ReplayDebuggerService(indexedDBService)
   const downloadService = new DownloadService()
-  const autoSaveMiddleware = new AutoSaveMiddleware(localStorageService, 10)
+  const autoSaveMiddleware = new AutoSaveMiddleware(
+    localStorageService,
+    10,
+    commandRecorderService
+  )
   const levelService = new LevelService()
   const combatService = new CombatService(random, ringService, hungerService, debugService)
   const pathfindingService = new PathfindingService(levelService)
