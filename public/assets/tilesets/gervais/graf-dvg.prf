@@ -1213,7 +1213,8 @@ object:scroll:Trap Creation:0x87:0xE1
 ##### Wands #####
 # Graphics are sourced from flavor entries in flvr-dvg.prf
 
-
+# Generic wand sprite (used when spriteName is "wand")
+object:wand:wand:0x89:0x80
 
 
 ##### Staffs #####

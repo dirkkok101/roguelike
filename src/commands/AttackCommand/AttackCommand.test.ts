@@ -8,13 +8,15 @@ import { TurnService } from '@services/TurnService'
 import { LevelService } from '@services/LevelService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { MockRandom } from '@services/RandomService'
-import { GameState, Player, Monster, MonsterBehavior } from '@game/core/core'
+import { GameState, Player, Monster, MonsterBehavior, MonsterState } from '@game/core/core'
+import { GoldService } from '@services/GoldService'
 
 describe('AttackCommand', () => {
   let combatService: CombatService
   let messageService: MessageService
   let levelingService: LevelingService
   let turnService: TurnService
+  let goldService: GoldService
   let statusEffectService: StatusEffectService
   let mockRandom: MockRandom
 
@@ -25,6 +27,7 @@ describe('AttackCommand', () => {
     const hungerService = new HungerService(mockRandom, ringService)
     combatService = new CombatService(mockRandom, ringService, hungerService)
     levelingService = new LevelingService(mockRandom)
+    goldService = new GoldService(mockRandom)
     statusEffectService = new StatusEffectService()
     const levelService = new LevelService()
     turnService = new TurnService(statusEffectService, levelService)
@@ -138,7 +141,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3]) // Hit roll, damage roll
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       const updatedMonster = result.levels.get(1)!.monsters[0]
@@ -156,7 +159,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5]) // Hit roll, high damage
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       const monsters = result.levels.get(1)!.monsters
@@ -172,7 +175,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       expect(result.player.xp).toBe(5)
@@ -185,7 +188,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       expect(result.messages.some((m) => m.text === 'You killed the Test Monster!')).toBe(true)
@@ -201,7 +204,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([1, 3]) // Low roll = miss
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       const updatedMonster = result.levels.get(1)!.monsters[0]
@@ -221,7 +224,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('monster-1', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('monster-1', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       const monsters = result.levels.get(1)!.monsters
@@ -237,7 +240,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5])
 
-      const command = new AttackCommand('weak-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('weak-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       const monsters = result.levels.get(1)!.monsters
@@ -254,7 +257,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('non-existent-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('non-existent-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       expect(result).toBe(state)
@@ -270,7 +273,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 3])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       expect(result).not.toBe(state)
@@ -285,7 +288,7 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([15, 5])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       expect(result).not.toBe(state)
@@ -301,11 +304,127 @@ describe('AttackCommand', () => {
 
       mockRandom.setValues([1, 3])
 
-      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService)
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
       const result = command.execute(state)
 
       expect(result).not.toBe(state)
       expect(result.messages).not.toBe(state.messages)
+    })
+  })
+
+  describe('Sleeping monster wake-up', () => {
+    test('wakes up sleeping monster when hit', () => {
+      const player = createTestPlayer()
+      const sleepingMonster = {
+        ...createTestMonster(),
+        isAsleep: true,
+        state: MonsterState.SLEEPING,
+      }
+      const state = createTestState(player, [sleepingMonster])
+
+      mockRandom.setValues([15, 3]) // Hit roll, damage roll
+
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const result = command.execute(state)
+
+      const updatedMonster = result.levels.get(1)!.monsters[0]
+      expect(updatedMonster.isAsleep).toBe(false)
+      expect(updatedMonster.state).toBe(MonsterState.HUNTING)
+      expect(result.messages.some((m) => m.text.includes('wakes up'))).toBe(true)
+    })
+
+    test('wakes up sleeping monster even when attack misses', () => {
+      const player = { ...createTestPlayer(), level: 1, strength: 0 }
+      const sleepingMonster = {
+        ...createTestMonster(),
+        ac: 0,
+        isAsleep: true,
+        state: MonsterState.SLEEPING,
+      }
+      const state = createTestState(player, [sleepingMonster])
+
+      mockRandom.setValues([1, 3]) // Low roll = miss
+
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const result = command.execute(state)
+
+      const updatedMonster = result.levels.get(1)!.monsters[0]
+      expect(updatedMonster.isAsleep).toBe(false)
+      expect(updatedMonster.state).toBe(MonsterState.HUNTING)
+      expect(result.messages.some((m) => m.text.includes('wakes up'))).toBe(true)
+    })
+
+    test('displays wake-up message before hit message', () => {
+      const player = createTestPlayer()
+      const sleepingMonster = {
+        ...createTestMonster(),
+        isAsleep: true,
+        state: MonsterState.SLEEPING,
+      }
+      const state = createTestState(player, [sleepingMonster])
+
+      mockRandom.setValues([15, 3])
+
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const result = command.execute(state)
+
+      // Find the indices of the messages
+      const hitMessageIndex = result.messages.findIndex((m) => m.text.includes('You hit'))
+      const wakeMessageIndex = result.messages.findIndex((m) => m.text.includes('wakes up'))
+
+      expect(hitMessageIndex).toBeGreaterThan(-1)
+      expect(wakeMessageIndex).toBeGreaterThan(-1)
+      expect(wakeMessageIndex).toBeLessThan(hitMessageIndex)
+    })
+
+    test('does not affect already awake monsters', () => {
+      const player = createTestPlayer()
+      const awakeMonster = {
+        ...createTestMonster(),
+        isAsleep: false,
+        state: MonsterState.HUNTING,
+      }
+      const state = createTestState(player, [awakeMonster])
+
+      mockRandom.setValues([15, 3])
+
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const result = command.execute(state)
+
+      const updatedMonster = result.levels.get(1)!.monsters[0]
+      expect(updatedMonster.isAsleep).toBe(false)
+      expect(updatedMonster.state).toBe(MonsterState.HUNTING)
+      expect(result.messages.some((m) => m.text.includes('wakes up'))).toBe(false)
+    })
+
+    test('bat (aggroRange: 0) wakes up when attacked', () => {
+      const player = createTestPlayer()
+      const sleepingBat = {
+        ...createTestMonster(),
+        letter: 'B',
+        name: 'Bat',
+        spriteName: 'Fruit bat',
+        aiProfile: {
+          behavior: MonsterBehavior.ERRATIC,
+          intelligence: 2,
+          aggroRange: 0, // Bat never wakes from proximity
+          fleeThreshold: 0.0,
+          special: ['flying'],
+        },
+        isAsleep: true,
+        state: MonsterState.SLEEPING,
+      }
+      const state = createTestState(player, [sleepingBat])
+
+      mockRandom.setValues([15, 3])
+
+      const command = new AttackCommand('test-monster', combatService, messageService, levelingService, turnService, goldService)
+      const result = command.execute(state)
+
+      const updatedMonster = result.levels.get(1)!.monsters[0]
+      expect(updatedMonster.isAsleep).toBe(false)
+      expect(updatedMonster.state).toBe(MonsterState.HUNTING)
+      expect(result.messages.some((m) => m.text.includes('Bat wakes up'))).toBe(true)
     })
   })
 })

@@ -1,4 +1,4 @@
-import { GameState } from '@game/core/core'
+import { GameState, MonsterState } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { CombatService } from '@services/CombatService'
 import { MessageService } from '@services/MessageService'
@@ -33,6 +33,28 @@ export class AttackCommand implements ICommand {
     let messages = state.messages
 
     if (result.hit) {
+      // Wake up the monster if it was sleeping (being attacked wakes monsters)
+      let updatedMonsterForWake = monster
+      let wakeUpMessage = false
+      if (monster.isAsleep) {
+        updatedMonsterForWake = {
+          ...monster,
+          isAsleep: false,
+          state: MonsterState.HUNTING,
+        }
+        wakeUpMessage = true
+      }
+
+      // Add wake-up message BEFORE hit message (narrative order)
+      if (wakeUpMessage) {
+        messages = this.messageService.addMessage(
+          messages,
+          `The ${result.defender} wakes up!`,
+          'warning',
+          state.turnCount
+        )
+      }
+
       messages = this.messageService.addMessage(
         messages,
         `You hit the ${result.defender} for ${result.damage} damage!`,
@@ -113,9 +135,9 @@ export class AttackCommand implements ICommand {
           monstersKilled: state.monstersKilled + 1, // Track kill for death screen
         })
       } else {
-        // Apply damage to monster
+        // Apply damage to monster (use updatedMonsterForWake which has wake-up applied)
         const updatedMonster = this.combatService.applyDamageToMonster(
-          monster,
+          updatedMonsterForWake,
           result.damage
         )
         const updatedMonsters = level.monsters.map((m) =>
@@ -133,6 +155,25 @@ export class AttackCommand implements ICommand {
         })
       }
     } else {
+      // Wake up the monster even on a miss (attacking wakes monsters)
+      let updatedMonsters = level.monsters
+      if (monster.isAsleep) {
+        const wokeMonster = {
+          ...monster,
+          isAsleep: false,
+          state: MonsterState.HUNTING,
+        }
+        updatedMonsters = level.monsters.map((m) =>
+          m.id === this.monsterId ? wokeMonster : m
+        )
+        messages = this.messageService.addMessage(
+          messages,
+          `The ${result.defender} wakes up!`,
+          'warning',
+          state.turnCount
+        )
+      }
+
       messages = this.messageService.addMessage(
         messages,
         `You miss the ${result.defender}.`,
@@ -140,8 +181,13 @@ export class AttackCommand implements ICommand {
         state.turnCount
       )
 
+      const updatedLevel = { ...level, monsters: updatedMonsters }
+      const updatedLevels = new Map(state.levels)
+      updatedLevels.set(state.currentLevel, updatedLevel)
+
       return this.turnService.incrementTurn({
         ...state,
+        levels: updatedLevels,
         messages,
       })
     }
