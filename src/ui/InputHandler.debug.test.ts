@@ -525,6 +525,15 @@ describe('InputHandler - Debug Commands', () => {
   })
 
   describe('Replay Debug Commands', () => {
+    beforeEach(() => {
+      // Mock IndexedDB operations to avoid "indexedDB is not defined" errors in test environment
+      jest.spyOn(dependencies.replayDebugger, 'loadReplay').mockResolvedValue(null)
+
+      // Suppress console output from replay commands (expected in test environment)
+      jest.spyOn(console, 'error').mockImplementation()
+      jest.spyOn(console, 'log').mockImplementation()
+    })
+
     it('should handle L (launch replay debugger) without errors', () => {
       // Arrange
       const event = createKeyboardEvent('L', false, true)
