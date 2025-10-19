@@ -145,6 +145,62 @@ describe('ReplayDebuggerService', () => {
       expect(loaded?.version).toBe(1)
     })
 
+    it('should deserialize initialState Maps when reconstructing state', async () => {
+      // Create test state with proper Maps/Sets
+      const initialState = createTestGameState()
+
+      // Manually serialize the state (simulating what would happen in production)
+      // Convert Maps/Sets to arrays
+      const serializedInitialState = {
+        ...initialState,
+        levels: Array.from(initialState.levels.entries()),
+        visibleCells: Array.from(initialState.visibleCells),
+        identifiedItems: Array.from(initialState.identifiedItems),
+        detectedMonsters: Array.from(initialState.detectedMonsters),
+        detectedMagicItems: Array.from(initialState.detectedMagicItems),
+        levelsVisitedWithAmulet: Array.from(initialState.levelsVisitedWithAmulet),
+        itemNameMap: {
+          potions: Array.from(initialState.itemNameMap.potions.entries()),
+          scrolls: Array.from(initialState.itemNameMap.scrolls.entries()),
+          rings: Array.from(initialState.itemNameMap.rings.entries()),
+          wands: Array.from(initialState.itemNameMap.wands.entries()),
+        },
+      }
+
+      const replayData: ReplayData = {
+        gameId: 'test-deserialization',
+        version: 1,
+        initialState: serializedInitialState as any, // Stored as arrays
+        seed: 'test-seed',
+        commands: [],
+        metadata: {
+          createdAt: Date.now(),
+          turnCount: 0,
+          characterName: 'Test Hero',
+          currentLevel: 1,
+          outcome: 'ongoing',
+        },
+      }
+
+      // Store in IndexedDB
+      await indexedDB.put('replays', 'test-deserialization', replayData)
+
+      // Load it back (levels should be arrays)
+      const loaded = await service.loadReplay('test-deserialization')
+      expect(loaded).not.toBeNull()
+
+      // Reconstruct to turn 0 (should deserialize the initialState arrays → Maps)
+      const reconstructed = await service.reconstructToTurn(loaded!, 0)
+
+      // CRITICAL: levels should be a Map, not an array
+      expect(reconstructed.levels).toBeInstanceOf(Map)
+      expect(reconstructed.levels.get(1)).toBeDefined()
+      expect(reconstructed.visibleCells).toBeInstanceOf(Set)
+      expect(reconstructed.identifiedItems).toBeInstanceOf(Set)
+      expect(reconstructed.detectedMonsters).toBeInstanceOf(Set)
+      expect(reconstructed.itemNameMap.potions).toBeInstanceOf(Map)
+    })
+
     it('should return null for non-existent replay', async () => {
       const loaded = await service.loadReplay('non-existent')
 

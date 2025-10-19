@@ -19,6 +19,7 @@ export class ReplayControlPanel {
   private slider!: HTMLInputElement
   private jumpInput!: HTMLInputElement
   private btnJump!: HTMLButtonElement
+  private btnClose!: HTMLButtonElement
 
   private scrubTimeout: ReturnType<typeof setTimeout> | null = null
   private stateChangeCallback: () => void
@@ -76,6 +77,12 @@ export class ReplayControlPanel {
     this.btnJump.textContent = 'Go'
     this.btnJump.title = 'Jump to turn'
 
+    // Close button
+    this.btnClose = document.createElement('button')
+    this.btnClose.className = 'replay-btn replay-btn-close'
+    this.btnClose.textContent = '✕ Close'
+    this.btnClose.title = 'Close replay debugger (Escape)'
+
     // Timeline slider
     this.slider = document.createElement('input')
     this.slider.type = 'range'
@@ -100,6 +107,7 @@ export class ReplayControlPanel {
     jumpRow.appendChild(this.btnJump)
 
     controlsRow.appendChild(jumpRow)
+    controlsRow.appendChild(this.btnClose)
 
     container.appendChild(controlsRow)
     container.appendChild(this.slider)
@@ -113,6 +121,7 @@ export class ReplayControlPanel {
     this.btnStepForward.addEventListener('click', () => this.handleStepForward())
     this.btnSkipEnd.addEventListener('click', () => this.handleSkipEnd())
     this.btnJump.addEventListener('click', () => this.handleJump())
+    this.btnClose.addEventListener('click', () => this.handleClose())
 
     // Slider scrubbing with debounce
     this.slider.addEventListener('input', (e) => this.handleSliderInput(e))
@@ -150,6 +159,10 @@ export class ReplayControlPanel {
 
     await this.controller.jumpToTurn(turn)
     this.jumpInput.value = ''
+  }
+
+  private handleClose(): void {
+    this.controller.close()
   }
 
   private handleSliderInput(event: Event): void {

@@ -27,4 +27,7 @@ export interface IReplayController {
   // Observer pattern
   onStateChange(callback: () => void): void
   removeStateChangeListener(callback: () => void): void
+
+  // Close debugger
+  close(): void
 }

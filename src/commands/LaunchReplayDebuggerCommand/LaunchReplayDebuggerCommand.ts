@@ -56,10 +56,12 @@ export class LaunchReplayDebuggerCommand implements ICommand {
       }
 
       // Push ReplayDebugState onto state stack
+      // Start at current game turn so user can step backwards/forwards from current position
       const replayState = new ReplayDebugState(
         state.gameId,
         this.replayDebugger,
-        this.stateManager
+        this.stateManager,
+        state.turnCount // Start at current turn
       )
 
       this.stateManager.pushState(replayState)

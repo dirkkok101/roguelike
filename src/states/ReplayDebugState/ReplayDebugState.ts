@@ -46,12 +46,20 @@ export class ReplayDebugState extends BaseState implements IReplayController {
   // Observer pattern
   private observers: Array<() => void> = []
 
+  // Debug console element (to hide when in replay mode)
+  private debugConsoleElement: HTMLElement | null = null
+
+  // Initial turn to start at (defaults to 0, but can be set to current game turn)
+  private initialTurn: number = 0
+
   constructor(
     private gameId: string,
     private replayDebugger: ReplayDebuggerService,
-    private stateManager: GameStateManager
+    private stateManager: GameStateManager,
+    initialTurn?: number
   ) {
     super()
+    this.initialTurn = initialTurn ?? 0
   }
 
   // IReplayController implementation - State queries
@@ -111,7 +119,11 @@ export class ReplayDebugState extends BaseState implements IReplayController {
       this.notifyObservers()
 
       this.currentTurn = 0
-      this.currentState = this.replayData.initialState
+      // Use reconstructToTurn(0) to ensure proper deserialization
+      this.currentState = await this.replayDebugger.reconstructToTurn(
+        this.replayData,
+        0
+      )
 
       console.log('⏮️  Skipped to start (turn 0)')
 
@@ -160,6 +172,12 @@ export class ReplayDebugState extends BaseState implements IReplayController {
     console.log('='.repeat(60))
     console.log(`Loading replay for game: ${this.gameId}`)
 
+    // Hide debug console to avoid blocking the game view
+    this.debugConsoleElement = document.querySelector('.debug-console')
+    if (this.debugConsoleElement) {
+      this.debugConsoleElement.style.display = 'none'
+    }
+
     // Create and mount UI components
     this.controlPanel = new ReplayControlPanel(this)
     this.stateInspector = new StateInspectorPanel(this)
@@ -190,9 +208,13 @@ export class ReplayDebugState extends BaseState implements IReplayController {
         return
       }
 
-      // Start at turn 0
-      this.currentTurn = 0
-      this.currentState = this.replayData.initialState
+      // Start at initialTurn (current game turn, or 0 if not specified)
+      // Clamp to valid range [0, metadata.turnCount]
+      this.currentTurn = Math.min(this.initialTurn, this.replayData.metadata.turnCount)
+      this.currentState = await this.replayDebugger.reconstructToTurn(
+        this.replayData,
+        this.currentTurn
+      )
 
       console.log('✅ Replay loaded successfully')
       console.log(`Character: ${this.replayData.metadata.characterName}`)
@@ -456,7 +478,14 @@ export class ReplayDebugState extends BaseState implements IReplayController {
   }
 
   /**
-   * Exit replay debugger
+   * Exit replay debugger (public method for UI components)
+   */
+  close(): void {
+    this.exitDebugger()
+  }
+
+  /**
+   * Exit replay debugger (internal method)
    */
   private exitDebugger(): void {
     console.log('Exiting replay debugger')
@@ -475,6 +504,12 @@ export class ReplayDebugState extends BaseState implements IReplayController {
 
     // Clear observers
     this.observers = []
+
+    // Restore debug console visibility
+    if (this.debugConsoleElement) {
+      this.debugConsoleElement.style.display = ''
+      this.debugConsoleElement = null
+    }
 
     console.log('Replay debugger exited')
   }
