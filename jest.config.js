@@ -5,6 +5,9 @@ export default {
   testMatch: ['**/*.test.ts'],
   setupFilesAfterEnv: ['<rootDir>/src/__test-utils__/jestSetup.ts'],
   moduleNameMapper: {
+    // Mock CSS imports
+    '\\.css$': '<rootDir>/src/__test-utils__/styleMock.js',
+    // Path aliases
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@commands/(.*)$': '<rootDir>/src/commands/$1',

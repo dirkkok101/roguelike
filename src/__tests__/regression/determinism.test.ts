@@ -53,13 +53,30 @@ describe('Determinism Regression Tests', () => {
     indexedDB.close()
   })
 
+  // Helper to create save data with embedded replay (unified storage format)
+  function createSaveWithReplay(replayData: any) {
+    return {
+      gameId: replayData.gameId,
+      gameState: JSON.stringify(replayData.initialState), // Compressed state
+      replayData: {
+        initialState: replayData.initialState,
+        seed: replayData.seed,
+        commands: replayData.commands,
+      },
+      metadata: replayData.metadata,
+      version: 6, // Save version with embedded replay data
+      timestamp: replayData.metadata.createdAt,
+    }
+  }
+
   describe('Generated Canonical Fixtures', () => {
     it('should validate a simple 5-command replay without desyncs', async () => {
       // Generate minimal canonical replay
       const replayData = generateCanonicalReplay(5)
 
-      // Save to IndexedDB
-      await indexedDB.put('replays', replayData.gameId, replayData)
+      // Save to IndexedDB (as save with embedded replay)
+      const saveData = createSaveWithReplay(replayData)
+      await indexedDB.put('saves', replayData.gameId, saveData)
 
       // Load replay
       const loaded = await replayDebugger.loadReplay(replayData.gameId)
@@ -80,7 +97,8 @@ describe('Determinism Regression Tests', () => {
     it('should handle large replay (100 commands)', async () => {
       const replayData = generateCanonicalReplay(100)
 
-      await indexedDB.put('replays', replayData.gameId, replayData)
+      const saveData = createSaveWithReplay(replayData)
+      await indexedDB.put('saves', replayData.gameId, saveData)
 
       const loaded = await replayDebugger.loadReplay(replayData.gameId)
       expect(loaded).not.toBeNull()
@@ -145,14 +163,17 @@ describe('Determinism Regression Tests', () => {
   })
 
   describe('Regression Protection', () => {
-    it('should detect version incompatibility', async () => {
+    it('should detect save version incompatibility', async () => {
       const replayData = generateCanonicalReplay(5)
-      replayData.version = 999 // Incompatible version
 
-      await indexedDB.put('replays', replayData.gameId, replayData)
+      // Create save with incompatible version
+      const saveData = createSaveWithReplay(replayData)
+      saveData.version = 999 // Incompatible save version
+
+      await indexedDB.put('saves', replayData.gameId, saveData)
 
       const loaded = await replayDebugger.loadReplay(replayData.gameId)
-      expect(loaded).toBeNull() // Should reject incompatible version
+      expect(loaded).toBeNull() // Should reject incompatible save version
     })
 
     it('should validate replay format integrity', async () => {
