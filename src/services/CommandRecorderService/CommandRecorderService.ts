@@ -113,6 +113,21 @@ export class CommandRecorderService {
   }
 
   /**
+   * Restore command log from loaded save file
+   * Used when loading a game to restore full replay history
+   *
+   * This allows replaying loaded games from turn 0, instead of only
+   * from the load point forward.
+   *
+   * @param commands - Array of command events to restore
+   */
+  restoreCommandLog(commands: CommandEvent[]): void {
+    // Deep copy to prevent external mutations
+    this.commands = [...commands]
+    console.log(`📼 Restored ${commands.length} commands from save`)
+  }
+
+  /**
    * Check if recording is active
    */
   isRecording(): boolean {
