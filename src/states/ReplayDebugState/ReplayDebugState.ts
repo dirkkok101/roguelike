@@ -3,6 +3,9 @@ import { GameState, Input } from '@game/core/core'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { ReplayData } from '@game/replay/replay'
 import { GameStateManager } from '@services/GameStateManager'
+import { IReplayController } from './IReplayController'
+import { ReplayControlPanel } from '@ui/ReplayControlPanel'
+import { StateInspectorPanel } from '@ui/StateInspectorPanel'
 
 /**
  * ReplayDebugState - Console-based replay debugging state
@@ -29,11 +32,19 @@ import { GameStateManager } from '@services/GameStateManager'
  * **Note**: This is a console-based debugger. Visual replay UI was deferred as optional.
  * The focus is on programmatic debugging for Claude AI analysis.
  */
-export class ReplayDebugState extends BaseState {
+export class ReplayDebugState extends BaseState implements IReplayController {
   private replayData: ReplayData | null = null
   private currentTurn: number = 0
   private currentState: GameState | null = null
-  private isLoading: boolean = true
+  private isLoadingData: boolean = true
+  private reconstructionInProgress: boolean = false
+
+  // UI components
+  private controlPanel: ReplayControlPanel | null = null
+  private stateInspector: StateInspectorPanel | null = null
+
+  // Observer pattern
+  private observers: Array<() => void> = []
 
   constructor(
     private gameId: string,
@@ -41,6 +52,99 @@ export class ReplayDebugState extends BaseState {
     private stateManager: GameStateManager
   ) {
     super()
+  }
+
+  // IReplayController implementation - State queries
+
+  getCurrentTurn(): number {
+    return this.currentTurn
+  }
+
+  getTotalTurns(): number {
+    return this.replayData?.metadata.turnCount ?? 0
+  }
+
+  getCurrentState(): GameState | null {
+    return this.currentState
+  }
+
+  getReplayMetadata() {
+    return this.replayData?.metadata ?? null
+  }
+
+  getCommands() {
+    return this.replayData?.commands ?? []
+  }
+
+  isLoading(): boolean {
+    return this.isLoadingData
+  }
+
+  isReconstructing(): boolean {
+    return this.reconstructionInProgress
+  }
+
+  // IReplayController implementation - Observer pattern
+
+  onStateChange(callback: () => void): void {
+    this.observers.push(callback)
+  }
+
+  removeStateChangeListener(callback: () => void): void {
+    const index = this.observers.indexOf(callback)
+    if (index > -1) {
+      this.observers.splice(index, 1)
+    }
+  }
+
+  private notifyObservers(): void {
+    this.observers.forEach(callback => callback())
+  }
+
+  // IReplayController implementation - Playback control
+
+  async skipToStart(): Promise<void> {
+    if (this.reconstructionInProgress || !this.replayData) return
+
+    try {
+      this.reconstructionInProgress = true
+      this.notifyObservers()
+
+      this.currentTurn = 0
+      this.currentState = this.replayData.initialState
+
+      console.log('⏮️  Skipped to start (turn 0)')
+
+      this.notifyObservers()
+    } finally {
+      this.reconstructionInProgress = false
+      this.notifyObservers()
+    }
+  }
+
+  async skipToEnd(): Promise<void> {
+    if (this.reconstructionInProgress || !this.replayData) return
+
+    try {
+      this.reconstructionInProgress = true
+      this.notifyObservers()
+
+      const totalTurns = this.replayData.metadata.turnCount
+      this.currentTurn = totalTurns
+      this.currentState = await this.replayDebugger.reconstructToTurn(
+        this.replayData,
+        totalTurns
+      )
+
+      console.log(`⏭️  Skipped to end (turn ${totalTurns})`)
+
+      this.notifyObservers()
+    } catch (error) {
+      console.error('❌ Error skipping to end:', error)
+    } finally {
+      this.reconstructionInProgress = false
+      this.notifyObservers()
+    }
   }
 
   /**
@@ -55,6 +159,13 @@ export class ReplayDebugState extends BaseState {
     console.log('REPLAY DEBUGGER')
     console.log('='.repeat(60))
     console.log(`Loading replay for game: ${this.gameId}`)
+
+    // Create and mount UI components
+    this.controlPanel = new ReplayControlPanel(this)
+    this.stateInspector = new StateInspectorPanel(this)
+
+    document.body.appendChild(this.controlPanel.element)
+    document.body.appendChild(this.stateInspector.element)
 
     // Start loading asynchronously (fire-and-forget)
     // The isLoading flag will be cleared once loading completes
@@ -74,7 +185,8 @@ export class ReplayDebugState extends BaseState {
       if (!this.replayData) {
         console.error('❌ Failed to load replay data')
         console.log('Replay may not exist or version is incompatible')
-        this.isLoading = false
+        this.isLoadingData = false
+        this.notifyObservers()
         return
       }
 
@@ -98,10 +210,12 @@ export class ReplayDebugState extends BaseState {
       console.log('  Escape      - Exit')
       console.log('='.repeat(60))
 
-      this.isLoading = false
+      this.isLoadingData = false
+      this.notifyObservers()
     } catch (error) {
       console.error('❌ Error loading replay:', error)
-      this.isLoading = false
+      this.isLoadingData = false
+      this.notifyObservers()
     }
   }
 
@@ -125,7 +239,7 @@ export class ReplayDebugState extends BaseState {
    * Handle replay debug controls
    */
   handleInput(input: Input): void {
-    if (this.isLoading || !this.replayData || !this.currentState) {
+    if (this.isLoadingData || !this.replayData || !this.currentState) {
       return
     }
 
@@ -163,13 +277,18 @@ export class ReplayDebugState extends BaseState {
   /**
    * Step forward one turn
    */
-  private async stepForward(): Promise<void> {
-    if (!this.replayData || this.currentTurn >= this.replayData.metadata.turnCount) {
+  async stepForward(): Promise<void> {
+    if (this.reconstructionInProgress || !this.replayData) return
+
+    if (this.currentTurn >= this.replayData.metadata.turnCount) {
       console.log('⚠️  Already at final turn')
       return
     }
 
     try {
+      this.reconstructionInProgress = true
+      this.notifyObservers()
+
       this.currentTurn++
       this.currentState = await this.replayDebugger.reconstructToTurn(
         this.replayData,
@@ -183,21 +302,31 @@ export class ReplayDebugState extends BaseState {
         const cmd = this.replayData.commands[this.currentTurn - 1]
         console.log(`   Command: ${cmd.commandType} (${cmd.actorType})`)
       }
+
+      this.notifyObservers()
     } catch (error) {
       console.error('❌ Error stepping forward:', error)
+    } finally {
+      this.reconstructionInProgress = false
+      this.notifyObservers()
     }
   }
 
   /**
    * Step backward one turn
    */
-  private async stepBackward(): Promise<void> {
-    if (!this.replayData || this.currentTurn <= 0) {
+  async stepBackward(): Promise<void> {
+    if (this.reconstructionInProgress || !this.replayData) return
+
+    if (this.currentTurn <= 0) {
       console.log('⚠️  Already at turn 0')
       return
     }
 
     try {
+      this.reconstructionInProgress = true
+      this.notifyObservers()
+
       this.currentTurn--
       this.currentState = await this.replayDebugger.reconstructToTurn(
         this.replayData,
@@ -205,37 +334,53 @@ export class ReplayDebugState extends BaseState {
       )
 
       console.log(`⬅️  Turn ${this.currentTurn} / ${this.replayData.metadata.turnCount}`)
+
+      this.notifyObservers()
     } catch (error) {
       console.error('❌ Error stepping backward:', error)
+    } finally {
+      this.reconstructionInProgress = false
+      this.notifyObservers()
     }
   }
 
   /**
    * Jump to specific turn
    */
-  private async jumpToTurn(): Promise<void> {
-    if (!this.replayData) return
+  async jumpToTurn(targetTurn?: number): Promise<void> {
+    if (this.reconstructionInProgress || !this.replayData) return
 
-    const input = prompt(`Jump to turn (0-${this.replayData.metadata.turnCount}):`)
-    if (!input) return
+    // If no turn provided, prompt user (keep existing prompt behavior)
+    let turn = targetTurn
+    if (turn === undefined) {
+      const input = prompt(`Jump to turn (0-${this.replayData.metadata.turnCount}):`)
+      if (!input) return
+      turn = parseInt(input, 10)
+    }
 
-    const targetTurn = parseInt(input, 10)
-
-    if (isNaN(targetTurn) || targetTurn < 0 || targetTurn > this.replayData.metadata.turnCount) {
+    if (isNaN(turn) || turn < 0 || turn > this.replayData.metadata.turnCount) {
       console.error('❌ Invalid turn number')
       return
     }
 
     try {
-      this.currentTurn = targetTurn
+      this.reconstructionInProgress = true
+      this.notifyObservers()
+
+      this.currentTurn = turn
       this.currentState = await this.replayDebugger.reconstructToTurn(
         this.replayData,
         this.currentTurn
       )
 
       console.log(`⏩ Jumped to turn ${this.currentTurn}`)
+
+      this.notifyObservers()
     } catch (error) {
       console.error('❌ Error jumping to turn:', error)
+    } finally {
+      this.reconstructionInProgress = false
+      this.notifyObservers()
     }
   }
 
@@ -319,6 +464,22 @@ export class ReplayDebugState extends BaseState {
   }
 
   /**
+   * Cleanup when state is exited
+   */
+  exit(): void {
+    // Cleanup UI components
+    this.controlPanel?.destroy()
+    this.stateInspector?.destroy()
+    this.controlPanel = null
+    this.stateInspector = null
+
+    // Clear observers
+    this.observers = []
+
+    console.log('Replay debugger exited')
+  }
+
+  /**
    * Don't pause lower states (let game continue if needed)
    */
   isPaused(): boolean {
@@ -326,9 +487,9 @@ export class ReplayDebugState extends BaseState {
   }
 
   /**
-   * Opaque state (full-screen debugger)
+   * Transparent state - show game view behind UI overlays
    */
   isTransparent(): boolean {
-    return false
+    return true
   }
 }
