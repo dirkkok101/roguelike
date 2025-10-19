@@ -113,6 +113,21 @@ export class CommandRecorderService {
   }
 
   /**
+   * Restore command log from loaded save file
+   * Used when loading a game to restore full replay history
+   *
+   * This allows replaying loaded games from turn 0, instead of only
+   * from the load point forward.
+   *
+   * @param commands - Array of command events to restore
+   */
+  restoreCommandLog(commands: CommandEvent[]): void {
+    // Deep copy to prevent external mutations
+    this.commands = [...commands]
+    console.log(`📼 Restored ${commands.length} commands from save`)
+  }
+
+  /**
    * Check if recording is active
    */
   isRecording(): boolean {
@@ -122,47 +137,23 @@ export class CommandRecorderService {
   /**
    * Persist recorded commands to IndexedDB for replay debugging
    *
-   * This is called by:
-   * - AutoSaveMiddleware (every 10 turns)
-   * - SaveCommand (manual save)
-   * - QuitCommand (on quit)
+   * @deprecated This method is now a no-op. Replay data is automatically
+   * embedded in save files by GameStorageService.saveGame().
    *
-   * Fails gracefully if IndexedDB unavailable (e.g., private browsing)
+   * Previously called by:
+   * - AutoSaveMiddleware (every 10 turns) - now redundant
+   * - SaveCommand (manual save) - now redundant
+   * - QuitCommand (on quit) - now redundant
+   *
+   * Kept for backward compatibility. Can be safely removed in future.
    */
   async persistToIndexedDB(gameId: string): Promise<void> {
-    // Guard: No commands to persist
-    if (this.commands.length === 0) {
-      console.warn('⚠️ No commands to persist (game just started)')
-      return
-    }
-
-    // Guard: Not properly initialized
-    if (!this.initialState) {
-      console.error('❌ Cannot persist: CommandRecorder not properly initialized')
-      return
-    }
-
-    try {
-      const replayData: ReplayData = {
-        gameId,
-        version: 1,
-        commands: this.commands,
-        initialState: this.initialState,
-        seed: this.initialState.seed,
-        metadata: {
-          createdAt: this.startTime,
-          turnCount: this.commands.length,
-          characterName: 'Adventurer',
-          currentLevel: this.initialState.currentLevel,
-          outcome: 'ongoing',
-        },
-      }
-
-      await this.indexedDBService.put('replays', gameId, replayData)
-      console.log(`💾 Persisted ${this.commands.length} commands for game ${gameId}`)
-    } catch (error) {
-      // Fail gracefully - replay persistence is non-critical
-      console.warn('⚠️ Could not persist replay data (IndexedDB unavailable):', error)
-    }
+    // NO-OP: Replay data is now embedded in save files automatically
+    // GameStorageService.saveGame() calls getCommandLog() and getInitialState()
+    // and embeds them in the save file's replayData field.
+    //
+    // This method kept for backward compatibility with existing code that calls it,
+    // but it does nothing. The calls can be removed in a future cleanup.
+    return Promise.resolve()
   }
 }

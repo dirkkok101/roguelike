@@ -7,7 +7,7 @@
  *
  * Responsibilities:
  * - Database initialization and version management
- * - Create two object stores: 'saves' and 'replays'
+ * - Create 'saves' object store (replays are now embedded in saves)
  * - Add indexes for efficient querying
  * - CRUD operations with Promise-based async API
  * - Transaction handling
@@ -17,14 +17,14 @@
  * - Wraps IndexedDB API with Promises
  * - Provides clean interface for storage operations
  * - Handles errors and retries
+ * - Unified storage: replay data embedded in save files (v2+)
  */
 
 export class IndexedDBService {
   private static readonly DB_NAME = 'roguelike_db'
-  private static readonly DB_VERSION = 1
+  private static readonly DB_VERSION = 2
   private static readonly STORES = {
     SAVES: 'saves',
-    REPLAYS: 'replays',
   } as const
 
   private db: IDBDatabase | null = null
@@ -52,8 +52,9 @@ export class IndexedDBService {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result
+        const oldVersion = event.oldVersion
 
-        // Create 'saves' object store
+        // Create 'saves' object store (if upgrading from v0)
         if (!db.objectStoreNames.contains(IndexedDBService.STORES.SAVES)) {
           const savesStore = db.createObjectStore(IndexedDBService.STORES.SAVES, {
             keyPath: 'gameId',
@@ -66,20 +67,10 @@ export class IndexedDBService {
           })
         }
 
-        // Create 'replays' object store
-        if (!db.objectStoreNames.contains(IndexedDBService.STORES.REPLAYS)) {
-          const replaysStore = db.createObjectStore(
-            IndexedDBService.STORES.REPLAYS,
-            { keyPath: 'gameId' }
-          )
-
-          // Add indexes for querying
-          replaysStore.createIndex('timestamp', 'metadata.createdAt', {
-            unique: false,
-          })
-          replaysStore.createIndex('turnCount', 'metadata.turnCount', {
-            unique: false,
-          })
+        // Remove deprecated 'replays' object store (upgrading from v1 to v2)
+        if (oldVersion < 2 && db.objectStoreNames.contains('replays')) {
+          console.log('Removing deprecated replays store (unified storage migration)')
+          db.deleteObjectStore('replays')
         }
       }
     })

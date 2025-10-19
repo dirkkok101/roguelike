@@ -319,6 +319,177 @@ describe('CommandRecorderService', () => {
     })
   })
 
+  describe('Restore Command Log', () => {
+    it('should restore commands from array', () => {
+      const commands: CommandEvent[] = [
+        {
+          turnNumber: 1,
+          timestamp: Date.now(),
+          commandType: COMMAND_TYPES.MOVE,
+          actorType: 'player',
+          payload: { direction: 'north' },
+          rngState: '0.123',
+        },
+        {
+          turnNumber: 2,
+          timestamp: Date.now(),
+          commandType: COMMAND_TYPES.ATTACK,
+          actorType: 'player',
+          payload: { target: { x: 11, y: 5 } },
+          rngState: '0.456',
+        },
+      ]
+
+      service.restoreCommandLog(commands)
+
+      const restored = service.getCommandLog()
+      expect(restored).toHaveLength(2)
+      expect(restored[0].commandType).toBe(COMMAND_TYPES.MOVE)
+      expect(restored[1].commandType).toBe(COMMAND_TYPES.ATTACK)
+    })
+
+    it('should replace existing commands when restoring', () => {
+      // Record some initial commands
+      service.recordCommand({
+        turnNumber: 1,
+        timestamp: Date.now(),
+        commandType: COMMAND_TYPES.REST,
+        actorType: 'player',
+        payload: {},
+        rngState: '0.111',
+      })
+
+      expect(service.getCommandCount()).toBe(1)
+
+      // Restore different commands
+      const newCommands: CommandEvent[] = [
+        {
+          turnNumber: 1,
+          timestamp: Date.now(),
+          commandType: COMMAND_TYPES.MOVE,
+          actorType: 'player',
+          payload: { direction: 'south' },
+          rngState: '0.222',
+        },
+        {
+          turnNumber: 2,
+          timestamp: Date.now(),
+          commandType: COMMAND_TYPES.MOVE,
+          actorType: 'player',
+          payload: { direction: 'east' },
+          rngState: '0.333',
+        },
+      ]
+
+      service.restoreCommandLog(newCommands)
+
+      const restored = service.getCommandLog()
+      expect(restored).toHaveLength(2)
+      expect(restored[0].commandType).toBe(COMMAND_TYPES.MOVE)
+      expect(restored[0].rngState).toBe('0.222')
+    })
+
+    it('should deep copy commands to prevent external mutations', () => {
+      const commands: CommandEvent[] = [
+        {
+          turnNumber: 1,
+          timestamp: Date.now(),
+          commandType: COMMAND_TYPES.MOVE,
+          actorType: 'player',
+          payload: { direction: 'north' },
+          rngState: '0.123',
+        },
+      ]
+
+      service.restoreCommandLog(commands)
+
+      // Mutate original array
+      commands.push({
+        turnNumber: 2,
+        timestamp: Date.now(),
+        commandType: COMMAND_TYPES.REST,
+        actorType: 'player',
+        payload: {},
+        rngState: '0.456',
+      })
+
+      // Service should be unaffected
+      const restored = service.getCommandLog()
+      expect(restored).toHaveLength(1)
+    })
+
+    it('should handle empty command array', () => {
+      // Record some commands first
+      service.recordCommand({
+        turnNumber: 1,
+        timestamp: Date.now(),
+        commandType: COMMAND_TYPES.MOVE,
+        actorType: 'player',
+        payload: { direction: 'north' },
+        rngState: '0.123',
+      })
+
+      expect(service.getCommandCount()).toBe(1)
+
+      // Restore with empty array
+      service.restoreCommandLog([])
+
+      expect(service.getCommandLog()).toHaveLength(0)
+      expect(service.getCommandCount()).toBe(0)
+    })
+
+    it('should restore large command logs (1000+ commands)', () => {
+      const commands: CommandEvent[] = []
+      for (let i = 0; i < 1000; i++) {
+        commands.push({
+          turnNumber: i,
+          timestamp: Date.now(),
+          commandType: COMMAND_TYPES.MOVE,
+          actorType: 'player',
+          payload: { direction: 'north' },
+          rngState: `0.${i}`,
+        })
+      }
+
+      service.restoreCommandLog(commands)
+
+      expect(service.getCommandCount()).toBe(1000)
+      expect(service.getCommandLog()).toHaveLength(1000)
+      expect(service.getCommandLog()[999].turnNumber).toBe(999)
+    })
+
+    it('should work with setInitialState for complete restoration', () => {
+      // Simulate loading a save with replay data
+      const state = createTestGameState('loaded-game')
+      const commands: CommandEvent[] = [
+        {
+          turnNumber: 1,
+          timestamp: Date.now(),
+          commandType: COMMAND_TYPES.MOVE,
+          actorType: 'player',
+          payload: { direction: 'north' },
+          rngState: '0.123',
+        },
+        {
+          turnNumber: 2,
+          timestamp: Date.now(),
+          commandType: COMMAND_TYPES.MOVE,
+          actorType: 'player',
+          payload: { direction: 'east' },
+          rngState: '0.456',
+        },
+      ]
+
+      // Restore initial state and commands (typical load workflow)
+      service.setInitialState(state)
+      service.restoreCommandLog(commands)
+
+      expect(service.getGameId()).toBe('loaded-game')
+      expect(service.getCommandCount()).toBe(2)
+      expect(service.isRecording()).toBe(true)
+    })
+  })
+
   describe('Edge Cases', () => {
     it('should handle empty command log', () => {
       expect(service.getCommandLog()).toEqual([])

@@ -22,7 +22,7 @@ if (typeof globalThis.structuredClone === 'undefined') {
  *
  * These tests verify that the replay system works end-to-end:
  * - Commands are recorded with RNG state
- * - State is saved to IndexedDB (both saves and replays stores)
+ * - State is saved to IndexedDB (replay data embedded in saves)
  * - Replay data can be loaded and validated
  * - Determinism is maintained across save/load cycles
  */
@@ -53,9 +53,6 @@ describe('Replay System Integration', () => {
     const allGames = await storageService.listGames()
     for (const game of allGames) {
       await storageService.deleteSave(game.gameId)
-      try {
-        await indexedDB.delete('replays', game.gameId)
-      } catch {}
     }
     indexedDB.close()
   })
@@ -296,10 +293,10 @@ describe('Replay System Integration', () => {
       const state2 = simulateCommands(loaded1!, 5)
       await storageService.saveGame(state2)
 
-      // Verify final replay data (only second cycle commands)
+      // Verify final replay data (commands accumulate across save/load cycles)
       const replayData = await replayDebugger.loadReplay('multi-cycle-test')
       expect(replayData).not.toBeNull()
-      expect(replayData!.commands).toHaveLength(5) // Recording resets on load
+      expect(replayData!.commands).toHaveLength(10) // 5 from first cycle + 5 from second cycle
     })
 
     it('should handle replay version checking', async () => {
@@ -309,14 +306,14 @@ describe('Replay System Integration', () => {
       const finalState = simulateCommands(state, 5)
       await storageService.saveGame(finalState)
 
-      // Get replay data
-      const replayData = await indexedDB.get('replays', 'version-test')
-      expect(replayData.version).toBe(1) // Current version
+      // Get save data (replay data is now embedded)
+      const saveData = await indexedDB.get('saves', 'version-test')
+      expect(saveData.replayData).toBeDefined()
 
-      // Modify version to be incompatible
-      await indexedDB.put('replays', 'version-test', { ...replayData, version: 999 })
+      // Modify save version to be incompatible (version check happens at save level now)
+      await indexedDB.put('saves', 'version-test', { ...saveData, version: 999 })
 
-      // Should reject incompatible version
+      // Should reject incompatible version (loadReplay will fail when save version is wrong)
       const loaded = await replayDebugger.loadReplay('version-test')
       expect(loaded).toBeNull()
     })

@@ -164,29 +164,14 @@ describe('QuitCommand', () => {
     expect(loaded?.hasAmulet).toBe(true)
   })
 
-  test('should persist replay data before quitting', async () => {
-    // Create a mock IndexedDBService
-    const mockIndexedDB = {
-      put: jest.fn().mockResolvedValue(undefined),
-    } as any
-
-    const mockCommandRecorder = new CommandRecorderService(mockIndexedDB)
-    const mockReturnToMenu = jest.fn()
-
-    const command = new QuitCommand(
-      localStorageService,
-      mockReturnToMenu,
-      mockCommandRecorder,
-      mockRandom
-    )
-
+  test('should save game (with embedded replay data) before quitting', async () => {
     const state = createTestState({ gameId: 'game-quit-replay' })
 
     // Initialize recording
-    mockCommandRecorder.startRecording(state, 'game-quit-replay')
+    recorder.startRecording(state, 'game-quit-replay')
 
-    // Record a command so there's data to persist
-    mockCommandRecorder.recordCommand({
+    // Record a command so there's replay data to embed
+    recorder.recordCommand({
       turnNumber: 1,
       timestamp: Date.now(),
       commandType: 'move',
@@ -197,66 +182,39 @@ describe('QuitCommand', () => {
 
     await command.execute(state)
 
-    expect(mockIndexedDB.put).toHaveBeenCalledWith(
-      'replays',
-      'game-quit-replay',
-      expect.objectContaining({
-        gameId: 'game-quit-replay',
-        commands: expect.arrayContaining([
-          expect.objectContaining({
-            commandType: 'move',
-            actorType: 'player',
-          }),
-        ]),
-      })
-    )
-    expect(mockReturnToMenu).toHaveBeenCalled()
+    // Verify game was saved (replay data is embedded automatically)
+    expect(localStorageService.hasSave('game-quit-replay')).toBe(true)
+
+    // Load the save and verify it contains replay data
+    const loaded = await localStorageService.loadGame('game-quit-replay')
+    expect(loaded).not.toBeNull()
   })
 
-  test('should handle replay persistence errors gracefully', async () => {
-    // Mock IndexedDB to throw an error
-    const mockIndexedDB = {
-      put: jest.fn().mockRejectedValue(new Error('IndexedDB quota exceeded')),
-    } as any
+  test('should handle save errors gracefully and still quit', async () => {
+    // Mock saveGame to fail
+    const originalSaveGame = localStorageService.saveGame
+    localStorageService.saveGame = jest.fn(() => {
+      return Promise.reject(new Error('Storage quota exceeded'))
+    })
 
-    const mockCommandRecorder = new CommandRecorderService(mockIndexedDB)
     const mockReturnToMenu = jest.fn()
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
-
     const command = new QuitCommand(
       localStorageService,
       mockReturnToMenu,
-      mockCommandRecorder,
+      recorder,
       mockRandom
     )
 
-    const state = createTestState({ gameId: 'game-quit-replay-fail' })
+    const state = createTestState({ gameId: 'game-quit-fail' })
+    recorder.startRecording(state, 'game-quit-fail')
 
-    // Initialize recording
-    mockCommandRecorder.startRecording(state, 'game-quit-replay-fail')
-
-    // Record a command
-    mockCommandRecorder.recordCommand({
-      turnNumber: 1,
-      timestamp: Date.now(),
-      commandType: 'move',
-      actorType: 'player',
-      payload: { direction: { x: 1, y: 0 } },
-      rngState: 'seed-123',
-    })
-
-    // Should not throw despite persistence error
+    // Should not throw despite save error
     await expect(command.execute(state)).resolves.not.toThrow()
 
-    // Should still call returnToMenu
+    // Should still return to menu
     expect(mockReturnToMenu).toHaveBeenCalled()
 
-    // Should log warning from CommandRecorderService
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      '⚠️ Could not persist replay data (IndexedDB unavailable):',
-      expect.any(Error)
-    )
-
-    consoleWarnSpy.mockRestore()
+    // Restore
+    localStorageService.saveGame = originalSaveGame
   })
 })

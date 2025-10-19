@@ -100,13 +100,29 @@ describe('ReplayDebuggerService', () => {
   })
 
   afterEach(async () => {
-    // Clean up IndexedDB
-    const allReplays = await indexedDB.getAll('replays')
-    for (const replay of allReplays) {
-      await indexedDB.delete('replays', replay.gameId)
+    // Clean up IndexedDB (saves store, not replays)
+    const allSaves = await indexedDB.getAll('saves')
+    for (const save of allSaves) {
+      await indexedDB.delete('saves', save.gameId)
     }
     indexedDB.close()
   })
+
+  // Helper to create save data with embedded replay
+  function createSaveWithReplay(replayData: ReplayData, currentState?: Partial<GameState>) {
+    return {
+      gameId: replayData.gameId,
+      gameState: JSON.stringify(currentState || replayData.initialState), // Compressed state (simplified for tests)
+      replayData: {
+        initialState: replayData.initialState,
+        seed: replayData.seed,
+        commands: replayData.commands,
+      },
+      metadata: replayData.metadata,
+      version: 6, // Save version with embedded replay data
+      timestamp: replayData.metadata.createdAt,
+    }
+  }
 
   describe('loadReplay', () => {
     it('should load replay data from IndexedDB', async () => {
@@ -135,7 +151,9 @@ describe('ReplayDebuggerService', () => {
         },
       }
 
-      await indexedDB.put('replays', 'test-replay-game', replayData)
+      // Store as save with embedded replay data
+      const saveData = createSaveWithReplay(replayData)
+      await indexedDB.put('saves', 'test-replay-game', saveData)
 
       const loaded = await service.loadReplay('test-replay-game')
 
@@ -145,17 +163,74 @@ describe('ReplayDebuggerService', () => {
       expect(loaded?.version).toBe(1)
     })
 
+    it('should deserialize initialState Maps when reconstructing state', async () => {
+      // Create test state with proper Maps/Sets
+      const initialState = createTestGameState()
+
+      // Manually serialize the state (simulating what would happen in production)
+      // Convert Maps/Sets to arrays
+      const serializedInitialState = {
+        ...initialState,
+        levels: Array.from(initialState.levels.entries()),
+        visibleCells: Array.from(initialState.visibleCells),
+        identifiedItems: Array.from(initialState.identifiedItems),
+        detectedMonsters: Array.from(initialState.detectedMonsters),
+        detectedMagicItems: Array.from(initialState.detectedMagicItems),
+        levelsVisitedWithAmulet: Array.from(initialState.levelsVisitedWithAmulet),
+        itemNameMap: {
+          potions: Array.from(initialState.itemNameMap.potions.entries()),
+          scrolls: Array.from(initialState.itemNameMap.scrolls.entries()),
+          rings: Array.from(initialState.itemNameMap.rings.entries()),
+          wands: Array.from(initialState.itemNameMap.wands.entries()),
+        },
+      }
+
+      const replayData: ReplayData = {
+        gameId: 'test-deserialization',
+        version: 1,
+        initialState: serializedInitialState as any, // Stored as arrays
+        seed: 'test-seed',
+        commands: [],
+        metadata: {
+          createdAt: Date.now(),
+          turnCount: 0,
+          characterName: 'Test Hero',
+          currentLevel: 1,
+          outcome: 'ongoing',
+        },
+      }
+
+      // Store as save with embedded replay data
+      const saveData = createSaveWithReplay(replayData)
+      await indexedDB.put('saves', 'test-deserialization', saveData)
+
+      // Load it back (levels should be arrays)
+      const loaded = await service.loadReplay('test-deserialization')
+      expect(loaded).not.toBeNull()
+
+      // Reconstruct to turn 0 (should deserialize the initialState arrays → Maps)
+      const reconstructed = await service.reconstructToTurn(loaded!, 0)
+
+      // CRITICAL: levels should be a Map, not an array
+      expect(reconstructed.levels).toBeInstanceOf(Map)
+      expect(reconstructed.levels.get(1)).toBeDefined()
+      expect(reconstructed.visibleCells).toBeInstanceOf(Set)
+      expect(reconstructed.identifiedItems).toBeInstanceOf(Set)
+      expect(reconstructed.detectedMonsters).toBeInstanceOf(Set)
+      expect(reconstructed.itemNameMap.potions).toBeInstanceOf(Map)
+    })
+
     it('should return null for non-existent replay', async () => {
       const loaded = await service.loadReplay('non-existent')
 
       expect(loaded).toBeNull()
     })
 
-    it('should reject incompatible replay version', async () => {
+    it('should reject incompatible save version', async () => {
       const initialState = createTestGameState()
       const replayData: ReplayData = {
         gameId: 'test-replay-game',
-        version: 999, // Incompatible version
+        version: 1,
         initialState: initialState,
         seed: 'test-seed',
         commands: [],
@@ -164,10 +239,14 @@ describe('ReplayDebuggerService', () => {
           turnCount: 0,
           characterName: 'Test Hero',
           currentLevel: 1,
+          outcome: 'ongoing',
         },
       }
 
-      await indexedDB.put('replays', 'test-replay-game', replayData)
+      // Create save with incompatible version
+      const saveData = createSaveWithReplay(replayData)
+      saveData.version = 999 // Incompatible save version
+      await indexedDB.put('saves', 'test-replay-game', saveData)
 
       const loaded = await service.loadReplay('test-replay-game')
 

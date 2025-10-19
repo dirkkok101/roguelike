@@ -3,6 +3,8 @@ import { ICommand } from '../ICommand'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { GameStateManager } from '@services/GameStateManager'
 import { ReplayDebugState } from '../../states/ReplayDebugState'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { ReplayData } from '@game/replay/replay'
 
 /**
  * LaunchReplayDebuggerCommand - Launch replay debugger for current game
@@ -32,7 +34,8 @@ import { ReplayDebugState } from '../../states/ReplayDebugState'
 export class LaunchReplayDebuggerCommand implements ICommand {
   constructor(
     private replayDebugger: ReplayDebuggerService,
-    private stateManager: GameStateManager
+    private stateManager: GameStateManager,
+    private commandRecorder: CommandRecorderService
   ) {}
 
   /**
@@ -42,30 +45,54 @@ export class LaunchReplayDebuggerCommand implements ICommand {
    * @returns Unchanged game state (state stack push is side-effect)
    */
   async execute(state: GameState): Promise<GameState> {
-    console.log('🎬 Launching replay debugger for game:', state.gameId)
+    console.log('🎬 Launching replay debugger for current game session')
 
     try {
-      // Check if replay exists (don't load full data yet - ReplayDebugState will do that)
-      const replayData = await this.replayDebugger.loadReplay(state.gameId)
+      // Build ReplayData from current session's in-memory command log
+      // This allows replay to work WITHOUT requiring a save first
+      const initialState = this.commandRecorder.getInitialState()
+      const commands = this.commandRecorder.getCommandLog()
 
-      if (!replayData) {
-        console.error('❌ No replay data found for this game')
-        console.log('💡 Replay data is only available for games started fresh (not loaded)')
-        console.log('   Start a new game to create a replay')
+      if (!initialState) {
+        console.error('❌ No replay data available')
+        console.log('💡 Replay is only available for games started in this session')
+        console.log('   If you loaded a save, replay data starts from the load point')
         return state
       }
 
-      // Push ReplayDebugState onto state stack
+      // Build in-memory ReplayData structure
+      const replayData: ReplayData = {
+        gameId: state.gameId,
+        version: 1, // REPLAY_VERSION
+        initialState: initialState,
+        seed: state.seed,
+        commands: commands,
+        metadata: {
+          createdAt: Date.now(),
+          turnCount: state.turnCount,
+          characterName: state.characterName || 'Unknown Hero',
+          currentLevel: state.currentLevel,
+          outcome: state.isGameOver ? (state.hasWon ? 'won' : 'died') : 'ongoing',
+        },
+      }
+
+      console.log(`📼 Replay ready: ${commands.length} commands, ${state.turnCount} turns`)
+
+      // Push ReplayDebugState onto state stack with in-memory replay data
       const replayState = new ReplayDebugState(
         state.gameId,
         this.replayDebugger,
-        this.stateManager
+        this.stateManager,
+        this.commandRecorder,
+        state.turnCount, // Start at current turn
+        replayData // Pass in-memory replay data
       )
 
       this.stateManager.pushState(replayState)
 
       console.log('✅ Replay debugger launched')
-      console.log('💡 Press Escape to exit debugger and return to game')
+      console.log('💡 Use ◀/▶ to step through turns, or drag the timeline slider')
+      console.log('💡 Press Escape or click ✕ Close to exit')
     } catch (error) {
       console.error('❌ Error launching replay debugger:', error)
     }

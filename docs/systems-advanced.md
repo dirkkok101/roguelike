@@ -1072,7 +1072,40 @@ class DebugService {
 
 ---
 
-### 4.3 Debug Console UI
+### 4.3 Replay Debugger UI
+
+**Visual Interface** (press `L` in debug console):
+
+**Control Panel** (bottom overlay):
+- Skip to start/end buttons
+- Step forward/backward buttons
+- Turn counter display
+- Timeline scrubber (drag to jump)
+- Jump-to-turn input field
+
+**State Inspector** (right panel):
+- Current turn info (always visible)
+- Player state (collapsible): HP, position, inventory, equipment
+- Level state (collapsible): Monsters, items, depth
+- Command history (collapsible): Last 10 commands
+
+**Keyboard Shortcuts:**
+- Space: Step forward
+- Shift+Space: Step backward
+- `j`: Jump to turn (prompt)
+- Escape: Exit debugger
+
+**Architecture:**
+- Component-based UI (ReplayControlPanel, StateInspectorPanel)
+- Observer pattern for state updates
+- Debounced slider scrubbing (150ms)
+- Direct DOM manipulation (no framework)
+
+**Implementation:** `src/states/ReplayDebugState/`, `src/ui/ReplayControlPanel/`, `src/ui/StateInspectorPanel/`
+
+---
+
+### 4.4 Debug Console UI
 
 ```
 ┌───────────────────────────────────────────┐

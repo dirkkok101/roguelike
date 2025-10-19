@@ -36,31 +36,57 @@ export class ReplayDebuggerService {
 
   /**
    * Load replay data from IndexedDB
+   * Replays are now embedded in save files (unified storage)
    *
    * @param gameId - Game ID to load replay for
    * @returns Replay data or null if not found/incompatible
    */
   async loadReplay(gameId: string): Promise<ReplayData | null> {
     try {
-      const replay = await this.indexedDB.get('replays', gameId)
+      // Load from saves store (replays are now embedded)
+      const save = await this.indexedDB.get('saves', gameId)
 
-      if (!replay) {
-        console.warn(`No replay data found for game: ${gameId}`)
+      if (!save) {
+        console.warn(`No save found for game: ${gameId}`)
         return null
       }
 
-      // Version compatibility check
-      if (replay.version !== this.CURRENT_REPLAY_VERSION) {
+      // Version check: Replay data only exists in save version 6
+      // Future versions might have different replay formats, so we check for exact match
+      const COMPATIBLE_SAVE_VERSION = 6
+      if (save.version !== COMPATIBLE_SAVE_VERSION) {
         console.warn(
-          `Replay version incompatible: found v${replay.version}, expected v${this.CURRENT_REPLAY_VERSION}`
+          `Save version ${save.version} is incompatible (requires version ${COMPATIBLE_SAVE_VERSION})`
         )
         return null
       }
 
+      if (!save.replayData) {
+        console.warn(`No replay data in save for game: ${gameId}`)
+        return null
+      }
+
+      // Extract and format replay data
+      const replayData: ReplayData = {
+        gameId: save.gameId,
+        version: this.CURRENT_REPLAY_VERSION,
+        initialState: save.replayData.initialState,
+        seed: save.replayData.seed,
+        commands: save.replayData.commands,
+        metadata: {
+          // Use save metadata to construct replay metadata
+          createdAt: save.timestamp,
+          turnCount: save.metadata.turnCount,
+          characterName: save.metadata.characterName,
+          currentLevel: save.metadata.currentLevel,
+          outcome: 'ongoing', // We don't track outcome in saves currently
+        },
+      }
+
       console.log(
-        `Replay loaded: ${gameId} (${replay.commands.length} commands, ${replay.metadata.turnCount} turns)`
+        `Replay loaded: ${gameId} (${replayData.commands.length} commands, ${replayData.metadata.turnCount} turns)`
       )
-      return replay
+      return replayData
     } catch (error) {
       console.error('Failed to load replay:', error)
       return null
@@ -79,7 +105,8 @@ export class ReplayDebuggerService {
    */
   async reconstructToTurn(replayData: ReplayData, targetTurn: number): Promise<GameState> {
     // Start from initial state (turn 0)
-    let currentState = structuredClone(replayData.initialState)
+    // CRITICAL: Deserialize the initial state to restore Maps/Sets from JSON arrays
+    let currentState = this.deserializeGameState(replayData.initialState)
 
     // Filter commands up to target turn
     const commandsToExecute = replayData.commands.filter(
@@ -290,5 +317,144 @@ export class ReplayDebuggerService {
    */
   private positionsEqual(pos1: Position, pos2: Position): boolean {
     return pos1.x === pos2.x && pos1.y === pos2.y
+  }
+
+  /**
+   * Deserialize game state from stored replay data
+   *
+   * When replay data is loaded from IndexedDB, the initialState field may contain
+   * serialized arrays instead of Maps/Sets (depending on browser and storage backend).
+   * This method converts them back to proper JavaScript Map/Set instances.
+   *
+   * @param data - Raw state data from replay (may have arrays instead of Maps/Sets)
+   * @returns Fully deserialized GameState with Maps/Sets restored
+   */
+  private deserializeGameState(data: any): GameState {
+    // Check if already deserialized (levels is a Map)
+    let levels: Map<number, any>
+
+    // Detect the format of levels data
+    // Can be: Map instance, Array of entries, or Object (from structured clone)
+    if (data.levels instanceof Map) {
+      // Already a Map, but need to ensure monster visibleCells are Sets
+      levels = new Map(
+        Array.from(data.levels.entries()).map(([depth, level]) => [
+          depth,
+          {
+            ...level,
+            monsters: level.monsters.map((m: any) => ({
+              ...m,
+              visibleCells: m.visibleCells instanceof Set
+                ? m.visibleCells
+                : new Set(m.visibleCells || []),
+            })),
+          },
+        ])
+      )
+    } else if (Array.isArray(data.levels)) {
+      // Convert from array of entries to Map
+      levels = new Map(
+        data.levels.map(([depth, level]: [number, any]) => {
+          return [
+            depth,
+            {
+              ...level,
+              monsters: level.monsters.map((m: any) => ({
+                ...m,
+                visibleCells: new Set(m.visibleCells || []),
+              })),
+            },
+          ]
+        })
+      )
+    } else if (typeof data.levels === 'object' && data.levels !== null) {
+      // Convert from plain object (structured clone result) to Map
+      // Object.entries() converts { "1": {...}, "2": {...} } to [["1", {...}], ...]
+      const entries = Object.entries(data.levels)
+
+      // Empty object means Map was lost during serialization (test environment issue)
+      // In production, this shouldn't happen as IndexedDB preserves Maps
+      if (entries.length === 0) {
+        console.warn('[ReplayDebugger] Empty levels object detected - Map was lost during serialization')
+        // Create an empty Map - this will likely cause errors but is better than crashing
+        levels = new Map()
+      } else {
+        levels = new Map(
+          entries.map(([depthStr, level]: [string, any]) => {
+            const depth = parseInt(depthStr, 10)
+            return [
+              depth,
+              {
+                ...level,
+                monsters: level.monsters.map((m: any) => ({
+                  ...m,
+                  visibleCells: new Set(m.visibleCells || []),
+                })),
+              },
+            ]
+          })
+        )
+      }
+    } else {
+      throw new Error(`Unexpected levels format: ${typeof data.levels}`)
+    }
+
+    // Restore Sets with defaults for missing fields
+    // Handle both Set instances (already deserialized) and arrays (from JSON)
+    const visibleCells = data.visibleCells instanceof Set
+      ? data.visibleCells
+      : new Set(Array.isArray(data.visibleCells) ? data.visibleCells : [])
+
+    const identifiedItems = data.identifiedItems instanceof Set
+      ? data.identifiedItems
+      : new Set(Array.isArray(data.identifiedItems) ? data.identifiedItems : [])
+
+    const detectedMonsters = data.detectedMonsters instanceof Set
+      ? data.detectedMonsters
+      : new Set(Array.isArray(data.detectedMonsters) ? data.detectedMonsters : [])
+
+    const detectedMagicItems = data.detectedMagicItems instanceof Set
+      ? data.detectedMagicItems
+      : new Set(Array.isArray(data.detectedMagicItems) ? data.detectedMagicItems : [])
+
+    const levelsVisitedWithAmulet = data.levelsVisitedWithAmulet instanceof Set
+      ? data.levelsVisitedWithAmulet
+      : new Set(Array.isArray(data.levelsVisitedWithAmulet) ? data.levelsVisitedWithAmulet : [])
+
+    // Restore nested Maps in itemNameMap
+    // Handle both Map instances and arrays/objects
+    const itemNameMap = {
+      potions: data.itemNameMap.potions instanceof Map
+        ? data.itemNameMap.potions
+        : Array.isArray(data.itemNameMap.potions)
+          ? new Map(data.itemNameMap.potions)
+          : new Map(Object.entries(data.itemNameMap.potions || {})),
+      scrolls: data.itemNameMap.scrolls instanceof Map
+        ? data.itemNameMap.scrolls
+        : Array.isArray(data.itemNameMap.scrolls)
+          ? new Map(data.itemNameMap.scrolls)
+          : new Map(Object.entries(data.itemNameMap.scrolls || {})),
+      rings: data.itemNameMap.rings instanceof Map
+        ? data.itemNameMap.rings
+        : Array.isArray(data.itemNameMap.rings)
+          ? new Map(data.itemNameMap.rings)
+          : new Map(Object.entries(data.itemNameMap.rings || {})),
+      wands: data.itemNameMap.wands instanceof Map
+        ? data.itemNameMap.wands
+        : Array.isArray(data.itemNameMap.wands)
+          ? new Map(data.itemNameMap.wands)
+          : new Map(Object.entries(data.itemNameMap.wands || {})),
+    }
+
+    return {
+      ...data,
+      levels,
+      visibleCells,
+      identifiedItems,
+      detectedMonsters,
+      detectedMagicItems,
+      levelsVisitedWithAmulet,
+      itemNameMap,
+    }
   }
 }

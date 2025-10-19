@@ -92,16 +92,14 @@ describe('AutoSaveMiddleware - Replay Persistence Integration', () => {
       timestamp: Date.now(),
     })
 
-    const persistSpy = jest.spyOn(commandRecorder, 'persistToIndexedDB')
-
     // Trigger autosave
     middleware.afterTurn(gameState)
 
     // Wait for async save to complete
     await new Promise((resolve) => setTimeout(resolve, 100))
 
+    // saveGame is called, which internally embeds replay data automatically
     expect(mockStorageService.saveGame).toHaveBeenCalledWith(gameState)
-    expect(persistSpy).toHaveBeenCalledWith('test-game-123')
   })
 
   it('should not persist replay when autosave does not trigger', async () => {
@@ -109,18 +107,16 @@ describe('AutoSaveMiddleware - Replay Persistence Integration', () => {
 
     gameState.turnCount = 9 // Not a multiple of 10
 
-    const persistSpy = jest.spyOn(commandRecorder, 'persistToIndexedDB')
-
     middleware.afterTurn(gameState)
 
     // Wait to ensure no async calls happen
     await new Promise((resolve) => setTimeout(resolve, 100))
 
+    // No save should occur (and thus no replay data persisted)
     expect(mockStorageService.saveGame).not.toHaveBeenCalled()
-    expect(persistSpy).not.toHaveBeenCalled()
   })
 
-  it('should handle replay persistence errors gracefully', async () => {
+  it('should handle save errors gracefully', async () => {
     middleware = new AutoSaveMiddleware(mockStorageService, 10, commandRecorder)
 
     gameState.turnCount = 10
@@ -135,23 +131,23 @@ describe('AutoSaveMiddleware - Replay Persistence Integration', () => {
       timestamp: Date.now(),
     })
 
-    // Make IndexedDB fail
-    mockIndexedDB.put.mockRejectedValue(new Error('IndexedDB error'))
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+    // Make saveGame fail
+    mockStorageService.saveGame.mockRejectedValue(new Error('Save error'))
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
 
-    // Should not throw even if replay persistence fails
+    // Should not throw even if save fails
     middleware.afterTurn(gameState)
 
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 100))
 
     expect(mockStorageService.saveGame).toHaveBeenCalled()
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Could not persist replay data'),
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Auto-save failed'),
       expect.any(Error)
     )
 
-    consoleWarnSpy.mockRestore()
+    consoleErrorSpy.mockRestore()
   })
 
   it('should not auto-save if game is over', async () => {
@@ -160,14 +156,12 @@ describe('AutoSaveMiddleware - Replay Persistence Integration', () => {
     gameState.turnCount = 10
     gameState.isGameOver = true
 
-    const persistSpy = jest.spyOn(commandRecorder, 'persistToIndexedDB')
-
     middleware.afterTurn(gameState)
 
     await new Promise((resolve) => setTimeout(resolve, 100))
 
+    // No save should occur when game is over
     expect(mockStorageService.saveGame).not.toHaveBeenCalled()
-    expect(persistSpy).not.toHaveBeenCalled()
   })
 
   it('should work when CommandRecorderService is not provided (backward compatibility)', async () => {

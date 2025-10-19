@@ -300,6 +300,40 @@ Hardware-accelerated canvas rendering with sprites:
 
 ---
 
+## Save & Replay Storage (Quick Reference)
+
+**Architecture**: Unified storage - replay data embedded in save files
+
+### Storage Format
+
+Save files (IndexedDB 'saves' store) contain:
+- **gameState**: Compressed game state (serialized via Web Workers)
+- **replayData**: Embedded replay information
+  - `initialState`: Game state at turn 0
+  - `seed`: RNG seed for deterministic replay
+  - `commands`: Full command history from turn 0
+- **metadata**: Character name, turn count, level, timestamp
+- **version**: Save format version (current: 6)
+
+### Key Services
+
+- **GameStorageService**: Handles save/load operations, embeds replay data automatically
+- **CommandRecorderService**: Records commands during gameplay, provides in-memory command log
+- **ReplayDebuggerService**: Loads and reconstructs game states from embedded replay data
+- **IndexedDBService**: Database operations (DB version 2, single 'saves' store)
+
+### Benefits
+
+1. **Unified storage**: No separate 'replays' store - replay data travels with saves
+2. **Automatic persistence**: Saving game automatically saves full replay history
+3. **Turn-accurate loading**: Loading a save at turn N preserves replay from turn 0
+4. **Dual access**: Current session uses in-memory data, historical games use IndexedDB
+5. **Simplified cleanup**: Deleting a save automatically deletes its replay data
+
+**Details**: [Replay System](./docs/replay-system.md)
+
+---
+
 ## State Management (Quick Reference)
 
 **Pattern**: Pushdown Automaton (State Stack)
@@ -614,10 +648,15 @@ Debug mode enabled in development (press **`~`** to open debug console):
 - **`n`** - Toggle AI overlay
 - **`x`** - Toggle FOV mode (radius/realistic)
 
-**Replay System:**
-- **`L`** - Launch replay debugger for current game
+**Replay Debug:**
+- **`L`** - Launch replay debugger (visual UI)
 - **`C`** - Choose replay from list
 - **`E`** - Export/download current replay
+
+**Replay Debugger UI:**
+- Control panel with transport controls and timeline scrubber
+- State inspector panel with player/level state
+- Keyboard shortcuts: Space (forward), Shift+Space (back), j (jump), Esc (exit)
 
 See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 
@@ -634,10 +673,12 @@ See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 
 ---
 
-**Last Updated**: 2025-10-11 (26-level implementation complete)
+**Last Updated**: 2025-10-19 (Unified save/replay storage architecture)
 **Developer**: Dirk Kok
 **Repository**: https://github.com/dirkkok101/roguelike
 
 **Note**: Game supports dual rendering modes (Sprite + ASCII). Toggle with `Shift+T` key during gameplay. Preference persists to localStorage.
 
-**Recent Major Update**: Extended dungeon from 10 to 26 levels with authentic 1980 Rogue vorpal spawning system, Amulet of Yendor quest, and return journey with monster respawning.
+**Recent Major Updates**:
+- **2025-10-19**: Unified save/replay storage - replay data now embedded in save files (SAVE_VERSION 6, DB_VERSION 2)
+- **2025-10-11**: Extended dungeon from 10 to 26 levels with authentic 1980 Rogue vorpal spawning system, Amulet of Yendor quest, and return journey with monster respawning

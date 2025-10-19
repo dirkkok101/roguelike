@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { ReplayDebugState } from './ReplayDebugState'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { GameStateManager } from '@services/GameStateManager'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Level, Input } from '@game/core/core'
 import { ReplayData } from '@game/replay/replay'
 
@@ -17,6 +18,7 @@ describe('ReplayDebugState', () => {
   let replayDebugState: ReplayDebugState
   let replayDebugger: ReplayDebuggerService
   let stateManager: GameStateManager
+  let commandRecorder: CommandRecorderService
   let mockLoadReplay: jest.SpyInstance
   let mockReconstructToTurn: jest.SpyInstance
   let mockValidateDeterminism: jest.SpyInstance
@@ -26,6 +28,7 @@ describe('ReplayDebugState', () => {
   beforeEach(() => {
     replayDebugger = {} as ReplayDebuggerService
     stateManager = new GameStateManager()
+    commandRecorder = {} as CommandRecorderService
 
     mockLoadReplay = jest.fn()
     mockReconstructToTurn = jest.fn()
@@ -35,10 +38,22 @@ describe('ReplayDebugState', () => {
     replayDebugger.reconstructToTurn = mockReconstructToTurn
     replayDebugger.validateDeterminism = mockValidateDeterminism
 
+    // Mock reconstructToTurn to return a test state by default
+    mockReconstructToTurn.mockResolvedValue(createTestGameState())
+
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation()
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
 
-    replayDebugState = new ReplayDebugState('test-game-123', replayDebugger, stateManager)
+    // Create ReplayDebugState with mock replay data
+    const mockReplayData = createTestReplay()
+    replayDebugState = new ReplayDebugState(
+      'test-game-123',
+      replayDebugger,
+      stateManager,
+      commandRecorder,
+      0, // initialTurn
+      mockReplayData // Provide in-memory replay data
+    )
   })
 
   afterEach(() => {
@@ -68,14 +83,18 @@ describe('ReplayDebugState', () => {
 
     const level: Level = {
       depth: 1,
+      width: 80,
+      height: 22,
       tiles: [],
       rooms: [],
       doors: [],
       traps: [],
       monsters: [],
       items: [],
-      upStairs: { x: 5, y: 5 },
-      downStairs: { x: 15, y: 15 },
+      gold: [],
+      stairsUp: { x: 5, y: 5 },
+      stairsDown: { x: 15, y: 15 },
+      explored: [],
     }
 
     return {
@@ -130,35 +149,57 @@ describe('ReplayDebugState', () => {
   }
 
   describe('enter', () => {
-    it('should load replay data on enter', async () => {
-      const replayData = createTestReplay()
-      mockLoadReplay.mockResolvedValue(replayData)
+    it('should use in-memory replay data when provided', async () => {
+      const mockState = createTestGameState()
+      mockReconstructToTurn.mockResolvedValue(mockState)
 
       replayDebugState.enter()
 
       // Wait for async loading
       await new Promise(resolve => setTimeout(resolve, 10))
 
-      expect(mockLoadReplay).toHaveBeenCalledWith('test-game-123')
+      // Should NOT call loadReplay (using in-memory data)
+      expect(mockLoadReplay).not.toHaveBeenCalled()
+      // Should call reconstructToTurn
+      expect(mockReconstructToTurn).toHaveBeenCalled()
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('REPLAY DEBUGGER'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Replay loaded successfully'))
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('in-memory replay data'))
     })
 
-    it('should handle missing replay data', async () => {
-      mockLoadReplay.mockResolvedValue(null)
+    it('should load from IndexedDB when no in-memory data', async () => {
+      // Create state WITHOUT in-memory replay data
+      const stateWithoutReplayData = new ReplayDebugState(
+        'test-game-456',
+        replayDebugger,
+        stateManager,
+        commandRecorder
+        // No inMemoryReplayData
+      )
+      const replayData = createTestReplay()
+      const mockState = createTestGameState()
+      mockLoadReplay.mockResolvedValue(replayData)
+      mockReconstructToTurn.mockResolvedValue(mockState)
 
-      replayDebugState.enter()
+      stateWithoutReplayData.enter()
 
       // Wait for async loading
       await new Promise(resolve => setTimeout(resolve, 10))
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to load replay data'))
+      expect(mockLoadReplay).toHaveBeenCalledWith('test-game-456')
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Loading replay from IndexedDB'))
     })
 
     it('should handle load errors', async () => {
+      // Create state WITHOUT in-memory replay data
+      const stateWithoutReplayData = new ReplayDebugState(
+        'test-game-error',
+        replayDebugger,
+        stateManager,
+        commandRecorder
+      )
       mockLoadReplay.mockRejectedValue(new Error('Database error'))
 
-      replayDebugState.enter()
+      stateWithoutReplayData.enter()
 
       // Wait for async loading
       await new Promise(resolve => setTimeout(resolve, 10))
@@ -269,12 +310,21 @@ describe('ReplayDebugState', () => {
     })
 
     it('should ignore input while loading', () => {
-      const loadingState = new ReplayDebugState('test-game', replayDebugger, stateManager)
+      // Clear mock from previous tests
+      mockReconstructToTurn.mockClear()
+
+      const loadingState = new ReplayDebugState(
+        'test-game',
+        replayDebugger,
+        stateManager,
+        commandRecorder
+        // No initialTurn or inMemoryReplayData - will attempt IndexedDB load
+      )
 
       const input: Input = { key: ' ', shift: false, ctrl: false, alt: false }
       loadingState.handleInput(input)
 
-      // Should not call reconstructToTurn
+      // Should not call reconstructToTurn (state not loaded yet)
       expect(mockReconstructToTurn).not.toHaveBeenCalled()
     })
   })
@@ -286,8 +336,8 @@ describe('ReplayDebugState', () => {
   })
 
   describe('isTransparent', () => {
-    it('should be opaque (not transparent)', () => {
-      expect(replayDebugState.isTransparent()).toBe(false)
+    it('should be transparent (show game underneath)', () => {
+      expect(replayDebugState.isTransparent()).toBe(true)
     })
   })
 })

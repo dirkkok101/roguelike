@@ -920,7 +920,11 @@ export class InputHandler {
         // Launch replay debugger for current game (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new LaunchReplayDebuggerCommand(this.replayDebugger, this.stateManager)
+          return new LaunchReplayDebuggerCommand(
+            this.replayDebugger,
+            this.stateManager,
+            this.commandRecorder
+          )
         }
         return null
 
@@ -928,7 +932,12 @@ export class InputHandler {
         // Choose replay from list (requires debug console open)
         if (this.debugService.isEnabled() && state.debug?.debugConsoleVisible) {
           event.preventDefault()
-          return new ChooseReplayCommand(this.replayDebugger, this.stateManager, this.indexedDB)
+          return new ChooseReplayCommand(
+            this.replayDebugger,
+            this.stateManager,
+            this.indexedDB,
+            this.commandRecorder
+          )
         }
         return null
 
