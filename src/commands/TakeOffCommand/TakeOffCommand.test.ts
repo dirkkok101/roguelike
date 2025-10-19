@@ -278,7 +278,7 @@ describe('TakeOffCommand - FOV Updates', () => {
       )
       const result = command.execute(state)
 
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('cannot take off light source when inventory is full', () => {

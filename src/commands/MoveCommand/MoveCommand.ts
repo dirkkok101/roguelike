@@ -138,10 +138,10 @@ export class MoveCommand implements ICommand {
           stateWithOpenDoor.messages,
           result.message,
           'info',
-          state.turnCount + 1
+          state.turnCount
         )
 
-        // Continue with movement (hunger, fuel, FOV, turn increment)
+        // Continue with movement (hunger, fuel, FOV)
         return this.performMovement(
           { ...stateWithOpenDoor, messages },
           newPosition,
@@ -205,11 +205,12 @@ export class MoveCommand implements ICommand {
   }
 
   /**
-   * Performs movement with all side effects (hunger, fuel, FOV, turn)
+   * Performs movement with all side effects (hunger, fuel, FOV)
+   * Turn increment happens in PlayingState after monster processing
    * @param state Current game state
    * @param position Target position (already validated as walkable)
    * @param level Current level
-   * @returns Updated state with movement, hunger tick, fuel tick, FOV update, turn increment
+   * @returns Updated state with movement, hunger tick, fuel tick, FOV update
    */
   private performMovement(state: GameState, position: Position, level: Level): GameState {
     // 1. Move player
@@ -287,7 +288,7 @@ export class MoveCommand implements ICommand {
           finalMessages,
           msg.text,
           msg.type,
-          state.turnCount + 1
+          state.turnCount
         )
       })
       // Add death message
@@ -295,15 +296,15 @@ export class MoveCommand implements ICommand {
         finalMessages,
         'You died of starvation!',
         'critical',
-        state.turnCount + 1
+        state.turnCount
       )
-      return this.turnService.incrementTurn({
+      return {
         ...state,
         player,
         messages: finalMessages,
         isGameOver: true,
         deathCause: hungerResult.death.cause,
-      })
+      }
     }
 
     // 2.5. Tick regeneration (after hunger, before fuel)
@@ -355,13 +356,13 @@ export class MoveCommand implements ICommand {
         finalMessages,
         msg.text,
         msg.type,
-        state.turnCount + 1
+        state.turnCount
       )
     })
 
     // 8. Add auto-notifications to message log
     notifications.forEach((msg) => {
-      finalMessages = this.messageService.addMessage(finalMessages, msg, 'info', state.turnCount + 1)
+      finalMessages = this.messageService.addMessage(finalMessages, msg, 'info', state.turnCount)
     })
 
     // 8.5. Check for run disturbances (if running)
@@ -390,7 +391,7 @@ export class MoveCommand implements ICommand {
           finalMessages,
           `You stop running. ${disturbanceCheck.reason}`,
           'info',
-          state.turnCount + 1
+          state.turnCount
         )
       } else if (disturbanceCheck.newDirection) {
         // Continue running with new direction (corridor turn)
@@ -414,15 +415,15 @@ export class MoveCommand implements ICommand {
       }
     }
 
-    // 9. Return with turn increment
-    return this.turnService.incrementTurn({
+    // 9. Return updated state (turn increment happens in PlayingState)
+    return {
       ...state,
       player: finalPlayer,
       visibleCells: fovResult.visibleCells,
       levels: updatedLevels,
       messages: finalMessages,
       positionHistory: updatedPositionHistory,
-    })
+    }
   }
 
 }

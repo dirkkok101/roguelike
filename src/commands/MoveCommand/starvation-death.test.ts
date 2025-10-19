@@ -282,6 +282,6 @@ describe('MoveCommand - Starvation Death', () => {
 
     const result = command.execute(state)
 
-    expect(result.turnCount).toBe(51)
+    expect(result.turnCount).toBe(50) // Commands no longer increment turns
   })
 })

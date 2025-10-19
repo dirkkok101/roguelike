@@ -341,7 +341,7 @@ describe('MoveCommand - Gold Pickup', () => {
 
       const result = command.execute(state)
 
-      expect(result.turnCount).toBe(1) // Only 1 turn consumed (for movement)
+      expect(result.turnCount).toBe(0) // Only 1 turn consumed (for movement)
     })
 
     test('gold pickup is immutable (returns new player object)', () => {

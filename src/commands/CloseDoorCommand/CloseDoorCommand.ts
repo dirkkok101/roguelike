@@ -30,7 +30,7 @@ export class CloseDoorCommand implements ICommand {
       actorType: 'player',
       payload: { direction: this.direction },
       rngState: this.randomService.getState(),
-    })
+    }
 
     // STEP 2: Execute normally (existing logic unchanged)
 
@@ -69,10 +69,10 @@ export class CloseDoorCommand implements ICommand {
       state.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       levels: updatedLevels,
       messages,
-    })
+    }
   }
 }

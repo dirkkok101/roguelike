@@ -31,7 +31,7 @@ export class SearchCommand implements ICommand {
       actorType: 'player',
       payload: {},
       rngState: this.randomService.getState(),
-    })
+    }
 
     // STEP 2: Execute normally (existing logic unchanged)
     const level = state.levels.get(state.currentLevel)
@@ -58,10 +58,10 @@ export class SearchCommand implements ICommand {
     )
 
     // Increment turn and return
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       levels: updatedLevels,
       messages,
-    })
+    }
   }
 }

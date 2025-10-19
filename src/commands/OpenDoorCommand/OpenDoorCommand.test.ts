@@ -125,7 +125,7 @@ describe('OpenDoorCommand', () => {
       const updatedDoor = level.doors[0]
 
       expect(updatedDoor.state).toBe(DoorState.OPEN)
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
       expect(result.messages[0].text).toBe('You open the door.')
     })
 
@@ -239,7 +239,7 @@ describe('OpenDoorCommand', () => {
       const level = result.levels.get(1)!
       expect(level.doors[0].state).toBe(DoorState.OPEN)
       expect(result.messages[0].text).toBe('You open the secret door.')
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
   })
 

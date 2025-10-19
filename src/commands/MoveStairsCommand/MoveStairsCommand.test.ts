@@ -162,7 +162,7 @@ describe('MoveStairsCommand', () => {
       const result = command.execute(state)
 
       expect(result.currentLevel).toBe(2)
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
       expect(result.messages[0].text).toContain('descend to level 2')
     })
 
@@ -323,7 +323,7 @@ describe('MoveStairsCommand', () => {
       const result = command.execute(state)
 
       expect(result.currentLevel).toBe(1)
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
       expect(result.messages[0].text).toContain('climb to level 1')
     })
 

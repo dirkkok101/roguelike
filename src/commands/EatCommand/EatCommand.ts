@@ -70,11 +70,11 @@ export class EatCommand implements ICommand {
       )
     })
 
-    // 5. Return with turn increment
-    return this.turnService.incrementTurn({
+    // 5. Return updated state
+    return {
       ...state,
       player: result.player,
       messages
-    })
+    }
   }
 }

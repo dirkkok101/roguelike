@@ -82,10 +82,10 @@ export class RefillLanternCommand implements ICommand {
       state.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       player: updatedPlayer,
       messages,
-    })
+    }
   }
 }

@@ -213,7 +213,7 @@ describe('EquipCommand', () => {
       const command = new EquipCommand('sword-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService, fovService, lightingService, recorder, mockRandom)
       const result = command.execute(state)
 
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('unequips old weapon to inventory when equipping new one', () => {
@@ -508,7 +508,7 @@ describe('EquipCommand', () => {
       const result = command.execute(state)
 
       expect(result.player.equipment.weapon?.id).toBe('sword-1')
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('can swap uncursed weapon normally', () => {
@@ -914,7 +914,7 @@ describe('EquipCommand', () => {
       const command = new EquipCommand('torch-1', null, inventoryService, messageService, turnService, mockIdentificationService, curseService, fovService, lightingService, recorder, mockRandom)
       const result = command.execute(state)
 
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('does not modify original state when equipping light source', () => {

@@ -175,7 +175,7 @@ describe('PickUpCommand', () => {
 
       const result = command.execute(state)
 
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('adds success message after pickup', () => {

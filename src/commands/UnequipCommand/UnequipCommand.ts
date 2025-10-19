@@ -82,10 +82,10 @@ export class UnequipCommand implements ICommand {
       state.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       player: updatedPlayer,
       messages,
-    })
+    }
   }
 }

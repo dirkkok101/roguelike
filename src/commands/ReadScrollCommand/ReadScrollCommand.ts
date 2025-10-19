@@ -126,7 +126,7 @@ export class ReadScrollCommand implements ICommand {
       baseState.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...baseState,
       player: finalPlayer,
       messages,

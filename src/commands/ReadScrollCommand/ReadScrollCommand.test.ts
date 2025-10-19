@@ -111,7 +111,7 @@ describe('ReadScrollCommand', () => {
     expect(result.player.inventory).toHaveLength(1) // Scroll consumed
     expect(result.messages).toHaveLength(1)
     expect(result.messages[0].text).toContain('Potion of Healing')
-    expect(result.turnCount).toBe(1)
+    expect(result.turnCount).toBe(0)
   })
 
   test('returns error when item not found', () => {

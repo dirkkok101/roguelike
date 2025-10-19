@@ -109,11 +109,11 @@ export class DropCommand implements ICommand {
       state.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       player: updatedPlayer,
       levels: updatedLevels,
       messages,
-    })
+    }
   }
 }

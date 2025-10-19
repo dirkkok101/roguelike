@@ -128,7 +128,7 @@ describe('AttackCommand', () => {
       expect(result.messages[0].text).toContain('You hit')
       expect(result.messages[0].text).toContain('damage')
       expect(result.messages[0].type).toBe('combat')
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('kills monster and removes it from level', () => {
@@ -144,7 +144,7 @@ describe('AttackCommand', () => {
       const monsters = result.levels.get(1)!.monsters
       expect(monsters.length).toBe(0)
       expect(result.messages.some((m) => m.text.includes('killed'))).toBe(true)
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('awards XP when monster is killed', () => {
@@ -190,7 +190,7 @@ describe('AttackCommand', () => {
       expect(updatedMonster.hp).toBe(10)
       expect(result.messages[0].text).toContain('You miss')
       expect(result.messages[0].type).toBe('combat')
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
   })
 

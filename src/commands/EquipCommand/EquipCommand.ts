@@ -197,10 +197,10 @@ export class EquipCommand implements ICommand {
       )
     }
 
-    return this.turnService.incrementTurn({
+    return {
       ...updatedState,
       player: updatedPlayer,
       messages,
-    })
+    }
   }
 }

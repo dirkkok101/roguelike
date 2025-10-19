@@ -97,13 +97,13 @@ export class PickUpCommand implements ICommand {
       )
     }
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       player: updatedPlayer,
       levels: updatedLevels,
       messages,
       hasAmulet,
       itemsFound: state.itemsFound + 1, // Track item pickup for death screen
-    })
+    }
   }
 }

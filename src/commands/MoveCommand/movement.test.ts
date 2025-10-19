@@ -448,7 +448,7 @@ describe('MoveCommand - Basic Movement', () => {
       }
 
       expect(state.player.position).toEqual({ x: 6, y: 6 })
-      expect(state.turnCount).toBe(4)
+      expect(state.turnCount).toBe(0) // Commands no longer increment turns
     })
   })
 })

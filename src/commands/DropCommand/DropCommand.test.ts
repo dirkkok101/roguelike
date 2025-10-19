@@ -168,7 +168,7 @@ describe('DropCommand', () => {
       const command = new DropCommand('sword-1', inventoryService, messageService, turnService, mockIdentificationService, recorder, mockRandom)
       const result = command.execute(state)
 
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('adds info message after drop', () => {
