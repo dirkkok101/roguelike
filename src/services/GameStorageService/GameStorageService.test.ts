@@ -298,7 +298,7 @@ describe('GameStorageService', () => {
 
       expect(games[0].gameId).toBe('game-1')
       expect(games[0].characterName).toBe('Test Hero')
-      expect(games[0].currentLevel).toBe(5)
+      expect(games[0].level).toBe(5)
       expect(games[0].turnCount).toBe(100)
       expect(games[0].timestamp).toBeGreaterThan(0)
     })
@@ -306,6 +306,39 @@ describe('GameStorageService', () => {
     it('should return empty array when no games', async () => {
       const games = await service.listGames()
       expect(games).toEqual([])
+    })
+
+    it('should return saves sorted by score descending', async () => {
+      const saves = [
+        createTestGameState({
+          gameId: 'game-1',
+          characterName: 'Alice',
+          player: { ...createTestGameState().player, gold: 100 },
+          monstersKilled: 9,
+          maxDepth: 5,
+        }),
+        createTestGameState({
+          gameId: 'game-2',
+          characterName: 'Bob',
+          player: { ...createTestGameState().player, gold: 500 },
+          monstersKilled: 45,
+          maxDepth: 26,
+        }),
+      ]
+
+      await service.saveGame(saves[0])
+      await service.saveGame(saves[1])
+
+      const games = await service.listGames()
+
+      // Sorted by score descending (Bob first with 5000, Alice second with 1000)
+      // Bob: 500 + (45 * 100) + (26 * 1000) = 500 + 4500 + 26000 = 31000
+      // Alice: 100 + (9 * 100) + (5 * 1000) = 100 + 900 + 5000 = 6000
+      expect(games).toHaveLength(2)
+      expect(games[0].characterName).toBe('Bob')
+      expect(games[0].score).toBe(31000)
+      expect(games[1].characterName).toBe('Alice')
+      expect(games[1].score).toBe(6000)
     })
   })
 

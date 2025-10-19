@@ -1,4 +1,4 @@
-import { GameState } from '@game/core/core'
+import { GameState, SaveSummary } from '@game/core/core'
 import { IndexedDBService } from '@services/IndexedDBService'
 import { CompressionWorkerService } from '@services/CompressionWorkerService'
 import { SerializationWorkerService } from '@services/SerializationWorkerService'
@@ -247,18 +247,30 @@ export class GameStorageService {
   }
 
   /**
-   * List all save game metadata
+   * List all save game metadata for leaderboard
+   * Returns SaveSummary[] sorted by score (descending)
    */
-  async listGames(): Promise<SaveMetadata[]> {
+  async listGames(): Promise<SaveSummary[]> {
     const allData = await this.indexedDB.getAll('saves')
 
-    // Filter out continue pointer and extract metadata
+    // Filter out continue pointer and map to SaveSummary
     const saves = allData
       .filter((item) => item.gameId !== 'continue_pointer')
-      .map((item) => item.metadata as SaveMetadata)
+      .map((item) => ({
+        gameId: item.metadata.gameId,
+        characterName: item.metadata.characterName,
+        status: item.metadata.status,
+        score: item.metadata.score,
+        gold: item.metadata.gold,
+        level: item.metadata.currentLevel,
+        turnCount: item.metadata.turnCount,
+        timestamp: item.metadata.timestamp,
+        maxDepth: item.metadata.maxDepth,
+        monstersKilled: item.metadata.monstersKilled,
+      }))
 
-    // Sort by timestamp (newest first)
-    saves.sort((a, b) => b.timestamp - a.timestamp)
+    // Sort by score descending (highest scores first)
+    saves.sort((a, b) => b.score - a.score)
 
     return saves
   }
