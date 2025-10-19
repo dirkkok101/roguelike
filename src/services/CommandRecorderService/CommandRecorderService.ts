@@ -142,13 +142,20 @@ export class CommandRecorderService {
     const detectedMagicItemsCopy = new Set(state.detectedMagicItems)
     const levelsVisitedWithAmuletCopy = new Set(state.levelsVisitedWithAmulet || [])
 
-    // Deep copy item name maps
-    const itemNameMapCopy = {
-      potions: new Map(state.itemNameMap.potions),
-      scrolls: new Map(state.itemNameMap.scrolls),
-      rings: new Map(state.itemNameMap.rings),
-      wands: new Map(state.itemNameMap.wands),
-    }
+    // Deep copy item name maps (defensive - handle missing itemNameMap)
+    const itemNameMapCopy = state.itemNameMap
+      ? {
+          potions: new Map(state.itemNameMap.potions),
+          scrolls: new Map(state.itemNameMap.scrolls),
+          rings: new Map(state.itemNameMap.rings),
+          wands: new Map(state.itemNameMap.wands),
+        }
+      : {
+          potions: new Map(),
+          scrolls: new Map(),
+          rings: new Map(),
+          wands: new Map(),
+        }
 
     return {
       ...state,

@@ -67,7 +67,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for toggle console', () => {
+    it('should NOT record command execution (debug commands not replayable) for toggle console', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('~')
@@ -77,15 +77,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
-      expect(recordSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          rngState: expect.any(String),
-          actorType: 'player',
-          turnNumber: expect.any(Number),
-          timestamp: expect.any(Number),
-        })
-      )
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -116,7 +108,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for god mode', () => {
+    it('should NOT record command execution (debug commands not replayable) for god mode', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('g')
@@ -126,15 +118,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
-      expect(recordSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          rngState: expect.any(String),
-          actorType: 'player',
-          turnNumber: expect.any(Number),
-          timestamp: expect.any(Number),
-        })
-      )
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -164,7 +148,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for reveal map', () => {
+    it('should NOT record command execution (debug commands not replayable) for reveal map', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('v')
@@ -174,7 +158,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -204,7 +188,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for spawn monster', () => {
+    it('should NOT record command execution (debug commands not replayable) for spawn monster', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('m')
@@ -214,7 +198,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -244,7 +228,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for wake all', () => {
+    it('should NOT record command execution (debug commands not replayable) for wake all', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('M', false, true)
@@ -254,7 +238,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -284,7 +268,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for kill all', () => {
+    it('should NOT record command execution (debug commands not replayable) for kill all', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('K', false, true)
@@ -294,7 +278,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -324,7 +308,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for identify all', () => {
+    it('should NOT record command execution (debug commands not replayable) for identify all', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('a')
@@ -334,7 +318,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -364,7 +348,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for FOV debug', () => {
+    it('should NOT record command execution (debug commands not replayable) for FOV debug', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('f')
@@ -374,7 +358,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -404,7 +388,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for path debug', () => {
+    it('should NOT record command execution (debug commands not replayable) for path debug', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('p')
@@ -414,7 +398,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -444,7 +428,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for AI debug', () => {
+    it('should NOT record command execution (debug commands not replayable) for AI debug', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('n')
@@ -454,7 +438,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -484,7 +468,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for FOV mode', () => {
+    it('should NOT record command execution (debug commands not replayable) for FOV mode', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('x')
@@ -494,7 +478,7 @@ describe('InputHandler - Debug Commands', () => {
       command!.execute(state)
 
       // Assert
-      expect(recordSpy).toHaveBeenCalledTimes(1)
+      expect(recordSpy).not.toHaveBeenCalled() // Debug commands are NOT recorded
     })
 
     it('should return new state object (immutability)', () => {
@@ -570,7 +554,7 @@ describe('InputHandler - Debug Commands', () => {
       expect(() => command!.execute(state)).not.toThrow()
     })
 
-    it('should record command execution for launch replay debugger', () => {
+    it('should NOT record command execution (debug commands not replayable) for launch replay debugger', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
       const event = createKeyboardEvent('L', false, true)
@@ -586,7 +570,7 @@ describe('InputHandler - Debug Commands', () => {
   })
 
   describe('Command Recording', () => {
-    it('should record all debug toggle commands with proper metadata', () => {
+    it('should NOT record debug commands (not replayable)', () => {
       // Arrange
       const recordSpy = jest.spyOn(dependencies.commandRecorder, 'recordCommand')
 
@@ -606,22 +590,8 @@ describe('InputHandler - Debug Commands', () => {
         command!.execute(state)
       })
 
-      // Assert: All commands should be recorded
-      expect(recordSpy).toHaveBeenCalledTimes(6)
-
-      // Verify each call has required metadata
-      for (let i = 0; i < 6; i++) {
-        expect(recordSpy).toHaveBeenNthCalledWith(
-          i + 1,
-          expect.objectContaining({
-            turnNumber: expect.any(Number),
-            timestamp: expect.any(Number),
-            actorType: 'player',
-            payload: expect.any(Object),
-            rngState: expect.any(String),
-          })
-        )
-      }
+      // Assert: Debug commands should NOT be recorded
+      expect(recordSpy).not.toHaveBeenCalled()
     })
   })
 })
