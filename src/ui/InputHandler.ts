@@ -923,7 +923,8 @@ export class InputHandler {
           return new LaunchReplayDebuggerCommand(
             this.replayDebugger,
             this.stateManager,
-            this.commandRecorder
+            this.commandRecorder,
+            this.gameRenderer
           )
         }
         return null

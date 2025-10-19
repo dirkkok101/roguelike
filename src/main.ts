@@ -52,6 +52,10 @@ import { CommandRecorderService } from '@services/CommandRecorderService'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { IndexedDBService } from '@services/IndexedDBService'
 import { DownloadService } from '@services/DownloadService'
+import { CommandFactory } from '@services/CommandFactory'
+import { RestService } from '@services/RestService'
+import { SearchService } from '@services/SearchService'
+import { DisturbanceService } from '@services/DisturbanceService'
 import { GameRenderer } from '@ui/GameRenderer'
 import { InputHandler } from '@ui/InputHandler'
 import { ModalController } from '@ui/ModalController'
@@ -154,7 +158,6 @@ async function initializeGame() {
   const indexedDBService = new IndexedDBService()
   await indexedDBService.initDatabase() // Initialize IndexedDB for game saves and replay storage
   const commandRecorderService = new CommandRecorderService(indexedDBService)
-  const replayDebuggerService = new ReplayDebuggerService(indexedDBService)
   const downloadService = new DownloadService()
   const gameStorageService = new GameStorageService(commandRecorderService, indexedDBService)
   const autoSaveMiddleware = new AutoSaveMiddleware(
@@ -195,6 +198,52 @@ async function initializeGame() {
   const targetingService = new TargetingService(fovService, movementService)
   const wandService = new WandService(identificationService, random, combatService, targetingService)
   const modalController = new ModalController(identificationService, curseService)
+
+  // Replay system services (created after all dependencies)
+  const disturbanceService = new DisturbanceService()
+  const restService = new RestService(regenerationService, hungerService, lightingService, fovService)
+  const searchService = new SearchService(random, doorService)
+  const commandFactory = new CommandFactory(
+    // Core services (used by most commands)
+    commandRecorderService,
+    random,
+    messageService,
+    turnService,
+    notificationService,
+
+    // Movement and exploration services
+    movementService,
+    lightingService,
+    fovService,
+    searchService,
+
+    // Combat and progression services
+    combatService,
+    levelingService,
+    hungerService,
+    regenerationService,
+
+    // Level and environment services
+    doorService,
+    goldService,
+    monsterAIService,
+    disturbanceService,
+    stairsNavigationService,
+    levelService,
+    victoryService,
+
+    // Item services
+    restService,
+    inventoryService,
+    potionService,
+    scrollService,
+    wandService,
+    statusEffectService,
+    targetingService,
+    identificationService,
+    curseService
+  )
+  const replayDebuggerService = new ReplayDebuggerService(indexedDBService, random, commandFactory)
 
   // Dungeon configuration
   // Note: Dungeon is larger than viewport (80×22) to enable camera scrolling

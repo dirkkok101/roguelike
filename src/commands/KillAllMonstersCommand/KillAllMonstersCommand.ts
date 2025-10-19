@@ -24,17 +24,8 @@ export class KillAllMonstersCommand implements ICommand {
   ) {}
 
   execute(state: GameState): GameState {
-    // STEP 1: Record command BEFORE execution (for deterministic replay)
-    this.recorder.recordCommand({
-      turnNumber: state.turnCount,
-      timestamp: Date.now(),
-      commandType: COMMAND_TYPES.DEBUG_KILL_ALL,
-      actorType: 'player',
-      payload: {},
-      rngState: this.randomService.getState(),
-    })
-
-    // STEP 2: Execute normally (existing logic unchanged)
+    // Debug commands are NOT recorded - they don't affect game state
+    // and cannot be replayed (CommandFactory doesn't support them)
     return this.debugService.killAllMonsters(state)
   }
 }

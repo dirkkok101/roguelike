@@ -6,6 +6,8 @@ import { GameStateManager } from '@services/GameStateManager'
 import { IReplayController } from './IReplayController'
 import { ReplayControlPanel } from '@ui/ReplayControlPanel'
 import { StateInspectorPanel } from '@ui/StateInspectorPanel'
+import { GameRenderer } from '@ui/GameRenderer'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 /**
  * ReplayDebugState - Console-based replay debugging state
@@ -57,6 +59,7 @@ export class ReplayDebugState extends BaseState implements IReplayController {
     private replayDebugger: ReplayDebuggerService,
     private stateManager: GameStateManager,
     private commandRecorder: CommandRecorderService,
+    private renderer: GameRenderer,
     initialTurn?: number,
     private inMemoryReplayData?: ReplayData
   ) {
@@ -340,6 +343,9 @@ export class ReplayDebugState extends BaseState implements IReplayController {
         console.log(`   Command: ${cmd.commandType} (${cmd.actorType})`)
       }
 
+      // Render the reconstructed state to update the game map
+      this.renderer.render(this.currentState)
+
       this.notifyObservers()
     } catch (error) {
       console.error('❌ Error stepping forward:', error)
@@ -371,6 +377,9 @@ export class ReplayDebugState extends BaseState implements IReplayController {
       )
 
       console.log(`⬅️  Turn ${this.currentTurn} / ${this.replayData.metadata.turnCount}`)
+
+      // Render the reconstructed state to update the game map
+      this.renderer.render(this.currentState)
 
       this.notifyObservers()
     } catch (error) {

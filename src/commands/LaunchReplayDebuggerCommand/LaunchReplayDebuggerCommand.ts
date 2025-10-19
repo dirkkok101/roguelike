@@ -5,6 +5,7 @@ import { GameStateManager } from '@services/GameStateManager'
 import { ReplayDebugState } from '../../states/ReplayDebugState'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { ReplayData } from '@game/replay/replay'
+import { GameRenderer } from '@ui/GameRenderer'
 
 /**
  * LaunchReplayDebuggerCommand - Launch replay debugger for current game
@@ -35,7 +36,8 @@ export class LaunchReplayDebuggerCommand implements ICommand {
   constructor(
     private replayDebugger: ReplayDebuggerService,
     private stateManager: GameStateManager,
-    private commandRecorder: CommandRecorderService
+    private commandRecorder: CommandRecorderService,
+    private renderer: GameRenderer
   ) {}
 
   /**
@@ -100,6 +102,7 @@ export class LaunchReplayDebuggerCommand implements ICommand {
         this.replayDebugger,
         this.stateManager,
         this.commandRecorder,
+        this.renderer, // Needed to render reconstructed states
         state.turnCount, // Start at current turn
         replayData // Pass in-memory replay data
       )

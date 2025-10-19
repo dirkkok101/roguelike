@@ -46,7 +46,13 @@ export class CommandRecorderService {
    */
   startRecording(initialState: GameState, gameId: string): void {
     this.commands = []
-    this.initialState = JSON.parse(JSON.stringify(initialState))
+    // Deep copy to prevent mutations, but preserve Map/Set instances
+    // (can't use JSON.parse/stringify as it destroys Maps/Sets)
+    if (typeof structuredClone !== 'undefined') {
+      this.initialState = structuredClone(initialState)
+    } else {
+      this.initialState = this.deepCopyGameState(initialState)
+    }
     this.currentGameId = gameId
     this.startTime = Date.now()
     console.log(`📼 Started recording for game: ${gameId}`)
