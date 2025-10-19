@@ -11,16 +11,16 @@ import './ReplayControlPanel.css'
 export class ReplayControlPanel {
   public readonly element: HTMLDivElement
 
-  private btnSkipStart: HTMLButtonElement
-  private btnStepBack: HTMLButtonElement
-  private btnStepForward: HTMLButtonElement
-  private btnSkipEnd: HTMLButtonElement
-  private turnDisplay: HTMLSpanElement
-  private slider: HTMLInputElement
-  private jumpInput: HTMLInputElement
-  private btnJump: HTMLButtonElement
+  private btnSkipStart!: HTMLButtonElement
+  private btnStepBack!: HTMLButtonElement
+  private btnStepForward!: HTMLButtonElement
+  private btnSkipEnd!: HTMLButtonElement
+  private turnDisplay!: HTMLSpanElement
+  private slider!: HTMLInputElement
+  private jumpInput!: HTMLInputElement
+  private btnJump!: HTMLButtonElement
 
-  private scrubTimeout: number | null = null
+  private scrubTimeout: ReturnType<typeof setTimeout> | null = null
   private stateChangeCallback: () => void
 
   constructor(private controller: IReplayController) {
