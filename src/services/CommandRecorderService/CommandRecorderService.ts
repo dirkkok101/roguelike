@@ -59,8 +59,13 @@ export class CommandRecorderService {
    * @deprecated Use startRecording instead
    */
   setInitialState(state: GameState): void {
-    // Deep copy to avoid mutations affecting initial state
-    this.initialState = JSON.parse(JSON.stringify(state))
+    // Deep copy to prevent mutations, but preserve Map/Set instances
+    // (can't use JSON.parse/stringify as it destroys Maps/Sets)
+    if (typeof structuredClone !== 'undefined') {
+      this.initialState = structuredClone(state)
+    } else {
+      this.initialState = this.deepCopyGameState(state)
+    }
     this.currentGameId = state.gameId
     this.startTime = Date.now()
   }
@@ -82,8 +87,75 @@ export class CommandRecorderService {
       return null
     }
 
-    // Return deep copy
-    return JSON.parse(JSON.stringify(this.initialState))
+    // Return deep copy - use native structuredClone if available (browser),
+    // otherwise fall back to custom implementation for Jest environment
+    if (typeof structuredClone !== 'undefined') {
+      return structuredClone(this.initialState)
+    }
+
+    // Fallback: Manual deep copy that preserves Map/Set
+    // (Jest environment doesn't have structuredClone)
+    return this.deepCopyGameState(this.initialState)
+  }
+
+  /**
+   * Deep copy GameState while preserving Map and Set instances
+   * This is a fallback for environments without structuredClone (Jest)
+   */
+  private deepCopyGameState(state: GameState): GameState {
+    // Deep copy levels Map (handle both Map and plain object from tests)
+    const levelsCopy = new Map()
+    if (state.levels instanceof Map) {
+      for (const [depth, level] of state.levels.entries()) {
+        levelsCopy.set(depth, {
+          ...level,
+          monsters: level.monsters.map(m => ({
+            ...m,
+            visibleCells: new Set(m.visibleCells || []),
+          })),
+        })
+      }
+    } else {
+      // Handle plain object (from test data or JSON deserialization)
+      for (const [depthStr, level] of Object.entries(state.levels as any)) {
+        const depth = parseInt(depthStr, 10)
+        levelsCopy.set(depth, {
+          ...level,
+          monsters: (level as any).monsters.map((m: any) => ({
+            ...m,
+            visibleCells: new Set(m.visibleCells || []),
+          })),
+        })
+      }
+    }
+
+    // Deep copy Sets (handle both Set and array from tests)
+    const visibleCellsCopy = new Set(state.visibleCells)
+    const identifiedItemsCopy = new Set(state.identifiedItems)
+    const detectedMonstersCopy = new Set(state.detectedMonsters)
+    const detectedMagicItemsCopy = new Set(state.detectedMagicItems)
+    const levelsVisitedWithAmuletCopy = new Set(state.levelsVisitedWithAmulet || [])
+
+    // Deep copy item name maps
+    const itemNameMapCopy = {
+      potions: new Map(state.itemNameMap.potions),
+      scrolls: new Map(state.itemNameMap.scrolls),
+      rings: new Map(state.itemNameMap.rings),
+      wands: new Map(state.itemNameMap.wands),
+    }
+
+    return {
+      ...state,
+      levels: levelsCopy,
+      visibleCells: visibleCellsCopy,
+      identifiedItems: identifiedItemsCopy,
+      detectedMonsters: detectedMonstersCopy,
+      detectedMagicItems: detectedMagicItemsCopy,
+      levelsVisitedWithAmulet: levelsVisitedWithAmuletCopy,
+      itemNameMap: itemNameMapCopy,
+      player: { ...state.player },
+      messages: [...state.messages],
+    }
   }
 
   /**
