@@ -26,7 +26,7 @@ import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
 import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { DoorService } from '@services/DoorService'
 import { GoldService } from '@services/GoldService'
@@ -147,18 +147,18 @@ async function initializeGame() {
   const toastContainer = new ToastContainer(toastNotificationService)
   const victoryService = new VictoryService()
   const deathService = new DeathService()
-  const localStorageService = new LocalStorageService()
   const leaderboardService = new LeaderboardService()
   const leaderboardStorageService = new LeaderboardStorageService()
   const scoreCalculationService = new ScoreCalculationService()
   const preferencesService = new PreferencesService()
   const indexedDBService = new IndexedDBService()
-  await indexedDBService.initDatabase() // Initialize IndexedDB for replay storage
+  await indexedDBService.initDatabase() // Initialize IndexedDB for game saves and replay storage
   const commandRecorderService = new CommandRecorderService(indexedDBService)
   const replayDebuggerService = new ReplayDebuggerService(indexedDBService)
   const downloadService = new DownloadService()
+  const gameStorageService = new GameStorageService(commandRecorderService, indexedDBService)
   const autoSaveMiddleware = new AutoSaveMiddleware(
-    localStorageService,
+    gameStorageService,
     10,
     commandRecorderService
   )
@@ -341,7 +341,7 @@ async function initializeGame() {
     debug: debugService.initializeDebugState(),
     positionHistory: [], // Track last 3 positions for door slam detection
     config: {
-      fovMode: 'radius' // Default to radius-based FOV (current behavior)
+      fovMode: 'room-reveal' // Default to room-reveal FOV (authentic 1980 Rogue)
     },
     // Run statistics (initialized to 0)
     monstersKilled: 0,
@@ -493,7 +493,7 @@ async function initializeGame() {
       debug: debugService.initializeDebugState(),
       positionHistory: [], // Track last 3 positions for door slam detection
       config: {
-        fovMode: 'radius' // Default to radius-based FOV (current behavior)
+        fovMode: 'room-reveal' // Default to room-reveal FOV (authentic 1980 Rogue)
       },
       monstersKilled: 0,
       itemsFound: 0,
@@ -517,7 +517,7 @@ async function initializeGame() {
       debugService,
       contextService,
       victoryService,
-      localStorageService,
+      gameStorageService,
       deathService,
       leaderboardService,
       leaderboardStorageService,
@@ -556,7 +556,7 @@ async function initializeGame() {
       wand: wandService,
       door: doorService,
       targeting: targetingService,
-      localStorage: localStorageService,
+      localStorage: gameStorageService,
       notification: notificationService,
       toastNotification: toastNotificationService,
       victory: victoryService,
@@ -678,8 +678,8 @@ async function initializeGame() {
   }
 
   // Show main menu with save detection
-  function showMainMenu() {
-    const hasSave = localStorageService.hasSave()
+  async function showMainMenu() {
+    const hasSave = await gameStorageService.hasSave()
 
     mainMenu.show(
       hasSave,
@@ -690,7 +690,7 @@ async function initializeGame() {
       },
       // Continue callback
       async () => {
-        const savedState = await localStorageService.loadGame()
+        const savedState = await gameStorageService.loadGame()
         if (savedState) {
           console.log('Continuing saved game:', savedState.gameId)
           startGame(savedState)
@@ -714,9 +714,9 @@ async function initializeGame() {
 
   // Add beforeunload handler to prevent page close during save
   window.addEventListener('beforeunload', (event) => {
-    // If LocalStorageService is currently saving, warn user
+    // If GameStorageService is currently saving, warn user
     // Note: Modern browsers ignore custom messages, but we still need to set returnValue
-    if (localStorageService.isSavingInProgress()) {
+    if (gameStorageService.isSavingInProgress()) {
       event.preventDefault()
       event.returnValue = 'Game is currently saving. Are you sure you want to leave?'
       return event.returnValue

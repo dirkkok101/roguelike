@@ -17,7 +17,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
 import { DoorService } from '@services/DoorService'
 import { PotionService } from '@services/PotionService'
 import { ScrollService } from '@services/ScrollService'
@@ -97,7 +97,7 @@ export interface GameDependencies {
   targeting: TargetingService
 
   // Persistence and meta
-  localStorage: LocalStorageService
+  localStorage: GameStorageService
   notification: NotificationService
   toastNotification: ToastNotificationService
   victory: VictoryService

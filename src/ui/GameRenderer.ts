@@ -6,7 +6,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
 import { VictoryService } from '@services/VictoryService'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
 import { DeathService } from '@services/DeathService'
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
@@ -76,7 +76,7 @@ export class GameRenderer {
     private debugService: DebugService,
     contextService: ContextService,
     private victoryService: VictoryService,
-    private localStorageService: LocalStorageService,
+    private gameStorageService: GameStorageService,
     private deathService: DeathService,
     leaderboardService: LeaderboardService,
     leaderboardStorageService: LeaderboardStorageService,
@@ -132,7 +132,7 @@ export class GameRenderer {
     // Check for death before rendering
     if (state.isGameOver && !state.hasWon && !this.deathScreen.isVisible()) {
       // Permadeath: Delete save immediately when player dies
-      this.localStorageService.deleteSave(state.gameId)
+      this.gameStorageService.deleteSave(state.gameId)
       if (this.debugService.isEnabled()) {
         console.log('[GameRenderer] Save deleted (permadeath)')
       }

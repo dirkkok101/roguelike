@@ -1,6 +1,6 @@
 import { GameState } from '@game/core/core'
 import { ICommand } from '../ICommand'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
 import { MessageService } from '@services/MessageService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
@@ -13,7 +13,7 @@ import { COMMAND_TYPES } from '@game/replay/replay'
 
 export class SaveCommand implements ICommand {
   constructor(
-    private localStorageService: LocalStorageService,
+    private gameStorageService: GameStorageService,
     private messageService: MessageService,
     private toastNotificationService: ToastNotificationService,
 
@@ -58,25 +58,18 @@ export class SaveCommand implements ICommand {
     setTimeout(async () => {
       // Fire-and-forget save with callbacks for user feedback
       // IMPORTANT: Do NOT await this! It will run in the background
-      // LocalStorageService now handles debouncing (max 1 save per second)
-      this.localStorageService.saveGame(
-        state,
-        async () => {
-          // Success callback - save succeeded, now persist replay
+      // GameStorageService handles async save with compression
+      this.gameStorageService.saveGame(state)
+        .then(async () => {
+          // Success - game and replay data both saved (dual storage)
           console.log('✅ Save completed successfully')
           toastService.success('Game saved successfully')
-
-          // Persist replay data to IndexedDB
-          if (state.gameId) {
-            await recorder.persistToIndexedDB(state.gameId)
-          }
-        },
-        (error) => {
+        })
+        .catch((error) => {
           // Error callback
           console.error('❌ Save failed:', error)
           toastService.error(`Save failed: ${error.message}`)
-        }
-      )
+        })
     }, 0)
 
     return { ...state, messages }

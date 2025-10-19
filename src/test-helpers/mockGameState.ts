@@ -132,7 +132,7 @@ export function createMockGameState(options: MockGameStateOptions = {}): GameSta
     },
     identifiedItems: new Set<string>(),
     config: {
-      fovMode: 'radius' // Default to radius-based FOV for tests
+      fovMode: 'room-reveal' // Default to room-reveal FOV for tests
     },
     monstersKilled: 0,
     itemsFound: 0,

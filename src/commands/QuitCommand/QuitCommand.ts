@@ -1,6 +1,6 @@
 import { ICommand } from '../ICommand'
 import { GameState } from '@game/core/core'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { IRandomService } from '@services/RandomService'
 import { COMMAND_TYPES } from '@game/replay/replay'
@@ -11,7 +11,7 @@ import { COMMAND_TYPES } from '@game/replay/replay'
  */
 export class QuitCommand implements ICommand {
   constructor(
-    private localStorageService: LocalStorageService,
+    private gameStorageService: GameStorageService,
     private onReturnToMenu: () => void,
     private recorder: CommandRecorderService,
     private randomService: IRandomService
@@ -49,8 +49,8 @@ export class QuitCommand implements ICommand {
     // Save before quitting - wait for completion before returning to menu
     console.log('Saving before quit...')
     try {
-      await this.localStorageService.saveGame(state)
-      console.log('✅ Saved successfully, returning to menu')
+      await this.gameStorageService.saveGame(state)
+      console.log('✅ Saved successfully (game + replay), returning to menu')
       this.onReturnToMenu()
     } catch (error) {
       console.error('❌ Save failed:', error)

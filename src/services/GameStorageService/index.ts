@@ -1,1 +1,2 @@
-export { GameStorageService, SaveMetadata } from './GameStorageService'
+export { GameStorageService } from './GameStorageService'
+export type { SaveMetadata } from './GameStorageService'

@@ -49,7 +49,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
 import { DoorService } from '@services/DoorService'
 import { PotionService } from '@services/PotionService'
@@ -101,7 +101,7 @@ export class InputHandler {
   private readonly notificationService: NotificationService
   private readonly toastNotificationService: ToastNotificationService
   private readonly victoryService: VictoryService
-  private readonly localStorageService: LocalStorageService
+  private readonly gameStorageService: GameStorageService
   private readonly doorService: DoorService
   private readonly potionService: PotionService
   private readonly scrollService: ScrollService
@@ -144,7 +144,7 @@ export class InputHandler {
     this.notificationService = services.notification
     this.toastNotificationService = services.toastNotification
     this.victoryService = services.victory
-    this.localStorageService = services.localStorage
+    this.gameStorageService = services.localStorage
     this.doorService = services.door
     this.potionService = services.potion
     this.scrollService = services.scroll
@@ -315,7 +315,7 @@ export class InputHandler {
       case 'S':
         event.preventDefault()
         return new SaveCommand(
-          this.localStorageService,
+          this.gameStorageService,
           this.messageService,
           this.toastNotificationService,
           this.commandRecorder,
@@ -324,7 +324,7 @@ export class InputHandler {
 
       case 'Q':
         event.preventDefault()
-        return new QuitCommand(this.localStorageService, this.onReturnToMenu, this.commandRecorder, this.random)
+        return new QuitCommand(this.gameStorageService, this.onReturnToMenu, this.commandRecorder, this.random)
 
       case '>':
         event.preventDefault()

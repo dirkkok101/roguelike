@@ -17,6 +17,7 @@ import { RegenerationService } from '@services/RegenerationService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { IdentificationService } from '@services/IdentificationService'
 import { NotificationService } from '@services/NotificationService'
+import { RoomDetectionService } from '@services/RoomDetectionService'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { createTestPlayer } from '@test-helpers'
@@ -35,6 +36,7 @@ describe('MoveCommand - Run Continuation', () => {
   let statusEffectService: StatusEffectService
   let identificationService: IdentificationService
   let notificationService: NotificationService
+  let roomDetectionService: RoomDetectionService
   let goldService: GoldService
   let ringService: RingService
   let mockRandom: MockRandom
@@ -50,7 +52,8 @@ describe('MoveCommand - Run Continuation', () => {
     hungerService = new HungerService(mockRandom, ringService)
     movementService = new MovementService(mockRandom, statusEffectService)
     lightingService = new LightingService(mockRandom)
-    fovService = new FOVService(statusEffectService)
+    roomDetectionService = new RoomDetectionService()
+    fovService = new FOVService(statusEffectService, roomDetectionService)
     messageService = new MessageService()
     combatService = new CombatService(mockRandom, ringService, hungerService)
     levelingService = new LevelingService(mockRandom)

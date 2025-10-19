@@ -44,6 +44,14 @@ export class AutoSaveMiddleware {
           }
         })
         .catch((error) => {
+          // Silently ignore throttling errors - they're expected behavior
+          // The LocalStorageService throttles saves to prevent rapid-fire saves
+          if (error.message?.includes('throttled')) {
+            // Do nothing - throttling is working as intended
+            return
+          }
+
+          // Log other errors (storage quota, serialization failures, etc.)
           console.error('❌ Auto-save failed:', error)
         })
     }

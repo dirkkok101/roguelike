@@ -49,6 +49,7 @@ export class GameStorageService {
   private recorder: CommandRecorderService
 
   private testMode = false
+  private activeSaveCount = 0 // Track number of saves in progress
 
   constructor(
     recorder: CommandRecorderService,
@@ -73,11 +74,20 @@ export class GameStorageService {
   }
 
   /**
+   * Check if save operations are in progress
+   * Useful for beforeunload warning
+   */
+  isSavingInProgress(): boolean {
+    return this.activeSaveCount > 0
+  }
+
+  /**
    * Save game state to IndexedDB
    * Saves BOTH game state (full snapshot) and replay data (commands) atomically
    * Dual storage model: 'saves' for fast loading, 'replays' for debugging
    */
   async saveGame(state: GameState): Promise<void> {
+    this.activeSaveCount++
     try {
       // Serialize and compress game state
       const serialized = await this.serializeGameState(state)
@@ -127,6 +137,8 @@ export class GameStorageService {
       console.error('Failed to save game:', error)
       // TODO: Implement rollback for atomic saves (delete both if either fails)
       throw new Error('Failed to save game')
+    } finally {
+      this.activeSaveCount--
     }
   }
 

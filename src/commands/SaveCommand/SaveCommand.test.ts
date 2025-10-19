@@ -1,33 +1,42 @@
+import 'fake-indexeddb/auto'
 import { SaveCommand } from './SaveCommand'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
 import { MessageService } from '@services/MessageService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
 import { GameState, Level, TileType } from '@game/core/core'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IndexedDBService } from '@services/IndexedDBService'
 import { createTestPlayer } from '@test-helpers'
+
+// Polyfill for structuredClone
+if (typeof globalThis.structuredClone === 'undefined') {
+  globalThis.structuredClone = (obj: any) => JSON.parse(JSON.stringify(obj))
+}
 
 describe('SaveCommand', () => {
   let command: SaveCommand
-  let localStorageService: LocalStorageService
+  let gameStorageService: GameStorageService
   let messageService: MessageService
   let toastNotificationService: ToastNotificationService
   let mockRandom: MockRandom
   let recorder: CommandRecorderService
+  let indexedDB: IndexedDBService
 
-  beforeEach(() => {
-    localStorageService = new LocalStorageService()
-    localStorageService.enableTestMode() // Use synchronous compression for tests
+  beforeEach(async () => {
+    indexedDB = new IndexedDBService()
+    await indexedDB.initDatabase()
+    recorder = new CommandRecorderService(indexedDB)
+    gameStorageService = new GameStorageService(recorder, indexedDB)
+    gameStorageService.enableTestMode() // Use synchronous compression for tests
     messageService = new MessageService()
     toastNotificationService = new ToastNotificationService()
     mockRandom = new MockRandom()
-    recorder = new CommandRecorderService()
-    command = new SaveCommand(localStorageService, messageService, toastNotificationService, recorder, mockRandom)
-    localStorage.clear()
+    command = new SaveCommand(gameStorageService, messageService, toastNotificationService, recorder, mockRandom)
   })
 
-  afterEach(() => {
-    localStorage.clear()
+  afterEach(async () => {
+    await indexedDB.deleteDatabase()
   })
 
   function createTestLevel(depth: number): Level {
@@ -93,7 +102,7 @@ describe('SaveCommand', () => {
     // Wait for async save to complete (setTimeout deferral + save operation)
     await new Promise((resolve) => setTimeout(resolve, 50))
 
-    expect(localStorageService.hasSave('save-test-1')).toBe(true)
+    expect(await gameStorageService.hasSave('save-test-1')).toBe(true)
   })
 
   test('shows "Saving..." message immediately', () => {
@@ -106,7 +115,7 @@ describe('SaveCommand', () => {
     expect(result.messages[0].type).toBe('info')
   })
 
-  test('does not save if game is over', () => {
+  test('does not save if game is over', async () => {
     const state = createTestState({
       gameId: 'game-over-test',
       isGameOver: true,
@@ -114,7 +123,7 @@ describe('SaveCommand', () => {
 
     command.execute(state)
 
-    expect(localStorageService.hasSave('game-over-test')).toBe(false)
+    expect(await gameStorageService.hasSave('game-over-test')).toBe(false)
   })
 
   test('returns unchanged state when game is over', () => {
@@ -142,7 +151,7 @@ describe('SaveCommand', () => {
     // Need longer wait in test environment due to Jest overhead
     await new Promise((resolve) => setTimeout(resolve, 100))
 
-    const loaded = await localStorageService.loadGame('complete-save')
+    const loaded = await gameStorageService.loadGame('complete-save')
     expect(loaded).not.toBeNull()
     expect(loaded?.turnCount).toBe(500)
     expect(loaded?.currentLevel).toBe(3)
@@ -171,29 +180,14 @@ describe('SaveCommand', () => {
     expect(result.turnCount).toBe(100)
   })
 
-  test('persists replay data when saving', async () => {
-    // Create mock IndexedDBService
-    const mockIndexedDB = {
-      put: jest.fn().mockResolvedValue(undefined),
-      get: jest.fn(),
-      delete: jest.fn(),
-      getAll: jest.fn(),
-      query: jest.fn(),
-      checkQuota: jest.fn(),
-      deleteDatabase: jest.fn(),
-      initDatabase: jest.fn(),
-      openDatabase: jest.fn(),
-    } as any
-
-    // Create CommandRecorderService with mock IndexedDB
-    const testRecorder = new CommandRecorderService(mockIndexedDB)
+  test('calls GameStorageService.saveGame which handles replay persistence', async () => {
     const state = createTestState({ gameId: 'save-replay-test' })
 
     // Start recording
-    testRecorder.startRecording(state, state.gameId)
+    recorder.startRecording(state, state.gameId)
 
     // Record a command
-    testRecorder.recordCommand({
+    recorder.recordCommand({
       turnNumber: state.turnCount,
       timestamp: Date.now(),
       commandType: 'move' as any,
@@ -202,25 +196,19 @@ describe('SaveCommand', () => {
       rngState: 'seed-123',
     })
 
-    // Create command with test recorder
-    const testCommand = new SaveCommand(
-      localStorageService,
-      messageService,
-      toastNotificationService,
-      testRecorder,
-      mockRandom
-    )
-
-    // Spy on persistToIndexedDB
-    const persistSpy = jest.spyOn(testRecorder, 'persistToIndexedDB')
+    // Spy on GameStorageService.saveGame
+    const saveSpy = jest.spyOn(gameStorageService, 'saveGame')
 
     // Execute save command
-    testCommand.execute(state)
+    command.execute(state)
 
-    // Wait for async operations (setTimeout + save + persist)
+    // Wait for async operations (setTimeout + save)
     await new Promise((resolve) => setTimeout(resolve, 100))
 
-    // Verify persistToIndexedDB was called
-    expect(persistSpy).toHaveBeenCalledWith('save-replay-test')
+    // Verify saveGame was called (which internally handles replay persistence)
+    expect(saveSpy).toHaveBeenCalledWith(state)
+
+    // Verify save was successful (both game state and replay data)
+    expect(await gameStorageService.hasSave('save-replay-test')).toBe(true)
   })
 })

@@ -49,8 +49,8 @@ export class PlayingState extends BaseState {
     private autoSaveMiddleware: AutoSaveMiddleware,
     preferencesService: PreferencesService,
     messageService: MessageService,
-    commandRecorder: CommandRecorderService,
-    randomService: IRandomService
+    private commandRecorder: CommandRecorderService,
+    private randomService: IRandomService
   ) {
     super()
     this.gameState = initialState
@@ -68,6 +68,12 @@ export class PlayingState extends BaseState {
    * Also check for pending commands (from targeting, modals, etc.)
    */
   enter(): void {
+    // Initialize replay recording for this game session
+    // This enables replay debugging and determinism validation
+    if (this.gameState.gameId) {
+      this.commandRecorder.startRecording(this.gameState, this.gameState.gameId)
+    }
+
     this.renderer.render(this.gameState)
 
     // Check for pending commands when state becomes active
@@ -136,7 +142,7 @@ export class PlayingState extends BaseState {
       const direction = this.getDirectionFromKey(_input.key)
       if (direction) {
         // Initiate run with RunCommand
-        const runCommand = new RunCommand(direction)
+        const runCommand = new RunCommand(direction, this.commandRecorder, this.randomService)
         this.gameState = runCommand.execute(this.gameState)
 
         // Take first step with MoveCommand (needs all services from InputHandler)

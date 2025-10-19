@@ -97,7 +97,8 @@ export class LocalStorageService {
     const now = Date.now()
     if (!this.testMode && now - this.lastSaveTime < this.MIN_SAVE_INTERVAL_MS) {
       const error = new Error('Save throttled - please wait before saving again')
-      console.warn(`Save throttled (last save was ${now - this.lastSaveTime}ms ago)`)
+      // Don't log throttling - it's expected behavior for auto-save
+      // The AutoSaveMiddleware will handle this gracefully
       if (onError) onError(error)
       return Promise.reject(error)
     }
@@ -635,7 +636,7 @@ export class LocalStorageService {
       itemsUsed: data.itemsUsed ?? 0,
       levelsExplored: data.levelsExplored ?? 1,
       // MIGRATION: Add default config for saves without it (pre room-reveal PR)
-      config: data.config ?? { fovMode: 'radius' },
+      config: data.config ?? { fovMode: 'room-reveal' },
     }
   }
 
