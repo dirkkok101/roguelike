@@ -24,9 +24,9 @@ describe('IndexedDBService', () => {
       const db = await service.initDatabase()
 
       expect(db.name).toBe('roguelike_db')
-      expect(db.version).toBe(1)
+      expect(db.version).toBe(2) // Version 2: unified storage (replays embedded in saves)
       expect(db.objectStoreNames.contains('saves')).toBe(true)
-      expect(db.objectStoreNames.contains('replays')).toBe(true)
+      expect(db.objectStoreNames.contains('replays')).toBe(false) // Removed in v2
     })
 
     it('should create saves object store with indexes', async () => {
@@ -37,16 +37,6 @@ describe('IndexedDBService', () => {
       expect(store.keyPath).toBe('gameId')
       expect(store.indexNames.contains('timestamp')).toBe(true)
       expect(store.indexNames.contains('characterName')).toBe(true)
-    })
-
-    it('should create replays object store with indexes', async () => {
-      const db = await service.initDatabase()
-      const transaction = db.transaction(['replays'], 'readonly')
-      const store = transaction.objectStore('replays')
-
-      expect(store.keyPath).toBe('gameId')
-      expect(store.indexNames.contains('timestamp')).toBe(true)
-      expect(store.indexNames.contains('turnCount')).toBe(true)
     })
 
     it('should reuse existing database connection', async () => {
@@ -210,29 +200,28 @@ describe('IndexedDBService', () => {
       expect(retrieved).toEqual(data)
     })
 
-    it('should handle concurrent puts to different stores', async () => {
-      const saveData = {
+    it('should handle concurrent puts to same store', async () => {
+      const saveData1 = {
         gameId: 'game-1',
-        metadata: { characterName: 'Hero' },
+        metadata: { characterName: 'Hero 1' },
       }
 
-      const replayData = {
-        gameId: 'game-1',
-        metadata: { createdAt: Date.now() },
-        commands: [],
+      const saveData2 = {
+        gameId: 'game-2',
+        metadata: { characterName: 'Hero 2' },
       }
 
-      // Execute puts in parallel
+      // Execute puts in parallel to the same store
       await Promise.all([
-        service.put('saves', 'game-1', saveData),
-        service.put('replays', 'game-1', replayData),
+        service.put('saves', 'game-1', saveData1),
+        service.put('saves', 'game-2', saveData2),
       ])
 
-      const savedGame = await service.get('saves', 'game-1')
-      const savedReplay = await service.get('replays', 'game-1')
+      const savedGame1 = await service.get('saves', 'game-1')
+      const savedGame2 = await service.get('saves', 'game-2')
 
-      expect(savedGame).toEqual(saveData)
-      expect(savedReplay).toEqual(replayData)
+      expect(savedGame1).toEqual(saveData1)
+      expect(savedGame2).toEqual(saveData2)
     })
   })
 
@@ -277,69 +266,6 @@ describe('IndexedDBService', () => {
       // After close, openDatabase should create new connection
       const db2 = await service.openDatabase()
       expect(db2).toBeDefined()
-    })
-  })
-
-  describe('Replay Store Operations', () => {
-    it('should save and retrieve replay data', async () => {
-      const replayData = {
-        gameId: 'test-replay',
-        version: 1,
-        initialState: { player: { hp: 100 } },
-        seed: 'test-seed',
-        commands: [
-          {
-            turnNumber: 1,
-            timestamp: Date.now(),
-            commandType: 'move',
-            actorType: 'player',
-            payload: { direction: 'north' },
-            rngState: '0.123',
-          },
-        ],
-        metadata: {
-          createdAt: Date.now(),
-          turnCount: 1,
-          characterName: 'Hero',
-          currentLevel: 1,
-        },
-      }
-
-      await service.put('replays', 'test-replay', replayData)
-      const retrieved = await service.get('replays', 'test-replay')
-
-      expect(retrieved).toEqual(replayData)
-    })
-
-    it('should query replays by turnCount', async () => {
-      await service.put('replays', 'replay-1', {
-        gameId: 'replay-1',
-        metadata: {
-          createdAt: 1000,
-          turnCount: 50,
-          characterName: 'Hero 1',
-          currentLevel: 5,
-        },
-      })
-
-      await service.put('replays', 'replay-2', {
-        gameId: 'replay-2',
-        metadata: {
-          createdAt: 2000,
-          turnCount: 100,
-          characterName: 'Hero 2',
-          currentLevel: 10,
-        },
-      })
-
-      const results = await service.query(
-        'replays',
-        'turnCount',
-        IDBKeyRange.lowerBound(75)
-      )
-
-      expect(results).toHaveLength(1)
-      expect(results[0].gameId).toBe('replay-2')
     })
   })
 })

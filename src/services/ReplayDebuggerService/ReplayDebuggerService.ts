@@ -51,6 +51,16 @@ export class ReplayDebuggerService {
         return null
       }
 
+      // Version check: Replay data only exists in save version 6
+      // Future versions might have different replay formats, so we check for exact match
+      const COMPATIBLE_SAVE_VERSION = 6
+      if (save.version !== COMPATIBLE_SAVE_VERSION) {
+        console.warn(
+          `Save version ${save.version} is incompatible (requires version ${COMPATIBLE_SAVE_VERSION})`
+        )
+        return null
+      }
+
       if (!save.replayData) {
         console.warn(`No replay data in save for game: ${gameId}`)
         return null
