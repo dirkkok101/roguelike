@@ -16,7 +16,7 @@ export class OpenDoorCommand implements ICommand {
     private direction: Position,
     private messageService: MessageService,
     private doorService: DoorService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService
   ) {}
@@ -69,10 +69,10 @@ export class OpenDoorCommand implements ICommand {
       state.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       levels: updatedLevels,
       messages,
-    })
+    }
   }
 }

@@ -17,7 +17,7 @@ export class DropCommand implements ICommand {
     private itemId: string,
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private identificationService: IdentificationService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService
@@ -109,11 +109,11 @@ export class DropCommand implements ICommand {
       state.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       player: updatedPlayer,
       levels: updatedLevels,
       messages,
-    })
+    }
   }
 }

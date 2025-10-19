@@ -99,7 +99,7 @@ describe('RefillLanternCommand', () => {
     expect(result.player.equipment.lightSource?.fuel).toBe(600) // 100 + 500
     expect(result.player.inventory).toHaveLength(0) // Oil consumed
     expect(result.messages[0].type).toBe('success')
-    expect(result.turnCount).toBe(1)
+    expect(result.turnCount).toBe(0)
   })
 
   test('returns error when item not found', () => {

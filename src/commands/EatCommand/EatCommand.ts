@@ -17,7 +17,7 @@ export class EatCommand implements ICommand {
     private inventoryService: InventoryService,
     private hungerService: HungerService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService
   ) {}
@@ -70,11 +70,11 @@ export class EatCommand implements ICommand {
       )
     })
 
-    // 5. Return with turn increment
-    return this.turnService.incrementTurn({
+    // 5. Return updated state
+    return {
       ...state,
       player: result.player,
       messages
-    })
+    }
   }
 }

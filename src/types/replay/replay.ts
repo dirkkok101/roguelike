@@ -65,10 +65,16 @@ export const COMMAND_TYPES = {
   REMOVE: 'remove',
   WIELD: 'wield',
   EAT: 'eat',
+  REFILL: 'refill',
 
   // Level navigation
   DESCEND: 'descend',
   ASCEND: 'ascend',
+  MOVE_STAIRS: 'move-stairs',
+
+  // Door interactions
+  OPEN_DOOR: 'open-door',
+  CLOSE_DOOR: 'close-door',
 
   // Monster AI commands
   AI_MOVE: 'ai-move',
@@ -81,6 +87,25 @@ export const COMMAND_TYPES = {
   LIGHT_FUEL: 'light-fuel',
   HUNGER_TICK: 'hunger-tick',
   AUTO_SAVE: 'auto-save',
+  SAVE: 'save',
+  QUIT: 'quit',
+
+  // Debug commands
+  DEBUG_SPAWN_MONSTER: 'debug-spawn-monster',
+  DEBUG_SPAWN_ITEM: 'debug-spawn-item',
+  DEBUG_KILL_ALL: 'debug-kill-all',
+  DEBUG_WAKE_ALL: 'debug-wake-all',
+  DEBUG_IDENTIFY: 'debug-identify',
+  DEBUG_REVEAL_MAP: 'debug-reveal-map',
+  DEBUG_TOGGLE_GOD: 'debug-toggle-god',
+  DEBUG_TOGGLE_FOV: 'debug-toggle-fov',
+  DEBUG_TOGGLE_FOV_MODE: 'debug-toggle-fov-mode',
+  DEBUG_TOGGLE_PATH: 'debug-toggle-path',
+  DEBUG_TOGGLE_AI: 'debug-toggle-ai',
+  DEBUG_TOGGLE_CONSOLE: 'debug-toggle-console',
+
+  // UI commands
+  TOGGLE_RENDER_MODE: 'toggle-render-mode',
 } as const
 
 export type CommandType = (typeof COMMAND_TYPES)[keyof typeof COMMAND_TYPES]

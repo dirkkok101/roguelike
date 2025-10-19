@@ -22,7 +22,7 @@ export class EquipCommand implements ICommand {
     private ringSlot: 'left' | 'right' | null,
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private identificationService: IdentificationService,
     private curseService: CurseService,
     private fovService: FOVService,
@@ -197,10 +197,10 @@ export class EquipCommand implements ICommand {
       )
     }
 
-    return this.turnService.incrementTurn({
+    return {
       ...updatedState,
       player: updatedPlayer,
       messages,
-    })
+    }
   }
 }

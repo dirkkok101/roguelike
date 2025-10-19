@@ -17,7 +17,7 @@ export class PickUpCommand implements ICommand {
   constructor(
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private identificationService: IdentificationService,
     private levelService: LevelService,
     private recorder: CommandRecorderService,
@@ -97,13 +97,13 @@ export class PickUpCommand implements ICommand {
       )
     }
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       player: updatedPlayer,
       levels: updatedLevels,
       messages,
       hasAmulet,
       itemsFound: state.itemsFound + 1, // Track item pickup for death screen
-    })
+    }
   }
 }

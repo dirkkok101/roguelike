@@ -172,7 +172,7 @@ describe('UnequipCommand', () => {
       const command = new UnequipCommand('left', inventoryService, messageService, turnService, curseService, recorder, mockRandom)
       const result = command.execute(state)
 
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('adds info message after unequipping', () => {
@@ -445,7 +445,7 @@ describe('UnequipCommand', () => {
 
       expect(result.player.equipment.leftRing).toBeNull()
       expect(result.player.inventory).toHaveLength(1)
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
   })
 })

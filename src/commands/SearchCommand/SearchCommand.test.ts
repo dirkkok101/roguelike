@@ -148,7 +148,7 @@ describe('SearchCommand', () => {
       expect(door.discovered).toBe(true)
       expect(result.messages[0].text).toBe('You found a secret door!')
       expect(result.messages[0].type).toBe('success')
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('updates tile to show discovered secret door', () => {
@@ -182,7 +182,7 @@ describe('SearchCommand', () => {
       const level = result.levels.get(1)!
       expect(level.doors[0].discovered).toBe(false)
       expect(result.messages[0].text).toBe('You search but find nothing.')
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('higher level player has better chance to find secret door', () => {
@@ -215,7 +215,7 @@ describe('SearchCommand', () => {
       expect(level.traps[0].discovered).toBe(true)
       expect(result.messages[0].text).toContain('You found a')
       expect(result.messages[0].text).toContain('trap!')
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('does not discover trap on failure', () => {
@@ -312,7 +312,7 @@ describe('SearchCommand', () => {
       const result = command.execute(state)
 
       expect(result.messages[0].text).toBe('You search but find nothing.')
-      expect(result.turnCount).toBe(1)
+      expect(result.turnCount).toBe(0)
     })
 
     test('reports finding nothing when secret is far away', () => {

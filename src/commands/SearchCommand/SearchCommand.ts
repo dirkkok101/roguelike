@@ -15,7 +15,7 @@ export class SearchCommand implements ICommand {
   constructor(
     private searchService: SearchService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
 
     private recorder: CommandRecorderService,
 
@@ -58,10 +58,10 @@ export class SearchCommand implements ICommand {
     )
 
     // Increment turn and return
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       levels: updatedLevels,
       messages,
-    })
+    }
   }
 }

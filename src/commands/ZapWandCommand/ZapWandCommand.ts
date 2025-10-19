@@ -22,7 +22,7 @@ export class ZapWandCommand implements ICommand {
     private inventoryService: InventoryService,
     private wandService: WandService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
     private targetingService: TargetingService,
     private targetPosition: Position | undefined,
@@ -135,11 +135,11 @@ export class ZapWandCommand implements ICommand {
     // 11. Use updated state from wand effect if provided, otherwise use original state
     const baseState = result.state || state
 
-    return this.turnService.incrementTurn({
+    return {
       ...baseState,
       player: updatedPlayer,
       messages,
       itemsUsed: state.itemsUsed + 1, // Track wand use for death screen
-    })
+    }
   }
 }

@@ -269,7 +269,8 @@ describe('RestCommand', () => {
       const result = command.execute(state)
 
       // Should take 10 turns to heal 1 HP
-      expect(result.turnCount).toBe(10)
+      // RestCommand increments (N-1) times, PlayingState adds the final increment
+      expect(result.turnCount).toBe(9)
     })
   })
 
@@ -406,7 +407,8 @@ describe('RestCommand', () => {
 
       const result = command.execute(state)
 
-      expect(result.turnCount).toBe(120) // 100 + 20 turns
+      // RestCommand increments (N-1) times, PlayingState adds the final increment
+      expect(result.turnCount).toBe(119) // 100 + 19 (command) + 1 (PlayingState, not tested here)
     })
 
     test('message includes turn count', () => {

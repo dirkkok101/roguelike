@@ -19,7 +19,7 @@ export class QuaffPotionCommand implements ICommand {
     private inventoryService: InventoryService,
     private potionService: PotionService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService
@@ -98,12 +98,12 @@ export class QuaffPotionCommand implements ICommand {
       baseState.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...baseState,
       player: updatedPlayer,
       messages,
       isGameOver: result.death || state.isGameOver,
       itemsUsed: baseState.itemsUsed + 1, // Track potion use for death screen
-    })
+    }
   }
 }

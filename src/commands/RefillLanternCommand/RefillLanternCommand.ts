@@ -18,7 +18,7 @@ export class RefillLanternCommand implements ICommand {
     private inventoryService: InventoryService,
     private lightingService: LightingService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
 
     private recorder: CommandRecorderService,
 
@@ -82,10 +82,10 @@ export class RefillLanternCommand implements ICommand {
       state.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       player: updatedPlayer,
       messages,
-    })
+    }
   }
 }

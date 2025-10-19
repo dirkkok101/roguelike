@@ -25,7 +25,7 @@ export class MoveStairsCommand implements ICommand {
     private messageService: MessageService,
     private victoryService: VictoryService,
     private levelService: LevelService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
 
     private recorder: CommandRecorderService,
@@ -150,14 +150,15 @@ export class MoveStairsCommand implements ICommand {
       state.turnCount
     )
 
-    // Create new state after level change using TurnService
-    newState = this.turnService.incrementTurn({
+    // Create new state after level change
+    // (Turn increment happens in PlayingState)
+    newState = {
       ...newState,
       player: updatedPlayer,
       levels,
       visibleCells,
       messages,
-    })
+    }
 
     // Check victory condition after moving to new level
     if (this.victoryService.checkVictory(newState)) {

@@ -61,7 +61,7 @@ export class RestCommand implements ICommand {
         finalMessages,
         result.interruptReason,
         'critical',
-        state.turnCount + result.turnsRested + 1
+        state.turnCount + result.turnsRested
       )
 
       let deathState: GameState = {
@@ -71,8 +71,8 @@ export class RestCommand implements ICommand {
         deathCause: result.deathCause,
       }
 
-      // Increment turns for all turns rested plus the death turn
-      for (let i = 0; i <= result.turnsRested; i++) {
+      // Increment turns for all turns rested (PlayingState won't increment because game over)
+      for (let i = 0; i < result.turnsRested; i++) {
         deathState = this.turnService.incrementTurn(deathState)
       }
 
@@ -120,13 +120,16 @@ export class RestCommand implements ICommand {
       )
     }
 
-    // Increment turn count for all turns rested
+    // Increment turn count for (turnsRested - 1) because PlayingState will add final increment
     let finalState = {
       ...result.state,
       messages: finalMessages,
     }
 
-    for (let i = 0; i < result.turnsRested; i++) {
+    // Only increment if we rested for more than 1 turn
+    // If turnsRested = 1, PlayingState increments once = 1 total ✓
+    // If turnsRested = 5, we increment 4 times + PlayingState increments once = 5 total ✓
+    for (let i = 0; i < result.turnsRested - 1; i++) {
       finalState = this.turnService.incrementTurn(finalState)
     }
 

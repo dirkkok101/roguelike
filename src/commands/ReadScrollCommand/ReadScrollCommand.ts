@@ -19,7 +19,7 @@ export class ReadScrollCommand implements ICommand {
     private inventoryService: InventoryService,
     private scrollService: ScrollService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
     private targetItemId: string | undefined,
     private recorder: CommandRecorderService,
@@ -126,11 +126,11 @@ export class ReadScrollCommand implements ICommand {
       baseState.turnCount
     )
 
-    return this.turnService.incrementTurn({
+    return {
       ...baseState,
       player: finalPlayer,
       messages,
       itemsUsed: baseState.itemsUsed + 1, // Track scroll use for death screen
-    })
+    }
   }
 }

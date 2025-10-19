@@ -19,7 +19,7 @@ export class AttackCommand implements ICommand {
     private combatService: CombatService,
     private messageService: MessageService,
     private levelingService: LevelingService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private goldService: GoldService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService
@@ -143,13 +143,13 @@ export class AttackCommand implements ICommand {
         const updatedLevels = new Map(state.levels)
         updatedLevels.set(state.currentLevel, updatedLevel)
 
-        return this.turnService.incrementTurn({
+        return {
           ...state,
           player: updatedPlayer,
           levels: updatedLevels,
           messages,
           monstersKilled: state.monstersKilled + 1, // Track kill for death screen
-        })
+        }
       } else {
         // Apply damage to monster (use updatedMonsterForWake which has wake-up applied)
         const updatedMonster = this.combatService.applyDamageToMonster(
@@ -164,11 +164,11 @@ export class AttackCommand implements ICommand {
         const updatedLevels = new Map(state.levels)
         updatedLevels.set(state.currentLevel, updatedLevel)
 
-        return this.turnService.incrementTurn({
+        return {
           ...state,
           levels: updatedLevels,
           messages,
-        })
+        }
       }
     } else {
       // Wake up the monster even on a miss (attacking wakes monsters)
@@ -201,11 +201,11 @@ export class AttackCommand implements ICommand {
       const updatedLevels = new Map(state.levels)
       updatedLevels.set(state.currentLevel, updatedLevel)
 
-      return this.turnService.incrementTurn({
+      return {
         ...state,
         levels: updatedLevels,
         messages,
-      })
+      }
     }
   }
 }

@@ -113,7 +113,7 @@ describe('QuaffPotionCommand', () => {
     expect(result.player.hp).toBe(20) // Healed to max (10 + 15 capped at 20)
     expect(result.player.inventory).toHaveLength(0) // Potion consumed
     expect(result.messages).toHaveLength(1)
-    expect(result.turnCount).toBe(1)
+    expect(result.turnCount).toBe(0)
   })
 
   test('returns error when item not found', () => {

@@ -178,7 +178,7 @@ describe('ZapWandCommand', () => {
     const updatedWand = result.player.inventory.find(i => i.id === 'wand-1') as Wand
     expect(updatedWand.currentCharges).toBe(4) // Charge decremented
     expect(result.messages).toHaveLength(1)
-    expect(result.turnCount).toBe(1)
+    expect(result.turnCount).toBe(0)
   })
 
   test('returns error when item not found', () => {

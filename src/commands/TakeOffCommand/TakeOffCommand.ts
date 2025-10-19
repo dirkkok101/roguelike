@@ -22,7 +22,7 @@ export class TakeOffCommand implements ICommand {
     private equipmentSlot: EquipmentSlot,
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private fovService: FOVService,
     private lightingService: LightingService,
 
@@ -131,7 +131,7 @@ export class TakeOffCommand implements ICommand {
           visibleCells: fovResult.visibleCells,
           levels: new Map(state.levels).set(state.currentLevel, fovResult.level)
         }
-        return this.turnService.incrementTurn(stateWithFOV)
+        return stateWithFOV
       }
 
       default:
@@ -146,11 +146,11 @@ export class TakeOffCommand implements ICommand {
 
     const messages = this.messageService.addMessage(state.messages, message, 'info', state.turnCount)
 
-    return this.turnService.incrementTurn({
+    return {
       ...state,
       player: updatedPlayer,
       messages,
-    })
+    }
   }
 
   private getSlotDisplayName(slot: EquipmentSlot): string {
