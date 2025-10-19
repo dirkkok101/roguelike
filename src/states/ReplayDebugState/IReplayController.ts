@@ -1,5 +1,5 @@
 import { GameState } from '@game/core/core'
-import { ReplayMetadata } from '@game/replay/replay'
+import { CommandEvent, ReplayMetadata } from '@game/replay/replay'
 
 /**
  * IReplayController - Interface for replay debugger control
@@ -13,6 +13,7 @@ export interface IReplayController {
   getTotalTurns(): number
   getCurrentState(): GameState | null
   getReplayMetadata(): ReplayMetadata | null
+  getCommands(): ReadonlyArray<CommandEvent>
   isLoading(): boolean
   isReconstructing(): boolean
 
