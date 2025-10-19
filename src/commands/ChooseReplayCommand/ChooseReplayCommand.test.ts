@@ -125,22 +125,39 @@ describe('ChooseReplayCommand', () => {
     }
   }
 
+  // Helper to create save data with embedded replay (unified storage format)
+  function createSaveWithReplay(replayData: ReplayData) {
+    return {
+      gameId: replayData.gameId,
+      gameState: JSON.stringify(replayData.initialState), // Compressed state
+      replayData: {
+        initialState: replayData.initialState,
+        seed: replayData.seed,
+        commands: replayData.commands,
+      },
+      metadata: replayData.metadata,
+      version: 6, // Save version with embedded replay data
+      timestamp: replayData.metadata.createdAt,
+    }
+  }
+
   describe('execute', () => {
     it('should list replays and launch chosen one', async () => {
       const gameState = createTestGameState()
       const replay1 = createTestReplay('game-1', 'Hero A', 10)
       const replay2 = createTestReplay('game-2', 'Hero B', 20)
 
-      mockGetAll.mockResolvedValue(['game-1', 'game-2'])
-      mockGet
-        .mockResolvedValueOnce(replay1)
-        .mockResolvedValueOnce(replay2)
+      // Mock saves with embedded replay data
+      const save1 = createSaveWithReplay(replay1)
+      const save2 = createSaveWithReplay(replay2)
+
+      mockGetAll.mockResolvedValue([save1, save2])
       mockPrompt.mockReturnValue('1') // Choose second replay
 
       const result = await command.execute(gameState)
 
-      // Should load all replays
-      expect(mockGetAll).toHaveBeenCalledWith('replays')
+      // Should load all saves (replays embedded in saves now)
+      expect(mockGetAll).toHaveBeenCalledWith('saves')
 
       // Should display list
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('AVAILABLE REPLAYS'))
@@ -179,9 +196,9 @@ describe('ChooseReplayCommand', () => {
     it('should handle cancelled prompt', async () => {
       const gameState = createTestGameState()
       const replay1 = createTestReplay('game-1', 'Hero A', 10)
+      const save1 = createSaveWithReplay(replay1)
 
-      mockGetAll.mockResolvedValue(['game-1'])
-      mockGet.mockResolvedValue(replay1)
+      mockGetAll.mockResolvedValue([save1])
       mockPrompt.mockReturnValue(null) // User cancelled
 
       const result = await command.execute(gameState)
@@ -199,9 +216,9 @@ describe('ChooseReplayCommand', () => {
     it('should validate invalid input (non-number)', async () => {
       const gameState = createTestGameState()
       const replay1 = createTestReplay('game-1', 'Hero A', 10)
+      const save1 = createSaveWithReplay(replay1)
 
-      mockGetAll.mockResolvedValue(['game-1'])
-      mockGet.mockResolvedValue(replay1)
+      mockGetAll.mockResolvedValue([save1])
       mockPrompt.mockReturnValue('abc') // Invalid input
 
       const result = await command.execute(gameState)
@@ -220,9 +237,9 @@ describe('ChooseReplayCommand', () => {
     it('should validate out of range index', async () => {
       const gameState = createTestGameState()
       const replay1 = createTestReplay('game-1', 'Hero A', 10)
+      const save1 = createSaveWithReplay(replay1)
 
-      mockGetAll.mockResolvedValue(['game-1'])
-      mockGet.mockResolvedValue(replay1)
+      mockGetAll.mockResolvedValue([save1])
       mockPrompt.mockReturnValue('5') // Out of range (only 0 is valid)
 
       const result = await command.execute(gameState)
@@ -240,9 +257,9 @@ describe('ChooseReplayCommand', () => {
     it('should handle negative index', async () => {
       const gameState = createTestGameState()
       const replay1 = createTestReplay('game-1', 'Hero A', 10)
+      const save1 = createSaveWithReplay(replay1)
 
-      mockGetAll.mockResolvedValue(['game-1'])
-      mockGet.mockResolvedValue(replay1)
+      mockGetAll.mockResolvedValue([save1])
       mockPrompt.mockReturnValue('-1') // Negative
 
       const result = await command.execute(gameState)
@@ -278,16 +295,16 @@ describe('ChooseReplayCommand', () => {
       const replay1 = createTestReplay('game-1', 'Legendary Hero', 100)
       replay1.metadata.currentLevel = 5
       replay1.metadata.outcome = 'victory'
+      const save1 = createSaveWithReplay(replay1)
 
-      mockGetAll.mockResolvedValue(['game-1'])
-      mockGet.mockResolvedValue(replay1)
+      mockGetAll.mockResolvedValue([save1])
       mockPrompt.mockReturnValue(null) // Cancel to exit
 
       await command.execute(gameState)
 
-      // Should display full metadata
+      // Should display full metadata (except outcome which is not shown in list)
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/\[0\].*Legendary Hero.*Turn 100.*Level 5.*victory/)
+        expect.stringMatching(/\[0\].*Legendary Hero.*Turn 100.*Level 5/)
       )
     })
   })

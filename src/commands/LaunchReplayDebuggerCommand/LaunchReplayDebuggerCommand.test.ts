@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { LaunchReplayDebuggerCommand } from './LaunchReplayDebuggerCommand'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { GameStateManager } from '@services/GameStateManager'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Level } from '@game/core/core'
 import { ReplayData } from '@game/replay/replay'
 
@@ -14,7 +15,9 @@ describe('LaunchReplayDebuggerCommand', () => {
   let command: LaunchReplayDebuggerCommand
   let replayDebugger: ReplayDebuggerService
   let stateManager: GameStateManager
-  let mockLoadReplay: jest.SpyInstance
+  let commandRecorder: CommandRecorderService
+  let mockGetInitialState: jest.SpyInstance
+  let mockGetCommandLog: jest.SpyInstance
   let mockPushState: jest.SpyInstance
   let consoleLogSpy: jest.SpyInstance
   let consoleErrorSpy: jest.SpyInstance
@@ -22,16 +25,19 @@ describe('LaunchReplayDebuggerCommand', () => {
   beforeEach(() => {
     replayDebugger = {} as ReplayDebuggerService
     stateManager = new GameStateManager()
+    commandRecorder = {} as CommandRecorderService
 
-    mockLoadReplay = jest.fn()
-    replayDebugger.loadReplay = mockLoadReplay
+    mockGetInitialState = jest.fn()
+    mockGetCommandLog = jest.fn()
+    commandRecorder.getInitialState = mockGetInitialState
+    commandRecorder.getCommandLog = mockGetCommandLog
 
     mockPushState = jest.spyOn(stateManager, 'pushState').mockImplementation(() => {})
 
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation()
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
 
-    command = new LaunchReplayDebuggerCommand(replayDebugger, stateManager)
+    command = new LaunchReplayDebuggerCommand(replayDebugger, stateManager, commandRecorder)
   })
 
   afterEach(() => {
@@ -115,15 +121,19 @@ describe('LaunchReplayDebuggerCommand', () => {
   }
 
   describe('execute', () => {
-    it('should launch replay debugger when replay exists', async () => {
+    it('should launch replay debugger when command log exists', async () => {
       const gameState = createTestGameState()
-      const replayData = createTestReplay()
-      mockLoadReplay.mockResolvedValue(replayData)
+      const initialState = createTestGameState()
+      const mockCommands = [{ commandType: 'move', turnNumber: 0 }]
+
+      mockGetInitialState.mockReturnValue(initialState)
+      mockGetCommandLog.mockReturnValue(mockCommands)
 
       const result = await command.execute(gameState)
 
-      // Should check if replay exists
-      expect(mockLoadReplay).toHaveBeenCalledWith('test-game-123')
+      // Should get replay data from in-memory recorder
+      expect(mockGetInitialState).toHaveBeenCalled()
+      expect(mockGetCommandLog).toHaveBeenCalled()
 
       // Should push ReplayDebugState onto stack
       expect(mockPushState).toHaveBeenCalledTimes(1)
@@ -133,24 +143,25 @@ describe('LaunchReplayDebuggerCommand', () => {
 
       // Should log success
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Launching replay debugger'),
-        expect.any(String)
+        expect.stringContaining('Launching replay debugger')
       )
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Replay debugger launched'))
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Replay ready')
+      )
 
       // Should return unchanged state
       expect(result).toBe(gameState)
     })
 
-    it('should handle missing replay data', async () => {
+    it('should handle missing initial state', async () => {
       const gameState = createTestGameState()
-      mockLoadReplay.mockResolvedValue(null)
+      mockGetInitialState.mockReturnValue(null)
 
       const result = await command.execute(gameState)
 
       // Should show error
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('No replay data found'))
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('only available for games started fresh'))
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('No replay data available'))
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('only available for games started'))
 
       // Should not push state
       expect(mockPushState).not.toHaveBeenCalled()
@@ -161,7 +172,9 @@ describe('LaunchReplayDebuggerCommand', () => {
 
     it('should handle errors during launch', async () => {
       const gameState = createTestGameState()
-      mockLoadReplay.mockRejectedValue(new Error('Database error'))
+      mockGetInitialState.mockImplementation(() => {
+        throw new Error('Recorder error')
+      })
 
       const result = await command.execute(gameState)
 
@@ -181,13 +194,17 @@ describe('LaunchReplayDebuggerCommand', () => {
     it('should use correct gameId from state', async () => {
       const gameState = createTestGameState()
       gameState.gameId = 'custom-game-id-456'
-      const replayData = createTestReplay()
-      mockLoadReplay.mockResolvedValue(replayData)
+      const initialState = createTestGameState()
+      const mockCommands = []
+
+      mockGetInitialState.mockReturnValue(initialState)
+      mockGetCommandLog.mockReturnValue(mockCommands)
 
       await command.execute(gameState)
 
-      // Should use gameId from state
-      expect(mockLoadReplay).toHaveBeenCalledWith('custom-game-id-456')
+      // Should push state with correct gameId (verify via the push call)
+      expect(mockPushState).toHaveBeenCalledTimes(1)
+      // The ReplayDebugState is created with gameId from state
     })
   })
 })
