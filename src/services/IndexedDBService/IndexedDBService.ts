@@ -65,6 +65,8 @@ export class IndexedDBService {
           savesStore.createIndex('characterName', 'metadata.characterName', {
             unique: false,
           })
+          savesStore.createIndex('status', 'metadata.status', { unique: false })
+          savesStore.createIndex('score', 'metadata.score', { unique: false })
         }
 
         // Remove deprecated 'replays' object store (upgrading from v1 to v2)

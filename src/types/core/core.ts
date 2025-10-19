@@ -771,3 +771,20 @@ export interface IGameState {
   /** Which keys should this state handle? (null = all keys, array = specific keys only) */
   getAllowedKeys(): string[] | null
 }
+
+/**
+ * Summary of a saved game for leaderboard display
+ * Extracted from SaveDocument metadata
+ */
+export interface SaveSummary {
+  gameId: string
+  characterName: string
+  status: 'ongoing' | 'died' | 'won'
+  score: number
+  gold: number
+  level: number
+  turnCount: number
+  timestamp: number
+  maxDepth: number
+  monstersKilled: number
+}

@@ -14,7 +14,7 @@ import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { NotificationService } from '@services/NotificationService'
 import { VictoryService } from '@services/VictoryService'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
 import { ToastNotificationService } from '@services/ToastNotificationService'
 import { DoorService } from '@services/DoorService'
 import { PotionService } from '@services/PotionService'
@@ -230,7 +230,7 @@ export function createTestDependencies(): GameDependencies {
     targeting: new TargetingService(),
 
     // Persistence and meta
-    localStorage: new LocalStorageService(),
+    localStorage: new GameStorageService(new CommandRecorderService(), new IndexedDBService()),
     notification: new NotificationService(),
     toastNotification: new ToastNotificationService(),
     victory: new VictoryService(),

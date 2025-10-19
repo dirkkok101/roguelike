@@ -12,7 +12,9 @@ import { LevelingService } from '@services/LevelingService'
 import { DebugService } from '@services/DebugService'
 import { ContextService } from '@services/ContextService'
 import { VictoryService } from '@services/VictoryService'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { IndexedDBService } from '@services/IndexedDBService'
 import { DeathService } from '@services/DeathService'
 import { LeaderboardService } from '@services/LeaderboardService'
 import { LeaderboardStorageService } from '@services/LeaderboardStorageService'
@@ -69,7 +71,9 @@ function setupTestEnvironment() {
   const debugService = new DebugService()
   const contextService = new ContextService()
   const victoryService = new VictoryService()
-  const localStorageService = new LocalStorageService()
+  const indexedDB = new IndexedDBService()
+  const recorder = new CommandRecorderService()
+  const gameStorageService = new GameStorageService(recorder, indexedDB)
   const deathService = new DeathService()
   const leaderboardStorageService = new LeaderboardStorageService()
   const leaderboardService = new LeaderboardService(leaderboardStorageService)
@@ -123,7 +127,7 @@ function setupTestEnvironment() {
     debugService,
     contextService,
     victoryService,
-    localStorageService,
+    gameStorageService,
     deathService,
     leaderboardService,
     leaderboardStorageService,

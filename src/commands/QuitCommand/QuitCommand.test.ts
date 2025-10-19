@@ -1,22 +1,32 @@
+import 'fake-indexeddb/auto'
 import { QuitCommand } from './QuitCommand'
-import { LocalStorageService } from '@services/LocalStorageService'
+import { GameStorageService } from '@services/GameStorageService'
+import { IndexedDBService } from '@services/IndexedDBService'
 import { GameState, Level, TileType } from '@game/core/core'
 import { MockRandom } from '@services/RandomService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { createTestPlayer } from '@test-helpers'
 
+// Polyfill for structuredClone
+if (typeof globalThis.structuredClone === 'undefined') {
+  globalThis.structuredClone = (obj: any) => JSON.parse(JSON.stringify(obj))
+}
+
 describe('QuitCommand', () => {
   let command: QuitCommand
-  let localStorageService: LocalStorageService
+  let gameStorageService: GameStorageService
   let mockRandom: MockRandom
   let recorder: CommandRecorderService
+  let indexedDB: IndexedDBService
 
-  beforeEach(() => {
-    localStorageService = new LocalStorageService()
-    localStorageService.enableTestMode() // Use synchronous compression for tests
+  beforeEach(async () => {
+    indexedDB = new IndexedDBService()
+    await indexedDB.initDatabase()
     recorder = new CommandRecorderService()
+    gameStorageService = new GameStorageService(recorder, indexedDB)
+    gameStorageService.enableTestMode() // Use synchronous compression for tests
     mockRandom = new MockRandom()
-    command = new QuitCommand(localStorageService, jest.fn(), recorder, mockRandom)
+    command = new QuitCommand(gameStorageService, jest.fn(), recorder, mockRandom)
     localStorage.clear()
 
     // Suppress JSDOM navigation errors (window.location.reload is not implemented in test environment)
@@ -34,6 +44,7 @@ describe('QuitCommand', () => {
 
   afterEach(() => {
     localStorage.clear()
+    indexedDB.close()
     jest.restoreAllMocks()
   })
 
@@ -78,6 +89,7 @@ describe('QuitCommand', () => {
       turnCount: 0,
       seed: 'test-seed',
       gameId: 'test-game-quit',
+      characterName: 'Test Hero',
       isGameOver: false,
       hasWon: false,
       hasAmulet: false,
@@ -88,6 +100,15 @@ describe('QuitCommand', () => {
         wands: new Map(),
       },
       identifiedItems: new Set(),
+      detectedMonsters: new Set(),
+      detectedMagicItems: new Set(),
+      levelsVisitedWithAmulet: new Set(),
+      maxDepth: 1,
+      monstersKilled: 0,
+      itemsFound: 0,
+      itemsUsed: 0,
+      levelsExplored: 1,
+      config: { fovMode: 'radius' },
       ...overrides,
     }
   }
@@ -97,7 +118,8 @@ describe('QuitCommand', () => {
 
     await command.execute(state)
 
-    expect(localStorageService.hasSave('quit-test')).toBe(true)
+    const hasSave = await gameStorageService.hasSave('quit-test')
+    expect(hasSave).toBe(true)
   })
 
   test('does not save if game is over', async () => {
@@ -108,7 +130,8 @@ describe('QuitCommand', () => {
 
     await command.execute(state)
 
-    expect(localStorageService.hasSave('dead-game')).toBe(false)
+    const hasSave = await gameStorageService.hasSave('dead-game')
+    expect(hasSave).toBe(false)
   })
 
   test('does not save if player has won', async () => {
@@ -120,13 +143,14 @@ describe('QuitCommand', () => {
 
     await command.execute(state)
 
-    expect(localStorageService.hasSave('won-game')).toBe(false)
+    const hasSave = await gameStorageService.hasSave('won-game')
+    expect(hasSave).toBe(false)
   })
 
   test('handles save failure gracefully', async () => {
     // Mock saveGame to return rejected promise
-    const originalSaveGame = localStorageService.saveGame
-    localStorageService.saveGame = jest.fn(() => {
+    const originalSaveGame = gameStorageService.saveGame
+    gameStorageService.saveGame = jest.fn(() => {
       return Promise.reject(new Error('Storage quota exceeded'))
     })
 
@@ -136,7 +160,7 @@ describe('QuitCommand', () => {
     await expect(command.execute(state)).resolves.not.toThrow()
 
     // Restore
-    localStorageService.saveGame = originalSaveGame
+    gameStorageService.saveGame = originalSaveGame
   })
 
   test('returns unchanged state', async () => {
@@ -157,7 +181,7 @@ describe('QuitCommand', () => {
 
     await command.execute(state)
 
-    const loaded = await localStorageService.loadGame('complete-quit')
+    const loaded = await gameStorageService.loadGame('complete-quit')
     expect(loaded).not.toBeNull()
     expect(loaded?.turnCount).toBe(500)
     expect(loaded?.currentLevel).toBe(3)
@@ -183,23 +207,24 @@ describe('QuitCommand', () => {
     await command.execute(state)
 
     // Verify game was saved (replay data is embedded automatically)
-    expect(localStorageService.hasSave('game-quit-replay')).toBe(true)
+    const hasSave = await gameStorageService.hasSave('game-quit-replay')
+    expect(hasSave).toBe(true)
 
     // Load the save and verify it contains replay data
-    const loaded = await localStorageService.loadGame('game-quit-replay')
+    const loaded = await gameStorageService.loadGame('game-quit-replay')
     expect(loaded).not.toBeNull()
   })
 
   test('should handle save errors gracefully and still quit', async () => {
     // Mock saveGame to fail
-    const originalSaveGame = localStorageService.saveGame
-    localStorageService.saveGame = jest.fn(() => {
+    const originalSaveGame = gameStorageService.saveGame
+    gameStorageService.saveGame = jest.fn(() => {
       return Promise.reject(new Error('Storage quota exceeded'))
     })
 
     const mockReturnToMenu = jest.fn()
     const command = new QuitCommand(
-      localStorageService,
+      gameStorageService,
       mockReturnToMenu,
       recorder,
       mockRandom
@@ -215,6 +240,6 @@ describe('QuitCommand', () => {
     expect(mockReturnToMenu).toHaveBeenCalled()
 
     // Restore
-    localStorageService.saveGame = originalSaveGame
+    gameStorageService.saveGame = originalSaveGame
   })
 })

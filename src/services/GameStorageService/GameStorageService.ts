@@ -1,4 +1,4 @@
-import { GameState } from '@game/core/core'
+import { GameState, SaveSummary } from '@game/core/core'
 import { IndexedDBService } from '@services/IndexedDBService'
 import { CompressionWorkerService } from '@services/CompressionWorkerService'
 import { SerializationWorkerService } from '@services/SerializationWorkerService'
@@ -28,6 +28,11 @@ export interface SaveMetadata {
   currentLevel: number
   turnCount: number
   timestamp: number
+  status: 'ongoing' | 'died' | 'won'
+  gold: number
+  monstersKilled: number
+  maxDepth: number
+  score: number
 }
 
 export class GameStorageService {
@@ -242,18 +247,30 @@ export class GameStorageService {
   }
 
   /**
-   * List all save game metadata
+   * List all save game metadata for leaderboard
+   * Returns SaveSummary[] sorted by score (descending)
    */
-  async listGames(): Promise<SaveMetadata[]> {
+  async listGames(): Promise<SaveSummary[]> {
     const allData = await this.indexedDB.getAll('saves')
 
-    // Filter out continue pointer and extract metadata
+    // Filter out continue pointer and map to SaveSummary
     const saves = allData
       .filter((item) => item.gameId !== 'continue_pointer')
-      .map((item) => item.metadata as SaveMetadata)
+      .map((item) => ({
+        gameId: item.metadata.gameId,
+        characterName: item.metadata.characterName,
+        status: item.metadata.status,
+        score: item.metadata.score,
+        gold: item.metadata.gold,
+        level: item.metadata.currentLevel,
+        turnCount: item.metadata.turnCount,
+        timestamp: item.metadata.timestamp,
+        maxDepth: item.metadata.maxDepth,
+        monstersKilled: item.metadata.monstersKilled,
+      }))
 
-    // Sort by timestamp (newest first)
-    saves.sort((a, b) => b.timestamp - a.timestamp)
+    // Sort by score descending (highest scores first)
+    saves.sort((a, b) => b.score - a.score)
 
     return saves
   }
@@ -410,6 +427,11 @@ export class GameStorageService {
       currentLevel: state.currentLevel,
       turnCount: state.turnCount,
       timestamp: Date.now(),
+      status: this.calculateStatus(state),
+      gold: state.player.gold,
+      monstersKilled: state.monstersKilled,
+      maxDepth: state.maxDepth,
+      score: this.calculateScore(state),
     }
   }
 
@@ -431,6 +453,22 @@ export class GameStorageService {
       currentLevel: state.currentLevel,
       outcome: outcome,
     }
+  }
+
+  /**
+   * Calculate game status for leaderboard
+   */
+  private calculateStatus(state: GameState): 'ongoing' | 'died' | 'won' {
+    if (!state.isGameOver) return 'ongoing'
+    return state.hasWon ? 'won' : 'died'
+  }
+
+  /**
+   * Calculate score for leaderboard
+   * Formula: gold + (monsters * 100) + (depth * 1000)
+   */
+  private calculateScore(state: GameState): number {
+    return state.player.gold + state.monstersKilled * 100 + state.maxDepth * 1000
   }
 
   /**

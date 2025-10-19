@@ -131,11 +131,8 @@ export class GameRenderer {
 
     // Check for death before rendering
     if (state.isGameOver && !state.hasWon && !this.deathScreen.isVisible()) {
-      // Permadeath: Delete save immediately when player dies
-      this.gameStorageService.deleteSave(state.gameId)
-      if (this.debugService.isEnabled()) {
-        console.log('[GameRenderer] Save deleted (permadeath)')
-      }
+      // Save is preserved with status='died'
+      // Auto-save middleware will save final state automatically
 
       // Calculate comprehensive death statistics via DeathService
       const stats = this.deathService.calculateDeathStats(state)
