@@ -48,7 +48,7 @@ export class ExportReplayCommand implements ICommand {
 
       if (!replayData) {
         console.error('❌ No replay data found for this game')
-        console.log('💡 Replay data is only available for games started fresh (not loaded)')
+        console.log('💡 Replay data is embedded in save files when you save a game')
         return state
       }
 

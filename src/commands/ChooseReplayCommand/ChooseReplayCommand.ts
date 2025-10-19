@@ -12,10 +12,11 @@ import { CommandRecorderService } from '@services/CommandRecorderService'
  * Purpose: Browse all available replays and launch debugger for selected replay.
  *
  * Orchestration:
- * 1. Load all replay keys from IndexedDB
- * 2. Display list with metadata (character name, turns, outcome)
- * 3. Prompt user to choose replay number
- * 4. Launch ReplayDebugState for chosen replay
+ * 1. Load all saves with embedded replay data from IndexedDB
+ * 2. Filter saves that have replayData
+ * 3. Display list with metadata (character name, turns, commands)
+ * 4. Prompt user to choose replay number
+ * 5. Launch ReplayDebugState for chosen replay
  *
  * Usage (from debug mode):
  * ```typescript
@@ -32,6 +33,7 @@ import { CommandRecorderService } from '@services/CommandRecorderService'
  * - This is a Command (orchestration) not a Service (business logic)
  * - Uses `prompt()` for user input (browser API, but acceptable in command)
  * - Coordinates IndexedDBService + ReplayDebuggerService + GameStateManager
+ * - Replays are now embedded in save files (unified storage)
  */
 export class ChooseReplayCommand implements ICommand {
   constructor(
@@ -49,13 +51,18 @@ export class ChooseReplayCommand implements ICommand {
    */
   async execute(state: GameState): Promise<GameState> {
     try {
-      // Get all replay IDs from IndexedDB
-      const replayKeys = await this.indexedDB.getAll('replays')
+      // Get all saves from IndexedDB (replays are now embedded in saves)
+      const allSaves = await this.indexedDB.getAll('saves')
 
-      if (replayKeys.length === 0) {
+      // Filter saves that have replay data (ignore continue_pointer)
+      const savesWithReplays = allSaves.filter(
+        (save) => save.replayData && save.gameId !== 'continue_pointer'
+      )
+
+      if (savesWithReplays.length === 0) {
         console.log('⚠️  No replays found')
-        console.log('💡 Replays are created when you save games that were started fresh')
-        console.log('   Start a new game and save it to create a replay')
+        console.log('💡 Replays are created when you save games')
+        console.log('   Save your current game to create a replay')
         return state
       }
 
@@ -63,17 +70,13 @@ export class ChooseReplayCommand implements ICommand {
       console.log('📼 AVAILABLE REPLAYS')
       console.log('='.repeat(60))
 
-      // Load metadata for each replay
-      const replays = await Promise.all(
-        replayKeys.map(async (key, index) => {
-          const data = await this.indexedDB.get('replays', key)
-          return {
-            index,
-            gameId: key,
-            metadata: data?.metadata,
-          }
-        })
-      )
+      // Map saves to replay entries
+      const replays = savesWithReplays.map((save, index) => ({
+        index,
+        gameId: save.gameId,
+        metadata: save.metadata, // Use save metadata (not replay metadata)
+        replayData: save.replayData,
+      }))
 
       // Display list
       replays.forEach((replay) => {
@@ -82,7 +85,7 @@ export class ChooseReplayCommand implements ICommand {
             `[${replay.index}] ${replay.metadata.characterName} - ` +
             `Turn ${replay.metadata.turnCount} - ` +
             `Level ${replay.metadata.currentLevel} - ` +
-            `${replay.metadata.outcome || 'ongoing'}`
+            `${replay.replayData.commands.length} commands recorded`
           )
         } else {
           console.log(`[${replay.index}] ${replay.gameId} (no metadata)`)

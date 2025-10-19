@@ -36,31 +36,47 @@ export class ReplayDebuggerService {
 
   /**
    * Load replay data from IndexedDB
+   * Replays are now embedded in save files (unified storage)
    *
    * @param gameId - Game ID to load replay for
    * @returns Replay data or null if not found/incompatible
    */
   async loadReplay(gameId: string): Promise<ReplayData | null> {
     try {
-      const replay = await this.indexedDB.get('replays', gameId)
+      // Load from saves store (replays are now embedded)
+      const save = await this.indexedDB.get('saves', gameId)
 
-      if (!replay) {
-        console.warn(`No replay data found for game: ${gameId}`)
+      if (!save) {
+        console.warn(`No save found for game: ${gameId}`)
         return null
       }
 
-      // Version compatibility check
-      if (replay.version !== this.CURRENT_REPLAY_VERSION) {
-        console.warn(
-          `Replay version incompatible: found v${replay.version}, expected v${this.CURRENT_REPLAY_VERSION}`
-        )
+      if (!save.replayData) {
+        console.warn(`No replay data in save for game: ${gameId}`)
         return null
+      }
+
+      // Extract and format replay data
+      const replayData: ReplayData = {
+        gameId: save.gameId,
+        version: this.CURRENT_REPLAY_VERSION,
+        initialState: save.replayData.initialState,
+        seed: save.replayData.seed,
+        commands: save.replayData.commands,
+        metadata: {
+          // Use save metadata to construct replay metadata
+          createdAt: save.timestamp,
+          turnCount: save.metadata.turnCount,
+          characterName: save.metadata.characterName,
+          currentLevel: save.metadata.currentLevel,
+          outcome: 'ongoing', // We don't track outcome in saves currently
+        },
       }
 
       console.log(
-        `Replay loaded: ${gameId} (${replay.commands.length} commands, ${replay.metadata.turnCount} turns)`
+        `Replay loaded: ${gameId} (${replayData.commands.length} commands, ${replayData.metadata.turnCount} turns)`
       )
-      return replay
+      return replayData
     } catch (error) {
       console.error('Failed to load replay:', error)
       return null
