@@ -4,6 +4,7 @@ import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { GameStateManager } from '@services/GameStateManager'
 import { IndexedDBService } from '@services/IndexedDBService'
 import { ReplayDebugState } from '../../states/ReplayDebugState'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 
 /**
  * ChooseReplayCommand - List all replays and launch chosen one
@@ -36,7 +37,8 @@ export class ChooseReplayCommand implements ICommand {
   constructor(
     private replayDebugger: ReplayDebuggerService,
     private stateManager: GameStateManager,
-    private indexedDB: IndexedDBService
+    private indexedDB: IndexedDBService,
+    private commandRecorder: CommandRecorderService
   ) {}
 
   /**
@@ -115,15 +117,19 @@ export class ChooseReplayCommand implements ICommand {
       const selectedGameId = replays[index].gameId
       console.log(`✅ Launching replay for: ${selectedGameId}`)
 
+      // Historical replays load from IndexedDB (no in-memory data)
       const replayState = new ReplayDebugState(
         selectedGameId,
         this.replayDebugger,
-        this.stateManager
+        this.stateManager,
+        this.commandRecorder,
+        0, // Historical replays start at turn 0
+        undefined // No in-memory data, will load from IndexedDB
       )
 
       this.stateManager.pushState(replayState)
 
-      console.log('💡 Press Escape to exit debugger')
+      console.log('💡 Press Escape or click ✕ Close to exit debugger')
     } catch (error) {
       console.error('❌ Error listing replays:', error)
     }

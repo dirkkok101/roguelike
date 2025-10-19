@@ -56,7 +56,9 @@ export class ReplayDebugState extends BaseState implements IReplayController {
     private gameId: string,
     private replayDebugger: ReplayDebuggerService,
     private stateManager: GameStateManager,
-    initialTurn?: number
+    private commandRecorder: CommandRecorderService,
+    initialTurn?: number,
+    private inMemoryReplayData?: ReplayData
   ) {
     super()
     this.initialTurn = initialTurn ?? 0
@@ -197,10 +199,21 @@ export class ReplayDebugState extends BaseState implements IReplayController {
    *
    * Called from enter() as a fire-and-forget async operation.
    * Updates isLoading flag when complete.
+   *
+   * If in-memory replay data was provided (current session), use it directly.
+   * Otherwise, load from IndexedDB (historical replay).
    */
   private async loadReplayData(): Promise<void> {
     try {
-      this.replayData = await this.replayDebugger.loadReplay(this.gameId)
+      // Use in-memory replay data if provided (current session)
+      if (this.inMemoryReplayData) {
+        console.log('📼 Using in-memory replay data (current session)')
+        this.replayData = this.inMemoryReplayData
+      } else {
+        // Load from IndexedDB (historical replay)
+        console.log('📼 Loading replay from IndexedDB (historical)')
+        this.replayData = await this.replayDebugger.loadReplay(this.gameId)
+      }
 
       if (!this.replayData) {
         console.error('❌ Failed to load replay data')
