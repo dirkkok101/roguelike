@@ -15,7 +15,7 @@ export class SearchCommand implements ICommand {
   constructor(
     private searchService: SearchService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
 
     private recorder: CommandRecorderService,
 

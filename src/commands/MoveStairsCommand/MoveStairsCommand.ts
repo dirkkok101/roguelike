@@ -25,7 +25,7 @@ export class MoveStairsCommand implements ICommand {
     private messageService: MessageService,
     private victoryService: VictoryService,
     private levelService: LevelService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
 
     private recorder: CommandRecorderService,

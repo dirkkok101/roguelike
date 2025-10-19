@@ -19,7 +19,7 @@ export class ReadScrollCommand implements ICommand {
     private inventoryService: InventoryService,
     private scrollService: ScrollService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
     private targetItemId: string | undefined,
     private recorder: CommandRecorderService,

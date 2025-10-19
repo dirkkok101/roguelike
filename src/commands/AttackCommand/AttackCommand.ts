@@ -19,7 +19,7 @@ export class AttackCommand implements ICommand {
     private combatService: CombatService,
     private messageService: MessageService,
     private levelingService: LevelingService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private goldService: GoldService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService

@@ -17,7 +17,7 @@ export class EatCommand implements ICommand {
     private inventoryService: InventoryService,
     private hungerService: HungerService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService
   ) {}

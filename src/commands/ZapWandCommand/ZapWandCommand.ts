@@ -22,7 +22,7 @@ export class ZapWandCommand implements ICommand {
     private inventoryService: InventoryService,
     private wandService: WandService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
     private targetingService: TargetingService,
     private targetPosition: Position | undefined,

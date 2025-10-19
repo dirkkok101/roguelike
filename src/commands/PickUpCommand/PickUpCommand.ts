@@ -17,7 +17,7 @@ export class PickUpCommand implements ICommand {
   constructor(
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private identificationService: IdentificationService,
     private levelService: LevelService,
     private recorder: CommandRecorderService,

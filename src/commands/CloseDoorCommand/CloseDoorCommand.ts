@@ -16,7 +16,7 @@ export class CloseDoorCommand implements ICommand {
     private direction: Position,
     private messageService: MessageService,
     private doorService: DoorService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService
   ) {}

@@ -18,7 +18,7 @@ export class RefillLanternCommand implements ICommand {
     private inventoryService: InventoryService,
     private lightingService: LightingService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
 
     private recorder: CommandRecorderService,
 

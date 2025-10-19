@@ -17,7 +17,7 @@ export class UnequipCommand implements ICommand {
     private ringSlot: 'left' | 'right',
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private curseService: CurseService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService

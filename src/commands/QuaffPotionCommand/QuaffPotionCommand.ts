@@ -19,7 +19,7 @@ export class QuaffPotionCommand implements ICommand {
     private inventoryService: InventoryService,
     private potionService: PotionService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
     private recorder: CommandRecorderService,
     private randomService: IRandomService

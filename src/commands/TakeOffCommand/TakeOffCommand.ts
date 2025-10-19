@@ -22,7 +22,7 @@ export class TakeOffCommand implements ICommand {
     private equipmentSlot: EquipmentSlot,
     private inventoryService: InventoryService,
     private messageService: MessageService,
-    private turnService: TurnService,
+    private _turnService: TurnService,
     private fovService: FOVService,
     private lightingService: LightingService,
 
