@@ -173,8 +173,10 @@ export class ReplayDebugState extends BaseState implements IReplayController {
     console.log(`Loading replay for game: ${this.gameId}`)
 
     // Hide debug console to avoid blocking the game view
+    // Use data attribute so it persists across GameRenderer render() calls
     this.debugConsoleElement = document.querySelector('.debug-console')
     if (this.debugConsoleElement) {
+      this.debugConsoleElement.setAttribute('data-suppress', 'true')
       this.debugConsoleElement.style.display = 'none'
     }
 
@@ -507,6 +509,7 @@ export class ReplayDebugState extends BaseState implements IReplayController {
 
     // Restore debug console visibility
     if (this.debugConsoleElement) {
+      this.debugConsoleElement.removeAttribute('data-suppress')
       this.debugConsoleElement.style.display = ''
       this.debugConsoleElement = null
     }

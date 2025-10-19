@@ -21,6 +21,7 @@ import { DebugService } from '@services/DebugService'
  */
 export class DebugConsole {
   private container: HTMLDivElement
+  private suppressRendering: boolean = false
 
   constructor(private debugService: DebugService) {
     this.container = this.createContainer()
@@ -51,6 +52,13 @@ export class DebugConsole {
    * Render debug console (called by GameRenderer)
    */
   render(state: GameState): void {
+    // Check if rendering is suppressed via data attribute (e.g., during replay mode)
+    const isSuppressed = this.container.dataset.suppress === 'true'
+    if (isSuppressed || this.suppressRendering) {
+      this.container.style.display = 'none'
+      return
+    }
+
     const debugState = this.debugService.getDebugState(state)
 
     // Show/hide based on debug state
@@ -58,6 +66,16 @@ export class DebugConsole {
       this.container.style.display = 'block'
       this.updateContent(state, debugState)
     } else {
+      this.container.style.display = 'none'
+    }
+  }
+
+  /**
+   * Temporarily suppress debug console rendering (e.g., during replay mode)
+   */
+  setSuppressRendering(suppress: boolean): void {
+    this.suppressRendering = suppress
+    if (suppress) {
       this.container.style.display = 'none'
     }
   }
