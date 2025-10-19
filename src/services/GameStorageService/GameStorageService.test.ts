@@ -581,5 +581,84 @@ describe('GameStorageService', () => {
       expect(restoredInitialState?.gameId).toBe('test-game-1')
       expect(restoredCommands).toHaveLength(0)
     })
+
+    it('should save at turn 40, load at turn 40, and replay from turn 0 to turn 40', async () => {
+      // Phase 1: Start game at turn 0
+      const turn0State = createTestGameState({
+        turnCount: 0,
+        player: { ...createTestGameState().player, hp: 100 },
+      })
+      recorder.setInitialState(turn0State)
+
+      // Phase 2: Simulate playing 40 turns (record 40 commands)
+      for (let turn = 0; turn < 40; turn++) {
+        recorder.recordCommand({
+          type: 'move',
+          direction: turn % 2 === 0 ? 'north' : 'east',
+          turnCount: turn,
+          rngState: `rng-${turn}`,
+        })
+      }
+
+      // Verify we have 40 commands recorded
+      expect(recorder.getCommandLog()).toHaveLength(40)
+
+      // Phase 3: Save game at turn 40
+      const turn40State = createTestGameState({
+        turnCount: 40,
+        player: { ...createTestGameState().player, hp: 75 }, // Player took damage
+      })
+      await service.saveGame(turn40State)
+
+      // Verify save structure
+      const saveData = await indexedDB.get('saves', 'test-game-1')
+      expect(saveData).not.toBeNull()
+      expect(saveData.replayData).not.toBeNull()
+      expect(saveData.replayData.commands).toHaveLength(40)
+      expect(saveData.replayData.initialState.turnCount).toBe(0) // Initial state at turn 0
+
+      // Phase 4: Simulate new session - clear recorder
+      recorder.clearLog()
+      expect(recorder.getCommandLog()).toHaveLength(0)
+      expect(recorder.getInitialState()).toBeNull()
+
+      // Phase 5: Load the game
+      const loadedState = await service.loadGame('test-game-1')
+
+      // VERIFY: Loaded state is at turn 40
+      expect(loadedState).not.toBeNull()
+      expect(loadedState?.turnCount).toBe(40)
+      expect(loadedState?.player.hp).toBe(75)
+
+      // VERIFY: Replay data restored - can replay from turn 0 to turn 40
+      const restoredCommands = recorder.getCommandLog()
+      const restoredInitialState = recorder.getInitialState()
+
+      // Should have all 40 commands
+      expect(restoredCommands).toHaveLength(40)
+
+      // Initial state should be at turn 0
+      expect(restoredInitialState).not.toBeNull()
+      expect(restoredInitialState?.turnCount).toBe(0)
+      expect(restoredInitialState?.player.hp).toBe(100) // Full health at start
+
+      // Verify command sequence
+      expect(restoredCommands[0].turnCount).toBe(0)
+      expect(restoredCommands[0].direction).toBe('north')
+      expect(restoredCommands[1].turnCount).toBe(1)
+      expect(restoredCommands[1].direction).toBe('east')
+      expect(restoredCommands[39].turnCount).toBe(39)
+      expect(restoredCommands[39].direction).toBe('east')
+
+      // VERIFY: Game continues from turn 40
+      // Next command would be turn 40
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'south',
+        turnCount: 40,
+        rngState: 'rng-40',
+      })
+      expect(recorder.getCommandLog()).toHaveLength(41)
+    })
   })
 })
