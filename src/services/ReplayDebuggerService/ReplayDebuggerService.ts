@@ -120,8 +120,11 @@ export class ReplayDebuggerService {
     // Replay each command
     for (const commandEvent of commandsToExecute) {
       try {
-        // Restore RNG state BEFORE command execution
-        this.randomService.setState(commandEvent.rngState)
+        // Restore RNG state BEFORE command execution (if available)
+        // Note: Old saves may not have rngState - skip restoration for backward compatibility
+        if (commandEvent.rngState !== undefined) {
+          this.randomService.setState(commandEvent.rngState)
+        }
 
         // Reconstruct and execute command
         const command = this.commandFactory.createFromEvent(commandEvent)

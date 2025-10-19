@@ -194,8 +194,18 @@ describe('LaunchReplayDebuggerCommand', () => {
     it('should use correct gameId from state', async () => {
       const gameState = createTestGameState()
       gameState.gameId = 'custom-game-id-456'
+      gameState.turnCount = 1 // Set to 1 so we don't hit the incomplete data validation
       const initialState = createTestGameState()
-      const mockCommands = []
+      const mockCommands = [
+        {
+          turnNumber: 0,
+          timestamp: Date.now(),
+          commandType: 'move' as const,
+          actorType: 'player' as const,
+          payload: { direction: 'up' },
+          rngState: 12345,
+        },
+      ]
 
       mockGetInitialState.mockReturnValue(initialState)
       mockGetCommandLog.mockReturnValue(mockCommands)

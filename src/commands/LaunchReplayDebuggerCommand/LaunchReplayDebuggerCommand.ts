@@ -78,6 +78,22 @@ export class LaunchReplayDebuggerCommand implements ICommand {
 
       console.log(`📼 Replay ready: ${commands.length} commands, ${state.turnCount} turns`)
 
+      // Validate replay data completeness
+      if (commands.length === 0 && state.turnCount > 0) {
+        console.error('❌ No commands recorded - replay not available')
+        console.log('💡 This save was created before command recording was implemented')
+        console.log('💡 Replay is only available for games started after the command recording feature')
+        return state
+      }
+
+      // Warn if command log appears incomplete (might be an old save)
+      if (commands.length > 0 && state.turnCount > commands.length * 2) {
+        console.warn('⚠️  Replay data may be incomplete')
+        console.warn(`   Game is at turn ${state.turnCount} but only ${commands.length} commands recorded`)
+        console.warn('   This may be an old save from before full command recording was implemented')
+        console.warn('   Replay may fail or be incomplete')
+      }
+
       // Push ReplayDebugState onto state stack with in-memory replay data
       const replayState = new ReplayDebugState(
         state.gameId,
