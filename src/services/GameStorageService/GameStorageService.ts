@@ -33,9 +33,9 @@ export interface SaveMetadata {
 export class GameStorageService {
   /**
    * Save version for compatibility checking
-   * Version 5: IndexedDB implementation (no localStorage migration)
+   * Version 6: Unified save/replay storage (replay data embedded in saves)
    */
-  public readonly SAVE_VERSION = 5
+  public readonly SAVE_VERSION = 6
 
   /**
    * Replay version for compatibility checking
@@ -83,8 +83,7 @@ export class GameStorageService {
 
   /**
    * Save game state to IndexedDB
-   * Saves BOTH game state (full snapshot) and replay data (commands) atomically
-   * Dual storage model: 'saves' for fast loading, 'replays' for debugging
+   * Unified storage: replay data embedded directly in save file
    */
   async saveGame(state: GameState): Promise<void> {
     this.activeSaveCount++
@@ -93,49 +92,43 @@ export class GameStorageService {
       const serialized = await this.serializeGameState(state)
       const compressed = await this.compressionWorker.compress(serialized)
 
-      // Prepare save data
+      // Get command log and initial state from recorder
+      const commands = this.recorder.getCommandLog()
+      const initialState = this.recorder.getInitialState()
+
+      // Prepare embedded replay data (only if recording is active)
+      let replayData = null
+      if (initialState && commands.length > 0) {
+        // Note: recorder stores initialState as plain object (via JSON.parse/stringify)
+        // Store it directly - already in serializable format
+        replayData = {
+          initialState: initialState, // Already plain object, no serialization needed
+          seed: state.seed,
+          commands: commands,
+        }
+      }
+
+      // Prepare unified save data with embedded replay
       const saveData = {
         gameId: state.gameId,
         gameState: compressed,
+        replayData: replayData, // Embedded replay data (null if no recording)
         metadata: this.extractMetadata(state),
         version: this.SAVE_VERSION,
         timestamp: Date.now(),
       }
 
-      // Get command log and initial state from recorder
-      const commands = this.recorder.getCommandLog()
-      const initialState = this.recorder.getInitialState()
-
-      // Prepare replay data (only if recording is active)
-      let replayData: ReplayData | null = null
-      if (initialState && commands.length > 0) {
-        replayData = {
-          gameId: state.gameId,
-          version: this.REPLAY_VERSION,
-          initialState: initialState,
-          seed: state.seed,
-          commands: commands,
-          metadata: this.extractReplayMetadata(state),
-        }
-      }
-
-      // Save to IndexedDB atomically (both stores or neither)
+      // Save to IndexedDB (single store)
       await this.indexedDB.put('saves', state.gameId, saveData)
-
-      // Save replay data if available
-      if (replayData) {
-        await this.indexedDB.put('replays', state.gameId, replayData)
-      }
 
       // Update continue pointer
       await this.setContinueGameId(state.gameId)
 
       console.log(
-        `Game saved: ${state.gameId} (${commands.length} commands recorded)`
+        `💾 Game saved: ${state.gameId} (${commands.length} commands embedded)`
       )
     } catch (error) {
       console.error('Failed to save game:', error)
-      // TODO: Implement rollback for atomic saves (delete both if either fails)
       throw new Error('Failed to save game')
     } finally {
       this.activeSaveCount--
@@ -160,10 +153,10 @@ export class GameStorageService {
         return null
       }
 
-      // Check version compatibility
+      // Check version compatibility (strict check - clean break from old saves)
       if (data.version !== this.SAVE_VERSION) {
         console.warn(
-          `Incompatible save version: found v${data.version}, expected v${this.SAVE_VERSION}`
+          `Incompatible save version: found v${data.version}, expected v${this.SAVE_VERSION}. Old saves not supported - start a new game.`
         )
         return null
       }

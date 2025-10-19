@@ -102,12 +102,6 @@ describe('GameStorageService', () => {
     const allGames = await service.listGames()
     for (const game of allGames) {
       await service.deleteSave(game.gameId)
-      // Also delete replay data
-      try {
-        await indexedDB.delete('replays', game.gameId)
-      } catch {
-        // Ignore error if not exists
-      }
     }
 
     // Delete continue pointer
@@ -398,7 +392,7 @@ describe('GameStorageService', () => {
   })
 
   describe('Replay Integration', () => {
-    it('should save replay data when commands are recorded', async () => {
+    it('should embed replay data in save when commands are recorded', async () => {
       const state = createTestGameState()
 
       // Set initial state and record some commands
@@ -418,32 +412,30 @@ describe('GameStorageService', () => {
 
       await service.saveGame(state)
 
-      // Check that replay data was saved to replays store
-      const replayData = await indexedDB.get('replays', 'test-game-1')
+      // Check that replay data was embedded in save object
+      const saveData = await indexedDB.get('saves', 'test-game-1')
 
-      expect(replayData).not.toBeNull()
-      expect(replayData.gameId).toBe('test-game-1')
-      expect(replayData.version).toBe(1)
-      expect(replayData.seed).toBe('test-seed')
-      expect(replayData.commands).toHaveLength(2)
-      expect(replayData.commands[0].type).toBe('move')
-      expect(replayData.commands[0].direction).toBe('right')
-      expect(replayData.initialState).toBeDefined()
-      expect(replayData.metadata).toBeDefined()
-      expect(replayData.metadata.turnCount).toBe(0)
-      expect(replayData.metadata.characterName).toBe('Test Hero')
+      expect(saveData).not.toBeNull()
+      expect(saveData.replayData).not.toBeNull()
+      expect(saveData.replayData.seed).toBe('test-seed')
+      expect(saveData.replayData.commands).toHaveLength(2)
+      expect(saveData.replayData.commands[0].type).toBe('move')
+      expect(saveData.replayData.commands[0].direction).toBe('right')
+      expect(saveData.replayData.initialState).toBeDefined()
+      expect(saveData.replayData.initialState.gameId).toBe('test-game-1')
     })
 
-    it('should not save replay data when no commands recorded', async () => {
+    it('should not embed replay data when no commands recorded', async () => {
       const state = createTestGameState()
 
       // Don't set initial state or record any commands
       await service.saveGame(state)
 
-      // Check that replay data was NOT saved
-      const replayData = await indexedDB.get('replays', 'test-game-1')
+      // Check that replay data is null
+      const saveData = await indexedDB.get('saves', 'test-game-1')
 
-      expect(replayData).toBeNull()
+      expect(saveData).not.toBeNull()
+      expect(saveData.replayData).toBeNull()
     })
 
     it('should clear recorder and set initial state on load', async () => {
@@ -483,10 +475,8 @@ describe('GameStorageService', () => {
       expect(initialState?.gameId).toBe('test-game-1')
     })
 
-    it('should include correct outcome metadata for ongoing game', async () => {
-      const state = createTestGameState({
-        isGameOver: false,
-      })
+    it('should store initialState in embedded replay data', async () => {
+      const state = createTestGameState()
 
       recorder.setInitialState(state)
       recorder.recordCommand({
@@ -498,51 +488,12 @@ describe('GameStorageService', () => {
 
       await service.saveGame(state)
 
-      const replayData = await indexedDB.get('replays', 'test-game-1')
+      const saveData = await indexedDB.get('saves', 'test-game-1')
 
-      expect(replayData.metadata.outcome).toBe('ongoing')
-    })
-
-    it('should include correct outcome metadata for won game', async () => {
-      const state = createTestGameState({
-        isGameOver: true,
-        hasWon: true,
-      })
-
-      recorder.setInitialState(state)
-      recorder.recordCommand({
-        type: 'move',
-        direction: 'right',
-        turnCount: 0,
-        rngState: 'test-rng-state',
-      })
-
-      await service.saveGame(state)
-
-      const replayData = await indexedDB.get('replays', 'test-game-1')
-
-      expect(replayData.metadata.outcome).toBe('won')
-    })
-
-    it('should include correct outcome metadata for died game', async () => {
-      const state = createTestGameState({
-        isGameOver: true,
-        hasWon: false,
-      })
-
-      recorder.setInitialState(state)
-      recorder.recordCommand({
-        type: 'move',
-        direction: 'right',
-        turnCount: 0,
-        rngState: 'test-rng-state',
-      })
-
-      await service.saveGame(state)
-
-      const replayData = await indexedDB.get('replays', 'test-game-1')
-
-      expect(replayData.metadata.outcome).toBe('died')
+      // Initial state should be embedded
+      expect(saveData.replayData.initialState).toBeDefined()
+      expect(saveData.replayData.initialState.gameId).toBe('test-game-1')
+      expect(saveData.replayData.initialState.player).toBeDefined()
     })
   })
 })
