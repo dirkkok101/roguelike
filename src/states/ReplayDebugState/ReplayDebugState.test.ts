@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { ReplayDebugState } from './ReplayDebugState'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { GameStateManager } from '@services/GameStateManager'
+import { CommandRecorderService } from '@services/CommandRecorderService'
 import { GameState, Player, Level, Input } from '@game/core/core'
 import { ReplayData } from '@game/replay/replay'
 
@@ -17,6 +18,7 @@ describe('ReplayDebugState', () => {
   let replayDebugState: ReplayDebugState
   let replayDebugger: ReplayDebuggerService
   let stateManager: GameStateManager
+  let commandRecorder: CommandRecorderService
   let mockLoadReplay: jest.SpyInstance
   let mockReconstructToTurn: jest.SpyInstance
   let mockValidateDeterminism: jest.SpyInstance
@@ -26,6 +28,7 @@ describe('ReplayDebugState', () => {
   beforeEach(() => {
     replayDebugger = {} as ReplayDebuggerService
     stateManager = new GameStateManager()
+    commandRecorder = {} as CommandRecorderService
 
     mockLoadReplay = jest.fn()
     mockReconstructToTurn = jest.fn()
@@ -38,7 +41,16 @@ describe('ReplayDebugState', () => {
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation()
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
 
-    replayDebugState = new ReplayDebugState('test-game-123', replayDebugger, stateManager)
+    // Create ReplayDebugState with mock replay data
+    const mockReplayData = createTestReplay()
+    replayDebugState = new ReplayDebugState(
+      'test-game-123',
+      replayDebugger,
+      stateManager,
+      commandRecorder,
+      0, // initialTurn
+      mockReplayData // Provide in-memory replay data
+    )
   })
 
   afterEach(() => {
