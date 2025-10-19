@@ -137,8 +137,7 @@ export class GameStorageService {
 
   /**
    * Load game state from IndexedDB
-   * Clears command recorder and sets loaded state as new initial state
-   * (Recording starts from the load point, not from turn 0)
+   * Restores replay data if available (enables replay from turn 0)
    */
   async loadGame(gameId?: string): Promise<GameState | null> {
     try {
@@ -171,12 +170,24 @@ export class GameStorageService {
         return null
       }
 
-      // Clear command recorder and set loaded state as new initial state
-      // This means we start recording from this point (not from turn 0)
-      this.recorder.clearLog()
-      this.recorder.setInitialState(state)
+      // RESTORE replay data if available (enables replay from turn 0)
+      if (data.replayData) {
+        this.recorder.clearLog()
+        // Note: initialState from recorder is already in plain object format
+        // (Maps/Sets were broken by recorder's JSON.parse/stringify)
+        // We store and restore it as-is, no deserialization needed
+        this.recorder.setInitialState(data.replayData.initialState as any)
+        this.recorder.restoreCommandLog(data.replayData.commands)
+        console.log(
+          `💾 Save loaded: ${targetId} (restored ${data.replayData.commands.length} commands from turn 0)`
+        )
+      } else {
+        // No replay data - start fresh recording from loaded state
+        this.recorder.clearLog()
+        this.recorder.setInitialState(state)
+        console.log(`💾 Save loaded: ${targetId} (no replay data, starting fresh recording)`)
+      }
 
-      console.log(`Save loaded successfully: ${targetId} (recording from this point)`)
       return state
     } catch (error) {
       console.error('Failed to load game:', error)

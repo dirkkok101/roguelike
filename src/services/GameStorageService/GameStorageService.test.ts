@@ -438,7 +438,7 @@ describe('GameStorageService', () => {
       expect(saveData.replayData).toBeNull()
     })
 
-    it('should clear recorder and set initial state on load', async () => {
+    it('should restore commands from save on load', async () => {
       const state = createTestGameState()
 
       // Record some commands before save
@@ -452,7 +452,7 @@ describe('GameStorageService', () => {
 
       await service.saveGame(state)
 
-      // Record more commands after save
+      // Record more commands after save (simulating continued play)
       recorder.recordCommand({
         type: 'move',
         direction: 'down',
@@ -465,11 +465,13 @@ describe('GameStorageService', () => {
 
       expect(loaded).not.toBeNull()
 
-      // Recorder should be cleared (no commands)
+      // Recorder should have commands restored from save (only 1, not 2)
       const commands = recorder.getCommandLog()
-      expect(commands).toHaveLength(0)
+      expect(commands).toHaveLength(1)
+      expect(commands[0].type).toBe('move')
+      expect(commands[0].direction).toBe('right')
 
-      // Recorder should have new initial state set to loaded state
+      // Recorder should have initial state restored
       const initialState = recorder.getInitialState()
       expect(initialState).toBeDefined()
       expect(initialState?.gameId).toBe('test-game-1')
@@ -494,6 +496,90 @@ describe('GameStorageService', () => {
       expect(saveData.replayData.initialState).toBeDefined()
       expect(saveData.replayData.initialState.gameId).toBe('test-game-1')
       expect(saveData.replayData.initialState.player).toBeDefined()
+    })
+
+    it('should restore replay data on load (full cycle test)', async () => {
+      // Phase 1: Create game and record some commands
+      const initialState = createTestGameState({ turnCount: 0 })
+      recorder.setInitialState(initialState)
+
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'north',
+        turnCount: 0,
+        rngState: 'rng-1',
+      })
+      recorder.recordCommand({
+        type: 'move',
+        direction: 'east',
+        turnCount: 1,
+        rngState: 'rng-2',
+      })
+      recorder.recordCommand({
+        type: 'attack',
+        target: { x: 11, y: 5 },
+        turnCount: 2,
+        rngState: 'rng-3',
+      })
+
+      // Phase 2: Save game at turn 20
+      const currentState = createTestGameState({ turnCount: 20 })
+      await service.saveGame(currentState)
+
+      // Verify save has replay data embedded
+      const saveData = await indexedDB.get('saves', 'test-game-1')
+      expect(saveData.replayData).not.toBeNull()
+      expect(saveData.replayData.commands).toHaveLength(3)
+
+      // Phase 3: Simulate new session - clear recorder
+      recorder.clearLog()
+      expect(recorder.getCommandLog()).toHaveLength(0)
+      expect(recorder.getInitialState()).toBeNull()
+
+      // Phase 4: Load game
+      const loaded = await service.loadGame('test-game-1')
+
+      expect(loaded).not.toBeNull()
+      expect(loaded?.turnCount).toBe(20)
+
+      // Phase 5: Verify replay data was restored
+      const restoredCommands = recorder.getCommandLog()
+      const restoredInitialState = recorder.getInitialState()
+
+      expect(restoredCommands).toHaveLength(3)
+      expect(restoredCommands[0].type).toBe('move')
+      expect(restoredCommands[0].direction).toBe('north')
+      expect(restoredCommands[1].type).toBe('move')
+      expect(restoredCommands[1].direction).toBe('east')
+      expect(restoredCommands[2].type).toBe('attack')
+
+      expect(restoredInitialState).not.toBeNull()
+      expect(restoredInitialState?.gameId).toBe('test-game-1')
+      expect(restoredInitialState?.turnCount).toBe(0)
+    })
+
+    it('should handle load when no replay data exists', async () => {
+      const state = createTestGameState()
+
+      // Save WITHOUT setting initial state or recording commands
+      await service.saveGame(state)
+
+      // Verify no replay data in save
+      const saveData = await indexedDB.get('saves', 'test-game-1')
+      expect(saveData.replayData).toBeNull()
+
+      // Load game
+      const loaded = await service.loadGame('test-game-1')
+
+      expect(loaded).not.toBeNull()
+
+      // Recorder should have loaded state as initial state, but no commands
+      const restoredInitialState = recorder.getInitialState()
+      const restoredCommands = recorder.getCommandLog()
+
+      expect(restoredInitialState).not.toBeNull()
+      expect(restoredInitialState?.gameId).toBe('test-game-1')
+      expect(restoredCommands).toHaveLength(0)
     })
   })
 })
