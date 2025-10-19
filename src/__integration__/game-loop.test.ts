@@ -274,7 +274,7 @@ describe('Integration: Game Loop', () => {
 
       const newState = moveCommand.execute(state)
 
-      expect(newState.turnCount).toBe(1)
+      expect(newState.turnCount).toBe(0) // Commands no longer increment turnCount (happens in PlayingState)
       expect(newState.player.position.x).toBe(11)
       expect(newState.player.position.y).toBe(10)
     })
@@ -313,13 +313,13 @@ describe('Integration: Game Loop', () => {
 
       // Verify player moved
       expect(newState.player.position.x).toBe(11)
-      expect(newState.turnCount).toBe(1)
+      expect(newState.turnCount).toBe(0) // Commands no longer increment turnCount (happens in PlayingState)
 
       // STEP 2: Monster turns (should wake up since player is close)
       newState = services.monsterTurn.processMonsterTurns(newState)
 
       // Verify state is consistent
-      expect(newState.turnCount).toBe(1) // Monster turns don't increment global counter
+      expect(newState.turnCount).toBe(0) // Monster turns don't increment global counter
       expect(newState.player.position.x).toBe(11) // Player position unchanged
 
       // Monster should have woken up and potentially moved
@@ -421,7 +421,7 @@ describe('Integration: Game Loop', () => {
       // Hunger should have decreased (base rate -1/turn)
       expect(currentState.player.hunger).toBeLessThan(initialHunger)
       expect(currentState.player.hunger).toBe(initialHunger - 4)
-      expect(currentState.turnCount).toBe(4)
+      expect(currentState.turnCount).toBe(0) // Commands no longer increment turnCount (happens in PlayingState)
     })
 
     test('light fuel depletes each turn', () => {
@@ -529,8 +529,8 @@ describe('Integration: Game Loop', () => {
       expect(state.turnCount).toBe(originalTurnCount)
       expect(state.player.position).toEqual(originalPosition)
 
-      // New state should have changes
-      expect(newState.turnCount).toBe(originalTurnCount + 1)
+      // New state should have changes (except turnCount - that happens in PlayingState)
+      expect(newState.turnCount).toBe(originalTurnCount)
       expect(newState.player.position.x).toBe(originalPosition.x + 1)
     })
   })

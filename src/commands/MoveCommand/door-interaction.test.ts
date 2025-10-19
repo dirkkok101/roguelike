@@ -355,7 +355,7 @@ describe('MoveCommand - Door Interaction', () => {
 
       const newState = command.execute(state)
 
-      expect(newState.turnCount).toBe(1)
+      expect(newState.turnCount).toBe(0) // Commands no longer increment turnCount (happens in PlayingState)
     })
 
     test('should update FOV after moving through door', () => {

@@ -360,7 +360,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
 
       const newState = command.execute(state)
 
-      expect(newState.turnCount).toBe(1)
+      expect(newState.turnCount).toBe(0) // Commands no longer increment turnCount
     })
   })
 
@@ -435,7 +435,7 @@ describe('MoveCommand - Bump-to-Attack Combat', () => {
       // Player leveled up (10 XP needed for level 2), so XP = 30 - 10 = 20
       expect(newState.player.xp).toBe(20)
       expect(newState.messages.length).toBeGreaterThan(0)
-      expect(newState.turnCount).toBe(1)
+      expect(newState.turnCount).toBe(0) // Commands no longer increment turnCount
     })
   })
 })

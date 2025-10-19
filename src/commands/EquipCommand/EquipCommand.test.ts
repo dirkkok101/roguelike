@@ -529,7 +529,7 @@ describe('EquipCommand', () => {
 
       expect(finalResult.player.equipment.weapon?.id).toBe('sword-2')
       expect(finalResult.player.inventory.find((i) => i.id === 'sword-1')).toBeDefined()
-      expect(finalResult.turnCount).toBe(1)
+      expect(finalResult.turnCount).toBe(0) // Commands no longer increment turnCount
     })
   })
 

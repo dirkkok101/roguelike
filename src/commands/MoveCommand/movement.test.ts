@@ -251,7 +251,7 @@ describe('MoveCommand - Basic Movement', () => {
 
       const newState = command.execute(state)
 
-      expect(newState.turnCount).toBe(1)
+      expect(newState.turnCount).toBe(0) // Commands no longer increment turnCount (happens in PlayingState)
     })
 
     test('increments turn count for multiple moves', () => {
@@ -293,10 +293,10 @@ describe('MoveCommand - Basic Movement', () => {
       )
 
       state = right.execute(state)
-      expect(state.turnCount).toBe(1)
+      expect(state.turnCount).toBe(0) // Commands no longer increment turnCount
 
       state = down.execute(state)
-      expect(state.turnCount).toBe(2)
+      expect(state.turnCount).toBe(0) // Commands no longer increment turnCount
     })
   })
 

@@ -131,6 +131,6 @@ export class ReadScrollCommand implements ICommand {
       player: finalPlayer,
       messages,
       itemsUsed: baseState.itemsUsed + 1, // Track scroll use for death screen
-    })
+    }
   }
 }

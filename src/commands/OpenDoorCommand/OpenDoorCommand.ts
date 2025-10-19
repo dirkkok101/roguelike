@@ -30,7 +30,7 @@ export class OpenDoorCommand implements ICommand {
       actorType: 'player',
       payload: { direction: this.direction },
       rngState: this.randomService.getState(),
-    }
+    })
 
     // STEP 2: Execute normally (existing logic unchanged)
 

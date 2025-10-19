@@ -268,7 +268,7 @@ describe('RunCommand - Integration', () => {
       expect(state.player.position).toEqual({ x: 6, y: 5 })
       expect(state.player.isRunning).toBe(true)
       expect(state.player.runState).not.toBeNull()
-      expect(state.turnCount).toBe(1)
+      expect(state.turnCount).toBe(0) // Commands no longer increment turnCount (happens in PlayingState)
 
       // Step 3: Second move to (7,5) - monster (9,5) becomes visible, should STOP
       const move2 = new MoveCommand(
@@ -295,7 +295,7 @@ describe('RunCommand - Integration', () => {
       expect(state.player.position).toEqual({ x: 7, y: 5 })
       expect(state.player.isRunning).toBe(false) // Should stop
       expect(state.player.runState).toBeNull() // Run state cleared
-      expect(state.turnCount).toBe(2)
+      expect(state.turnCount).toBe(0) // Commands no longer increment turnCount
 
       // Verify disturbance message was added
       const stopMessage = state.messages.find(m => m.text.includes('stop running'))
@@ -399,7 +399,7 @@ describe('RunCommand - Integration', () => {
       // Verify still running
       expect(state.player.position).toEqual({ x: 6, y: 5 })
       expect(state.player.isRunning).toBe(true)
-      expect(state.turnCount).toBe(1)
+      expect(state.turnCount).toBe(0) // Commands no longer increment turnCount (happens in PlayingState)
 
       // Step 3: Second move to (7,5) - T-junction, should STOP
       const move2 = new MoveCommand(
@@ -426,7 +426,7 @@ describe('RunCommand - Integration', () => {
       expect(state.player.position).toEqual({ x: 7, y: 5 })
       expect(state.player.isRunning).toBe(false) // Stopped
       expect(state.player.runState).toBeNull()
-      expect(state.turnCount).toBe(2)
+      expect(state.turnCount).toBe(0) // Commands no longer increment turnCount
 
       // Verify branch detection message
       const stopMessage = state.messages.find(m => m.text.includes('corridor branches'))

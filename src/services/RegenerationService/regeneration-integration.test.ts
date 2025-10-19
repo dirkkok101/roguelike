@@ -555,8 +555,8 @@ describe('RegenerationService - Integration Tests', () => {
         currentState = moveCommand.execute(currentState)
       }
 
-      // Turn count should be 105
-      expect(currentState.turnCount).toBe(105)
+      // Turn count should remain 100 (commands no longer increment turnCount)
+      expect(currentState.turnCount).toBe(100)
     })
 
     test('rest command increments turns accurately', () => {
@@ -571,8 +571,8 @@ describe('RegenerationService - Integration Tests', () => {
 
       const result = restCommand.execute(state)
 
-      // Should be 60 (50 + 10 turns to heal 1 HP)
-      expect(result.turnCount).toBe(60)
+      // Should be 59 (50 + 9) - RestCommand increments (N-1) times, PlayingState adds final increment
+      expect(result.turnCount).toBe(59)
       expect(result.player.hp).toBe(20)
     })
   })

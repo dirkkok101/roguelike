@@ -34,7 +34,7 @@ export class QuaffPotionCommand implements ICommand {
       actorType: 'player',
       payload: { itemId: this.itemId },
       rngState: this.randomService.getState(),
-    }
+    })
 
     // STEP 2: Execute normally (existing logic unchanged)
     // 0. Check if player can drink (not confused)

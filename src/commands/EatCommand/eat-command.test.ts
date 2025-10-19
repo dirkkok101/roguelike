@@ -301,7 +301,7 @@ describe('EatCommand', () => {
       const newState = command.execute(state)
 
       // Assert
-      expect(newState.turnCount).toBe(6)
+      expect(newState.turnCount).toBe(5) // Commands no longer increment turnCount (happens in PlayingState)
     })
 
     test('returns new GameState (immutability)', () => {
