@@ -19,6 +19,7 @@ describe('ReplayDebugState', () => {
   let replayDebugger: ReplayDebuggerService
   let stateManager: GameStateManager
   let commandRecorder: CommandRecorderService
+  let mockRenderer: any
   let mockLoadReplay: jest.SpyInstance
   let mockReconstructToTurn: jest.SpyInstance
   let mockValidateDeterminism: jest.SpyInstance
@@ -29,6 +30,7 @@ describe('ReplayDebugState', () => {
     replayDebugger = {} as ReplayDebuggerService
     stateManager = new GameStateManager()
     commandRecorder = {} as CommandRecorderService
+    mockRenderer = { render: jest.fn() } // Mock GameRenderer
 
     mockLoadReplay = jest.fn()
     mockReconstructToTurn = jest.fn()
@@ -51,6 +53,7 @@ describe('ReplayDebugState', () => {
       replayDebugger,
       stateManager,
       commandRecorder,
+      mockRenderer, // renderer parameter
       0, // initialTurn
       mockReplayData // Provide in-memory replay data
     )
@@ -172,8 +175,9 @@ describe('ReplayDebugState', () => {
         'test-game-456',
         replayDebugger,
         stateManager,
-        commandRecorder
-        // No inMemoryReplayData
+        commandRecorder,
+        mockRenderer
+        // No initialTurn or inMemoryReplayData
       )
       const replayData = createTestReplay()
       const mockState = createTestGameState()
@@ -195,7 +199,8 @@ describe('ReplayDebugState', () => {
         'test-game-error',
         replayDebugger,
         stateManager,
-        commandRecorder
+        commandRecorder,
+        mockRenderer
       )
       mockLoadReplay.mockRejectedValue(new Error('Database error'))
 
@@ -317,7 +322,8 @@ describe('ReplayDebugState', () => {
         'test-game',
         replayDebugger,
         stateManager,
-        commandRecorder
+        commandRecorder,
+        mockRenderer
         // No initialTurn or inMemoryReplayData - will attempt IndexedDB load
       )
 
