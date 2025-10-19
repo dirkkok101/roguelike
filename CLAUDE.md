@@ -614,10 +614,15 @@ Debug mode enabled in development (press **`~`** to open debug console):
 - **`n`** - Toggle AI overlay
 - **`x`** - Toggle FOV mode (radius/realistic)
 
-**Replay System:**
-- **`L`** - Launch replay debugger for current game
+**Replay Debug:**
+- **`L`** - Launch replay debugger (visual UI)
 - **`C`** - Choose replay from list
 - **`E`** - Export/download current replay
+
+**Replay Debugger UI:**
+- Control panel with transport controls and timeline scrubber
+- State inspector panel with player/level state
+- Keyboard shortcuts: Space (forward), Shift+Space (back), j (jump), Esc (exit)
 
 See [Advanced Systems - Debug System](./docs/systems-advanced.md#debug-system)
 
