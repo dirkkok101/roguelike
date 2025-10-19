@@ -302,7 +302,7 @@ Hardware-accelerated canvas rendering with sprites:
 
 ## Save & Replay Storage (Quick Reference)
 
-**Architecture**: Unified storage - replay data embedded in save files
+**Architecture**: IndexedDB-only storage - all saves persist after death
 
 ### Storage Format
 
@@ -312,23 +312,22 @@ Save files (IndexedDB 'saves' store) contain:
   - `initialState`: Game state at turn 0
   - `seed`: RNG seed for deterministic replay
   - `commands`: Full command history from turn 0
-- **metadata**: Character name, turn count, level, timestamp
+- **metadata**: Character name, turn count, level, timestamp, **status**, **score**
 - **version**: Save format version (current: 6)
+
+### Key Features
+
+1. **No Deletion on Death**: Saves preserved with status='died'
+2. **Leaderboard**: All saves sorted by score (gold + monsters×100 + depth×1000)
+3. **Score Calculation**: Automatic on every save
+4. **Status Tracking**: 'ongoing' | 'died' | 'won'
 
 ### Key Services
 
-- **GameStorageService**: Handles save/load operations, embeds replay data automatically
-- **CommandRecorderService**: Records commands during gameplay, provides in-memory command log
+- **GameStorageService**: Save/load operations, leaderboard queries, score calculation
+- **CommandRecorderService**: Records commands during gameplay
 - **ReplayDebuggerService**: Loads and reconstructs game states from embedded replay data
 - **IndexedDBService**: Database operations (DB version 2, single 'saves' store)
-
-### Benefits
-
-1. **Unified storage**: No separate 'replays' store - replay data travels with saves
-2. **Automatic persistence**: Saving game automatically saves full replay history
-3. **Turn-accurate loading**: Loading a save at turn N preserves replay from turn 0
-4. **Dual access**: Current session uses in-memory data, historical games use IndexedDB
-5. **Simplified cleanup**: Deleting a save automatically deletes its replay data
 
 **Details**: [Replay System](./docs/replay-system.md)
 
