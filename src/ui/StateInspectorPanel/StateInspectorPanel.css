@@ -1,0 +1,130 @@
+.state-inspector-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 350px;
+  height: calc(100vh - 100px); /* Account for control panel */
+  background: rgba(0, 0, 0, 0.95);
+  border-left: 2px solid #00ff00;
+  padding: 15px;
+  overflow-y: auto;
+  z-index: 101;
+  font-family: 'Courier New', monospace;
+  color: #00ff00;
+  font-size: 13px;
+}
+
+.state-inspector-header {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #00ff00;
+}
+
+.state-inspector-section {
+  margin-bottom: 15px;
+  border: 1px solid #004400;
+  background: rgba(0, 50, 0, 0.2);
+  padding: 5px;
+}
+
+.state-inspector-section.current-turn {
+  border-color: #00ff00;
+  background: rgba(0, 100, 0, 0.2);
+}
+
+.section-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 5px;
+  background: rgba(0, 50, 0, 0.3);
+}
+
+summary.section-title::marker {
+  color: #00ff00;
+}
+
+.section-content {
+  padding: 8px 5px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #00aa00;
+  font-weight: bold;
+}
+
+.info-value {
+  color: #00ff00;
+  text-align: right;
+}
+
+.loading, .empty, .error {
+  text-align: center;
+  padding: 10px;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.error {
+  color: #ff0000;
+}
+
+.command-entry {
+  padding: 3px 5px;
+  margin: 2px 0;
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.command-entry.current {
+  background: rgba(0, 255, 0, 0.2);
+  border-left: 3px solid #00ff00;
+}
+
+.command-turn {
+  color: #00aa00;
+  min-width: 40px;
+}
+
+.command-type {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.command-actor {
+  color: #008800;
+  font-style: italic;
+}
+
+/* Scrollbar styling */
+.state-inspector-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.state-inspector-panel::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.state-inspector-panel::-webkit-scrollbar-thumb {
+  background: #00ff00;
+  border-radius: 4px;
+}
+
+.state-inspector-panel::-webkit-scrollbar-thumb:hover {
+  background: #00cc00;
+}
