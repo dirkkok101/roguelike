@@ -35,8 +35,8 @@ describe('SaveCommand', () => {
     command = new SaveCommand(gameStorageService, messageService, toastNotificationService, recorder, mockRandom)
   })
 
-  afterEach(async () => {
-    await indexedDB.deleteDatabase()
+  afterEach(() => {
+    indexedDB.close()
   })
 
   function createTestLevel(depth: number): Level {
