@@ -661,4 +661,47 @@ describe('GameStorageService', () => {
       expect(recorder.getCommandLog()).toHaveLength(41)
     })
   })
+
+  describe('calculateStatus', () => {
+    it('should return "ongoing" for active game', () => {
+      const state = createTestGameState({ isGameOver: false })
+      const status = (service as any).calculateStatus(state)
+      expect(status).toBe('ongoing')
+    })
+
+    it('should return "won" for victory', () => {
+      const state = createTestGameState({ isGameOver: true, hasWon: true })
+      const status = (service as any).calculateStatus(state)
+      expect(status).toBe('won')
+    })
+
+    it('should return "died" for death', () => {
+      const state = createTestGameState({ isGameOver: true, hasWon: false })
+      const status = (service as any).calculateStatus(state)
+      expect(status).toBe('died')
+    })
+  })
+
+  describe('calculateScore', () => {
+    it('should calculate score from gold + monsters + depth', () => {
+      const state = createTestGameState({
+        player: { ...createTestGameState().player, gold: 500 },
+        monstersKilled: 10,
+        maxDepth: 5,
+      })
+      const score = (service as any).calculateScore(state)
+      // 500 + (10 * 100) + (5 * 1000) = 500 + 1000 + 5000 = 6500
+      expect(score).toBe(6500)
+    })
+
+    it('should handle zero values', () => {
+      const state = createTestGameState({
+        player: { ...createTestGameState().player, gold: 0 },
+        monstersKilled: 0,
+        maxDepth: 0,
+      })
+      const score = (service as any).calculateScore(state)
+      expect(score).toBe(0)
+    })
+  })
 })

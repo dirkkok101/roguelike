@@ -28,6 +28,11 @@ export interface SaveMetadata {
   currentLevel: number
   turnCount: number
   timestamp: number
+  status: 'ongoing' | 'died' | 'won'
+  gold: number
+  monstersKilled: number
+  maxDepth: number
+  score: number
 }
 
 export class GameStorageService {
@@ -410,6 +415,11 @@ export class GameStorageService {
       currentLevel: state.currentLevel,
       turnCount: state.turnCount,
       timestamp: Date.now(),
+      status: this.calculateStatus(state),
+      gold: state.player.gold,
+      monstersKilled: state.monstersKilled,
+      maxDepth: state.maxDepth,
+      score: this.calculateScore(state),
     }
   }
 
@@ -431,6 +441,22 @@ export class GameStorageService {
       currentLevel: state.currentLevel,
       outcome: outcome,
     }
+  }
+
+  /**
+   * Calculate game status for leaderboard
+   */
+  private calculateStatus(state: GameState): 'ongoing' | 'died' | 'won' {
+    if (!state.isGameOver) return 'ongoing'
+    return state.hasWon ? 'won' : 'died'
+  }
+
+  /**
+   * Calculate score for leaderboard
+   * Formula: gold + (monsters * 100) + (depth * 1000)
+   */
+  private calculateScore(state: GameState): number {
+    return state.player.gold + state.monstersKilled * 100 + state.maxDepth * 1000
   }
 
   /**
