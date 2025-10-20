@@ -65,7 +65,7 @@ export class LeaderboardState extends BaseState {
     if (!this.container || this.isLoading) return
 
     if (this.saves.length === 0) {
-      this.container.innerHTML = \`
+      this.container.innerHTML = `
         <pre>
 ╔════════════════════ LEADERBOARD ════════════════════╗
 ║                                                     ║
@@ -75,7 +75,7 @@ export class LeaderboardState extends BaseState {
 ║                                                     ║
 ╚═════════════════════════════════════════════════════╝
         </pre>
-      \`
+      `
       return
     }
 
@@ -91,13 +91,13 @@ export class LeaderboardState extends BaseState {
       const status = save.status.padEnd(7, ' ')
       const score = save.score.toString().padStart(8, ' ')
       const gold = save.gold.toString().padStart(5, ' ')
-      const depth = \`L\${save.maxDepth}\`.padStart(5, ' ')
+      const depth = `L${save.maxDepth}`.padStart(5, ' ')
       const monsters = save.monstersKilled.toString().padStart(8, ' ')
 
       const isSelected = index === this.selectedIndex
       const prefix = isSelected ? '>' : ' '
 
-      html += \`║ \${prefix}\${rank} │ \${name} │ \${status} │ \${score} │ \${gold} │ \${depth} │ \${monsters} ║\n\`
+      html += `║ ${prefix}${rank} │ ${name} │ ${status} │ ${score} │ ${gold} │ ${depth} │ ${monsters} ║\n`
     })
 
     html += '╚═══════════════════════════════════════════════════════════════════════════════╝\n'
