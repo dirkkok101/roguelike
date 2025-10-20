@@ -154,8 +154,19 @@ export class SaveActionMenuState extends BaseState {
   }
 
   private async deleteGame(): Promise<void> {
-    // TODO: Implement in next task
-    console.log('Delete game:', this.save.gameId)
-    // Will use this.gameStorage and this.onDelete in next task
+    try {
+      // Delete from storage
+      await this.gameStorage.deleteSave(this.save.gameId)
+
+      // Pop this menu state
+      this.stateManager.popState()
+
+      // Trigger leaderboard refresh callback
+      this.onDelete()
+    } catch (error) {
+      console.error('Error deleting game:', error)
+      // TODO: Show error message to user
+      // Stay in delete confirmation mode so user can try again or cancel
+    }
   }
 }
