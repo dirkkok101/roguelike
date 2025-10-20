@@ -59,7 +59,25 @@ export class SaveActionMenuState extends BaseState {
   }
 
   render(): void {
-    // TODO: Implement in next task
+    if (!this.container) return
+
+    const name = this.save.characterName
+    const status = this.save.status
+    const level = this.save.maxDepth
+    const score = this.save.score
+
+    let html = '<pre style="margin: 0;">'
+
+    if (this.deleteConfirmMode) {
+      html += `Delete "${name}"? [Y] Yes  [N] No`
+    } else {
+      html += `Selected: ${name} (${status}, L${level}, Score: ${score})\n`
+      html += `[L]oad  [R]eplay  [D]elete  [Escape] Back`
+    }
+
+    html += '</pre>'
+
+    this.container.innerHTML = html
   }
 
   handleInput(input: Input): void {
