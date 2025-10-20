@@ -1,7 +1,8 @@
 import { BaseState } from '../BaseState'
-import { Input, SaveSummary } from '@game/core/core'
+import { Input, SaveSummary, GameState } from '@game/core/core'
 import { GameStorageService } from '@services/GameStorageService'
 import { GameStateManager } from '@services/GameStateManager'
+import { SaveActionMenuState } from '../SaveActionMenuState'
 import { escapeHtml } from '@utils/sanitize'
 
 /**
@@ -11,6 +12,22 @@ import { escapeHtml } from '@utils/sanitize'
  * - Shows all saves (ongoing, died, won) in score order
  * - Navigate with ↑/↓, select with Enter, back with Escape
  * - Enter opens action menu (Resume/Replay/Delete)
+ *
+ * Factory Functions:
+ * The constructor requires two factory functions to integrate with the game lifecycle:
+ *
+ * 1. startGame(gameState: GameState): void
+ *    - Should clear the state stack
+ *    - Should create a new PlayingState with all required dependencies
+ *    - Should push PlayingState onto the state manager
+ *    - Example from main.ts line 557 shows the pattern
+ *
+ * 2. startReplay(gameId: string): Promise<void>
+ *    - Should load replay data from storage using the gameId
+ *    - Should create a new ReplayDebugState with all required dependencies
+ *    - Should push ReplayDebugState onto the state manager
+ *    - See ReplayDebugState constructor for required dependencies:
+ *      - gameId, replayDebugger, stateManager, commandRecorder, renderer
  */
 export class LeaderboardState extends BaseState {
   private saves: SaveSummary[] = []
@@ -20,12 +37,14 @@ export class LeaderboardState extends BaseState {
 
   constructor(
     private gameStorage: GameStorageService,
-    private stateManager: GameStateManager
+    private stateManager: GameStateManager,
+    private startGame: (gameState: GameState) => void,
+    private startReplay: (gameId: string) => Promise<void>
   ) {
     super()
   }
 
-  async enter(): void {
+  async enter(): Promise<void> {
     // Load saves
     this.saves = await this.gameStorage.listGames()
     this.isLoading = false
@@ -124,8 +143,19 @@ export class LeaderboardState extends BaseState {
         break
 
       case 'Enter':
-        // TODO: Open action menu (Resume/Replay/Delete)
-        console.log('Selected save:', this.saves[this.selectedIndex])
+        if (this.saves.length > 0) {
+          const selectedSave = this.saves[this.selectedIndex]
+          this.stateManager.pushState(
+            new SaveActionMenuState(
+              selectedSave,
+              this.gameStorage,
+              this.stateManager,
+              () => this.refreshLeaderboard(),
+              this.startGame,
+              this.startReplay
+            )
+          )
+        }
         break
 
       case 'Escape':
@@ -144,5 +174,15 @@ export class LeaderboardState extends BaseState {
 
   getAllowedKeys(): string[] | null {
     return null // Allow all keys
+  }
+
+  /**
+   * Refresh leaderboard after save deletion
+   * Reloads saves from storage and updates UI
+   */
+  private async refreshLeaderboard(): Promise<void> {
+    this.saves = await this.gameStorage.listGames()
+    this.selectedIndex = Math.min(this.selectedIndex, Math.max(0, this.saves.length - 1))
+    this.render()
   }
 }
