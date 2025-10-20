@@ -4,6 +4,7 @@ import { GameStorageService } from '@services/GameStorageService'
 import { GameStateManager } from '@services/GameStateManager'
 import { PlayingState } from '../PlayingState'
 import { ReplayDebugState } from '../ReplayDebugState'
+import { escapeHtml } from '@utils/sanitize'
 
 /**
  * SaveActionMenuState - Action menu for selected save game
@@ -61,7 +62,7 @@ export class SaveActionMenuState extends BaseState {
   render(): void {
     if (!this.container) return
 
-    const name = this.save.characterName
+    const name = escapeHtml(this.save.characterName)
     const status = this.save.status
     const level = this.save.maxDepth
     const score = this.save.score

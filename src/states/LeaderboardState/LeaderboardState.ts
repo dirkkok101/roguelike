@@ -2,6 +2,7 @@ import { BaseState } from '../BaseState'
 import { Input, SaveSummary } from '@game/core/core'
 import { GameStorageService } from '@services/GameStorageService'
 import { GameStateManager } from '@services/GameStateManager'
+import { escapeHtml } from '@utils/sanitize'
 
 /**
  * LeaderboardState - Display all saved games sorted by score
@@ -87,7 +88,7 @@ export class LeaderboardState extends BaseState {
 
     this.saves.forEach((save, index) => {
       const rank = (index + 1).toString().padStart(4, ' ')
-      const name = save.characterName.substring(0, 15).padEnd(15, ' ')
+      const name = escapeHtml(save.characterName).substring(0, 15).padEnd(15, ' ')
       const status = save.status.padEnd(7, ' ')
       const score = save.score.toString().padStart(8, ' ')
       const gold = save.gold.toString().padStart(5, ' ')
