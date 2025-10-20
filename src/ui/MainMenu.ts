@@ -16,6 +16,7 @@ export class MainMenu {
   private leaderboardScreen: LeaderboardScreen
   private characterNameModal: CharacterNameModal
   private preferencesService: PreferencesService
+  private onLeaderboardCallback: (() => void) | null = null
 
   // Store show() parameters for re-showing after seed input cancel
   private lastShowParams: {
@@ -28,7 +29,8 @@ export class MainMenu {
   constructor(
     leaderboardService: LeaderboardService,
     leaderboardStorageService: LeaderboardStorageService,
-    preferencesService: PreferencesService
+    preferencesService: PreferencesService,
+    onLeaderboard?: () => void
   ) {
     this.preferencesService = preferencesService
     this.leaderboardScreen = new LeaderboardScreen(
@@ -37,6 +39,7 @@ export class MainMenu {
       preferencesService
     )
     this.characterNameModal = new CharacterNameModal()
+    this.onLeaderboardCallback = onLeaderboard || null
   }
 
   /**
@@ -218,6 +221,13 @@ export class MainMenu {
   }
 
   private showLeaderboard(): void {
+    // If callback provided, use new LeaderboardState flow
+    if (this.onLeaderboardCallback) {
+      this.onLeaderboardCallback()
+      return
+    }
+
+    // Otherwise, fall back to old LeaderboardScreen (for backwards compatibility)
     // Hide main menu temporarily
     this.hide()
 

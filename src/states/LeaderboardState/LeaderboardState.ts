@@ -39,7 +39,8 @@ export class LeaderboardState extends BaseState {
     private gameStorage: GameStorageService,
     private stateManager: GameStateManager,
     private startGame: (gameState: GameState) => void,
-    private startReplay: (gameId: string) => Promise<void>
+    private startReplay: (gameId: string) => Promise<void>,
+    private onClose?: () => void
   ) {
     super()
   }
@@ -74,6 +75,11 @@ export class LeaderboardState extends BaseState {
     if (this.container) {
       document.body.removeChild(this.container)
       this.container = null
+    }
+
+    // Call onClose callback if provided
+    if (this.onClose) {
+      this.onClose()
     }
   }
 

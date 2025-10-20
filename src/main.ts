@@ -64,6 +64,8 @@ import { MainMenu } from '@ui/MainMenu'
 import { loadItemData, ItemData } from './data/ItemDataLoader'
 import { GameStateManager } from '@services/GameStateManager'
 import { PlayingState } from '@states/PlayingState'
+import { LeaderboardState } from '@states/LeaderboardState'
+import { ReplayDebugState } from '@states/ReplayDebugState'
 
 // ============================================================================
 // MAIN - Game initialization and loop
@@ -692,8 +694,66 @@ async function initializeGame() {
     console.log('Game initialized. Use arrow keys to move.')
   }
 
+  // Factory function for startGame - used by LeaderboardState
+  function startGameFactory(gameState: GameState): void {
+    startGame(gameState)
+  }
+
+  // Factory function for startReplay - used by LeaderboardState
+  async function startReplayFactory(gameId: string): Promise<void> {
+    // Load replay data from storage
+    const replayData = await replayDebuggerService.loadReplay(gameId)
+
+    if (!replayData) {
+      console.error('Failed to load replay data for game:', gameId)
+      return
+    }
+
+    // Create ReplayDebugState with all required dependencies
+    const replayDebugState = new ReplayDebugState(
+      gameId,
+      replayDebuggerService,
+      stateManager,
+      commandRecorderService,
+      renderer,
+      0, // Start at turn 0
+      replayData
+    )
+
+    // Clear state stack and push replay state
+    stateManager.clearStack()
+    stateManager.pushState(replayDebugState)
+  }
+
+  // Handler for opening leaderboard
+  function showLeaderboard(): void {
+    // Hide main menu first
+    mainMenu.hide()
+
+    // Push LeaderboardState onto state stack
+    const leaderboardState = new LeaderboardState(
+      gameStorageService,
+      stateManager,
+      startGameFactory,
+      startReplayFactory,
+      () => {
+        // When leaderboard closes (Escape pressed), re-show main menu
+        // Only if we're not in a game (state stack is empty)
+        if (stateManager.getCurrentState() === null) {
+          showMainMenu()
+        }
+      }
+    )
+    stateManager.pushState(leaderboardState)
+  }
+
   // Create main menu instance
-  const mainMenu = new MainMenu(leaderboardService, leaderboardStorageService, preferencesService)
+  const mainMenu = new MainMenu(
+    leaderboardService,
+    leaderboardStorageService,
+    preferencesService,
+    showLeaderboard
+  )
 
   // Track active event listeners for cleanup
   let currentKeydownHandler: ((e: KeyboardEvent) => void) | null = null
