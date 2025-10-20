@@ -2,6 +2,10 @@ import { BaseState } from '../BaseState'
 import { Input, SaveSummary, GameState } from '@game/core/core'
 import { GameStorageService } from '@services/GameStorageService'
 import { GameStateManager } from '@services/GameStateManager'
+import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
+import { CommandRecorderService } from '@services/CommandRecorderService'
+import { GameRenderer } from '@ui/GameRenderer'
+import { ReplayDebugState } from '../ReplayDebugState'
 import { escapeHtml } from '@utils/sanitize'
 
 /**
@@ -22,7 +26,10 @@ export class SaveActionMenuState extends BaseState {
     private gameStorage: GameStorageService,
     private stateManager: GameStateManager,
     private onDelete: () => void,
-    private startGame: (gameState: GameState) => void
+    private startGame: (gameState: GameState) => void,
+    private replayDebugger: ReplayDebuggerService,
+    private commandRecorder: CommandRecorderService,
+    private renderer: GameRenderer
   ) {
     super()
   }
@@ -149,8 +156,54 @@ export class SaveActionMenuState extends BaseState {
   }
 
   private async replayGame(): Promise<void> {
-    // TODO: Implement in next task
-    console.log('Replay game:', this.save.gameId)
+    try {
+      // Load full save data (includes replay data)
+      const saveData = await this.gameStorage.loadSaveData(this.save.gameId)
+
+      if (!saveData) {
+        console.error('Save not found')
+        return
+      }
+
+      if (!saveData.replayData) {
+        console.error('No replay data available for this save')
+        // TODO: Show error message to user
+        return
+      }
+
+      // Extract replay data from save
+      const { initialState, seed, commands } = saveData.replayData
+
+      // Create ReplayDebugState and push onto state stack
+      // This launches the visual replay debugger UI
+      const replayState = new ReplayDebugState(
+        this.save.gameId,
+        this.replayDebugger,
+        this.stateManager,
+        this.commandRecorder,
+        this.renderer,
+        0, // Start from turn 0
+        {
+          gameId: this.save.gameId,
+          version: saveData.version,
+          initialState,
+          seed,
+          commands,
+          metadata: {
+            createdAt: saveData.metadata.timestamp,
+            turnCount: saveData.metadata.turnCount,
+            characterName: saveData.metadata.characterName,
+            currentLevel: saveData.metadata.currentLevel,
+            outcome: saveData.metadata.status,
+          },
+        }
+      )
+
+      this.stateManager.pushState(replayState)
+    } catch (error) {
+      console.error('Error launching replay:', error)
+      // TODO: Show error message to user
+    }
   }
 
   private async deleteGame(): Promise<void> {

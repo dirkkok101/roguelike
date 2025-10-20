@@ -276,6 +276,20 @@ export class GameStorageService {
   }
 
   /**
+   * Load raw save data (includes replay data)
+   * Used for replay debugger
+   */
+  async loadSaveData(gameId: string): Promise<any | null> {
+    try {
+      const save = await this.indexedDB.get('saves', gameId)
+      return save || null
+    } catch (error) {
+      console.error('Error loading save data:', error)
+      return null
+    }
+  }
+
+  /**
    * Get storage quota information
    */
   async getQuota(): Promise<{
