@@ -1,9 +1,7 @@
 import { BaseState } from '../BaseState'
-import { Input, SaveSummary, GameState } from '@game/core/core'
+import { Input, SaveSummary } from '@game/core/core'
 import { GameStorageService } from '@services/GameStorageService'
 import { GameStateManager } from '@services/GameStateManager'
-import { PlayingState } from '../PlayingState'
-import { ReplayDebugState } from '../ReplayDebugState'
 import { escapeHtml } from '@utils/sanitize'
 
 /**
@@ -82,7 +80,40 @@ export class SaveActionMenuState extends BaseState {
   }
 
   handleInput(input: Input): void {
-    // TODO: Implement in next task
+    // Handle delete confirmation mode
+    if (this.deleteConfirmMode) {
+      if (input.key === 'y' || input.key === 'Y') {
+        this.deleteGame()
+      } else if (input.key === 'n' || input.key === 'N' || input.key === 'Escape') {
+        this.deleteConfirmMode = false
+        this.render()
+      }
+      return
+    }
+
+    // Handle normal action menu
+    switch (input.key) {
+      case 'l':
+      case 'L':
+        this.loadGame()
+        break
+
+      case 'r':
+      case 'R':
+        this.replayGame()
+        break
+
+      case 'd':
+      case 'D':
+        // Enter delete confirmation mode
+        this.deleteConfirmMode = true
+        this.render()
+        break
+
+      case 'Escape':
+        this.stateManager.popState()
+        break
+    }
   }
 
   isPaused(): boolean {
@@ -95,5 +126,21 @@ export class SaveActionMenuState extends BaseState {
 
   getAllowedKeys(): string[] | null {
     return null // Allow all keys
+  }
+
+  private async loadGame(): Promise<void> {
+    // TODO: Implement in next task
+    console.log('Load game:', this.save.gameId)
+  }
+
+  private async replayGame(): Promise<void> {
+    // TODO: Implement in next task
+    console.log('Replay game:', this.save.gameId)
+  }
+
+  private async deleteGame(): Promise<void> {
+    // TODO: Implement in next task
+    console.log('Delete game:', this.save.gameId)
+    // Will use this.gameStorage and this.onDelete in next task
   }
 }
