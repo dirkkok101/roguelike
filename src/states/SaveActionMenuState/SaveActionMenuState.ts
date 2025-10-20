@@ -1,5 +1,5 @@
 import { BaseState } from '../BaseState'
-import { Input, SaveSummary } from '@game/core/core'
+import { Input, SaveSummary, GameState } from '@game/core/core'
 import { GameStorageService } from '@services/GameStorageService'
 import { GameStateManager } from '@services/GameStateManager'
 import { escapeHtml } from '@utils/sanitize'
@@ -21,7 +21,8 @@ export class SaveActionMenuState extends BaseState {
     private save: SaveSummary,
     private gameStorage: GameStorageService,
     private stateManager: GameStateManager,
-    private onDelete: () => void
+    private onDelete: () => void,
+    private startGame: (gameState: GameState) => void
   ) {
     super()
   }
@@ -129,8 +130,22 @@ export class SaveActionMenuState extends BaseState {
   }
 
   private async loadGame(): Promise<void> {
-    // TODO: Implement in next task
-    console.log('Load game:', this.save.gameId)
+    try {
+      // Load game state from storage
+      const gameState = await this.gameStorage.loadGame(this.save.gameId)
+
+      if (!gameState) {
+        console.error('Failed to load game state')
+        // TODO: Show error message to user
+        return
+      }
+
+      // Use the startGame factory to properly initialize PlayingState with all dependencies
+      this.startGame(gameState)
+    } catch (error) {
+      console.error('Error loading game:', error)
+      // TODO: Show error message to user
+    }
   }
 
   private async replayGame(): Promise<void> {
