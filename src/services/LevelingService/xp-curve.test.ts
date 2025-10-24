@@ -54,8 +54,12 @@ describe('LevelingService - XP Curve', () => {
     expect(service.getXPForNextLevel(9)).toBe(450)
   })
 
-  test('level 10 is max level', () => {
-    expect(service.getXPForNextLevel(10)).toBe(Infinity)
+  test('level 30 is max level', () => {
+    expect(service.getXPForNextLevel(30)).toBe(Infinity)
+  })
+
+  test('level 10 now has higher XP requirement', () => {
+    expect(service.getXPForNextLevel(10)).toBe(550)
   })
 
   // ============================================================================
