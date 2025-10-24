@@ -54,6 +54,9 @@ export class ReplayDebugState extends BaseState implements IReplayController {
   // Initial turn to start at (defaults to 0, but can be set to current game turn)
   private initialTurn: number = 0
 
+  // Keyboard event listener
+  private keydownHandler: ((e: KeyboardEvent) => void) | null = null
+
   constructor(
     private gameId: string,
     private replayDebugger: ReplayDebuggerService,
@@ -191,6 +194,22 @@ export class ReplayDebugState extends BaseState implements IReplayController {
 
     document.body.appendChild(this.controlPanel.element)
     document.body.appendChild(this.stateInspector.element)
+
+    // Register keyboard event listener
+    this.keydownHandler = (event: KeyboardEvent) => {
+      event.preventDefault()
+
+      // Convert KeyboardEvent to Input
+      const input: Input = {
+        key: event.key,
+        shift: event.shiftKey,
+        ctrl: event.ctrlKey,
+        alt: event.altKey,
+      }
+
+      this.handleInput(input)
+    }
+    document.addEventListener('keydown', this.keydownHandler)
 
     // Start loading asynchronously (fire-and-forget)
     // The isLoading flag will be cleared once loading completes
@@ -520,6 +539,12 @@ export class ReplayDebugState extends BaseState implements IReplayController {
    * Cleanup when state is exited
    */
   exit(): void {
+    // Remove keyboard event listener
+    if (this.keydownHandler) {
+      document.removeEventListener('keydown', this.keydownHandler)
+      this.keydownHandler = null
+    }
+
     // Cleanup UI components
     this.controlPanel?.destroy()
     this.stateInspector?.destroy()
