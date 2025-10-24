@@ -15,6 +15,7 @@ import { createTestPlayer } from '@test-helpers'
 describe('QuaffPotionCommand', () => {
   let inventoryService: InventoryService
   let potionService: PotionService
+  let identificationService: IdentificationService
   let messageService: MessageService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
@@ -25,7 +26,7 @@ describe('QuaffPotionCommand', () => {
     inventoryService = new InventoryService()
     mockRandom = new MockRandom()
     recorder = new CommandRecorderService()
-    const identificationService = new IdentificationService()
+    identificationService = new IdentificationService(mockRandom)
     const levelingService = new LevelingService(mockRandom)
     statusEffectService = new StatusEffectService()
     potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
@@ -102,6 +103,7 @@ describe('QuaffPotionCommand', () => {
       'potion-1',
       inventoryService,
       potionService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -124,6 +126,7 @@ describe('QuaffPotionCommand', () => {
       'nonexistent',
       inventoryService,
       potionService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -152,6 +155,7 @@ describe('QuaffPotionCommand', () => {
       'scroll-1',
       inventoryService,
       potionService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -178,6 +182,7 @@ describe('QuaffPotionCommand', () => {
       'potion-1',
       inventoryService,
       potionService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -202,6 +207,7 @@ describe('QuaffPotionCommand', () => {
       'potion-1',
       inventoryService,
       potionService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -213,5 +219,63 @@ describe('QuaffPotionCommand', () => {
     expect(result).not.toBe(state)
     expect(result.player).not.toBe(state.player)
     expect(state.player.inventory).toHaveLength(1) // Original unchanged
+  })
+
+  test('identifies potion type after drinking (first use)', () => {
+    const player = createTestPlayer(10)
+    const healingPotion = createPotion(PotionType.HEAL, 'potion-1')
+    player.inventory = [healingPotion]
+    const state = createTestState(player)
+
+    // Verify potion is NOT identified before drinking
+    expect(state.identifiedItems.has(PotionType.HEAL)).toBe(false)
+
+    mockRandom.setValues([5]) // Healing amount
+
+    const command = new QuaffPotionCommand(
+      'potion-1',
+      inventoryService,
+      potionService,
+      identificationService,
+      messageService,
+      turnService,
+      statusEffectService,
+      recorder,
+      mockRandom
+    )
+    const result = command.execute(state)
+
+    // Verify potion IS identified after drinking
+    expect(result.identifiedItems.has(PotionType.HEAL)).toBe(true)
+    expect(result.player.inventory).toHaveLength(0) // Potion consumed
+  })
+
+  test('does not re-identify already identified potions', () => {
+    const player = createTestPlayer(10)
+    const healingPotion = createPotion(PotionType.HEAL, 'potion-1')
+    player.inventory = [healingPotion]
+
+    // Potion type already identified
+    const state = createTestState(player)
+    state.identifiedItems = new Set([PotionType.HEAL])
+
+    mockRandom.setValues([5]) // Healing amount
+
+    const command = new QuaffPotionCommand(
+      'potion-1',
+      inventoryService,
+      potionService,
+      identificationService,
+      messageService,
+      turnService,
+      statusEffectService,
+      recorder,
+      mockRandom
+    )
+    const result = command.execute(state)
+
+    // Still identified (no error from double-identification)
+    expect(result.identifiedItems.has(PotionType.HEAL)).toBe(true)
+    expect(result.identifiedItems.size).toBe(1) // Only one type identified
   })
 })
