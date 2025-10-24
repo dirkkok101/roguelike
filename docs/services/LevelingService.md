@@ -49,7 +49,7 @@ Checks if player has enough XP for next level.
 Applies level-up, increasing stats.
 
 **Effects**:
-1. **Level**: +1 (max level 10)
+1. **Level**: +1 (max level 30)
 2. **Max HP**: +1d8 (random HP increase)
 3. **Current HP**: Fully healed to new max
 4. **XP**: Carry-over to next level (excess XP preserved)
@@ -82,8 +82,30 @@ Level 6 → 7: 210 XP
 Level 7 → 8: 280 XP
 Level 8 → 9: 360 XP
 Level 9 → 10: 450 XP
-Level 10: Max (returns Infinity)
+Level 10 → 11: 550 XP
+Level 11 → 12: 660 XP
+Level 12 → 13: 780 XP
+Level 13 → 14: 910 XP
+Level 14 → 15: 1050 XP
+Level 15 → 16: 1200 XP
+Level 16 → 17: 1360 XP
+Level 17 → 18: 1530 XP
+Level 18 → 19: 1710 XP
+Level 19 → 20: 1900 XP
+Level 20 → 21: 2100 XP
+Level 21 → 22: 2310 XP
+Level 22 → 23: 2530 XP
+Level 23 → 24: 2760 XP
+Level 24 → 25: 3000 XP
+Level 25 → 26: 3250 XP
+Level 26 → 27: 3510 XP
+Level 27 → 28: 3780 XP
+Level 28 → 29: 4060 XP
+Level 29 → 30: 4350 XP
+Level 30: Max (returns Infinity)
 ```
+
+**Progression Pattern**: Each level requires +10, +20, +30, +40... more XP than the previous increment. This creates an exponential curve similar to the original 1980 Rogue.
 
 **Example**:
 ```typescript
