@@ -100,10 +100,9 @@ export class LeaderboardState extends BaseState {
       this.container = null
     }
 
-    // Call onClose callback if provided
-    if (this.onClose) {
-      this.onClose()
-    }
+    // Note: onClose callback is NOT called here
+    // It's called explicitly when Escape is pressed (see handleInput)
+    // This prevents the menu from showing when startGame() clears the stack
   }
 
   update(_deltaTime: number): void {
@@ -188,6 +187,12 @@ export class LeaderboardState extends BaseState {
         break
 
       case 'Escape':
+        // Call onClose callback BEFORE popping state
+        // This ensures the menu is shown when user presses Escape
+        // but NOT when startGame() clears the stack
+        if (this.onClose) {
+          this.onClose()
+        }
         this.stateManager.popState()
         break
     }
