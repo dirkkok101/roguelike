@@ -29,6 +29,7 @@ import {
 describe('ZapWandCommand', () => {
   let inventoryService: InventoryService
   let wandService: WandService
+  let identificationService: IdentificationService
   let messageService: MessageService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
@@ -40,8 +41,8 @@ describe('ZapWandCommand', () => {
 
   beforeEach(() => {
     inventoryService = new InventoryService()
-    const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
+    identificationService = new IdentificationService(mockRandom)
     recorder = new CommandRecorderService()
     statusEffectService = new StatusEffectService()
     combatService = new CombatService(mockRandom)
@@ -165,6 +166,7 @@ describe('ZapWandCommand', () => {
       'wand-1',
       inventoryService,
       wandService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -189,6 +191,7 @@ describe('ZapWandCommand', () => {
       'nonexistent',
       inventoryService,
       wandService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -220,6 +223,7 @@ describe('ZapWandCommand', () => {
       'potion-1',
       inventoryService,
       wandService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -245,6 +249,7 @@ describe('ZapWandCommand', () => {
       'wand-1',
       inventoryService,
       wandService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -272,6 +277,7 @@ describe('ZapWandCommand', () => {
       'wand-1',
       inventoryService,
       wandService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -286,5 +292,68 @@ describe('ZapWandCommand', () => {
     expect(result.player).not.toBe(state.player)
     const originalWand = state.player.inventory[0] as Wand
     expect(originalWand.currentCharges).toBe(5) // Original unchanged
+  })
+
+  test('identifies wand type after zapping (first use)', () => {
+    const player = createTestPlayer()
+    const lightningWand = createWand(WandType.LIGHTNING, 5, 'wand-1')
+    player.inventory = [lightningWand]
+    const state = createTestState(player)
+
+    // Verify wand is NOT identified before zapping
+    expect(state.identifiedItems.has(WandType.LIGHTNING)).toBe(false)
+
+    mockRandom.setValues([3, 4, 2, 5, 6, 3]) // Lightning damage (6d6)
+
+    const command = new ZapWandCommand(
+      'wand-1',
+      inventoryService,
+      wandService,
+      identificationService,
+      messageService,
+      turnService,
+      statusEffectService,
+      targetingService,
+      { x: 6, y: 5 }, // Target position (monster location)
+      recorder,
+      mockRandom
+    )
+    const result = command.execute(state)
+
+    // Verify wand IS identified after zapping
+    expect(result.identifiedItems.has(WandType.LIGHTNING)).toBe(true)
+    const updatedWand = result.player.inventory.find(i => i.id === 'wand-1') as Wand
+    expect(updatedWand.currentCharges).toBe(4) // Charge decremented
+  })
+
+  test('does not re-identify already identified wands', () => {
+    const player = createTestPlayer()
+    const lightningWand = createWand(WandType.LIGHTNING, 5, 'wand-1')
+    player.inventory = [lightningWand]
+
+    // Wand type already identified
+    const state = createTestState(player)
+    state.identifiedItems = new Set([WandType.LIGHTNING])
+
+    mockRandom.setValues([3, 4, 2, 5, 6, 3]) // Lightning damage (6d6)
+
+    const command = new ZapWandCommand(
+      'wand-1',
+      inventoryService,
+      wandService,
+      identificationService,
+      messageService,
+      turnService,
+      statusEffectService,
+      targetingService,
+      { x: 6, y: 5 }, // Target position (monster location)
+      recorder,
+      mockRandom
+    )
+    const result = command.execute(state)
+
+    // Still identified (no error from double-identification)
+    expect(result.identifiedItems.has(WandType.LIGHTNING)).toBe(true)
+    expect(result.identifiedItems.size).toBe(1) // Only one type identified
   })
 })

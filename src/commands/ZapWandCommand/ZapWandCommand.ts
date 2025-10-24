@@ -6,6 +6,7 @@ import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { TargetingService } from '@services/TargetingService'
+import { IdentificationService } from '@services/IdentificationService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { IRandomService } from '@services/RandomService'
 import { COMMAND_TYPES } from '@game/replay/replay'
@@ -21,6 +22,7 @@ export class ZapWandCommand implements ICommand {
     private itemId: string,
     private inventoryService: InventoryService,
     private wandService: WandService,
+    private identificationService: IdentificationService,
     private messageService: MessageService,
     private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
@@ -120,26 +122,31 @@ export class ZapWandCommand implements ICommand {
       this.targetPosition
     )
 
-    // 9. Update wand in inventory (charges changed)
+    // 9. Use updated state from wand effect if provided, otherwise use original state
+    let baseState = result.state || state
+
+    // 10. Mark wand as identified if this was first use
+    if (result.identified) {
+      baseState = this.identificationService.identifyByUse(wand, baseState)
+    }
+
+    // 11. Update wand in inventory (charges changed)
     let updatedPlayer = this.inventoryService.removeItem(result.player, item.id)
     updatedPlayer = this.inventoryService.addItem(updatedPlayer, result.wand)
 
-    // 10. Add message and increment turn
+    // 12. Add message and increment turn
     const messages = this.messageService.addMessage(
-      state.messages,
+      baseState.messages,
       result.message,
       'info',
-      state.turnCount
+      baseState.turnCount
     )
-
-    // 11. Use updated state from wand effect if provided, otherwise use original state
-    const baseState = result.state || state
 
     return {
       ...baseState,
       player: updatedPlayer,
       messages,
-      itemsUsed: state.itemsUsed + 1, // Track wand use for death screen
+      itemsUsed: baseState.itemsUsed + 1, // Track wand use for death screen
     }
   }
 }
