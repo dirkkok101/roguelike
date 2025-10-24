@@ -34,6 +34,7 @@ export class LeaderboardState extends BaseState {
   private selectedIndex: number = 0
   private isLoading: boolean = true
   private container: HTMLDivElement | null = null
+  private keydownHandler: ((e: KeyboardEvent) => void) | null = null
 
   constructor(
     private gameStorage: GameStorageService,
@@ -68,10 +69,32 @@ export class LeaderboardState extends BaseState {
     `
     document.body.appendChild(this.container)
 
+    // Register keyboard event listener
+    this.keydownHandler = (event: KeyboardEvent) => {
+      event.preventDefault()
+
+      // Convert KeyboardEvent to Input
+      const input: Input = {
+        key: event.key,
+        shift: event.shiftKey,
+        ctrl: event.ctrlKey,
+        alt: event.altKey,
+      }
+
+      this.handleInput(input)
+    }
+    document.addEventListener('keydown', this.keydownHandler)
+
     this.render()
   }
 
   exit(): void {
+    // Remove keyboard event listener
+    if (this.keydownHandler) {
+      document.removeEventListener('keydown', this.keydownHandler)
+      this.keydownHandler = null
+    }
+
     if (this.container) {
       document.body.removeChild(this.container)
       this.container = null
