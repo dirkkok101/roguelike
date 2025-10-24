@@ -120,16 +120,16 @@ describe('LevelingService - XP Calculation', () => {
       expect(result.player.xp).toBe(15)
     })
 
-    test('returns leveledUp: false at max level', () => {
+    test('can level up beyond level 30 (infinite scaling)', () => {
       // Arrange
-      const player = createTestPlayer(30, 4350) // Max level (30)
+      const player = createTestPlayer(30, 4650) // Level 30, at threshold for level 31
 
       // Act
       const result = service.addExperience(player, 100)
 
       // Assert
-      expect(result.leveledUp).toBe(false)
-      expect(result.player.xp).toBe(4450) // XP still accumulates but no level up
+      expect(result.leveledUp).toBe(true) // Can still level up!
+      expect(result.player.xp).toBe(4750)
     })
 
     test('returns new Player object (immutability)', () => {
@@ -225,13 +225,13 @@ describe('LevelingService - XP Calculation', () => {
       expect(service.getXPForNextLevel(10)).toBe(550)
     })
 
-    test('returns Infinity for level 30 (max level)', () => {
-      expect(service.getXPForNextLevel(30)).toBe(Infinity)
+    test('returns 4650 XP for level 30 (for level 31)', () => {
+      expect(service.getXPForNextLevel(30)).toBe(4650) // 5 * 30 * 31
     })
 
-    test('returns Infinity for levels beyond max', () => {
-      expect(service.getXPForNextLevel(31)).toBe(Infinity)
-      expect(service.getXPForNextLevel(999)).toBe(Infinity)
+    test('supports infinite leveling (high levels)', () => {
+      expect(service.getXPForNextLevel(100)).toBe(50500) // 5 * 100 * 101
+      expect(service.getXPForNextLevel(999)).toBe(4995000) // 5 * 999 * 1000
     })
   })
 })

@@ -131,20 +131,19 @@ describe('LevelingService - Level Up', () => {
       expect(updated.xp).toBe(0) // 10 - 10 = 0 carried over
     })
 
-    test('does not level up beyond level 30', () => {
+    test('can level up to very high levels (infinite scaling)', () => {
       // Arrange
-      const player = createTestPlayer(30, 5000) // Max level
-      const mockRandom = new MockRandom([5])
+      const player = createTestPlayer(99, 49005) // Level 99 with enough XP for level 100
+      const mockRandom = new MockRandom([8])
       const service = new LevelingService(mockRandom)
 
       // Act
       const updated = service.levelUp(player)
 
       // Assert
-      expect(updated.level).toBe(30) // Still level 30
-      expect(updated.maxHp).toBe(20) // No HP increase
-      expect(updated.xp).toBe(5000) // XP unchanged
-      expect(updated).toBe(player) // Returns same object when at max
+      expect(updated.level).toBe(100) // Leveled up to 100!
+      expect(updated.maxHp).toBe(28) // 20 + 8
+      expect(updated.xp).toBe(0) // XP carried over (49005 - 49005 = 0)
     })
 
     test('returns new Player object (immutability)', () => {
@@ -241,15 +240,15 @@ describe('LevelingService - Level Up', () => {
       expect(canLevelUp).toBe(false)
     })
 
-    test('returns false at max level', () => {
+    test('returns false when XP insufficient for next level', () => {
       // Arrange
-      const player = createTestPlayer(10, 500) // Max level with lots of XP
+      const player = createTestPlayer(10, 500) // Level 10 needs 550 XP for level 11
 
       // Act
       const canLevelUp = service.checkLevelUp(player)
 
       // Assert
-      expect(canLevelUp).toBe(false)
+      expect(canLevelUp).toBe(false) // 500 < 550
     })
 
     test('returns true at level 9 with enough XP for level 10', () => {
