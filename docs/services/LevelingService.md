@@ -49,7 +49,7 @@ Checks if player has enough XP for next level.
 Applies level-up, increasing stats.
 
 **Effects**:
-1. **Level**: +1 (max level 30)
+1. **Level**: +1 (no level cap - infinite progression)
 2. **Max HP**: +1d8 (random HP increase)
 3. **Current HP**: Fully healed to new max
 4. **XP**: Carry-over to next level (excess XP preserved)
@@ -71,41 +71,29 @@ const leveledUp = service.levelUp(player)
 #### `getXPForNextLevel(currentLevel: number): number`
 Returns XP threshold for next level.
 
-**XP Curve**:
+**XP Curve Formula**: `5 × (level - 1) × level`
+
+This formula creates the progression pattern below, with **no level cap** (infinite scaling):
+
 ```typescript
-Level 1 → 2: 10 XP
-Level 2 → 3: 30 XP
-Level 3 → 4: 60 XP
-Level 4 → 5: 100 XP
-Level 5 → 6: 150 XP
-Level 6 → 7: 210 XP
-Level 7 → 8: 280 XP
-Level 8 → 9: 360 XP
-Level 9 → 10: 450 XP
-Level 10 → 11: 550 XP
-Level 11 → 12: 660 XP
-Level 12 → 13: 780 XP
-Level 13 → 14: 910 XP
-Level 14 → 15: 1050 XP
-Level 15 → 16: 1200 XP
-Level 16 → 17: 1360 XP
-Level 17 → 18: 1530 XP
-Level 18 → 19: 1710 XP
-Level 19 → 20: 1900 XP
-Level 20 → 21: 2100 XP
-Level 21 → 22: 2310 XP
-Level 22 → 23: 2530 XP
-Level 23 → 24: 2760 XP
-Level 24 → 25: 3000 XP
-Level 25 → 26: 3250 XP
-Level 26 → 27: 3510 XP
-Level 27 → 28: 3780 XP
-Level 28 → 29: 4060 XP
-Level 29 → 30: 4350 XP
-Level 30: Max (returns Infinity)
+Level 1: 0 XP (starting level)
+Level 2: 10 XP = 5 × 1 × 2
+Level 3: 30 XP = 5 × 2 × 3
+Level 4: 60 XP = 5 × 3 × 4
+Level 5: 100 XP = 5 × 4 × 5
+Level 10: 450 XP = 5 × 9 × 10
+Level 20: 1900 XP = 5 × 19 × 20
+Level 30: 4350 XP = 5 × 29 × 30
+Level 100: 49500 XP = 5 × 99 × 100
+Level 999: 4990005 XP = 5 × 998 × 999
+... (continues infinitely)
 ```
 
-**Progression Pattern**: Each level requires +10, +20, +30, +40... more XP than the previous increment. This creates an exponential curve similar to the original 1980 Rogue.
+**Progression Pattern**: Each level requires **progressively more XP** than the previous:
+- Increments: +10, +20, +30, +40, +50...
+- Creates quadratic growth curve
+- Matches original 1980 Rogue's infinite leveling system
+- Players theoretically unbounded (though 26-level dungeon typically yields level 20-25)
 
 **Example**:
 ```typescript
