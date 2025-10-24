@@ -260,13 +260,13 @@ export class GameStorageService {
         gameId: item.metadata.gameId,
         characterName: item.metadata.characterName,
         status: item.metadata.status || 'ongoing', // Default to 'ongoing' for old saves without status
-        score: item.metadata.score,
-        gold: item.metadata.gold,
-        level: item.metadata.currentLevel,
-        turnCount: item.metadata.turnCount,
-        timestamp: item.metadata.timestamp,
-        maxDepth: item.metadata.maxDepth,
-        monstersKilled: item.metadata.monstersKilled,
+        score: item.metadata.score || 0, // Default to 0 for old saves without score
+        gold: item.metadata.gold || 0, // Default to 0 for old saves without gold
+        level: item.metadata.currentLevel || 1, // Default to 1 for old saves
+        turnCount: item.metadata.turnCount || 0, // Default to 0 for old saves
+        timestamp: item.metadata.timestamp || Date.now(), // Default to now for old saves
+        maxDepth: item.metadata.maxDepth || 1, // Default to 1 for old saves
+        monstersKilled: item.metadata.monstersKilled || 0, // Default to 0 for old saves
       }))
 
     // Sort by score descending (highest scores first)
