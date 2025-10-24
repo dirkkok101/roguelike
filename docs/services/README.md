@@ -38,9 +38,12 @@ See [Architecture Guide](../architecture.md) for details.
 | [SpecialAbilityService](./SpecialAbilityService.md) | Monster abilities | `applyAbility`, `processBreathWeapon` | RandomService, CombatService |
 | **Level Generation** ||||
 | [DungeonService](./DungeonService.md) | Level generation orchestration | `generateLevel` | RoomGen, CorridorGen, MonsterSpawn, Random |
+| [DungeonGenerationService](./DungeonGenerationService.md) | Procedural dungeon generation | `generateLevel` | RandomService, RoomGen, CorridorGen, MonsterSpawn, ItemSpawn |
 | [RoomGenerationService](./RoomGenerationService.md) | Room creation | `generateRooms` | RandomService |
 | [CorridorGenerationService](./CorridorGenerationService.md) | Corridor pathfinding | `generateCorridors` | RandomService |
 | [MonsterSpawnService](./MonsterSpawnService.md) | Data-driven monster spawning | `loadMonsterData`, `spawnMonsters` | RandomService |
+| [ItemSpawnService](./ItemSpawnService.md) | Rarity-based item generation | `spawnItem`, `spawnSpecificItem` | RandomService, ItemData |
+| [RoomDetectionService](./RoomDetectionService.md) | Floodfill room detection | `detectRoom` | None |
 | [LevelService](./LevelService.md) | Level utilities | `getSpawnPosition` | None |
 | **Pathfinding & Rendering** ||||
 | [PathfindingService](./PathfindingService.md) | A* algorithm | `findPath` | None |
@@ -53,19 +56,39 @@ See [Architecture Guide](../architecture.md) for details.
 | [RingService](./RingService.md) | Ring bonuses, passive abilities | `getRingBonus`, `calculateHungerModifier`, `triggerTeleportation` | RandomService |
 | [IdentificationService](./IdentificationService.md) | Item identification | `identifyItem`, `getDisplayName` | None |
 | [TrapService](./TrapService.md) | Trap detection, triggering | `detectTrap`, `triggerTrap` | RandomService, StatusEffectService |
+| [CurseService](./CurseService.md) | Curse detection and removal | `isCursed`, `removeCurse`, `removeCursesFromEquipment` | None |
 | **UI & Support** ||||
 | [MessageService](./MessageService.md) | Message log management | `addMessage`, `groupMessages` | None |
 | [NotificationService](./NotificationService.md) | Auto-notifications | `generateNotifications` | None |
+| [ToastNotificationService](./ToastNotificationService.md) | Global async notifications | `show`, `subscribe`, `unsubscribe` | None |
 | [ContextService](./ContextService.md) | Turn context tracking | `createContext`, `updateContext` | None |
 | [TurnService](./TurnService.md) | Turn management, energy system | `incrementTurn`, `grantPlayerEnergy`, `consumePlayerEnergy` | StatusEffectService |
 | [VictoryService](./VictoryService.md) | Win condition checking | `checkVictory`, `calculateScore` | None |
 | [DebugService](./DebugService.md) | Debug tools | `toggleGodMode`, `revealMap` | None |
+| **Domain Services** ||||
+| [RestService](./RestService.md) | Multi-turn resting | `rest` | RegenerationService, HungerService, LightingService, FOVService |
+| [StairsNavigationService](./StairsNavigationService.md) | Stairs traversal, respawning | `descend`, `ascend`, `canDescend`, `canAscend` | MonsterSpawnService |
+| [DeathService](./DeathService.md) | Death statistics, achievements | `calculateDeathStats`, `determineAchievements`, `generateEpitaph` | None |
+| [DisturbanceService](./DisturbanceService.md) | Running interruption detection | `checkDisturbance` | None |
+| **Storage & Replay** ||||
+| [IndexedDBService](./IndexedDBService.md) | Browser database wrapper | `saveGame`, `loadGame`, `listGames`, `deleteGame` | None (browser IndexedDB) |
+| [GameStorageService](./GameStorageService.md) | Save/load orchestration | `saveGame`, `loadGame`, `listGames`, `getLeaderboard` | IndexedDB, Compression, Serialization, Score |
+| [LocalStorageService](./LocalStorageService.md) | Legacy localStorage persistence | `saveGame`, `loadGame` | None |
+| [LeaderboardStorageService](./LeaderboardStorageService.md) | Leaderboard persistence | `saveEntries`, `loadEntries`, `addEntry` | None (localStorage) |
+| [LeaderboardService](./LeaderboardService.md) | Leaderboard entry management | `createEntry`, `filterEntries`, `calculateStatistics`, `getRank` | None |
+| [ScoreCalculationService](./ScoreCalculationService.md) | Score formula | `calculateScore` | None |
+| [CommandRecorderService](./CommandRecorderService.md) | Command history tracking | `recordCommand`, `getCommands`, `persistToIndexedDB` | None |
+| [ReplayDebuggerService](./ReplayDebuggerService.md) | Replay validation | `loadReplay`, `validateDeterminism`, `reconstructState` | CommandFactory |
+| [CommandFactory](./CommandFactory.md) | Command reconstruction | `createCommand` | All command types |
+| [CompressionWorkerService](./CompressionWorkerService.md) | Web Worker compression | `compress`, `decompress` | None (Web Worker) |
+| [SerializationWorkerService](./SerializationWorkerService.md) | Off-thread serialization | `serialize`, `deserialize` | None (Web Worker) |
+| [DownloadService](./DownloadService.md) | Browser file downloads | `downloadJSON`, `downloadBlob` | None (browser Blob/URL APIs) |
 | **Rendering & Assets** ||||
 | [AssetLoaderService](./AssetLoaderService.md) | Sprite sheet loading, .prf parsing | `loadTileset`, `getSprite`, `getSpriteByName` | None (browser Image/fetch) |
 | [TerrainSpriteService](./TerrainSpriteService.md) | Terrain sprite mapping | `getTerrainSprite`, `loadMappings` | None |
-| **Persistence & Preferences** ||||
-| [LocalStorageService](./LocalStorageService.md) | Save/load, serialization | `saveGame`, `loadGame` | None |
-| [AutoSaveMiddleware](./AutoSaveMiddleware.md) | Auto-save logic | `wrapCommand` | LocalStorageService |
+| **Middleware & Orchestration** ||||
+| [AutoSaveMiddleware](./AutoSaveMiddleware.md) | Auto-save every N turns | `afterTurn` | GameStorageService, CommandRecorder, ReplayDebugger |
+| **Preferences & Randomness** ||||
 | [PreferencesService](./PreferencesService.md) | User preferences, event system | `get`, `set`, `subscribe`, `notifyChange` | None |
 | [RandomService](./RandomService.md) | Seeded RNG | `nextInt`, `roll`, `MockRandom` | None |
 
@@ -92,12 +115,15 @@ Monster behavior and abilities:
 - [MonsterTurnService](./MonsterTurnService.md) - Turn processing
 - [SpecialAbilityService](./SpecialAbilityService.md) - Special abilities (breath, drain, etc.)
 
-### Level Generation (5 services)
+### Level Generation (7 services)
 Procedural dungeon generation:
 - [DungeonService](./DungeonService.md) - Generation orchestration
+- [DungeonGenerationService](./DungeonGenerationService.md) - Procedural generation with MST connectivity
 - [RoomGenerationService](./RoomGenerationService.md) - Room creation
 - [CorridorGenerationService](./CorridorGenerationService.md) - Corridor generation
 - [MonsterSpawnService](./MonsterSpawnService.md) - Data-driven monster spawning
+- [ItemSpawnService](./ItemSpawnService.md) - Rarity-based item generation
+- [RoomDetectionService](./RoomDetectionService.md) - Floodfill room detection
 - [LevelService](./LevelService.md) - Level utilities
 
 ### Pathfinding & Rendering (2 services)
@@ -105,7 +131,7 @@ Algorithms and visualization:
 - [PathfindingService](./PathfindingService.md) - A* pathfinding
 - [RenderingService](./RenderingService.md) - Visual rendering
 
-### Item Systems (7 services)
+### Item Systems (8 services)
 Consumables, status effects, and identification:
 - [PotionService](./PotionService.md) - Potion effects
 - [StatusEffectService](./StatusEffectService.md) - Status effects and durations
@@ -114,25 +140,51 @@ Consumables, status effects, and identification:
 - [RingService](./RingService.md) - Ring bonuses and passive abilities
 - [IdentificationService](./IdentificationService.md) - Item identification
 - [TrapService](./TrapService.md) - Traps
+- [CurseService](./CurseService.md) - Curse detection and removal
 
-### UI & Support (6 services)
+### UI & Support (7 services)
 Supporting systems:
 - [MessageService](./MessageService.md) - Message log
 - [NotificationService](./NotificationService.md) - Auto-notifications
+- [ToastNotificationService](./ToastNotificationService.md) - Global async notifications
 - [ContextService](./ContextService.md) - Turn context
 - [TurnService](./TurnService.md) - Turn management
 - [VictoryService](./VictoryService.md) - Win conditions
 - [DebugService](./DebugService.md) - Debug tools
+
+### Domain Services (4 services)
+High-level game features:
+- [RestService](./RestService.md) - Multi-turn resting with interrupts
+- [StairsNavigationService](./StairsNavigationService.md) - 26-level navigation with Amulet mechanics
+- [DeathService](./DeathService.md) - Death statistics and achievements
+- [DisturbanceService](./DisturbanceService.md) - Running interruption detection
+
+### Storage & Replay (12 services)
+Save/load, replay, and leaderboards:
+- [IndexedDBService](./IndexedDBService.md) - Browser database wrapper
+- [GameStorageService](./GameStorageService.md) - Save/load orchestration
+- [LocalStorageService](./LocalStorageService.md) - Legacy localStorage persistence
+- [LeaderboardStorageService](./LeaderboardStorageService.md) - Leaderboard persistence
+- [LeaderboardService](./LeaderboardService.md) - Leaderboard entry management
+- [ScoreCalculationService](./ScoreCalculationService.md) - Score formula
+- [CommandRecorderService](./CommandRecorderService.md) - Command history tracking
+- [ReplayDebuggerService](./ReplayDebuggerService.md) - Replay validation
+- [CommandFactory](./CommandFactory.md) - Command reconstruction
+- [CompressionWorkerService](./CompressionWorkerService.md) - Web Worker compression
+- [SerializationWorkerService](./SerializationWorkerService.md) - Off-thread serialization
+- [DownloadService](./DownloadService.md) - Browser file downloads
 
 ### Rendering & Assets (2 services)
 Sprite loading and rendering:
 - [AssetLoaderService](./AssetLoaderService.md) - Sprite sheet loading, .prf parsing
 - [TerrainSpriteService](./TerrainSpriteService.md) - Terrain sprite mappings
 
-### Persistence & Preferences (4 services)
-Save/load, preferences, and randomness:
-- [LocalStorageService](./LocalStorageService.md) - Save/load
-- [AutoSaveMiddleware](./AutoSaveMiddleware.md) - Auto-save
+### Middleware & Orchestration (1 service)
+Cross-cutting concerns:
+- [AutoSaveMiddleware](./AutoSaveMiddleware.md) - Auto-save every N turns with determinism validation
+
+### Preferences & Randomness (2 services)
+Configuration and RNG:
 - [PreferencesService](./PreferencesService.md) - User preferences with event system
 - [RandomService](./RandomService.md) - Seeded RNG
 
@@ -305,4 +357,4 @@ describe('CombatService - Hit Calculation', () => {
 
 ---
 
-**Last Updated**: 2025-10-06
+**Last Updated**: 2025-01-24 (Added 22 services: Storage & Replay, Domain Services, Middleware)
