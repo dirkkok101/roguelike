@@ -259,7 +259,7 @@ export class GameStorageService {
       .map((item) => ({
         gameId: item.metadata.gameId,
         characterName: item.metadata.characterName,
-        status: item.metadata.status,
+        status: item.metadata.status || 'ongoing', // Default to 'ongoing' for old saves without status
         score: item.metadata.score,
         gold: item.metadata.gold,
         level: item.metadata.currentLevel,
