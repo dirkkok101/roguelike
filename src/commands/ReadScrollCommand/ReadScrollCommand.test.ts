@@ -19,6 +19,7 @@ import { createTestPlayer } from '@test-helpers'
 describe('ReadScrollCommand', () => {
   let inventoryService: InventoryService
   let scrollService: ScrollService
+  let identificationService: IdentificationService
   let messageService: MessageService
   let turnService: TurnService
   let statusEffectService: StatusEffectService
@@ -27,8 +28,8 @@ describe('ReadScrollCommand', () => {
 
   beforeEach(() => {
     inventoryService = new InventoryService()
-    const identificationService = new IdentificationService()
     mockRandom = new MockRandom()
+    identificationService = new IdentificationService(mockRandom)
     recorder = new CommandRecorderService()
     const levelService = new LevelService()
     const fovService = new FOVService(new StatusEffectService())
@@ -99,6 +100,7 @@ describe('ReadScrollCommand', () => {
       'scroll-1',
       inventoryService,
       scrollService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -122,6 +124,7 @@ describe('ReadScrollCommand', () => {
       'nonexistent',
       inventoryService,
       scrollService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -151,6 +154,7 @@ describe('ReadScrollCommand', () => {
       'potion-1',
       inventoryService,
       scrollService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -185,6 +189,7 @@ describe('ReadScrollCommand', () => {
       'scroll-1',
       inventoryService,
       scrollService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -219,6 +224,7 @@ describe('ReadScrollCommand', () => {
       'scroll-1',
       inventoryService,
       scrollService,
+      identificationService,
       messageService,
       turnService,
       statusEffectService,
@@ -231,5 +237,79 @@ describe('ReadScrollCommand', () => {
     expect(result).not.toBe(state)
     expect(result.player).not.toBe(state.player)
     expect(state.player.inventory).toHaveLength(2) // Original unchanged
+  })
+
+  test('identifies scroll type after reading (first use)', () => {
+    const player = createTestPlayer()
+    const enchantScroll = createScroll(ScrollType.ENCHANT_ARMOR, 'scroll-1')
+    const armor: Armor = {
+      id: 'armor-1',
+      type: ItemType.ARMOR,
+      name: 'Leather Armor',
+      identified: true,
+      ac: 2,
+      bonus: 0,
+      equipped: false,
+    }
+    player.inventory = [enchantScroll, armor]
+    const state = createTestState(player)
+
+    // Verify scroll is NOT identified before reading
+    expect(state.identifiedItems.has(ScrollType.ENCHANT_ARMOR)).toBe(false)
+
+    const command = new ReadScrollCommand(
+      'scroll-1',
+      inventoryService,
+      scrollService,
+      identificationService,
+      messageService,
+      turnService,
+      statusEffectService,
+      'armor-1',
+      recorder,
+      mockRandom
+    )
+    const result = command.execute(state)
+
+    // Verify scroll IS identified after reading
+    expect(result.identifiedItems.has(ScrollType.ENCHANT_ARMOR)).toBe(true)
+    expect(result.player.inventory).toHaveLength(1) // Scroll consumed
+  })
+
+  test('does not re-identify already identified scrolls', () => {
+    const player = createTestPlayer()
+    const enchantScroll = createScroll(ScrollType.ENCHANT_ARMOR, 'scroll-1')
+    const armor: Armor = {
+      id: 'armor-1',
+      type: ItemType.ARMOR,
+      name: 'Leather Armor',
+      identified: true,
+      ac: 2,
+      bonus: 0,
+      equipped: false,
+    }
+    player.inventory = [enchantScroll, armor]
+
+    // Scroll type already identified
+    const state = createTestState(player)
+    state.identifiedItems = new Set([ScrollType.ENCHANT_ARMOR])
+
+    const command = new ReadScrollCommand(
+      'scroll-1',
+      inventoryService,
+      scrollService,
+      identificationService,
+      messageService,
+      turnService,
+      statusEffectService,
+      'armor-1',
+      recorder,
+      mockRandom
+    )
+    const result = command.execute(state)
+
+    // Still identified (no error from double-identification)
+    expect(result.identifiedItems.has(ScrollType.ENCHANT_ARMOR)).toBe(true)
+    expect(result.identifiedItems.size).toBe(1) // Only one type identified
   })
 })

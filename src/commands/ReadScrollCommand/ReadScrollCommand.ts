@@ -2,6 +2,7 @@ import { GameState, ItemType, Scroll, StatusEffectType } from '@game/core/core'
 import { ICommand } from '../ICommand'
 import { InventoryService } from '@services/InventoryService'
 import { ScrollService } from '@services/ScrollService'
+import { IdentificationService } from '@services/IdentificationService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
@@ -18,6 +19,7 @@ export class ReadScrollCommand implements ICommand {
     private itemId: string,
     private inventoryService: InventoryService,
     private scrollService: ScrollService,
+    private identificationService: IdentificationService,
     private messageService: MessageService,
     private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
@@ -104,12 +106,17 @@ export class ReadScrollCommand implements ICommand {
     }
 
     // 5. Use updated state if scroll modified it (e.g., MAGIC_MAPPING, TELEPORTATION)
-    const baseState = result.state || state
+    let baseState = result.state || state
 
-    // 6. Use updated player if scroll modified it (e.g., enchantments, status effects)
+    // 6. Mark scroll as identified if this was first use
+    if (result.identified) {
+      baseState = this.identificationService.identifyByUse(item as Scroll, baseState)
+    }
+
+    // 7. Use updated player if scroll modified it (e.g., enchantments, status effects)
     const updatedPlayer = result.player || baseState.player
 
-    // 7. Handle scroll consumption
+    // 8. Handle scroll consumption
     let finalPlayer = updatedPlayer
     if (result.consumed) {
       // Normal: Remove scroll from inventory
@@ -118,7 +125,7 @@ export class ReadScrollCommand implements ICommand {
     // If not consumed (SCARE_MONSTER), scroll stays in inventory
     // Player must manually drop it to activate the scare effect
 
-    // 8. Add message and increment turn
+    // 9. Add message and increment turn
     const messages = this.messageService.addMessage(
       baseState.messages,
       result.message,
