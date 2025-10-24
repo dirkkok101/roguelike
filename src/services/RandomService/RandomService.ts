@@ -4,6 +4,7 @@
 
 export interface IRandomService {
   nextInt(min: number, max: number): number
+  nextFloat(min: number, max: number): number
   roll(dice: string): number
   shuffle<T>(array: T[]): T[]
   chance(probability: number): boolean
@@ -41,6 +42,10 @@ export class SeededRandom implements IRandomService {
 
   nextInt(min: number, max: number): number {
     return Math.floor(this.next() * (max - min + 1)) + min
+  }
+
+  nextFloat(min: number, max: number): number {
+    return this.next() * (max - min) + min
   }
 
   roll(dice: string): number {
@@ -104,7 +109,19 @@ export class MockRandom implements IRandomService {
     this.index = 0
   }
 
+  setSequence(values: number[]): void {
+    this.values = values
+    this.index = 0
+  }
+
   nextInt(_min: number, _max: number): number {
+    if (this.index >= this.values.length) {
+      throw new Error('MockRandom: No more values')
+    }
+    return this.values[this.index++]
+  }
+
+  nextFloat(_min: number, _max: number): number {
     if (this.index >= this.values.length) {
       throw new Error('MockRandom: No more values')
     }

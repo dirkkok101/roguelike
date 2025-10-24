@@ -180,21 +180,29 @@ export class ItemSpawnService {
   }
 
   /**
-   * Roll for cursed status based on item rarity
+   * Roll for cursed status based on item rarity with depth scaling
    * Higher rarity = higher curse chance (risk/reward balance)
+   * Deeper levels = lower curse chance (30% reduction by depth 26)
+   *
+   * Curse chance progression (common items as example):
+   * - Depth 1: 5.0% base
+   * - Depth 13: 4.35% (-13% reduction)
+   * - Depth 26: 3.5% (-30% reduction)
    *
    * @param rarity - Item rarity tier
+   * @param depth - Current dungeon depth (1-26)
    * @returns true if item should be cursed
    */
-  private rollCursedStatus(rarity: string): boolean {
-    const curseChances = {
-      common: 0.05,    // 5% curse chance
-      uncommon: 0.08,  // 8% curse chance
-      rare: 0.12,      // 12% curse chance (high risk/reward)
+  private rollCursedStatus(rarity: string, depth: number): boolean {
+    const baseChances = {
+      common: 0.05,    // 5% base curse chance
+      uncommon: 0.08,  // 8% base curse chance
+      rare: 0.12,      // 12% base curse chance (high risk/reward)
     }
 
-    const chance = curseChances[rarity as keyof typeof curseChances] || 0.05
-    return this.random.chance(chance)
+    const baseChance = baseChances[rarity as keyof typeof baseChances] || 0.05
+    const adjustedChance = this.calculateCurseChance(baseChance, depth)
+    return this.random.chance(adjustedChance)
   }
 
   /**
@@ -224,28 +232,32 @@ export class ItemSpawnService {
   }
 
   /**
-   * Generate enchantment bonus for an item
+   * Generate enchantment bonus for an item with depth-based scaling
    * Cursed items get negative bonuses (-1 to -3)
-   * Rare items get positive bonuses (+1 to +2)
-   * Common items are unenchanted (0)
+   * Normal items get depth-scaled bonuses (0 to +5)
+   *
+   * Enchantment ranges scale with depth:
+   * - Depth 1-5: No enchantments (survival rewards progression)
+   * - Depth 6-10: +0 to +1 enchantments
+   * - Depth 11-15: +1 to +2 enchantments
+   * - Depth 16-20: +1 to +3 enchantments
+   * - Depth 21-25: +2 to +4 enchantments
+   * - Depth 26: +2 to +5 enchantments (maximum natural drops)
    *
    * @param rarity - Item rarity tier
    * @param isCursed - Whether item is cursed
+   * @param depth - Current dungeon depth (1-26)
    * @returns Enchantment bonus (negative for cursed, positive/zero for normal)
    */
-  private rollEnchantment(rarity: string, isCursed: boolean): number {
+  private rollEnchantment(rarity: string, isCursed: boolean, depth: number): number {
     if (isCursed) {
-      // Cursed items: -1 to -3 enchantment
+      // Cursed items: -1 to -3 enchantment (unchanged)
       return -this.random.nextInt(1, 3)
     }
 
-    if (rarity === 'rare') {
-      // Rare items: +1 to +2 enchantment
-      return this.random.nextInt(1, 2)
-    }
-
-    // Common/uncommon items: no enchantment
-    return 0
+    const { minBonus, maxBonus } = this.calculateEnchantmentRange(depth, rarity)
+    if (maxBonus === 0) return 0
+    return this.random.nextInt(minBonus, maxBonus)
   }
 
   /**
@@ -282,6 +294,80 @@ export class ItemSpawnService {
   }
 
   /**
+   * Calculate rarity weights based on dungeon depth
+   * Linear progression from 70/25/5 to 30/40/30
+   *
+   * Early game (depth 1): Common items dominate (70%)
+   * Late game (depth 26): More balanced with higher rare chance (30%)
+   *
+   * @param depth - Current dungeon depth (1-26)
+   * @returns Rarity weights for common, uncommon, rare
+   */
+  private calculateRarityWeights(depth: number): { common: number; uncommon: number; rare: number } {
+    return {
+      common: Math.max(30, 70 - (depth * 1.54)),
+      uncommon: Math.min(40, 25 + (depth * 0.58)),
+      rare: Math.min(30, 5 + (depth * 0.96))
+    }
+  }
+
+  /**
+   * Calculate enchantment range based on depth and rarity
+   * Rare items get +1 bonus, max capped at +5
+   *
+   * Depth progression:
+   * - 1-5: [0, 0] - No enchantments (weak early game)
+   * - 6-10: [0, 1] - First enchantments appear
+   * - 11-15: [1, 2] - Moderate enchantments
+   * - 16-20: [1, 3] - Strong enchantments
+   * - 21-25: [2, 4] - Very strong enchantments
+   * - 26: [2, 5] - Maximum natural enchantment
+   *
+   * @param depth - Current dungeon depth (1-26)
+   * @param rarity - Item rarity tier
+   * @returns Min and max enchantment bonus range
+   */
+  private calculateEnchantmentRange(
+    depth: number,
+    rarity: string
+  ): { minBonus: number; maxBonus: number } {
+    const rarityBonus = rarity === 'rare' ? 1 : 0
+
+    return {
+      minBonus: Math.floor(depth / 9) + rarityBonus,
+      maxBonus: Math.min(5, Math.floor(depth / 5.2) + rarityBonus)
+    }
+  }
+
+  /**
+   * Calculate curse chance with depth reduction
+   * 30% reduction by depth 26 (risk decreases as you go deeper)
+   *
+   * @param baseChance - Base curse chance for rarity tier
+   * @param depth - Current dungeon depth (1-26)
+   * @returns Adjusted curse chance (0.0-1.0)
+   */
+  private calculateCurseChance(baseChance: number, depth: number): number {
+    return baseChance * (1.3 - (depth * 0.01))
+  }
+
+  /**
+   * Select rarity using weighted random selection
+   * Uses total sum normalization to handle non-100% weight sums
+   *
+   * @param weights - Rarity weights from calculateRarityWeights()
+   * @returns Selected rarity tier ('common' | 'uncommon' | 'rare')
+   */
+  private selectWeightedRarity(weights: { common: number; uncommon: number; rare: number }): string {
+    const total = weights.common + weights.uncommon + weights.rare
+    const roll = this.random.nextFloat(0, total)
+
+    if (roll < weights.common) return 'common'
+    if (roll < weights.common + weights.uncommon) return 'uncommon'
+    return 'rare'
+  }
+
+  /**
    * Spawn items in dungeon rooms with rarity-based selection
    */
   spawnItems(
@@ -297,8 +383,8 @@ export class ItemSpawnService {
     // Build occupied positions set (monsters + items)
     monsters.forEach((m) => itemPositions.add(`${m.position.x},${m.position.y}`))
 
-    // Rarity weights (common: 60%, uncommon: 30%, rare: 10%)
-    const rarityWeights = { common: 0.6, uncommon: 0.3, rare: 0.1 }
+    // Calculate depth-based rarity weights (70/25/5 → 30/40/30 progression)
+    const rarityWeights = this.calculateRarityWeights(depth)
 
     // Spawn items
     for (let i = 0; i < count; i++) {
@@ -316,12 +402,8 @@ export class ItemSpawnService {
       if (!itemPositions.has(key) && tiles[y] && tiles[y][x] && tiles[y][x].walkable) {
         itemPositions.add(key)
 
-        // Roll for rarity
-        const rarityRoll = this.random.chance(rarityWeights.common)
-          ? 'common'
-          : this.random.chance(rarityWeights.uncommon / (1 - rarityWeights.common))
-            ? 'uncommon'
-            : 'rare'
+        // Roll for rarity using weighted selection
+        const rarityRoll = this.selectWeightedRarity(rarityWeights)
 
         // Pick item category with depth-based weights
         // Resource spawn rates balanced for 26-level journey:
@@ -374,8 +456,8 @@ export class ItemSpawnService {
             const templates = this.weaponTemplates.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
-              const isCursed = this.rollCursedStatus(rarityRoll)
-              const bonus = this.rollEnchantment(rarityRoll, isCursed)
+              const isCursed = this.rollCursedStatus(rarityRoll, depth)
+              const bonus = this.rollEnchantment(rarityRoll, isCursed, depth)
 
               // Format name with bonus (e.g., "Long Sword +2")
               // Cursed items (negative bonus) don't show enchantment until identified
@@ -404,8 +486,8 @@ export class ItemSpawnService {
             const templates = this.armorTemplates.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
-              const isCursed = this.rollCursedStatus(rarityRoll)
-              const bonus = this.rollEnchantment(rarityRoll, isCursed)
+              const isCursed = this.rollCursedStatus(rarityRoll, depth)
+              const bonus = this.rollEnchantment(rarityRoll, isCursed, depth)
 
               // Format name with bonus (e.g., "Plate Mail +2")
               // Cursed items (negative bonus) don't show enchantment until identified
@@ -475,8 +557,8 @@ export class ItemSpawnService {
               const template = this.random.pickRandom(templates)
 
               // Ring of Teleportation is ALWAYS cursed (Rogue tradition)
-              const isCursed = template.type === RingType.TELEPORTATION || this.rollCursedStatus(rarityRoll)
-              const bonus = this.rollEnchantment(rarityRoll, isCursed)
+              const isCursed = template.type === RingType.TELEPORTATION || this.rollCursedStatus(rarityRoll, depth)
+              const bonus = this.rollEnchantment(rarityRoll, isCursed, depth)
 
               // Format name with bonus (e.g., "Ring of Protection +2")
               // Cursed items (negative bonus) don't show enchantment until identified
