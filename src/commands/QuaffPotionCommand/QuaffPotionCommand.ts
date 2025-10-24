@@ -5,6 +5,7 @@ import { PotionService } from '@services/PotionService'
 import { MessageService } from '@services/MessageService'
 import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
+import { IdentificationService } from '@services/IdentificationService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { IRandomService } from '@services/RandomService'
 import { COMMAND_TYPES } from '@game/replay/replay'
@@ -18,6 +19,7 @@ export class QuaffPotionCommand implements ICommand {
     private itemId: string,
     private inventoryService: InventoryService,
     private potionService: PotionService,
+    private identificationService: IdentificationService,
     private messageService: MessageService,
     private _turnService: TurnService,
     private statusEffectService: StatusEffectService,
@@ -82,15 +84,20 @@ export class QuaffPotionCommand implements ICommand {
     )
 
     // 4. Use updated state if potion modified it (detection potions)
-    const baseState = result.state || state
+    let baseState = result.state || state
 
-    // 5. Remove potion from inventory
+    // 5. Mark potion as identified if this was first use
+    if (result.identified) {
+      baseState = this.identificationService.identifyByUse(item as Potion, baseState)
+    }
+
+    // 6. Remove potion from inventory
     const updatedPlayer = this.inventoryService.removeItem(
       result.player,
       this.itemId
     )
 
-    // 6. Add message and increment turn
+    // 7. Add message and increment turn
     const messages = this.messageService.addMessage(
       baseState.messages,
       result.message,

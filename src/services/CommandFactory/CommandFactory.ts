@@ -308,6 +308,7 @@ export class CommandFactory implements ICommandFactory {
           event.payload.itemId,
           this.inventoryService,
           this.potionService,
+          this.identificationService,
           this.messageService,
           this.turnService,
           this.statusEffectService,
