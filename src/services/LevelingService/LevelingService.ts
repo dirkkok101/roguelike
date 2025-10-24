@@ -82,6 +82,33 @@ export class LevelingService {
   }
 
   /**
+   * Apply all pending level-ups to player
+   * Handles cases where player has enough XP for multiple levels
+   * Returns updated player and number of levels gained
+   *
+   * Example: Player at level 1 with 100 XP can level up 3 times:
+   *   Level 1 → 2 (needs 10 XP)
+   *   Level 2 → 3 (needs 30 XP total)
+   *   Level 3 → 4 (needs 60 XP total)
+   *   Final: Level 4 with 40 XP remaining
+   */
+  applyLevelUps(player: Player): { player: Player; levelsGained: number } {
+    let currentPlayer = player
+    let levelsGained = 0
+
+    // Keep leveling up while player has enough XP
+    while (this.checkLevelUp(currentPlayer)) {
+      currentPlayer = this.levelUp(currentPlayer)
+      levelsGained++
+    }
+
+    return {
+      player: currentPlayer,
+      levelsGained,
+    }
+  }
+
+  /**
    * Get XP required for next level
    * Uses formula: 5 * (level - 1) * level
    * No upper limit - supports infinite leveling

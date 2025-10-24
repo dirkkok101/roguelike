@@ -262,4 +262,96 @@ describe('LevelingService - Level Up', () => {
       expect(canLevelUp).toBe(true)
     })
   })
+
+  // ============================================================================
+  // applyLevelUps() - Multiple Level-Ups
+  // ============================================================================
+
+  describe('applyLevelUps()', () => {
+    test('levels up multiple times when player has enough XP', () => {
+      // Arrange
+      const player = createTestPlayer(1, 100) // Level 1 with 100 XP
+      // Level 1→2 needs 10, Level 2→3 needs 30, Level 3→4 needs 60
+      // 100 - 10 = 90, 90 - 30 = 60, 60 - 60 = 0
+      const mockRandom = new MockRandom([5, 6, 7]) // HP increases for each level
+      const service = new LevelingService(mockRandom)
+
+      // Act
+      const result = service.applyLevelUps(player)
+
+      // Assert
+      expect(result.levelsGained).toBe(3) // Gained 3 levels (1→2→3→4)
+      expect(result.player.level).toBe(4)
+      expect(result.player.xp).toBe(0) // 100 - 10 - 30 - 60 = 0
+      expect(result.player.maxHp).toBe(38) // 20 (start) + 5 + 6 + 7
+      expect(result.player.hp).toBe(38) // Fully healed
+    })
+
+    test('returns 0 levels gained when player cannot level up', () => {
+      // Arrange
+      const player = createTestPlayer(1, 5) // Not enough XP to level up
+      const mockRandom = new MockRandom()
+      const service = new LevelingService(mockRandom)
+
+      // Act
+      const result = service.applyLevelUps(player)
+
+      // Assert
+      expect(result.levelsGained).toBe(0)
+      expect(result.player.level).toBe(1)
+      expect(result.player.xp).toBe(5)
+      expect(result.player).toBe(player) // Returns same object when no level-up
+    })
+
+    test('levels up once when player has XP for exactly one level', () => {
+      // Arrange
+      const player = createTestPlayer(1, 10) // Exactly enough for level 2
+      const mockRandom = new MockRandom([8])
+      const service = new LevelingService(mockRandom)
+
+      // Act
+      const result = service.applyLevelUps(player)
+
+      // Assert
+      expect(result.levelsGained).toBe(1)
+      expect(result.player.level).toBe(2)
+      expect(result.player.xp).toBe(0) // 10 - 10 = 0
+    })
+
+    test('handles massive XP gains (level 1 → level 6)', () => {
+      // Arrange
+      const player = createTestPlayer(1, 500) // 500 XP
+      // 1→2: 10, 2→3: 30, 3→4: 60, 4→5: 100, 5→6: 150
+      // Total consumed: 10+30+60+100+150 = 350
+      // Remaining: 500 - 350 = 150
+      // Next level (6→7) needs 210, so stop at level 6
+      const mockRandom = new MockRandom([8, 7, 6, 5, 4]) // 5 level-ups
+      const service = new LevelingService(mockRandom)
+
+      // Act
+      const result = service.applyLevelUps(player)
+
+      // Assert
+      expect(result.levelsGained).toBe(5) // Level 1 → 6
+      expect(result.player.level).toBe(6)
+      expect(result.player.xp).toBe(150) // 500 - 350 = 150 remaining
+      expect(result.player.maxHp).toBe(50) // 20 (start) + (8+7+6+5+4)
+    })
+
+    test('immutability - does not mutate original player', () => {
+      // Arrange
+      const player = createTestPlayer(1, 100)
+      const mockRandom = new MockRandom([5, 6, 7])
+      const service = new LevelingService(mockRandom)
+
+      // Act
+      const result = service.applyLevelUps(player)
+
+      // Assert
+      expect(result.player).not.toBe(player)
+      expect(player.level).toBe(1) // Original unchanged
+      expect(player.xp).toBe(100) // Original unchanged
+      expect(result.player.level).toBe(4) // New player leveled up
+    })
+  })
 })
