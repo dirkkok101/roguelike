@@ -85,6 +85,31 @@ Generates flavor text epitaph based on death cause.
 
 ---
 
+## Technical Details
+
+### Non-Determinism Exception
+
+**generateEpitaph()** uses `Math.random()` for epitaph selection, which is **non-deterministic**. This is acceptable because:
+
+1. **UI-Only Impact**: Epitaphs are flavor text displayed on death screen
+2. **No Gameplay Impact**: Epitaph choice doesn't affect game mechanics, scores, or outcomes
+3. **Non-Interactive**: Death screen is terminal state (no further player actions)
+4. **Replay Compatibility**: Replay system doesn't need to preserve epitaphs
+
+**Why It's Safe**:
+```typescript
+// Epitaph is purely cosmetic
+const epitaph = generateEpitaph(deathCause)  // Random selection OK
+
+// Game state is deterministic (not affected by epitaph)
+const score = calculateScore(gameState)  // Deterministic
+const stats = calculateDeathStats(gameState)  // Deterministic
+```
+
+**Alternative Considered**: Using seeded RNG would make epitaphs deterministic but adds complexity for zero gameplay benefit.
+
+---
+
 ## Related Services
 
 - [ScoreCalculationService](./ScoreCalculationService.md) - Calculates final score

@@ -75,6 +75,17 @@ function executeTurn(state: GameState): GameState {
 
 ---
 
+## Testing
+
+**Test Files**:
+- `AutoSaveMiddleware.test.ts` - Auto-save triggers, interval checking, game-over skip
+
+**Coverage**: Core functionality (save intervals, throttling, async fire-and-forget, development mode validation)
+
+**Integration Tests**: Determinism validation tested via ReplayDebuggerService integration
+
+---
+
 ## Related Services
 
 - [GameStorageService](./GameStorageService.md) - Persists game state
