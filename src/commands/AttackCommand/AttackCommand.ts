@@ -122,15 +122,28 @@ export class AttackCommand implements ICommand {
           state.turnCount
         )
 
-        // Handle level-up if it occurred
+        // Handle all pending level-ups (supports multiple levels at once)
         if (xpResult.leveledUp) {
-          updatedPlayer = this.levelingService.levelUp(updatedPlayer)
-          messages = this.messageService.addMessage(
-            messages,
-            `You have reached level ${updatedPlayer.level}!`,
-            'success',
-            state.turnCount
-          )
+          const levelUpResult = this.levelingService.applyLevelUps(updatedPlayer)
+          updatedPlayer = levelUpResult.player
+
+          // Show level-up message(s)
+          if (levelUpResult.levelsGained === 1) {
+            messages = this.messageService.addMessage(
+              messages,
+              `You have reached level ${updatedPlayer.level}!`,
+              'success',
+              state.turnCount
+            )
+          } else {
+            messages = this.messageService.addMessage(
+              messages,
+              `You have reached level ${updatedPlayer.level}! (+${levelUpResult.levelsGained} levels)`,
+              'success',
+              state.turnCount
+            )
+          }
+
           messages = this.messageService.addMessage(
             messages,
             `Your max HP increases to ${updatedPlayer.maxHp}!`,
