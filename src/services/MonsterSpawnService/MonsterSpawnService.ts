@@ -248,6 +248,75 @@ export class MonsterSpawnService {
   }
 
   /**
+   * Spawn monsters for a dungeon level with custom vorpal range
+   *
+   * Similar to spawnMonsters() but allows specifying custom vorpal range.
+   * Used for special spawning scenarios like Amulet return journey where
+   * cumulative range [0, depth+3] makes the ascent more challenging.
+   *
+   * @param rooms - Room structures to spawn monsters in
+   * @param tiles - Tile grid for walkability checks
+   * @param depth - Dungeon level (1-26), determines spawn count
+   * @param minVorpal - Minimum vorpalness value (inclusive)
+   * @param maxVorpal - Maximum vorpalness value (inclusive)
+   * @returns Array of spawned Monster instances
+   */
+  spawnMonstersWithVorpalRange(
+    rooms: Room[],
+    tiles: Tile[][],
+    depth: number,
+    minVorpal: number,
+    maxVorpal: number
+  ): Monster[] {
+    // Ensure data is loaded
+    if (!this.dataLoaded) {
+      throw new Error('Monster data not loaded. Call loadMonsterData() first.')
+    }
+
+    const monsters: Monster[] = []
+    const occupied = new Set<string>() // Track occupied positions
+
+    // Determine how many monsters to spawn
+    const spawnCount = this.getSpawnCount(depth)
+
+    // Filter monsters by custom vorpal range
+    const availableTemplates = this.filterByVorpalRange(minVorpal, maxVorpal)
+
+    if (availableTemplates.length === 0) {
+      // No monsters available for this range
+      return monsters
+    }
+
+    // Spawn monsters
+    for (let i = 0; i < spawnCount; i++) {
+      // Select monster template with weighted randomness
+      const template = this.selectWeightedMonster(availableTemplates)
+
+      // Select random valid position
+      const position = this.selectSpawnPosition(rooms, tiles, occupied)
+
+      if (!position) {
+        // Could not find valid position, skip this monster
+        continue
+      }
+
+      // Mark position as occupied
+      occupied.add(`${position.x},${position.y}`)
+
+      // Create monster from template
+      const monster = this.createMonster(
+        template,
+        position,
+        `monster-${depth}-${i}-${this.random.nextInt(1000, 9999)}`
+      )
+
+      monsters.push(monster)
+    }
+
+    return monsters
+  }
+
+  /**
    * Calculate spawn count for a dungeon depth
    *
    * Formula: Math.min((depth * 2) + 3, 20)

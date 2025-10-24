@@ -86,6 +86,54 @@ for (const monster of monsters) {
 
 ---
 
+#### `spawnMonstersWithVorpalRange(rooms: Room[], tiles: Tile[][], depth: number, minVorpal: number, maxVorpal: number): Monster[]`
+Spawns monsters with custom vorpal range (advanced spawning control).
+
+**Use Case**: Special spawning scenarios like Amulet return journey where cumulative vorpal range [0, depth+3] makes ascent more challenging.
+
+**Parameters**:
+- `rooms`: Array of room structures (for valid spawn positions)
+- `tiles`: 2D tile grid (for walkability checks)
+- `depth`: Dungeon level (1-26), determines spawn count only
+- `minVorpal`: Minimum vorpalness value (inclusive) - e.g., 0 for cumulative pool
+- `maxVorpal`: Maximum vorpalness value (inclusive) - e.g., depth+3
+
+**Returns**: Array of spawned Monster instances
+
+**Difference from `spawnMonsters()`**:
+- `spawnMonsters()`: Uses automatic vorpal range [depth-6, depth+3]
+- `spawnMonstersWithVorpalRange()`: Uses custom vorpal range (you specify min/max)
+
+**Example (Amulet Ascent)**:
+```typescript
+// Ascending to level 10 with Amulet
+// Use cumulative pool [0, depth+3] instead of normal [4, 13]
+const monsters = monsterSpawnService.spawnMonstersWithVorpalRange(
+  rooms,
+  tiles,
+  10,    // depth (determines spawn count: 20 monsters)
+  0,     // minVorpal (cumulative: includes ALL low-level monsters)
+  13     // maxVorpal (depth+3)
+)
+
+// Result: Spawns 20 monsters from vorpal 0-13
+// This includes Bats, Snakes, Orcs, Trolls, etc. (more variety than normal)
+```
+
+**Example (Custom Difficulty)**:
+```typescript
+// Spawn only high-tier monsters on level 5
+const hardMonsters = monsterSpawnService.spawnMonstersWithVorpalRange(
+  rooms,
+  tiles,
+  5,    // depth (13 monsters)
+  10,   // minVorpal (exclude early monsters)
+  15    // maxVorpal (mid-tier range)
+)
+```
+
+---
+
 #### `getSpawnCount(depth: number): number`
 Calculates number of monsters to spawn for a given depth.
 

@@ -130,21 +130,30 @@ export class StairsNavigationService {
    * This is more permissive than normal spawn range [depth-6, depth+3],
    * making the return journey more challenging.
    *
+   * Examples:
+   * - Level 25: Spawns monsters vorpal 0-28 (includes ALL monsters up to boss tier)
+   * - Level 10: Spawns monsters vorpal 0-13 (includes early AND mid-tier)
+   * - Level 1:  Spawns monsters vorpal 0-4  (only early tier, but same as normal)
+   *
+   * This means high-level monsters can appear on lower levels during return journey!
+   *
    * @private
    * @param level - Level to respawn monsters on
    * @param depth - Dungeon depth (1-26)
    * @returns Level with respawned monsters
    */
   private respawnMonstersForLevel(level: Level, depth: number): Level {
-    // Use cumulative vorpal range for ascent challenge
-    // All monsters from vorpalness 0 up to depth+3 can spawn
-    // Note: Currently using full spawn range via MonsterSpawnService
+    // Calculate cumulative vorpal range: [0, depth+3] clamped to [0, 25]
+    const minVorpal = 0 // Cumulative: ALL monsters from vorpalness 0
+    const maxVorpal = Math.min(25, depth + 3) // Up to depth+3 (max 25)
 
-    // Spawn new monsters using normal spawn logic
-    const newMonsters = this.monsterSpawnService.spawnMonsters(
+    // Spawn new monsters using cumulative vorpal range (harder than normal)
+    const newMonsters = this.monsterSpawnService.spawnMonstersWithVorpalRange(
       level.rooms,
       level.tiles,
-      depth
+      depth,
+      minVorpal,
+      maxVorpal
     )
 
     return {

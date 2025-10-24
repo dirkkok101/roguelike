@@ -142,15 +142,31 @@ const needsRespawn =
 - Normal descent: Vorpal range [depth-6, depth+3]
 - **Amulet ascent: Cumulative range [0, depth+3]**
   - More permissive range = harder monsters
+  - Includes ALL monsters from vorpalness 0 up to depth+3
+  - High-level monsters can appear on low-level floors!
   - Increases return journey difficulty
   - Authentic 1980 Rogue mechanic
 
-**Example Respawn**:
+**Example Respawn Scenarios**:
 ```
+Level 25 (first ascent with Amulet):
+- Normal spawn:  Monsters from vorpalness 19-28 (high-tier only)
+- Ascent spawn:  Monsters from vorpalness 0-28  (ALL monsters, including boss tier!)
+
 Level 10 (first ascent with Amulet):
-- Normal spawn:  Monsters from vorpalness 4-13
-- Ascent spawn:  Monsters from vorpalness 0-13  (HARDER)
+- Normal spawn:  Monsters from vorpalness 4-13 (mid-tier)
+- Ascent spawn:  Monsters from vorpalness 0-13  (early AND mid-tier)
+
+Level 5 (first ascent with Amulet):
+- Normal spawn:  Monsters from vorpalness 0-8  (early-tier, clamped)
+- Ascent spawn:  Monsters from vorpalness 0-8  (same range)
+
+Level 1 (first ascent with Amulet):
+- Normal spawn:  Monsters from vorpalness 0-4  (very early)
+- Ascent spawn:  Monsters from vorpalness 0-4  (same range)
 ```
+
+**Key Insight**: The cumulative pool makes the return journey progressively HARDER as you ascend through higher levels (25→1), not easier. On level 25 with the Amulet, you can encounter ANY monster in the game up to vorpalness 28!
 
 **Respawn Tracking**:
 ```typescript

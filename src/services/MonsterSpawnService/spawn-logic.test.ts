@@ -189,4 +189,142 @@ describe('MonsterSpawnService - Spawn Logic', () => {
       }
     })
   })
+
+  describe('spawnMonstersWithVorpalRange()', () => {
+    it('should spawn monsters using custom vorpal range', async () => {
+      const seededRandom = new SeededRandom('test-custom-vorpal')
+      const integrationService = new MonsterSpawnService(seededRandom)
+      await integrationService.loadMonsterData()
+
+      const rooms = [createTestRoom(0, 5, 5, 10, 10)]
+      const tiles = createTestTiles(20, 20)
+
+      // Spawn with cumulative range [0, 13] (like Amulet ascent to level 10)
+      const monsters = integrationService.spawnMonstersWithVorpalRange(
+        rooms,
+        tiles,
+        10, // depth (determines spawn count)
+        0,  // minVorpal (cumulative)
+        13  // maxVorpal (depth+3)
+      )
+
+      // Should spawn up to 20 monsters for depth 10
+      expect(monsters.length).toBeGreaterThan(0)
+      expect(monsters.length).toBeLessThanOrEqual(20)
+    })
+
+    it('should respect custom vorpal range limits', async () => {
+      // Mock only 2 monsters: vorpalness 1 and 5
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [
+          {
+            letter: 'K',
+            name: 'Kobold',
+            spriteName: 'Kobold',
+            hp: '1d8',
+            ac: 7,
+            damage: '1d4',
+            xpValue: 5,
+            level: 1,
+            speed: 10,
+            rarity: 'common',
+            mean: false,
+            vorpalness: 1, // Low vorpalness
+            aiProfile: {
+              behavior: 'SIMPLE',
+              intelligence: 1,
+              aggroRange: 5,
+              fleeThreshold: 0.0,
+              special: [],
+            },
+          },
+          {
+            letter: 'O',
+            name: 'Orc',
+            spriteName: 'Orc',
+            hp: '1d8',
+            ac: 6,
+            damage: '1d8',
+            xpValue: 10,
+            level: 3,
+            speed: 10,
+            rarity: 'common',
+            mean: false,
+            vorpalness: 5, // Medium vorpalness
+            aiProfile: {
+              behavior: 'SIMPLE',
+              intelligence: 1,
+              aggroRange: 5,
+              fleeThreshold: 0.0,
+              special: [],
+            },
+          },
+        ],
+      } as Response)
+
+      const seededRandom = new SeededRandom('test-vorpal-limits')
+      const testService = new MonsterSpawnService(seededRandom)
+      await testService.loadMonsterData()
+
+      const rooms = [createTestRoom(0, 5, 5, 10, 10)]
+      const tiles = createTestTiles(20, 20)
+
+      // Spawn with range [0, 3] - should only get Kobold (vorpal 1)
+      const lowRangeMonsters = testService.spawnMonstersWithVorpalRange(
+        rooms,
+        tiles,
+        1,
+        0,
+        3
+      )
+
+      // All spawned monsters should be Kobold (vorpalness 1)
+      expect(lowRangeMonsters.length).toBeGreaterThan(0)
+      for (const monster of lowRangeMonsters) {
+        expect(monster.name).toBe('Kobold')
+      }
+
+      // Spawn with range [4, 10] - should only get Orc (vorpal 5)
+      const highRangeMonsters = testService.spawnMonstersWithVorpalRange(
+        rooms,
+        tiles,
+        1,
+        4,
+        10
+      )
+
+      // All spawned monsters should be Orc (vorpalness 5)
+      expect(highRangeMonsters.length).toBeGreaterThan(0)
+      for (const monster of highRangeMonsters) {
+        expect(monster.name).toBe('Orc')
+      }
+    })
+
+    it('should use cumulative range for Amulet ascent scenario', async () => {
+      const seededRandom = new SeededRandom('test-amulet-ascent')
+      const integrationService = new MonsterSpawnService(seededRandom)
+      await integrationService.loadMonsterData()
+
+      const rooms = [createTestRoom(0, 5, 5, 15, 15)]
+      const tiles = createTestTiles(25, 25)
+
+      // Simulate ascending to level 10 with Amulet
+      // Normal range: [4, 13] (depth-6, depth+3)
+      // Cumulative range: [0, 13] (0, depth+3)
+      // Cumulative pool is larger (includes vorpalness 0-3 which normal doesn't)
+
+      const cumulativeMonsters = integrationService.spawnMonstersWithVorpalRange(
+        rooms,
+        tiles,
+        10,
+        0,  // Cumulative starts at 0 (includes ALL low-level monsters)
+        13  // depth+3
+      )
+
+      // Should spawn monsters with cumulative vorpal pool
+      expect(cumulativeMonsters.length).toBeGreaterThan(0)
+      expect(cumulativeMonsters.length).toBeLessThanOrEqual(20) // Max spawn count for depth 10
+    })
+  })
 })
