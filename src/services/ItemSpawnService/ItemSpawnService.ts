@@ -25,7 +25,7 @@ import {
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
-import { GuaranteeConfig } from '@services/GuaranteeTracker'
+import { GuaranteeConfig, GuaranteeTracker } from '@services/GuaranteeTracker'
 
 // ============================================================================
 // ITEM SPAWN SERVICE - Handles item generation for dungeon levels
@@ -442,7 +442,8 @@ export class ItemSpawnService {
     count: number,
     tiles: Tile[][],
     monsters: Monster[],
-    depth: number
+    depth: number,
+    tracker?: GuaranteeTracker
   ): Item[] {
     const items: Item[] = []
     const itemPositions = new Set<string>()
@@ -472,44 +473,15 @@ export class ItemSpawnService {
         // Roll for rarity using weighted selection
         const rarityRoll = this.selectWeightedRarity(rarityWeights)
 
-        // Pick item category with depth-based weights
-        // Resource spawn rates balanced for 26-level journey:
-        // - Food: 10% base + 1% per 5 levels (10-15%)
-        // - Torch: 7% (consistent across all depths)
-        // - Oil: 5% (consistent across all depths)
-        // - Lanterns: Scale with depth (0% early, 8-12% late)
+        // Pick item category with depth-based weights from guarantees config
+        const weights = this.getCategoryWeights(depth)
         const categories: string[] = []
 
-        // Base categories (12 each, 8 for wand)
-        for (let j = 0; j < 12; j++) {
-          categories.push('weapon', 'armor', 'potion', 'scroll', 'ring')
-        }
-        for (let j = 0; j < 8; j++) {
-          categories.push('wand')
-        }
-
-        // Food (depth-scaled: 10-15%)
-        const foodWeight = this.getFoodSpawnWeight(depth)
-        for (let j = 0; j < foodWeight; j++) {
-          categories.push('food')
-        }
-
-        // Torches (7% across all depths)
-        const torchWeight = this.getTorchSpawnWeight(depth)
-        for (let j = 0; j < torchWeight; j++) {
-          categories.push('torch')
-        }
-
-        // Lanterns (depth-based, not in early game)
-        const lanternWeight = depth <= 3 ? 0 : depth <= 7 ? 8 : 12
-        for (let j = 0; j < lanternWeight; j++) {
-          categories.push('lantern')
-        }
-
-        // Oil flasks (5% across all depths)
-        const oilWeight = this.getOilFlaskSpawnWeight(depth)
-        for (let j = 0; j < oilWeight; j++) {
-          categories.push('oil_flask')
+        // Build weighted category pool from config
+        for (const [category, weight] of Object.entries(weights)) {
+          for (let j = 0; j < weight; j++) {
+            categories.push(category)
+          }
         }
 
         const category = this.random.pickRandom(categories)
@@ -580,9 +552,10 @@ export class ItemSpawnService {
           }
 
           case 'potion': {
-            // Filter by depth first, then by rarity
-            const depthFilteredTemplates = this.filterByDepth(this.potionTemplates, depth)
-            const templates = depthFilteredTemplates.filter((t) => t.rarity === rarityRoll)
+            // Filter by depth, power tier, then by rarity
+            const depthFiltered = this.filterByDepth(this.potionTemplates, depth)
+            const tierFiltered = this.filterByPowerTier(depthFiltered, depth)
+            const templates = tierFiltered.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
               item = {
@@ -602,7 +575,9 @@ export class ItemSpawnService {
           }
 
           case 'scroll': {
-            const templates = this.scrollTemplates.filter((t) => t.rarity === rarityRoll)
+            // Filter by power tier, then by rarity
+            const tierFiltered = this.filterByPowerTier(this.scrollTemplates, depth)
+            const templates = tierFiltered.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
               item = {
@@ -621,7 +596,9 @@ export class ItemSpawnService {
           }
 
           case 'ring': {
-            const templates = this.ringTemplates.filter((t) => t.rarity === rarityRoll)
+            // Filter by power tier, then by rarity
+            const tierFiltered = this.filterByPowerTier(this.ringTemplates, depth)
+            const templates = tierFiltered.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
 
@@ -656,7 +633,9 @@ export class ItemSpawnService {
           }
 
           case 'wand': {
-            const templates = this.wandTemplates.filter((t) => t.rarity === rarityRoll)
+            // Filter by power tier, then by rarity
+            const tierFiltered = this.filterByPowerTier(this.wandTemplates, depth)
+            const templates = tierFiltered.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
 
@@ -779,6 +758,11 @@ export class ItemSpawnService {
 
         if (item) {
           items.push(item)
+
+          // Track item for guarantees
+          if (tracker) {
+            tracker.recordItem(depth, item)
+          }
         }
       }
     }
