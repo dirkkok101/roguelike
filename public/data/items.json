@@ -157,7 +157,7 @@
       "power": "12d10",
       "rarity": "uncommon",
       "minDepth": 15,
-      "maxDepth": 26,
+      "maxDepth": 27,
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -167,7 +167,7 @@
       "power": "15d12",
       "rarity": "rare",
       "minDepth": 20,
-      "maxDepth": 26,
+      "maxDepth": 27,
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {

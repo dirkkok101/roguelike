@@ -40,7 +40,7 @@ import { ItemData } from '../../data/ItemDataLoader'
  */
 export class ItemSpawnService {
   // Cached templates (loaded once in constructor)
-  private potionTemplates: Array<{ type: PotionType; spriteName: string; effect: string; power: string; rarity: string }>
+  private potionTemplates: Array<{ type: PotionType; spriteName: string; effect: string; power: string; rarity: string; minDepth?: number; maxDepth?: number }>
   private scrollTemplates: Array<{ type: ScrollType; spriteName: string; effect: string; rarity: string }>
   private ringTemplates: Array<{ type: RingType; spriteName: string; effect: string; rarity: string }>
   private wandTemplates: Array<{ type: WandType; spriteName: string; damage: string; charges: string; rarity: string }>
@@ -96,6 +96,8 @@ export class ItemSpawnService {
     effect: string
     power: string
     rarity: string
+    minDepth?: number
+    maxDepth?: number
   }> {
     return this.itemData.potions.map((p) => ({
       type: PotionType[p.type as keyof typeof PotionType],
@@ -103,6 +105,8 @@ export class ItemSpawnService {
       effect: p.effect,
       power: p.power,
       rarity: p.rarity,
+      minDepth: p.minDepth,
+      maxDepth: p.maxDepth,
     }))
   }
 
@@ -387,6 +391,24 @@ export class ItemSpawnService {
   }
 
   /**
+   * Filter items by depth range (minDepth/maxDepth fields)
+   * minDepth is inclusive, maxDepth is exclusive
+   * @param items - Array of items with optional minDepth/maxDepth
+   * @param depth - Current dungeon depth
+   * @returns Filtered array of items valid for this depth
+   */
+  private filterByDepth<T extends { minDepth?: number; maxDepth?: number }>(
+    items: T[],
+    depth: number
+  ): T[] {
+    return items.filter(item => {
+      const minDepth = item.minDepth ?? 1
+      const maxDepth = item.maxDepth ?? 26
+      return depth >= minDepth && depth < maxDepth
+    })
+  }
+
+  /**
    * Select rarity using weighted random selection
    * Uses total sum normalization to handle non-100% weight sums
    *
@@ -548,7 +570,9 @@ export class ItemSpawnService {
           }
 
           case 'potion': {
-            const templates = this.potionTemplates.filter((t) => t.rarity === rarityRoll)
+            // Filter by depth first, then by rarity
+            const depthFilteredTemplates = this.filterByDepth(this.potionTemplates, depth)
+            const templates = depthFilteredTemplates.filter((t) => t.rarity === rarityRoll)
             if (templates.length > 0) {
               const template = this.random.pickRandom(templates)
               item = {
