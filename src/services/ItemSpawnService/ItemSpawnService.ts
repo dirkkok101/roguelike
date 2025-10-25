@@ -17,6 +17,7 @@ import {
   ScrollType,
   RingType,
   WandType,
+  PowerTier,
   Room,
   Tile,
   Monster,
@@ -41,10 +42,10 @@ import { GuaranteeConfig } from '@services/GuaranteeTracker'
  */
 export class ItemSpawnService {
   // Cached templates (loaded once in constructor)
-  private potionTemplates: Array<{ type: PotionType; spriteName: string; effect: string; power: string; rarity: string; minDepth?: number; maxDepth?: number }>
-  private scrollTemplates: Array<{ type: ScrollType; spriteName: string; effect: string; rarity: string }>
-  private ringTemplates: Array<{ type: RingType; spriteName: string; effect: string; rarity: string }>
-  private wandTemplates: Array<{ type: WandType; spriteName: string; damage: string; charges: string; rarity: string }>
+  private potionTemplates: Array<{ type: PotionType; spriteName: string; effect: string; power: string; rarity: string; powerTier: PowerTier; minDepth?: number; maxDepth?: number }>
+  private scrollTemplates: Array<{ type: ScrollType; spriteName: string; effect: string; rarity: string; powerTier: PowerTier }>
+  private ringTemplates: Array<{ type: RingType; spriteName: string; effect: string; rarity: string; powerTier: PowerTier }>
+  private wandTemplates: Array<{ type: WandType; spriteName: string; damage: string; charges: string; rarity: string; powerTier: PowerTier }>
   private weaponTemplates: Array<{ name: string; spriteName: string; damage: string; rarity: string }>
   private armorTemplates: Array<{ name: string; spriteName: string; ac: number; rarity: string }>
   private foodTemplates: Array<{ name: string; spriteName: string; nutrition: number; rarity: string }>
@@ -99,6 +100,7 @@ export class ItemSpawnService {
     effect: string
     power: string
     rarity: string
+    powerTier: PowerTier
     minDepth?: number
     maxDepth?: number
   }> {
@@ -108,26 +110,29 @@ export class ItemSpawnService {
       effect: p.effect,
       power: p.power,
       rarity: p.rarity,
+      powerTier: PowerTier[(p as any).powerTier?.toUpperCase() as keyof typeof PowerTier],
       minDepth: p.minDepth,
       maxDepth: p.maxDepth,
     }))
   }
 
-  private loadScrollTemplates(): Array<{ type: ScrollType; spriteName: string; effect: string; rarity: string }> {
+  private loadScrollTemplates(): Array<{ type: ScrollType; spriteName: string; effect: string; rarity: string; powerTier: PowerTier }> {
     return this.itemData.scrolls.map((s) => ({
       type: ScrollType[s.type as keyof typeof ScrollType],
       spriteName: s.spriteName,
       effect: s.effect,
       rarity: s.rarity,
+      powerTier: PowerTier[(s as any).powerTier?.toUpperCase() as keyof typeof PowerTier],
     }))
   }
 
-  private loadRingTemplates(): Array<{ type: RingType; spriteName: string; effect: string; rarity: string }> {
+  private loadRingTemplates(): Array<{ type: RingType; spriteName: string; effect: string; rarity: string; powerTier: PowerTier }> {
     return this.itemData.rings.map((r) => ({
       type: RingType[r.type as keyof typeof RingType],
       spriteName: r.spriteName,
       effect: r.effect,
       rarity: r.rarity,
+      powerTier: PowerTier[(r as any).powerTier?.toUpperCase() as keyof typeof PowerTier],
     }))
   }
 
@@ -137,6 +142,7 @@ export class ItemSpawnService {
     damage: string
     charges: string
     rarity: string
+    powerTier: PowerTier
   }> {
     return this.itemData.wands.map((w) => ({
       type: WandType[w.type as keyof typeof WandType],
@@ -144,6 +150,7 @@ export class ItemSpawnService {
       damage: w.damage,
       charges: w.charges,
       rarity: w.rarity,
+      powerTier: PowerTier[(w as any).powerTier?.toUpperCase() as keyof typeof PowerTier],
     }))
   }
 
@@ -1036,5 +1043,25 @@ export class ItemSpawnService {
     if (depth <= 15) return '11-15'
     if (depth <= 20) return '16-20'
     return '21-26'
+  }
+
+  /**
+   * Filter items by power tier based on depth
+   */
+  private filterByPowerTier<T extends { powerTier: PowerTier }>(
+    items: T[],
+    depth: number
+  ): T[] {
+    const allowedTiers = this.getAllowedTiers(depth)
+    return items.filter(item => allowedTiers.includes(item.powerTier))
+  }
+
+  /**
+   * Get allowed power tiers for depth
+   */
+  private getAllowedTiers(depth: number): PowerTier[] {
+    if (depth <= 8) return [PowerTier.BASIC]
+    if (depth <= 16) return [PowerTier.BASIC, PowerTier.INTERMEDIATE]
+    return [PowerTier.BASIC, PowerTier.INTERMEDIATE, PowerTier.ADVANCED]
   }
 }
