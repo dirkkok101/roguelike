@@ -375,6 +375,7 @@ export interface Ring extends Item {
   materialName: string // e.g., "ruby", "sapphire", "wooden"
   hungerModifier: number // multiplier for hunger rate (1.5 = 50% faster)
   cursed?: boolean // Cursed rings cannot be removed
+  powerTier: PowerTier
 }
 
 export enum RingType {
@@ -396,6 +397,7 @@ export interface Potion extends Item {
   effect: string
   power: string // dice notation for healing, etc.
   descriptorName: string // e.g., "blue potion", "fizzy potion"
+  powerTier: PowerTier
 }
 
 export enum PotionType {
@@ -422,6 +424,7 @@ export interface Scroll extends Item {
   effect: string
   labelName: string // e.g., "scroll labeled XYZZY"
   droppedAtTurn?: number // Track when scare scroll was dropped (for deterioration)
+  powerTier: PowerTier
 }
 
 export enum ScrollType {
@@ -446,6 +449,7 @@ export interface Wand extends Item {
   currentCharges: number
   woodName: string // e.g., "oak wand", "pine staff"
   range: number // maximum targeting range (5-8 tiles)
+  powerTier: PowerTier
 }
 
 export enum WandType {
@@ -459,6 +463,13 @@ export enum WandType {
   POLYMORPH = 'POLYMORPH',
   TELEPORT_AWAY = 'TELEPORT_AWAY',
   CANCELLATION = 'CANCELLATION',
+}
+
+// Power tier for depth-based item spawning
+export enum PowerTier {
+  BASIC = 'basic',           // Depths 1-8
+  INTERMEDIATE = 'intermediate',  // Depths 9-16
+  ADVANCED = 'advanced',     // Depths 17-26
 }
 
 export interface Food extends Item {
