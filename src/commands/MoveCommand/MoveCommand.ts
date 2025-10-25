@@ -312,7 +312,8 @@ export class MoveCommand implements ICommand {
     const inCombat = level.monsters.some((monster) =>
       state.visibleCells.has(`${monster.position.x},${monster.position.y}`)
     )
-    const regenResult: RegenerationTickResult = this.regenerationService.tickRegeneration(player, inCombat)
+    const currentDepth = level.depth
+    const regenResult: RegenerationTickResult = this.regenerationService.tickRegeneration(player, inCombat, currentDepth)
     player = regenResult.player
     messages.push(...regenResult.messages)
 

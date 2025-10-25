@@ -85,7 +85,8 @@ export class RestService {
         currentState.visibleCells.has(`${monster.position.x},${monster.position.y}`)
       )
 
-      const regenResult = this.regenerationService.tickRegeneration(player, inCombat)
+      const currentDepth = currentLevel.depth
+      const regenResult = this.regenerationService.tickRegeneration(player, inCombat, currentDepth)
       player = regenResult.player
 
       // 3. Tick light fuel
