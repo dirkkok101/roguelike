@@ -136,6 +136,7 @@
       "effect": "restore_hp",
       "power": "5d8",
       "rarity": "common",
+      "powerTier": "basic",
       "minDepth": 1,
       "maxDepth": 10,
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
@@ -146,6 +147,7 @@
       "effect": "restore_hp",
       "power": "8d10",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "minDepth": 8,
       "maxDepth": 18,
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
@@ -156,6 +158,7 @@
       "effect": "restore_hp",
       "power": "12d10",
       "rarity": "uncommon",
+      "powerTier": "advanced",
       "minDepth": 15,
       "maxDepth": 27,
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
@@ -166,6 +169,7 @@
       "effect": "restore_hp",
       "power": "15d12",
       "rarity": "rare",
+      "powerTier": "advanced",
       "minDepth": 20,
       "maxDepth": 27,
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
@@ -176,6 +180,7 @@
       "effect": "gain_strength",
       "power": "1",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -184,6 +189,7 @@
       "effect": "restore_strength",
       "power": "0",
       "rarity": "common",
+      "powerTier": "basic",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -192,6 +198,7 @@
       "effect": "poison",
       "power": "1d6",
       "rarity": "common",
+      "powerTier": "basic",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -200,6 +207,7 @@
       "effect": "confuse_self",
       "power": "0",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -208,6 +216,7 @@
       "effect": "blind_self",
       "power": "0",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -216,6 +225,7 @@
       "effect": "haste",
       "power": "0",
       "rarity": "rare",
+      "powerTier": "advanced",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -224,6 +234,7 @@
       "effect": "detect_monsters",
       "power": "0",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -232,6 +243,7 @@
       "effect": "detect_magic",
       "power": "0",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -240,6 +252,7 @@
       "effect": "raise_level",
       "power": "1",
       "rarity": "legendary",
+      "powerTier": "advanced",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -248,6 +261,7 @@
       "effect": "see_invisible",
       "power": "0",
       "rarity": "uncommon",
+      "powerTier": "advanced",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     },
     {
@@ -256,6 +270,7 @@
       "effect": "levitate",
       "power": "0",
       "rarity": "uncommon",
+      "powerTier": "advanced",
       "descriptors": ["blue", "red", "clear", "fizzy", "dark", "cloudy", "smoky", "bubbling"]
     }
   ],
@@ -265,6 +280,7 @@
       "spriteName": "Identify Rune",
       "effect": "identify_item",
       "rarity": "common",
+      "powerTier": "basic",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -272,6 +288,7 @@
       "spriteName": "Enchant Weapon To-Hit",
       "effect": "enchant_weapon",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -279,6 +296,7 @@
       "spriteName": "Enchant Armour",
       "effect": "enchant_armor",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -286,6 +304,7 @@
       "spriteName": "Magic Mapping",
       "effect": "reveal_map",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -293,6 +312,7 @@
       "spriteName": "Teleportation",
       "effect": "teleport_self",
       "rarity": "common",
+      "powerTier": "advanced",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -300,6 +320,7 @@
       "spriteName": "Remove Curse",
       "effect": "remove_curse",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -307,6 +328,7 @@
       "spriteName": "scroll",
       "effect": "spawn_monster",
       "rarity": "uncommon",
+      "powerTier": "basic",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -314,6 +336,7 @@
       "spriteName": "scroll",
       "effect": "scare_adjacent",
       "rarity": "rare",
+      "powerTier": "advanced",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -321,6 +344,7 @@
       "spriteName": "scroll",
       "effect": "light_room",
       "rarity": "common",
+      "powerTier": "basic",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -328,6 +352,7 @@
       "spriteName": "scroll",
       "effect": "sleep_monsters",
       "rarity": "rare",
+      "powerTier": "basic",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     },
     {
@@ -335,6 +360,7 @@
       "spriteName": "scroll",
       "effect": "hold_monster",
       "rarity": "rare",
+      "powerTier": "advanced",
       "labels": ["XYZZY", "ELBERETH", "NR 9", "FOOBAR", "HACKEM MUCHE", "VAS CORP BET MANI", "READ ME", "LOREM IPSUM"]
     }
   ],
@@ -346,6 +372,7 @@
       "power": "1d3",
       "hungerModifier": 1.5,
       "rarity": "uncommon",
+      "powerTier": "basic",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -355,6 +382,7 @@
       "power": "1",
       "hungerModifier": 2.0,
       "rarity": "rare",
+      "powerTier": "advanced",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -364,6 +392,7 @@
       "power": "0",
       "hungerModifier": 1.5,
       "rarity": "uncommon",
+      "powerTier": "basic",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -373,6 +402,7 @@
       "power": "0",
       "hungerModifier": 1.5,
       "rarity": "uncommon",
+      "powerTier": "advanced",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -382,6 +412,7 @@
       "power": "0",
       "hungerModifier": 0.5,
       "rarity": "rare",
+      "powerTier": "basic",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -391,6 +422,7 @@
       "power": "1d3",
       "hungerModifier": 1.5,
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -400,6 +432,7 @@
       "power": "0",
       "hungerModifier": 1.5,
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -409,6 +442,7 @@
       "power": "1d3",
       "hungerModifier": 1.5,
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -418,6 +452,7 @@
       "power": "0",
       "hungerModifier": 1.5,
       "rarity": "rare",
+      "powerTier": "advanced",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     },
     {
@@ -427,6 +462,7 @@
       "power": "0",
       "hungerModifier": 1.5,
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "materials": ["ruby", "sapphire", "iron", "wooden", "ivory", "gold", "silver", "bronze"]
     }
   ],
@@ -437,6 +473,7 @@
       "damage": "6d6",
       "charges": "3d3",
       "rarity": "uncommon",
+      "powerTier": "advanced",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -445,6 +482,7 @@
       "damage": "6d6",
       "charges": "3d3",
       "rarity": "uncommon",
+      "powerTier": "advanced",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -453,6 +491,7 @@
       "damage": "6d6",
       "charges": "3d3",
       "rarity": "uncommon",
+      "powerTier": "advanced",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -461,6 +500,7 @@
       "damage": "2d6",
       "charges": "4d4",
       "rarity": "common",
+      "powerTier": "intermediate",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -469,6 +509,7 @@
       "damage": "0",
       "charges": "3d3",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -477,6 +518,7 @@
       "damage": "0",
       "charges": "3d3",
       "rarity": "rare",
+      "powerTier": "advanced",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -485,6 +527,7 @@
       "damage": "0",
       "charges": "3d3",
       "rarity": "uncommon",
+      "powerTier": "intermediate",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -493,6 +536,7 @@
       "damage": "0",
       "charges": "3d3",
       "rarity": "rare",
+      "powerTier": "advanced",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -501,6 +545,7 @@
       "damage": "0",
       "charges": "3d3",
       "rarity": "uncommon",
+      "powerTier": "advanced",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     },
     {
@@ -509,6 +554,7 @@
       "damage": "0",
       "charges": "3d3",
       "rarity": "rare",
+      "powerTier": "advanced",
       "woods": ["oak", "pine", "metal", "crystal", "ebony", "willow"]
     }
   ],
