@@ -1,7 +1,7 @@
 import { DungeonService, DungeonConfig } from '@services/DungeonService'
 import { SeededRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
-import { mockItemData } from '@/test-utils'
+import { mockItemData, mockGuaranteeConfig } from '@/test-utils'
 
 describe('DungeonService - Generate All Levels', () => {
   let service: DungeonService
@@ -20,7 +20,7 @@ describe('DungeonService - Generate All Levels', () => {
     } as unknown as MonsterSpawnService
 
     monsterSpawnService = mockMonsterSpawnService
-    service = new DungeonService(random, monsterSpawnService, mockItemData)
+    service = new DungeonService(random, monsterSpawnService, mockItemData, mockGuaranteeConfig)
 
     // Standard dungeon configuration
     config = {

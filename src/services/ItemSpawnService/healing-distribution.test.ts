@@ -2,6 +2,7 @@ import { ItemSpawnService } from './ItemSpawnService'
 import { SeededRandom } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
 import { Room, Tile, ItemType } from '@game/core/core'
+import { mockGuaranteeConfig } from '@/test-utils'
 
 describe('ItemSpawnService - Healing Distribution Statistics', () => {
   let service: ItemSpawnService
@@ -40,14 +41,14 @@ describe('ItemSpawnService - Healing Distribution Statistics', () => {
       weapons: [{ name: 'Dagger', spriteName: 'dagger', damage: '1d4', rarity: 'common' }],
       armor: [{ name: 'Leather Armor', spriteName: 'leather', ac: 2, rarity: 'common' }],
       potions: [
-        { type: 'MINOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '5d8', rarity: 'common', minDepth: 1, maxDepth: 10, descriptors: ['blue'] },
-        { type: 'MEDIUM_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '8d10', rarity: 'uncommon', minDepth: 8, maxDepth: 18, descriptors: ['red'] },
-        { type: 'MAJOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '12d10', rarity: 'uncommon', minDepth: 15, maxDepth: 27, descriptors: ['clear'] },
-        { type: 'SUPERIOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '15d12', rarity: 'rare', minDepth: 20, maxDepth: 27, descriptors: ['fizzy'] }
+        { type: 'MINOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '5d8', rarity: 'common', powerTier: 'basic', minDepth: 1, maxDepth: 10, descriptors: ['blue'] },
+        { type: 'MEDIUM_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '8d10', rarity: 'uncommon', powerTier: 'intermediate', minDepth: 8, maxDepth: 18, descriptors: ['red'] },
+        { type: 'MAJOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '12d10', rarity: 'uncommon', powerTier: 'advanced', minDepth: 15, maxDepth: 27, descriptors: ['clear'] },
+        { type: 'SUPERIOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '15d12', rarity: 'rare', powerTier: 'advanced', minDepth: 20, maxDepth: 27, descriptors: ['fizzy'] }
       ],
-      scrolls: [{ type: 'IDENTIFY', spriteName: 'scroll', effect: 'identify', rarity: 'common' }],
-      rings: [{ type: 'PROTECTION', spriteName: 'ring', effect: 'ac_bonus', rarity: 'uncommon' }],
-      wands: [{ type: 'MAGIC_MISSILE', spriteName: 'wand', damage: '1d6', charges: '3d3', rarity: 'uncommon' }],
+      scrolls: [{ type: 'IDENTIFY', spriteName: 'scroll', effect: 'identify', rarity: 'common', powerTier: 'basic' }],
+      rings: [{ type: 'PROTECTION', spriteName: 'ring', effect: 'ac_bonus', rarity: 'uncommon', powerTier: 'intermediate' }],
+      wands: [{ type: 'MAGIC_MISSILE', spriteName: 'wand', damage: '1d6', charges: '3d3', rarity: 'uncommon', powerTier: 'intermediate' }],
       food: [{ name: 'Food Ration', spriteName: 'food', nutrition: '900', rarity: 'common' }],
       lightSources: [
         { type: 'torch', name: 'Torch', spriteName: 'torch', radius: 2, fuel: 500, isPermanent: false, rarity: 'common' },
@@ -55,7 +56,7 @@ describe('ItemSpawnService - Healing Distribution Statistics', () => {
       ],
       consumables: [{ name: 'Oil Flask', spriteName: 'flask', type: 'lantern_fuel', fuelAmount: 600, rarity: 'common' }]
     }
-    service = new ItemSpawnService(realRandom, mockItemData)
+    service = new ItemSpawnService(realRandom, mockItemData, mockGuaranteeConfig)
   })
 
   test('depth 1 has ~10.8% healing spawn rate (vs 3.5% baseline)', () => {

@@ -1,6 +1,7 @@
 import { ItemSpawnService } from './ItemSpawnService'
 import { MockRandom } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
+import { mockGuaranteeConfig } from '@/test-utils'
 
 // ============================================================================
 // DEPTH-SCALING TESTS - Formula validation for depth-based item scaling
@@ -30,7 +31,7 @@ describe('ItemSpawnService - Depth Scaling Formulas', () => {
       ],
       consumables: [{ name: 'Oil Flask', spriteName: 'oil', type: 'lantern_fuel', fuelAmount: 600, rarity: 'common' }]
     }
-    service = new ItemSpawnService(mockRandom, mockItemData)
+    service = new ItemSpawnService(mockRandom, mockItemData, mockGuaranteeConfig)
   })
 
   // ============================================================================

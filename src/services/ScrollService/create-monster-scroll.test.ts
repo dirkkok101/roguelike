@@ -1,5 +1,5 @@
 import { ScrollService } from './ScrollService'
-import { mockItemData } from '@/test-utils'
+import { mockItemData, mockGuaranteeConfig } from '@/test-utils'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { IdentificationService } from '@services/IdentificationService'
 import { InventoryService } from '@services/InventoryService'
@@ -151,7 +151,7 @@ describe('ScrollService - CREATE_MONSTER Scroll', () => {
     levelService = new LevelService()
     statusEffectService = new StatusEffectService()
       fovService = new FOVService(statusEffectService)
-    dungeonService = new DungeonService(mockRandom, {} as MonsterSpawnService, mockItemData)
+    dungeonService = new DungeonService(mockRandom, {} as MonsterSpawnService, mockItemData, mockGuaranteeConfig)
     const curseService = new CurseService()
     scrollService = new ScrollService(
       identificationService,

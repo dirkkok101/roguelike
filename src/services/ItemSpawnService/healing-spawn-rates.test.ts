@@ -1,6 +1,7 @@
 import { ItemSpawnService } from './ItemSpawnService'
 import { MockRandom } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
+import { mockGuaranteeConfig } from '@/test-utils'
 
 describe('ItemSpawnService - Healing Spawn Rates', () => {
   let service: ItemSpawnService
@@ -13,10 +14,10 @@ describe('ItemSpawnService - Healing Spawn Rates', () => {
       weapons: [],
       armor: [],
       potions: [
-        { type: 'MINOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '5d8', rarity: 'common', minDepth: 1, maxDepth: 10, descriptors: [] },
-        { type: 'MEDIUM_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '8d10', rarity: 'uncommon', minDepth: 8, maxDepth: 18, descriptors: [] },
-        { type: 'MAJOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '12d10', rarity: 'uncommon', minDepth: 15, maxDepth: 26, descriptors: [] },
-        { type: 'SUPERIOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '15d12', rarity: 'rare', minDepth: 20, maxDepth: 26, descriptors: [] }
+        { type: 'MINOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '5d8', rarity: 'common', powerTier: 'basic', minDepth: 1, maxDepth: 10, descriptors: [] },
+        { type: 'MEDIUM_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '8d10', rarity: 'uncommon', powerTier: 'intermediate', minDepth: 8, maxDepth: 18, descriptors: [] },
+        { type: 'MAJOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '12d10', rarity: 'uncommon', powerTier: 'advanced', minDepth: 15, maxDepth: 26, descriptors: [] },
+        { type: 'SUPERIOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '15d12', rarity: 'rare', powerTier: 'advanced', minDepth: 20, maxDepth: 26, descriptors: [] }
       ],
       scrolls: [],
       rings: [],
@@ -25,7 +26,7 @@ describe('ItemSpawnService - Healing Spawn Rates', () => {
       lightSources: [],
       consumables: []
     }
-    service = new ItemSpawnService(mockRandom, mockItemData)
+    service = new ItemSpawnService(mockRandom, mockItemData, mockGuaranteeConfig)
   })
 
   describe('calculateHealingSpawnRate()', () => {

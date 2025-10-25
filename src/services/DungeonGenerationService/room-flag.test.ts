@@ -1,7 +1,7 @@
 import { DungeonService, DungeonConfig } from '../DungeonService/DungeonService'
 import { SeededRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
-import { mockItemData } from '@/test-utils'
+import { mockItemData, mockGuaranteeConfig } from '@/test-utils'
 
 describe('DungeonGenerationService - Room Flag', () => {
   let service: DungeonService
@@ -17,7 +17,7 @@ describe('DungeonGenerationService - Room Flag', () => {
       getSpawnCount: jest.fn().mockReturnValue(5),
     } as unknown as MonsterSpawnService
 
-    service = new DungeonService(randomService, mockMonsterSpawnService, mockItemData)
+    service = new DungeonService(randomService, mockMonsterSpawnService, mockItemData, mockGuaranteeConfig)
 
     config = {
       width: 80,

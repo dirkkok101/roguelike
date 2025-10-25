@@ -2,6 +2,7 @@ import { ItemSpawnService } from './ItemSpawnService'
 import { SeededRandom } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
 import { Room, Tile, ItemType, Weapon, Armor } from '@game/core/core'
+import { mockGuaranteeConfig } from '@/test-utils'
 
 // ============================================================================
 // ENCHANTMENT SCALING TESTS - Bonus progression validation
@@ -66,7 +67,7 @@ describe('ItemSpawnService - Enchantment Scaling', () => {
       ],
       consumables: [{ name: 'Oil Flask', spriteName: 'oil', type: 'lantern_fuel', fuelAmount: 600, rarity: 'common' }]
     }
-    service = new ItemSpawnService(realRandom, mockItemData)
+    service = new ItemSpawnService(realRandom, mockItemData, mockGuaranteeConfig)
   })
 
   // ============================================================================

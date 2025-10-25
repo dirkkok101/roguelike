@@ -2,7 +2,7 @@ import { DungeonService, DungeonConfig } from './DungeonService'
 import { CorridorGenerationService } from '@services/CorridorGenerationService'
 import { SeededRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
-import { mockItemData } from '@/test-utils'
+import { mockItemData, mockGuaranteeConfig } from '@/test-utils'
 
 describe('DungeonService', () => {
   const seed = 'test-dungeon-seed'
@@ -15,7 +15,7 @@ describe('DungeonService', () => {
     getSpawnCount: jest.fn().mockReturnValue(5),
   } as unknown as MonsterSpawnService
 
-  const dungeonService = new DungeonService(random, mockMonsterSpawnService, mockItemData)
+  const dungeonService = new DungeonService(random, mockMonsterSpawnService, mockItemData, mockGuaranteeConfig)
   const corridorService = new CorridorGenerationService(random)
 
   const defaultConfig: DungeonConfig = {
@@ -167,8 +167,8 @@ describe('DungeonService', () => {
     test('should generate identical dungeons with same seed', () => {
       const random1 = new SeededRandom('deterministic-seed')
       const random2 = new SeededRandom('deterministic-seed')
-      const service1 = new DungeonService(random1, mockMonsterSpawnService, mockItemData)
-      const service2 = new DungeonService(random2, mockMonsterSpawnService, mockItemData)
+      const service1 = new DungeonService(random1, mockMonsterSpawnService, mockItemData, mockGuaranteeConfig)
+      const service2 = new DungeonService(random2, mockMonsterSpawnService, mockItemData, mockGuaranteeConfig)
 
       const level1 = service1.generateLevel(1, defaultConfig)
       const level2 = service2.generateLevel(1, defaultConfig)

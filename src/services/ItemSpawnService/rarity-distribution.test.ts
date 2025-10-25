@@ -2,6 +2,7 @@ import { ItemSpawnService } from './ItemSpawnService'
 import { SeededRandom } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
 import { Room, Tile, ItemType, Weapon, Armor } from '@game/core/core'
+import { mockGuaranteeConfig } from '@/test-utils'
 
 // ============================================================================
 // RARITY DISTRIBUTION TESTS - Statistical validation of rarity weights
@@ -65,7 +66,7 @@ describe('ItemSpawnService - Rarity Distribution', () => {
       ],
       consumables: [{ name: 'Oil Flask', spriteName: 'oil', type: 'lantern_fuel', fuelAmount: 600, rarity: 'common' }]
     }
-    service = new ItemSpawnService(realRandom, mockItemData)
+    service = new ItemSpawnService(realRandom, mockItemData, mockGuaranteeConfig)
   })
 
   // ============================================================================

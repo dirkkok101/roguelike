@@ -1,7 +1,7 @@
 import { ItemSpawnService } from './ItemSpawnService'
 import { ItemType, Position, Amulet } from '@game/core/core'
 import { MockRandom } from '@services/RandomService'
-import { mockItemData } from '@/test-utils'
+import { mockItemData, mockGuaranteeConfig } from '@/test-utils'
 
 describe('ItemSpawnService - Amulet Spawn', () => {
   let mockRandom: MockRandom
@@ -10,7 +10,7 @@ describe('ItemSpawnService - Amulet Spawn', () => {
     it('should create Amulet of Yendor', () => {
       // MockRandom needs one value for ID generation
       mockRandom = new MockRandom([5000])
-      const service = new ItemSpawnService(mockRandom, mockItemData)
+      const service = new ItemSpawnService(mockRandom, mockItemData, mockGuaranteeConfig)
       const position: Position = { x: 10, y: 10 }
       const amulet = service.createAmulet(position)
 
@@ -24,7 +24,7 @@ describe('ItemSpawnService - Amulet Spawn', () => {
     it('should have valid sprite name', () => {
       // MockRandom needs one value for ID generation
       mockRandom = new MockRandom([5000])
-      const service = new ItemSpawnService(mockRandom, mockItemData)
+      const service = new ItemSpawnService(mockRandom, mockItemData, mockGuaranteeConfig)
       const position: Position = { x: 10, y: 10 }
       const amulet = service.createAmulet(position)
 
@@ -35,7 +35,7 @@ describe('ItemSpawnService - Amulet Spawn', () => {
     it('should have unique ID', () => {
       // MockRandom needs two values for two ID generations
       mockRandom = new MockRandom([5000, 6000])
-      const service = new ItemSpawnService(mockRandom, mockItemData)
+      const service = new ItemSpawnService(mockRandom, mockItemData, mockGuaranteeConfig)
       const position: Position = { x: 10, y: 10 }
       const amulet1 = service.createAmulet(position)
       const amulet2 = service.createAmulet(position)

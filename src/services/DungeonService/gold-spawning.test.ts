@@ -2,7 +2,7 @@ import { DungeonService } from './DungeonService'
 import { SeededRandom } from '@services/RandomService'
 import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { TileType } from '@game/core/core'
-import { mockItemData } from '@/test-utils'
+import { mockItemData, mockGuaranteeConfig } from '@/test-utils'
 
 describe('DungeonService - Gold Spawning', () => {
   const seed = 'gold-test-seed'
@@ -15,7 +15,7 @@ describe('DungeonService - Gold Spawning', () => {
     getSpawnCount: jest.fn().mockReturnValue(5),
   } as unknown as MonsterSpawnService
 
-  const service = new DungeonService(random, mockMonsterSpawnService, mockItemData)
+  const service = new DungeonService(random, mockMonsterSpawnService, mockItemData, mockGuaranteeConfig)
 
   const defaultConfig = {
     width: 80,
