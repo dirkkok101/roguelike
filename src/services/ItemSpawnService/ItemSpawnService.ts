@@ -793,7 +793,7 @@ export class ItemSpawnService {
         if (!position) continue
 
         // Create item of required category and power tier
-        const item = this.createItemForDeficit(deficit, level.depth, position)
+        const item = this.createItemForDeficit(deficit, level.depth, position, newItems)
         if (item) {
           newItems.push(item)
         }
@@ -837,27 +837,28 @@ export class ItemSpawnService {
   private createItemForDeficit(
     deficit: ItemDeficit,
     depth: number,
-    position: Position
+    position: Position,
+    newItems: Item[]
   ): Item | null {
     switch (deficit.category) {
       case 'healingPotions':
-        return this.createHealingPotionForDeficit(depth, position, deficit.powerTiers)
+        return this.createHealingPotionForDeficit(depth, position, deficit.powerTiers, newItems)
       case 'identifyScrolls':
-        return this.createIdentifyScroll(position)
+        return this.createIdentifyScroll(position, newItems)
       case 'enchantScrolls':
-        return this.createEnchantScroll(depth, position, deficit.powerTiers)
+        return this.createEnchantScroll(depth, position, deficit.powerTiers, newItems)
       case 'food':
-        return this.createFoodRation(position)
+        return this.createFoodRation(position, newItems)
       case 'lightSources':
-        return this.createLightSourceForDeficit(depth, position, deficit.powerTiers)
+        return this.createLightSourceForDeficit(depth, position, deficit.powerTiers, newItems)
       case 'rings':
-        return this.createRingForDeficit(depth, position)
+        return this.createRingForDeficit(depth, position, deficit.powerTiers, newItems)
       case 'wands':
-        return this.createWandForDeficit(depth, position)
+        return this.createWandForDeficit(depth, position, deficit.powerTiers, newItems)
       case 'weapons':
-        return this.createWeaponForDeficit(depth, position)
+        return this.createWeaponForDeficit(depth, position, newItems)
       case 'armors':
-        return this.createArmorForDeficit(depth, position)
+        return this.createArmorForDeficit(depth, position, newItems)
       default:
         return null
     }
@@ -866,7 +867,8 @@ export class ItemSpawnService {
   private createHealingPotionForDeficit(
     depth: number,
     position: Position,
-    allowedTiers: PowerTier[]
+    allowedTiers: PowerTier[],
+    newItems: Item[]
   ): Potion | null {
     // Filter healing potions by allowed power tiers
     const healingPotions = this.potionTemplates.filter(p =>
@@ -876,7 +878,7 @@ export class ItemSpawnService {
     if (healingPotions.length === 0) return null
 
     const template = healingPotions[this.random.nextInt(0, healingPotions.length - 1)]
-    return this.createPotionFromTemplate(template, position)
+    return this.createPotionFromTemplate(template, position, newItems)
   }
 
   private isHealingPotionType(type: PotionType): boolean {
@@ -890,9 +892,10 @@ export class ItemSpawnService {
 
   private createPotionFromTemplate(
     template: { type: PotionType; spriteName: string; effect: string; power: string },
-    position: Position
+    position: Position,
+    newItems: Item[]
   ): Potion {
-    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const itemId = `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
     return {
       id: itemId,
       name: `Potion of ${template.type}`,
@@ -907,11 +910,11 @@ export class ItemSpawnService {
     } as Potion
   }
 
-  private createIdentifyScroll(position: Position): Scroll | null {
+  private createIdentifyScroll(position: Position, newItems: Item[]): Scroll | null {
     const template = this.scrollTemplates.find(s => s.type === ScrollType.IDENTIFY)
     if (!template) return null
 
-    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const itemId = `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
     return {
       id: itemId,
       name: `Scroll of ${template.type}`,
@@ -928,7 +931,8 @@ export class ItemSpawnService {
   private createEnchantScroll(
     depth: number,
     position: Position,
-    allowedTiers: PowerTier[]
+    allowedTiers: PowerTier[],
+    newItems: Item[]
   ): Scroll | null {
     const enchantTypes = [ScrollType.ENCHANT_WEAPON, ScrollType.ENCHANT_ARMOR]
     const enchantScrolls = this.scrollTemplates.filter(s =>
@@ -938,7 +942,7 @@ export class ItemSpawnService {
     if (enchantScrolls.length === 0) return null
 
     const template = enchantScrolls[this.random.nextInt(0, enchantScrolls.length - 1)]
-    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const itemId = `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
     return {
       id: itemId,
       name: `Scroll of ${template.type}`,
@@ -952,9 +956,9 @@ export class ItemSpawnService {
     } as Scroll
   }
 
-  private createFoodRation(position: Position): Food {
+  private createFoodRation(position: Position, newItems: Item[]): Food {
     const template = this.random.pickRandom(this.foodTemplates)
-    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const itemId = `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
 
     return {
       id: itemId,
@@ -970,22 +974,28 @@ export class ItemSpawnService {
   private createLightSourceForDeficit(
     depth: number,
     position: Position,
-    allowedTiers: PowerTier[]
+    allowedTiers: PowerTier[],
+    newItems: Item[]
   ): Item | null {
     // For light sources, basic tier = torch, advanced tier = lantern
     if (allowedTiers.includes(PowerTier.ADVANCED)) {
-      return this.createLantern(position)
+      return this.createLantern(position, newItems)
     } else {
-      return this.createTorch(position)
+      return this.createTorch(position, newItems)
     }
   }
 
-  private createRingForDeficit(depth: number, position: Position): Ring | null {
-    const tierFiltered = this.filterByPowerTier(this.ringTemplates, depth)
+  private createRingForDeficit(
+    depth: number,
+    position: Position,
+    allowedTiers: PowerTier[],
+    newItems: Item[]
+  ): Ring | null {
+    const tierFiltered = this.ringTemplates.filter(t => allowedTiers.includes(t.powerTier))
     if (tierFiltered.length === 0) return null
 
     const template = this.random.pickRandom(tierFiltered)
-    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const itemId = `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
     const isCursed = template.type === RingType.TELEPORTATION
     const bonus = isCursed ? -1 : 1
 
@@ -1010,12 +1020,17 @@ export class ItemSpawnService {
     } as Ring
   }
 
-  private createWandForDeficit(depth: number, position: Position): Wand | null {
-    const tierFiltered = this.filterByPowerTier(this.wandTemplates, depth)
+  private createWandForDeficit(
+    depth: number,
+    position: Position,
+    allowedTiers: PowerTier[],
+    newItems: Item[]
+  ): Wand | null {
+    const tierFiltered = this.wandTemplates.filter(t => allowedTiers.includes(t.powerTier))
     if (tierFiltered.length === 0) return null
 
     const template = this.random.pickRandom(tierFiltered)
-    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const itemId = `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
     const maxCharges = this.random.roll(template.charges)
     const range = this.getWandRange(template.type)
 
@@ -1035,7 +1050,7 @@ export class ItemSpawnService {
     } as Wand
   }
 
-  private createWeaponForDeficit(depth: number, position: Position): Weapon | null {
+  private createWeaponForDeficit(depth: number, position: Position, newItems: Item[]): Weapon | null {
     const rarityWeights = this.calculateRarityWeights(depth)
     const rarity = this.selectWeightedRarity(rarityWeights)
     const templates = this.weaponTemplates.filter(t => t.rarity === rarity)
@@ -1043,7 +1058,7 @@ export class ItemSpawnService {
     if (templates.length === 0) return null
 
     const template = this.random.pickRandom(templates)
-    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const itemId = `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
     const isCursed = this.rollCursedStatus(rarity, depth)
     const bonus = this.rollEnchantment(rarity, isCursed, depth)
 
@@ -1065,7 +1080,7 @@ export class ItemSpawnService {
     } as Weapon
   }
 
-  private createArmorForDeficit(depth: number, position: Position): Armor | null {
+  private createArmorForDeficit(depth: number, position: Position, newItems: Item[]): Armor | null {
     const rarityWeights = this.calculateRarityWeights(depth)
     const rarity = this.selectWeightedRarity(rarityWeights)
     const templates = this.armorTemplates.filter(t => t.rarity === rarity)
@@ -1073,7 +1088,7 @@ export class ItemSpawnService {
     if (templates.length === 0) return null
 
     const template = this.random.pickRandom(templates)
-    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const itemId = `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
     const isCursed = this.rollCursedStatus(rarity, depth)
     const bonus = this.rollEnchantment(rarity, isCursed, depth)
 
@@ -1226,13 +1241,16 @@ export class ItemSpawnService {
   /**
    * Create torch
    */
-  createTorch(position: Position): Torch {
+  createTorch(position: Position, newItems?: Item[]): Torch {
     const torch = this.lightSourceTemplates.find((t) => t.type === 'torch')
     if (!torch) {
       throw new Error('Torch template not found')
     }
 
-    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    // Use deterministic ID if newItems provided (for force spawn), otherwise use Date.now() (for debug)
+    const itemId = newItems
+      ? `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
+      : `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
     return {
       id: itemId,
       name: torch.name,
@@ -1250,13 +1268,16 @@ export class ItemSpawnService {
   /**
    * Create lantern
    */
-  createLantern(position: Position): Lantern {
+  createLantern(position: Position, newItems?: Item[]): Lantern {
     const lantern = this.lightSourceTemplates.find((t) => t.type === 'lantern')
     if (!lantern) {
       throw new Error('Lantern template not found')
     }
 
-    const itemId = `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    // Use deterministic ID if newItems provided (for force spawn), otherwise use Date.now() (for debug)
+    const itemId = newItems
+      ? `item-forced-${newItems.length}-${this.random.nextInt(1000, 9999)}`
+      : `item-debug-${Date.now()}-${this.random.nextInt(1000, 9999)}`
     return {
       id: itemId,
       name: lantern.name,

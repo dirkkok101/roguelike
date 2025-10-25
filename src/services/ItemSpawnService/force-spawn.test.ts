@@ -1,6 +1,6 @@
 import { ItemSpawnService } from './ItemSpawnService'
 import { MockRandom } from '@services/RandomService'
-import { PowerTier, ItemType, Level } from '@game/core/core'
+import { PowerTier, ItemType, Level, Potion, PotionType } from '@game/core/core'
 import { ItemDeficit } from '@services/GuaranteeTracker'
 
 describe('ItemSpawnService - Force Spawn', () => {
@@ -115,5 +115,63 @@ describe('ItemSpawnService - Force Spawn', () => {
 
     const result = service.forceSpawnForGuarantees(mockLevel, [])
     expect(result.items).toHaveLength(0)
+  })
+
+  test('respects power tier filtering for healing potions', () => {
+    // Add multiple healing potion tiers to test data
+    const testItemData = {
+      ...mockItemData,
+      potions: [
+        {
+          type: 'MINOR_HEAL',
+          spriteName: 'potion_red',
+          effect: 'restore_hp',
+          power: '1d8',
+          rarity: 'common',
+          powerTier: 'basic'
+        },
+        {
+          type: 'MEDIUM_HEAL',
+          spriteName: 'potion_blue',
+          effect: 'restore_hp',
+          power: '2d8',
+          rarity: 'uncommon',
+          powerTier: 'advanced'
+        },
+        {
+          type: 'MAJOR_HEAL',
+          spriteName: 'potion_green',
+          effect: 'restore_hp',
+          power: '4d8',
+          rarity: 'rare',
+          powerTier: 'elite'
+        }
+      ]
+    }
+
+    // Mock random for spawning 3 healing potions
+    const mockRandom = new MockRandom([
+      0, 15, 15, 0, 1234,  // Potion 1: room 0, pos (15,15), template 0, ID 1234
+      0, 16, 15, 0, 5678,  // Potion 2: room 0, pos (16,15), template 0, ID 5678
+      0, 17, 15, 0, 9012   // Potion 3: room 0, pos (17,15), template 0, ID 9012
+    ])
+    const service = new ItemSpawnService(mockRandom, testItemData, mockGuarantees)
+
+    // Request only BASIC tier healing potions
+    const deficits: ItemDeficit[] = [
+      {
+        category: 'healingPotions',
+        count: 3,
+        powerTiers: [PowerTier.BASIC]
+      }
+    ]
+
+    const result = service.forceSpawnForGuarantees(mockLevel, deficits)
+
+    // Verify all spawned potions are BASIC tier (MINOR_HEAL)
+    expect(result.items).toHaveLength(3)
+    const potions = result.items as Potion[]
+    expect(potions.every(p => p.type === ItemType.POTION)).toBe(true)
+    expect(potions.every(p => p.potionType === PotionType.MINOR_HEAL)).toBe(true)
   })
 })
