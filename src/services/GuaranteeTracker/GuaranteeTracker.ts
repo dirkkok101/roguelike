@@ -177,4 +177,12 @@ export class GuaranteeTracker {
     // For depths 17+, all tiers allowed
     return [PowerTier.BASIC, PowerTier.INTERMEDIATE, PowerTier.ADVANCED]
   }
+
+  /**
+   * Reset tracker for next depth range
+   */
+  resetRange(rangeStart: number): void {
+    this.currentRange = this.getDepthRange(rangeStart)
+    this.rangeCounters.set(this.currentRange, this.createEmptyCounter())
+  }
 }

@@ -158,4 +158,47 @@ describe('GuaranteeTracker', () => {
       expect(deficits).toHaveLength(0)
     })
   })
+
+  describe('resetRange', () => {
+    test('clears counters for new range', () => {
+      const config: GuaranteeConfig = {
+        categoryWeights: {},
+        rangeGuarantees: {
+          '1-5': { healingPotions: 10 },
+          '6-10': { healingPotions: 8 }
+        }
+      }
+
+      const tracker = new GuaranteeTracker(config)
+
+      // Record items in first range
+      const healingPotion = { type: ItemType.POTION, potionType: 'MINOR_HEAL' } as any
+      tracker.recordItem(3, healingPotion)
+
+      expect(tracker['rangeCounters'].get('1-5')?.healingPotions).toBe(1)
+
+      // Reset to next range
+      tracker.resetRange(6)
+
+      // Record items in new range
+      tracker.recordItem(7, healingPotion)
+
+      // First range should still have count
+      expect(tracker['rangeCounters'].get('1-5')?.healingPotions).toBe(1)
+      // New range should have new count
+      expect(tracker['rangeCounters'].get('6-10')?.healingPotions).toBe(1)
+    })
+
+    test('updates current range', () => {
+      const tracker = new GuaranteeTracker({ categoryWeights: {}, rangeGuarantees: {} })
+
+      expect(tracker['currentRange']).toBe('1-5')
+
+      tracker.resetRange(6)
+      expect(tracker['currentRange']).toBe('6-10')
+
+      tracker.resetRange(21)
+      expect(tracker['currentRange']).toBe('21-26')
+    })
+  })
 })
