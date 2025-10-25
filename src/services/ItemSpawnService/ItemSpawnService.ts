@@ -352,6 +352,41 @@ export class ItemSpawnService {
   }
 
   /**
+   * Calculate spawn rate for healing potions based on depth and tier
+   * Each tier has a different spawn curve to ensure smooth progression
+   *
+   * @param depth - Current dungeon depth (1-26)
+   * @param healingType - Healing potion type (MINOR_HEAL, MEDIUM_HEAL, MAJOR_HEAL, SUPERIOR_HEAL)
+   * @returns Spawn rate as decimal (0.0 to 1.0)
+   */
+  private calculateHealingSpawnRate(depth: number, healingType: string): number {
+    switch (healingType) {
+      case 'MINOR_HEAL':
+        // spawn_rate = max(0, 12% - (depth × 1.2%))
+        // Depths 1-10, phased out at depth 10
+        return Math.max(0, 0.12 - (depth * 0.012))
+
+      case 'MEDIUM_HEAL':
+        // spawn_rate = max(0, 10% - abs(depth - 13) × 0.8%)
+        // Bell curve peaking at depth 13, depths 8-18
+        return Math.max(0, 0.10 - Math.abs(depth - 13) * 0.008)
+
+      case 'MAJOR_HEAL':
+        // spawn_rate = min(12%, max(0, (depth - 14) × 1.0%))
+        // Linear ramp from depth 15-26, peaks at 12%
+        return Math.min(0.12, Math.max(0, (depth - 14) * 0.01))
+
+      case 'SUPERIOR_HEAL':
+        // spawn_rate = max(0, (depth - 19) × 0.5%)
+        // Rare finds, depths 20-26, max 3.5%
+        return Math.max(0, (depth - 19) * 0.005)
+
+      default:
+        return 0
+    }
+  }
+
+  /**
    * Select rarity using weighted random selection
    * Uses total sum normalization to handle non-100% weight sums
    *
