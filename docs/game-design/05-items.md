@@ -1,7 +1,7 @@
 # Items
 
-**Version**: 2.1
-**Last Updated**: 2025-10-09
+**Version**: 2.2
+**Last Updated**: 2025-10-25
 **Related Docs**: [Light Sources](./06-light-sources.md) | [Identification](./07-identification.md) | [Hunger](./08-hunger.md) | [Character](./02-character.md)
 
 ---
@@ -525,6 +525,293 @@
 - Use Scroll of Identify before equipping unknown items
 - Keep Remove Curse scrolls for emergencies
 - Enchant scrolls serve dual purpose (upgrade + curse removal)
+
+---
+
+## 6. Item Scaling System
+
+**Version**: 2.0 (Weighted Categories with Guarantees)
+**Last Updated**: 2025-10-25
+**Design Document**: [Item Scaling Design](../plans/2025-10-25-item-scaling-design.md)
+
+### Overview
+
+The item scaling system ensures predictable resource availability across the 26-level dungeon journey through:
+1. **Fixed item counts** (7 items per level = 182 total)
+2. **Depth-based category weights** (equipment early, tactical items late)
+3. **Power tier gating** (basic → intermediate → advanced progression)
+4. **Guarantee system** (minimum resource quotas per depth range)
+
+This replaces random 5-8 items per level with deterministic spawning that prevents unlucky RNG from blocking critical resources.
+
+---
+
+### Fixed Item Counts
+
+Every level spawns **exactly 7 items** for consistent resource flow:
+
+- **Total Items**: 26 levels × 7 items = **182 items** across full dungeon
+- **Predictability**: No "unlucky" 5-item levels when resources are critical
+- **Balance**: Easier to tune guarantees with fixed count
+
+**Rationale**: Maintains Rogue's deterministic dungeon generation philosophy while ensuring playability.
+
+---
+
+### Depth-Based Category Weights
+
+Category distribution shifts across depth ranges to match player progression:
+
+| Depth Range | Potion | Scroll | Ring | Wand | Weapon | Armor | Food | Light |
+|-------------|--------|--------|------|------|--------|-------|------|-------|
+| **1-5** (Early)    | 20%    | 20%    | 5%   | 5%   | 15%    | 15%   | 12%  | 8%    |
+| **6-10** (Mid-early) | 18%    | 18%    | 10%  | 10%  | 12%    | 12%   | 12%  | 8%    |
+| **11-15** (Mid)    | 16%    | 16%    | 14%  | 14%  | 10%    | 10%   | 12%  | 8%    |
+| **16-20** (Mid-late) | 15%    | 15%    | 16%  | 16%  | 8%     | 8%    | 14%  | 8%    |
+| **21-26** (Late)   | 14%    | 14%    | 18%  | 18%  | 6%     | 6%    | 16%  | 8%    |
+
+**Progression Rationale**:
+- **Early game**: More weapons/armor (survival gear), fewer rings/wands (limited utility)
+- **Mid game**: Balanced distribution as player stabilizes equipment
+- **Late game**: More rings/wands (tactical depth), fewer basic equipment (already equipped)
+- **Resources**: Food scales from 12% → 16% (longer journey needs more sustenance)
+- **Light sources**: Consistent 8% (critical resource throughout, never reduced)
+
+**Example - Depth 1 (7 items with early weights)**:
+- 1-2 potions (20% = 1.4 items avg)
+- 1-2 scrolls (20% = 1.4 items avg)
+- 0-1 ring (5% = 0.35 items avg)
+- 1 weapon (15% = 1.05 items avg)
+- 1 armor (15% = 1.05 items avg)
+- 1 food (12% = 0.84 items avg)
+- 0-1 light source (8% = 0.56 items avg)
+
+Weights create natural variety while maintaining expected distributions.
+
+---
+
+### Power Tier Gating
+
+Items restricted by depth to prevent inappropriate power spikes:
+
+#### BASIC TIER (Depths 1-8)
+
+**Allowed Items**:
+- **Potions**: Minor Healing (1d8), Restore Strength, Poison (cursed)
+- **Scrolls**: Identify, Light, Sleep (cursed), Create Monster (cursed)
+- **Rings**: Slow Digestion, Searching, Protection +1 only
+- **Wands**: None (wands appear via category weights at depth 6+, but power tier restricts until depth 9+)
+- **Equipment**: Basic weapons (Mace, Short Sword), light armor (Leather, Studded Leather, Ring Mail)
+
+**Philosophy**: Survival focus - healing, identification, basic combat gear.
+
+---
+
+#### INTERMEDIATE TIER (Depths 9-16)
+
+**Allowed Items** (in addition to basic tier):
+- **Potions**: Medium Healing (2d8+2), Detect Monster, Detect Magic, Confusion (cursed), Blindness (cursed)
+- **Scrolls**: Enchant Weapon, Enchant Armor, Magic Mapping, Remove Curse
+- **Rings**: Protection (any bonus), Add Strength, Sustain Strength, Dexterity
+- **Wands**: Magic Missile, Sleep, Slow Monster
+- **Equipment**: Intermediate weapons (Long Sword, Battle Axe), medium armor (Chain Mail, Banded Mail), Lanterns
+
+**Philosophy**: Character progression - upgrades, utility, tactical options.
+
+---
+
+#### ADVANCED TIER (Depths 17-26)
+
+**Allowed Items** (in addition to basic and intermediate):
+- **Potions**: Major Healing (3d8+4), Superior Healing (4d8+6), Raise Level, Haste Self, Levitation, See Invisible
+- **Scrolls**: Teleportation, Hold Monster, Scare Monster (rare)
+- **Rings**: Regeneration, See Invisible, Teleportation (cursed)
+- **Wands**: Lightning (6d6), Fire (6d6), Cold (6d6), Haste Monster, Polymorph, Teleport Away, Cancellation
+- **Equipment**: Powerful weapons (Two-handed Sword, Claymore), heavy armor (Splint Mail, Plate Mail), Artifacts (Phial of Galadriel, Star of Elendil)
+
+**Philosophy**: Full power - game-changing items, boss encounters, final challenges.
+
+---
+
+#### Tier Enforcement
+
+**Allowed Tiers by Depth**:
+- **Depths 1-8**: Basic only
+- **Depths 9-16**: Basic + Intermediate
+- **Depths 17-26**: Basic + Intermediate + Advanced (all tiers)
+
+**Examples**:
+- ✅ Depth 5 → Minor Healing potion (basic tier)
+- ❌ Depth 5 → Teleport scroll (advanced tier - blocked)
+- ✅ Depth 12 → Enchant Weapon scroll (intermediate tier)
+- ✅ Depth 20 → Haste Self potion (advanced tier)
+
+**Implementation**: Each item template has `powerTier` field. ItemSpawnService filters available items by depth's allowed tiers before weighted selection.
+
+---
+
+### Guarantee System
+
+Two-layer guarantee system prevents resource starvation:
+
+#### Range Guarantees (Cumulative Quotas)
+
+Minimum items tracked across depth windows, enforced on boundary levels (5, 10, 15, 20, 26):
+
+**Depths 1-5 (35 items total: 5 levels × 7 items)**:
+- **10+ healing potions** (survival critical)
+- **3+ Scroll of Identify** (learn items early)
+- **2+ weapons, 2+ armors** (upgrade options)
+- **6+ food rations** (hunger security)
+- **8+ light sources** (vision security)
+
+**Depths 6-10 (35 items total)**:
+- **8+ healing potions** (sustain through mid-game)
+- **2+ enchant scrolls** (weapon/armor upgrades)
+- **2+ rings** (first meaningful rings)
+- **1+ lantern** (light upgrade path)
+- **6+ light sources** (continued vision security)
+- **5+ food rations** (hunger coverage)
+
+**Depths 11-15 (35 items total)**:
+- **6+ healing potions** (base healing needs)
+- **6+ utility potions** (detect, haste, levitation)
+- **3+ utility scrolls** (teleport, mapping)
+- **3+ rings** (build variety)
+- **2+ wands** (ranged tactical options)
+- **5+ light sources** (vision security)
+- **5+ food rations** (hunger coverage)
+
+**Depths 16-20 (35 items total)**:
+- **8+ healing potions** (monster damage scales up)
+- **8+ advanced potions** (gain level, extra healing)
+- **4+ advanced scrolls** (scare monster, hold monster)
+- **4+ rings** (late-game builds)
+- **3+ wands** (tactical depth)
+- **5+ light sources** (vision security)
+- **5+ food rations** (hunger coverage)
+
+**Depths 21-26 (42 items total: 6 levels × 7 items)**:
+- **8+ healing potions** (final push to Amulet)
+- **10+ powerful items** (any category, high power tier)
+- **2+ artifacts** (permanent light sources - fuel anxiety ends)
+- **10+ food rations** (final push needs resources)
+- **4+ light sources** (until artifact found)
+
+---
+
+#### Enforcement Mechanism
+
+During `DungeonService.generateAllLevels()`:
+
+1. **GuaranteeTracker** records items spawned in current depth range
+2. On last level of range (5, 10, 15, 20, 26), check quotas
+3. If quota not met, force-spawn missing items on that level
+4. Example: Depth 5 check → only 8/10 healing potions → force-spawn 2 Minor Healing potions
+
+**Result**: All range guarantees met 100% of the time (no unlucky RNG blocking critical resources).
+
+---
+
+### Resource Economy
+
+Critical resource guarantees across 26-level journey:
+
+#### Healing Potions
+
+**Total Expected**: ~50 healing potions across 26 levels (27% of 182 items)
+
+**Distribution by Tier**:
+
+| Tier | HP Restored | Depths | Count | Spawn Strategy |
+|------|-------------|--------|-------|----------------|
+| **Minor Heal** | 1d8 | 1-10 | 15 potions | 60% rate depths 1-5, 40% rate depths 6-8, 0% after depth 10 |
+| **Medium Heal** | 2d8+2 | 8-18 | 18 potions | Bell curve peaking at depth 13, overlaps Minor (8-10) and Major (16-18) |
+| **Major Heal** | 3d8+4 | 15-26 | 14 potions | Linear ramp from depth 15, primary late-game healing |
+| **Superior Heal** | 4d8+6 | 20-26 | 3 potions | Rare emergency heals, boss encounter insurance |
+
+**Guaranteed Minimum**: 40 healing potions across all ranges (80% of expected 50)
+
+**Strategy**: Tiered healing scales with monster damage (early game = weak healing sufficient, late game = powerful healing required).
+
+---
+
+#### Food Economy
+
+**Journey Duration**: 26 levels × 500 turns avg/level = 13,000 turns
+
+**Hunger Consumption**:
+- Base: 1 unit/turn = 13,000 food needed
+- With rings (50% penalty): up to 19,500 food needed (2 hunger rings equipped)
+
+**Starting Food**: 1,300 units (1 food ration)
+
+**Food Rations**: 1,100-1,499 units each (avg 1,300 units)
+
+**Required Food Rations**: 10-15 rations for full journey
+
+**Spawn Rate**: 12-16% scaling with depth (depths 1-5: 12%, depths 21-26: 16%)
+
+**Expected Spawns**: ~25 food rations across 26 levels (safety buffer above 10-15 required)
+
+**Guaranteed Minimum**: 27 food rations across all ranges (comfortable margin above 10-15 required)
+
+**Strategy**: Food scales with depth as ring usage increases hunger consumption.
+
+---
+
+#### Light Source Economy
+
+**Critical Importance**: Vision radius = 0 without light source (player blind)
+
+**Fuel Consumption**: 26 levels × 500 turns avg = 13,000 turns of fuel needed
+
+**Light Source Types**:
+- **Torches**: 650 fuel each → 20 torches needed for full journey
+- **Lanterns**: Refillable, 750 starting + 600/oil flask
+
+**Starting Equipment** (random):
+- Option A: 1 torch (650 fuel) + 2 spare torches in inventory
+- Option B: 1 lantern (750 fuel) + 2 oil flasks (1,200 fuel) in inventory
+
+**Light Source Spawn Rates** (8% total):
+- **Torches**: 4% all depths → 7.3 torches expected over 26 levels
+- **Oil flasks**: 3% all depths → 5.5 flasks expected over 26 levels
+- **Lanterns**: 1% depths 6+ → 2.1 lanterns expected over 20 levels
+- **Artifacts**: <0.5% depths 18+ → 0-1 permanent light expected
+
+**Expected Total Fuel** (worst case - all torches):
+- Starting: ~1,950 fuel (3 torches)
+- Found: ~6,500 fuel (10 torches + 3,300 oil from flasks)
+- **Total: ~8,450 fuel (65% of needed 13,000)**
+
+**Guaranteed Minimum**: 28+ light sources across all ranges (provides ~85%+ fuel coverage)
+
+**Artifact Solution**: Once artifact found (depths 18+), fuel management ends permanently. This creates **strategic progression milestone** where resource anxiety transitions to tactical depth.
+
+**Strategy**: Light sources are intentionally scarce to create tension, resolved by artifact discovery in late game.
+
+---
+
+### Progression Examples
+
+**Depths 1-5 (Early Game)**:
+- **Focus**: Weapons, armor, healing potions
+- **Power**: Basic tier only (no teleport, haste, powerful wands)
+- **Guarantees**: 10+ healing, 3+ identify, 6+ food, 8+ light
+- **Experience**: Survival-focused, learning item types, building basic equipment
+
+**Depths 6-15 (Mid Game)**:
+- **Focus**: Balanced distribution, enchant scrolls, rings appear (10% at 6-10, 14% at 11-15)
+- **Power**: Basic + intermediate tiers (enchant scrolls, detect potions, medium healing)
+- **Guarantees**: 8-6 healing per range, 2+ enchant scrolls, 2-3+ rings, 2+ wands
+- **Experience**: Character progression, upgrading equipment, tactical options emerge
+
+**Depths 16-26 (Late Game)**:
+- **Focus**: Rings (16-18%), wands (16-18%), powerful potions/scrolls
+- **Power**: All tiers (teleport, haste, lightning wands, artifacts)
+- **Guarantees**: 8+ healing per range, 10+ powerful items, 2+ artifacts
+- **Experience**: Full power, game-changing items, boss encounters, artifact light source ends fuel anxiety
 
 ---
 
