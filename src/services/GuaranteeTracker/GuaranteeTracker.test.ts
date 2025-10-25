@@ -1,5 +1,5 @@
 import { GuaranteeTracker, GuaranteeConfig } from './GuaranteeTracker'
-import { ItemType, PowerTier } from '@game/core/core'
+import { ItemType, PowerTier, ScrollType } from '@game/core/core'
 
 describe('GuaranteeTracker', () => {
   describe('getDepthRange', () => {
@@ -78,6 +78,84 @@ describe('GuaranteeTracker', () => {
 
       expect(tracker['rangeCounters'].get('1-5')?.healingPotions).toBe(1)
       expect(tracker['rangeCounters'].get('6-10')?.healingPotions).toBe(1)
+    })
+  })
+
+  describe('getDeficits', () => {
+    test('returns deficit when quota not met', () => {
+      const config: GuaranteeConfig = {
+        categoryWeights: {},
+        rangeGuarantees: {
+          '1-5': {
+            healingPotions: 10,
+            identifyScrolls: 3
+          }
+        }
+      }
+
+      const tracker = new GuaranteeTracker(config)
+
+      // Record only 7 healing potions (need 10)
+      const healingPotion = { type: ItemType.POTION, potionType: 'MINOR_HEAL' } as any
+      for (let i = 0; i < 7; i++) {
+        tracker.recordItem(3, healingPotion)
+      }
+
+      // Record only 1 identify scroll (need 3)
+      const identifyScroll = { type: ItemType.SCROLL, scrollType: ScrollType.IDENTIFY } as any
+      tracker.recordItem(4, identifyScroll)
+
+      const deficits = tracker.getDeficits(5)
+
+      expect(deficits).toHaveLength(2)
+      expect(deficits[0]).toEqual({
+        category: 'healingPotions',
+        count: 3,
+        powerTiers: [PowerTier.BASIC]
+      })
+      expect(deficits[1]).toEqual({
+        category: 'identifyScrolls',
+        count: 2,
+        powerTiers: [PowerTier.BASIC]
+      })
+    })
+
+    test('returns empty array when all quotas met', () => {
+      const config: GuaranteeConfig = {
+        categoryWeights: {},
+        rangeGuarantees: {
+          '1-5': { healingPotions: 5 }
+        }
+      }
+
+      const tracker = new GuaranteeTracker(config)
+
+      const healingPotion = { type: ItemType.POTION, potionType: 'MINOR_HEAL' } as any
+      for (let i = 0; i < 5; i++) {
+        tracker.recordItem(2, healingPotion)
+      }
+
+      const deficits = tracker.getDeficits(5)
+      expect(deficits).toHaveLength(0)
+    })
+
+    test('handles over-quota (no deficit)', () => {
+      const config: GuaranteeConfig = {
+        categoryWeights: {},
+        rangeGuarantees: {
+          '1-5': { healingPotions: 5 }
+        }
+      }
+
+      const tracker = new GuaranteeTracker(config)
+
+      const healingPotion = { type: ItemType.POTION, potionType: 'MINOR_HEAL' } as any
+      for (let i = 0; i < 12; i++) {
+        tracker.recordItem(2, healingPotion)
+      }
+
+      const deficits = tracker.getDeficits(5)
+      expect(deficits).toHaveLength(0)
     })
   })
 })

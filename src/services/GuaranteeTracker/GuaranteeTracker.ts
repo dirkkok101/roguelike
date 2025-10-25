@@ -142,4 +142,39 @@ export class GuaranteeTracker {
     ]
     return potionTypes.includes((item as any).potionType)
   }
+
+  /**
+   * Get deficits for current range (called on boundary levels: 5, 10, 15, 20, 26)
+   */
+  getDeficits(depth: number): ItemDeficit[] {
+    const range = this.getDepthRange(depth)
+    const quotas = this.config.rangeGuarantees[range]
+    const actual = this.rangeCounters.get(range) || this.createEmptyCounter()
+
+    const deficits: ItemDeficit[] = []
+
+    for (const [category, quota] of Object.entries(quotas)) {
+      const actualCount = (actual as any)[category] || 0
+      if (actualCount < quota) {
+        deficits.push({
+          category,
+          count: quota - actualCount,
+          powerTiers: this.getAllowedTiersForCategory(category, depth)
+        })
+      }
+    }
+
+    return deficits
+  }
+
+  private getAllowedTiersForCategory(category: string, depth: number): PowerTier[] {
+    // For depths 1-8, only basic tier allowed
+    if (depth <= 8) return [PowerTier.BASIC]
+
+    // For depths 9-16, basic and intermediate allowed
+    if (depth <= 16) return [PowerTier.BASIC, PowerTier.INTERMEDIATE]
+
+    // For depths 17+, all tiers allowed
+    return [PowerTier.BASIC, PowerTier.INTERMEDIATE, PowerTier.ADVANCED]
+  }
 }
