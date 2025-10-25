@@ -139,7 +139,7 @@ describe('DebugService - Identify All', () => {
   test('identifyAll includes specific potion type', async () => {
     const result = debugService.identifyAll(mockState)
 
-    expect(result.identifiedItems.has('potion-HEAL')).toBe(true)
+    expect(result.identifiedItems.has('potion-MINOR_HEAL')).toBe(true)
   })
 
   test('identifyAll includes specific scroll type', async () => {

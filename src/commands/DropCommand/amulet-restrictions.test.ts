@@ -78,7 +78,7 @@ describe('DropCommand - Amulet Restrictions', () => {
       type: ItemType.POTION,
       identified: false,
       position: { x: 0, y: 0 },
-      potionType: PotionType.HEAL,
+      potionType: PotionType.MINOR_HEAL,
       effect: 'restore_hp',
       power: '1d8',
       descriptorName: 'blue potion',

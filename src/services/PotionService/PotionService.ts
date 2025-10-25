@@ -49,28 +49,14 @@ export class PotionService {
 
     // Apply effect based on type
     switch (potion.potionType) {
-      case PotionType.HEAL:
+      case PotionType.MINOR_HEAL:
+      case PotionType.MEDIUM_HEAL:
+      case PotionType.MAJOR_HEAL:
+      case PotionType.SUPERIOR_HEAL:
         {
-          const result = this.applyHealPotion(player, potion)
+          const result = this.applyHealingPotion(player, potion)
           updatedPlayer = result.player
           message = `You feel better. (+${result.healAmount} HP)`
-          if (result.maxHpIncrease) {
-            message += ' You feel permanently stronger! (Max HP +1)'
-          }
-          if (result.curedConfusion) {
-            message += ' Your head clears!'
-          }
-          if (result.curedBlindness) {
-            message += ' You can see again!'
-          }
-        }
-        break
-
-      case PotionType.EXTRA_HEAL:
-        {
-          const result = this.applyExtraHealPotion(player, potion)
-          updatedPlayer = result.player
-          message = `You feel much better! (+${result.healAmount} HP)`
           if (result.maxHpIncrease) {
             message += ' You feel permanently stronger! (Max HP +1)'
           }

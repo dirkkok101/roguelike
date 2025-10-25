@@ -55,35 +55,35 @@ describe('DebugService - Enum Parsing Helpers', () => {
   })
 
   describe('parsePotionType', () => {
-    test('returns HEAL when subType is undefined', () => {
+    test('returns MINOR_HEAL when subType is undefined', () => {
       // Access private method via type assertion for testing
       const result = (debugService as any).parsePotionType(undefined)
-      expect(result).toBe(PotionType.HEAL)
+      expect(result).toBe(PotionType.MINOR_HEAL)
     })
 
-    test('returns HEAL when subType is null', () => {
+    test('returns MINOR_HEAL when subType is null', () => {
       const result = (debugService as any).parsePotionType(null)
-      expect(result).toBe(PotionType.HEAL)
+      expect(result).toBe(PotionType.MINOR_HEAL)
     })
 
-    test('returns HEAL when subType is empty string', () => {
+    test('returns MINOR_HEAL when subType is empty string', () => {
       const result = (debugService as any).parsePotionType('')
-      expect(result).toBe(PotionType.HEAL)
+      expect(result).toBe(PotionType.MINOR_HEAL)
     })
 
     test('returns correct PotionType for valid string', () => {
-      const result = (debugService as any).parsePotionType('EXTRA_HEAL')
-      expect(result).toBe(PotionType.EXTRA_HEAL)
+      const result = (debugService as any).parsePotionType('MEDIUM_HEAL')
+      expect(result).toBe(PotionType.MEDIUM_HEAL)
     })
 
-    test('returns HEAL for invalid enum string', () => {
+    test('returns MINOR_HEAL for invalid enum string', () => {
       const result = (debugService as any).parsePotionType('INVALID_TYPE')
-      expect(result).toBe(PotionType.HEAL)
+      expect(result).toBe(PotionType.MINOR_HEAL)
     })
 
     test('handles all valid PotionType values', () => {
-      expect((debugService as any).parsePotionType('HEAL')).toBe(PotionType.HEAL)
-      expect((debugService as any).parsePotionType('EXTRA_HEAL')).toBe(PotionType.EXTRA_HEAL)
+      expect((debugService as any).parsePotionType('MINOR_HEAL')).toBe(PotionType.MINOR_HEAL)
+      expect((debugService as any).parsePotionType('MEDIUM_HEAL')).toBe(PotionType.MEDIUM_HEAL)
       expect((debugService as any).parsePotionType('GAIN_STRENGTH')).toBe(PotionType.GAIN_STRENGTH)
       expect((debugService as any).parsePotionType('RESTORE_STRENGTH')).toBe(
         PotionType.RESTORE_STRENGTH

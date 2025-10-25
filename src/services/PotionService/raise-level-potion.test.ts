@@ -199,7 +199,11 @@ describe('PotionService - Raise Level Potion', () => {
       expect(result.player.xp).toBe(15)
     })
 
-    test('does not level up if already at max level (10)', () => {
+    test('continues to level up beyond level 10 (infinite progression)', () => {
+      mockRandom = new MockRandom([6]) // Roll 6 HP for level-up
+      levelingService = new LevelingService(mockRandom) // Recreate with new mock
+      potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
+
       const potion: Potion = {
         id: 'potion-1',
         name: 'Potion of Raise Level',
@@ -212,15 +216,15 @@ describe('PotionService - Raise Level Potion', () => {
         descriptorName: 'golden potion',
       }
 
-      // Player at max level
+      // Player at level 10
       testPlayer = { ...testPlayer, level: 10, xp: 500, hp: 200, maxHp: 200 }
 
       const result = potionService.applyPotion(testPlayer, potion, testState)
 
-      // Should not level up
-      expect(result.player.level).toBe(10)
-      expect(result.player.maxHp).toBe(200) // No HP increase
-      expect(result.player.hp).toBe(200) // No change
+      // Should level up to 11 (infinite progression)
+      expect(result.player.level).toBe(11)
+      expect(result.player.maxHp).toBe(206) // 200 + 6
+      expect(result.player.hp).toBe(206) // Fully healed
     })
 
     test('works correctly for low-level player', () => {

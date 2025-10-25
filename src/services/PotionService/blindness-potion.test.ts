@@ -65,7 +65,7 @@ function createTestState(player: Player): GameState {
   const itemNameMap: ItemNameMap = {
     potions: new Map<PotionType, string>([
       [PotionType.BLINDNESS, 'dark potion'],
-      [PotionType.HEAL, 'blue potion'],
+      [PotionType.MINOR_HEAL, 'blue potion'],
     ]),
     scrolls: new Map<ScrollType, string>(),
     rings: new Map<RingType, string>(),

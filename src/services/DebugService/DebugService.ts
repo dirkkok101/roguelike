@@ -255,7 +255,7 @@ export class DebugService {
    * Smart positioning: spawns near player in same room or nearest room.
    *
    * @param itemType - Type category ('potion', 'scroll', 'ring', 'wand', 'food', 'torch', 'lantern', 'oil')
-   * @param subType - Specific type (e.g., PotionType.HEAL for potions, ScrollType.IDENTIFY for scrolls)
+   * @param subType - Specific type (e.g., PotionType.MINOR_HEAL for potions, ScrollType.IDENTIFY for scrolls)
    * @param position - Optional position (uses smart positioning if not provided)
    */
   spawnItem(
@@ -752,14 +752,14 @@ export class DebugService {
    * Parse potion type from string
    *
    * Converts string subtype to PotionType enum value.
-   * Returns default (HEAL) if subtype is undefined or invalid.
+   * Returns default (MINOR_HEAL) if subtype is undefined or invalid.
    *
    * @param subType - Optional string representation of PotionType
    * @returns PotionType enum value
    */
   private parsePotionType(subType?: string): PotionType {
-    if (!subType) return PotionType.HEAL
-    return PotionType[subType as keyof typeof PotionType] || PotionType.HEAL
+    if (!subType) return PotionType.MINOR_HEAL
+    return PotionType[subType as keyof typeof PotionType] || PotionType.MINOR_HEAL
   }
 
   /**

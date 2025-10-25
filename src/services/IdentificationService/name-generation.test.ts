@@ -79,8 +79,8 @@ describe('IdentificationService - Name Generation', () => {
       const nameMap2 = service2.generateItemNames()
 
       // Potions should match
-      expect(nameMap1.potions.get(PotionType.HEAL)).toBe(
-        nameMap2.potions.get(PotionType.HEAL)
+      expect(nameMap1.potions.get(PotionType.MINOR_HEAL)).toBe(
+        nameMap2.potions.get(PotionType.MINOR_HEAL)
       )
       expect(nameMap1.potions.get(PotionType.POISON)).toBe(
         nameMap2.potions.get(PotionType.POISON)
@@ -110,8 +110,8 @@ describe('IdentificationService - Name Generation', () => {
       const nameMap2 = service2.generateItemNames()
 
       // At least some names should be different
-      const healPotion1 = nameMap1.potions.get(PotionType.HEAL)
-      const healPotion2 = nameMap2.potions.get(PotionType.HEAL)
+      const healPotion1 = nameMap1.potions.get(PotionType.MINOR_HEAL)
+      const healPotion2 = nameMap2.potions.get(PotionType.MINOR_HEAL)
 
       const identifyScroll1 = nameMap1.scrolls.get(ScrollType.IDENTIFY)
       const identifyScroll2 = nameMap2.scrolls.get(ScrollType.IDENTIFY)

@@ -416,7 +416,7 @@ describe('PotionService - Detection Potions', () => {
           type: ItemType.POTION,
           identified: false,
           position: { x: 10, y: 10 },
-          potionType: PotionType.HEAL,
+          potionType: PotionType.MINOR_HEAL,
           effect: 'restore_hp',
           power: '1d8',
           descriptorName: 'red potion',

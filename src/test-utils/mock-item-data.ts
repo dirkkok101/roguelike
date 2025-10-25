@@ -6,8 +6,10 @@ import { ItemData } from '../data/ItemDataLoader'
  */
 export const mockItemData: ItemData = {
   potions: [
-    { type: 'HEAL', spriteName: 'potion', effect: 'restore_hp', power: '1d8', rarity: 'common', descriptors: ['red', 'crimson', 'ruby'] },
-    { type: 'EXTRA_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '3d8', rarity: 'uncommon', descriptors: ['pink', 'rose', 'magenta'] },
+    { type: 'MINOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '1d8', rarity: 'common', descriptors: ['red', 'crimson', 'ruby'] },
+    { type: 'MEDIUM_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '2d8', rarity: 'uncommon', descriptors: ['pink', 'rose', 'magenta'] },
+    { type: 'MAJOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '3d8', rarity: 'uncommon', descriptors: ['violet', 'indigo', 'lavender'] },
+    { type: 'SUPERIOR_HEAL', spriteName: 'potion', effect: 'restore_hp', power: '4d8', rarity: 'rare', descriptors: ['azure', 'cerulean', 'cobalt'] },
     { type: 'GAIN_STRENGTH', spriteName: 'potion', effect: 'increase_strength', power: '1', rarity: 'uncommon', descriptors: ['blue', 'azure', 'sapphire'] },
     { type: 'RESTORE_STRENGTH', spriteName: 'potion', effect: 'restore_strength', power: '1', rarity: 'common', descriptors: ['green', 'emerald', 'jade'] },
     { type: 'POISON', spriteName: 'potion', effect: 'damage', power: '1d6', rarity: 'common', descriptors: ['black', 'dark', 'ebony'] },

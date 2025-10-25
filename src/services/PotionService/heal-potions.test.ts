@@ -47,8 +47,8 @@ describe('PotionService - Heal Potions', () => {
     // Create itemNameMap for identification
     const itemNameMap: ItemNameMap = {
       potions: new Map<PotionType, string>([
-        [PotionType.HEAL, 'blue potion'],
-        [PotionType.EXTRA_HEAL, 'red potion'],
+        [PotionType.MINOR_HEAL, 'blue potion'],
+        [PotionType.MEDIUM_HEAL, 'red potion'],
         [PotionType.GAIN_STRENGTH, 'green potion'],
         [PotionType.RESTORE_STRENGTH, 'purple potion'],
         [PotionType.POISON, 'sickly potion'],
@@ -64,7 +64,7 @@ describe('PotionService - Heal Potions', () => {
     } as GameState
   })
 
-  describe('HEAL potion', () => {
+  describe('MINOR_HEAL potion', () => {
     test('heals player by rolled amount (within max HP)', () => {
       mockRandom = new MockRandom([8]) // Roll 8 HP
       potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
@@ -73,7 +73,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -95,7 +95,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -116,7 +116,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -129,7 +129,7 @@ describe('PotionService - Heal Potions', () => {
     })
   })
 
-  describe('EXTRA_HEAL potion', () => {
+  describe('MEDIUM_HEAL potion', () => {
     test('heals player by rolled amount with better message', () => {
       mockRandom = new MockRandom([15]) // Roll 15 HP
       potionService = new PotionService(mockRandom, identificationService, levelingService, statusEffectService)
@@ -138,7 +138,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-2',
         type: ItemType.POTION,
         name: 'Potion of Extra Healing',
-        potionType: PotionType.EXTRA_HEAL,
+        potionType: PotionType.MEDIUM_HEAL,
         effect: 'Heals 2d8 HP',
         power: '2d8',
         descriptorName: 'red potion',
@@ -148,7 +148,7 @@ describe('PotionService - Heal Potions', () => {
       const result = potionService.applyPotion(testPlayer, extraHealPotion, testState)
 
       expect(result.player.hp).toBe(65) // 50 + 15
-      expect(result.message).toBe('You feel much better! (+15 HP)')
+      expect(result.message).toBe('You feel better. (+15 HP)')
       expect(result.death).toBe(false)
     })
 
@@ -160,7 +160,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-2',
         type: ItemType.POTION,
         name: 'Potion of Extra Healing',
-        potionType: PotionType.EXTRA_HEAL,
+        potionType: PotionType.MEDIUM_HEAL,
         effect: 'Heals 2d8 HP',
         power: '2d8',
         descriptorName: 'red potion',
@@ -170,7 +170,7 @@ describe('PotionService - Heal Potions', () => {
       const result = potionService.applyPotion(testPlayer, extraHealPotion, testState)
 
       expect(result.player.hp).toBe(100) // Capped
-      expect(result.message).toBe('You feel much better! (+50 HP)')
+      expect(result.message).toBe('You feel better. (+50 HP)')
     })
   })
 
@@ -183,7 +183,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -213,7 +213,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -242,7 +242,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -270,7 +270,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-2',
         type: ItemType.POTION,
         name: 'Potion of Extra Healing',
-        potionType: PotionType.EXTRA_HEAL,
+        potionType: PotionType.MEDIUM_HEAL,
         effect: 'Heals 2d8 HP',
         power: '2d8',
         descriptorName: 'red potion',
@@ -281,7 +281,7 @@ describe('PotionService - Heal Potions', () => {
 
       expect(result.player.hp).toBe(101) // Healed to new max
       expect(result.player.maxHp).toBe(101) // Increased by 1
-      expect(result.message).toContain('You feel much better! (+1 HP)')
+      expect(result.message).toContain('You feel better. (+1 HP)')
       expect(result.message).toContain('You feel permanently stronger! (Max HP +1)')
     })
 
@@ -293,7 +293,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-2',
         type: ItemType.POTION,
         name: 'Potion of Extra Healing',
-        potionType: PotionType.EXTRA_HEAL,
+        potionType: PotionType.MEDIUM_HEAL,
         effect: 'Heals 2d8 HP',
         power: '2d8',
         descriptorName: 'red potion',
@@ -305,7 +305,7 @@ describe('PotionService - Heal Potions', () => {
 
       expect(result.player.hp).toBe(65) // 50 + 15
       expect(result.player.maxHp).toBe(100) // No change
-      expect(result.message).toBe('You feel much better! (+15 HP)')
+      expect(result.message).toBe('You feel better. (+15 HP)')
       expect(result.message).not.toContain('permanently stronger')
     })
 
@@ -323,7 +323,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -350,7 +350,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -374,7 +374,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -399,7 +399,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',
@@ -426,7 +426,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-2',
         type: ItemType.POTION,
         name: 'Potion of Extra Healing',
-        potionType: PotionType.EXTRA_HEAL,
+        potionType: PotionType.MEDIUM_HEAL,
         effect: 'Heals 2d8 HP',
         power: '2d8',
         descriptorName: 'red potion',
@@ -449,7 +449,7 @@ describe('PotionService - Heal Potions', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals 1d8 HP',
         power: '1d8',
         descriptorName: 'blue potion',

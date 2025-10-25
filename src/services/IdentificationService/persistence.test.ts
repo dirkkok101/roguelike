@@ -44,7 +44,7 @@ describe('IdentificationService - Persistence', () => {
         type: ItemType.POTION,
         identified: false,
         position: { x: 0, y: 0 },
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'restore_hp',
         power: '1d8',
         descriptorName: 'blue',
@@ -56,7 +56,7 @@ describe('IdentificationService - Persistence', () => {
         type: ItemType.POTION,
         identified: false,
         position: { x: 5, y: 5 },
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'restore_hp',
         power: '1d8',
         descriptorName: 'blue',
@@ -108,7 +108,7 @@ describe('IdentificationService - Persistence', () => {
 
   describe('identification state persistence', () => {
     test('identified items remain identified through game state updates', () => {
-      let state = service.identifyItem(PotionType.HEAL, gameState)
+      let state = service.identifyItem(PotionType.MINOR_HEAL, gameState)
 
       // Simulate state updates (turn progression, etc.)
       state = {
@@ -122,15 +122,15 @@ describe('IdentificationService - Persistence', () => {
       }
 
       // Identification should persist
-      expect(state.identifiedItems.has(PotionType.HEAL)).toBe(true)
-      expect(service.isIdentified(PotionType.HEAL, state)).toBe(true)
+      expect(state.identifiedItems.has(PotionType.MINOR_HEAL)).toBe(true)
+      expect(service.isIdentified(PotionType.MINOR_HEAL, state)).toBe(true)
     })
 
     test('identification state accumulates over time', () => {
       let state = gameState
 
       // Identify items progressively
-      state = service.identifyItem(PotionType.HEAL, state)
+      state = service.identifyItem(PotionType.MINOR_HEAL, state)
       expect(state.identifiedItems.size).toBe(1)
 
       state = service.identifyItem(ScrollType.IDENTIFY, state)
@@ -140,31 +140,31 @@ describe('IdentificationService - Persistence', () => {
       expect(state.identifiedItems.size).toBe(3)
 
       // All should remain identified
-      expect(service.isIdentified(PotionType.HEAL, state)).toBe(true)
+      expect(service.isIdentified(PotionType.MINOR_HEAL, state)).toBe(true)
       expect(service.isIdentified(ScrollType.IDENTIFY, state)).toBe(true)
       expect(service.isIdentified(PotionType.POISON, state)).toBe(true)
     })
 
     test('identifying already identified item does not duplicate', () => {
-      let state = service.identifyItem(PotionType.HEAL, gameState)
+      let state = service.identifyItem(PotionType.MINOR_HEAL, gameState)
       expect(state.identifiedItems.size).toBe(1)
 
       // Identify same item again
-      state = service.identifyItem(PotionType.HEAL, state)
+      state = service.identifyItem(PotionType.MINOR_HEAL, state)
       expect(state.identifiedItems.size).toBe(1)
 
       // Still identified correctly
-      expect(service.isIdentified(PotionType.HEAL, state)).toBe(true)
+      expect(service.isIdentified(PotionType.MINOR_HEAL, state)).toBe(true)
     })
   })
 
   describe('item name map persistence', () => {
     test('item name map remains constant throughout game', () => {
       const initialNameMap = gameState.itemNameMap
-      const healPotionName = initialNameMap.potions.get(PotionType.HEAL)
+      const healPotionName = initialNameMap.potions.get(PotionType.MINOR_HEAL)
 
       // Perform various state updates
-      let state = service.identifyItem(PotionType.HEAL, gameState)
+      let state = service.identifyItem(PotionType.MINOR_HEAL, gameState)
       state = {
         ...state,
         turnCount: 500,
@@ -172,7 +172,7 @@ describe('IdentificationService - Persistence', () => {
 
       // Name map should be unchanged
       expect(state.itemNameMap).toEqual(initialNameMap)
-      expect(state.itemNameMap.potions.get(PotionType.HEAL)).toBe(healPotionName)
+      expect(state.itemNameMap.potions.get(PotionType.MINOR_HEAL)).toBe(healPotionName)
     })
 
     test('different games have different name maps', () => {
@@ -182,8 +182,8 @@ describe('IdentificationService - Persistence', () => {
       const game1NameMap = service1.generateItemNames()
       const game2NameMap = service2.generateItemNames()
 
-      const game1HealPotion = game1NameMap.potions.get(PotionType.HEAL)
-      const game2HealPotion = game2NameMap.potions.get(PotionType.HEAL)
+      const game1HealPotion = game1NameMap.potions.get(PotionType.MINOR_HEAL)
+      const game2HealPotion = game2NameMap.potions.get(PotionType.MINOR_HEAL)
 
       // Names should differ between games (with high probability)
       // We check that at least one name differs
@@ -200,7 +200,7 @@ describe('IdentificationService - Persistence', () => {
   describe('edge cases', () => {
     test('handles empty identified items set', () => {
       expect(gameState.identifiedItems.size).toBe(0)
-      expect(service.isIdentified(PotionType.HEAL, gameState)).toBe(false)
+      expect(service.isIdentified(PotionType.MINOR_HEAL, gameState)).toBe(false)
 
       const potion: Potion = {
         id: 'potion-1',
@@ -208,7 +208,7 @@ describe('IdentificationService - Persistence', () => {
         type: ItemType.POTION,
         identified: false,
         position: { x: 0, y: 0 },
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'restore_hp',
         power: '1d8',
         descriptorName: 'blue',

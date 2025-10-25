@@ -78,7 +78,7 @@ describe('ScrollService - Identify Scroll', () => {
     // Create itemNameMap for identification
     const itemNameMap: ItemNameMap = {
       potions: new Map<PotionType, string>([
-        [PotionType.HEAL, 'blue potion'],
+        [PotionType.MINOR_HEAL, 'blue potion'],
       ]),
       scrolls: new Map<ScrollType, string>([
         [ScrollType.IDENTIFY, 'scroll labeled XYZZY'],
@@ -101,7 +101,7 @@ describe('ScrollService - Identify Scroll', () => {
         id: 'potion-1',
         type: ItemType.POTION,
         name: 'Potion of Healing',
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'Heals HP',
         power: '1d8',
         descriptorName: 'blue potion',

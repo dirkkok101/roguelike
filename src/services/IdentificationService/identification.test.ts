@@ -43,35 +43,35 @@ describe('IdentificationService - Identification', () => {
 
   describe('identifyItem()', () => {
     test('marks item type as identified', () => {
-      const result = service.identifyItem(PotionType.HEAL, gameState)
+      const result = service.identifyItem(PotionType.MINOR_HEAL, gameState)
 
-      expect(result.identifiedItems.has(PotionType.HEAL)).toBe(true)
+      expect(result.identifiedItems.has(PotionType.MINOR_HEAL)).toBe(true)
     })
 
     test('does not modify original game state', () => {
-      service.identifyItem(PotionType.HEAL, gameState)
+      service.identifyItem(PotionType.MINOR_HEAL, gameState)
 
-      expect(gameState.identifiedItems.has(PotionType.HEAL)).toBe(false)
+      expect(gameState.identifiedItems.has(PotionType.MINOR_HEAL)).toBe(false)
     })
 
     test('preserves other identified items', () => {
-      let result = service.identifyItem(PotionType.HEAL, gameState)
+      let result = service.identifyItem(PotionType.MINOR_HEAL, gameState)
       result = service.identifyItem(ScrollType.IDENTIFY, result)
 
-      expect(result.identifiedItems.has(PotionType.HEAL)).toBe(true)
+      expect(result.identifiedItems.has(PotionType.MINOR_HEAL)).toBe(true)
       expect(result.identifiedItems.has(ScrollType.IDENTIFY)).toBe(true)
     })
   })
 
   describe('isIdentified()', () => {
     test('returns false for unidentified item', () => {
-      expect(service.isIdentified(PotionType.HEAL, gameState)).toBe(false)
+      expect(service.isIdentified(PotionType.MINOR_HEAL, gameState)).toBe(false)
     })
 
     test('returns true for identified item', () => {
-      const result = service.identifyItem(PotionType.HEAL, gameState)
+      const result = service.identifyItem(PotionType.MINOR_HEAL, gameState)
 
-      expect(service.isIdentified(PotionType.HEAL, result)).toBe(true)
+      expect(service.isIdentified(PotionType.MINOR_HEAL, result)).toBe(true)
     })
   })
 
@@ -83,14 +83,14 @@ describe('IdentificationService - Identification', () => {
         type: ItemType.POTION,
         identified: false,
         position: { x: 0, y: 0 },
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'restore_hp',
         power: '1d8',
         descriptorName: 'blue',
       }
 
       const displayName = service.getDisplayName(potion, gameState)
-      const descriptiveName = gameState.itemNameMap.potions.get(PotionType.HEAL)
+      const descriptiveName = gameState.itemNameMap.potions.get(PotionType.MINOR_HEAL)
 
       expect(displayName).toBe(descriptiveName)
       expect(displayName).not.toBe('Potion of Healing')
@@ -103,13 +103,13 @@ describe('IdentificationService - Identification', () => {
         type: ItemType.POTION,
         identified: false,
         position: { x: 0, y: 0 },
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'restore_hp',
         power: '1d8',
         descriptorName: 'blue',
       }
 
-      const identifiedState = service.identifyItem(PotionType.HEAL, gameState)
+      const identifiedState = service.identifyItem(PotionType.MINOR_HEAL, gameState)
       const displayName = service.getDisplayName(potion, identifiedState)
 
       expect(displayName).toBe('Potion of Healing')
@@ -257,13 +257,13 @@ describe('IdentificationService - Identification', () => {
         type: ItemType.POTION,
         identified: false,
         position: { x: 0, y: 0 },
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'restore_hp',
         power: '1d8',
         descriptorName: 'blue',
       }
 
-      expect(service.getItemTypeKey(potion)).toBe(PotionType.HEAL)
+      expect(service.getItemTypeKey(potion)).toBe(PotionType.MINOR_HEAL)
     })
 
     test('returns scroll type key for scrolls', () => {
@@ -304,7 +304,7 @@ describe('IdentificationService - Identification', () => {
         type: ItemType.POTION,
         identified: false,
         position: { x: 0, y: 0 },
-        potionType: PotionType.HEAL,
+        potionType: PotionType.MINOR_HEAL,
         effect: 'restore_hp',
         power: '1d8',
         descriptorName: 'blue',
@@ -312,7 +312,7 @@ describe('IdentificationService - Identification', () => {
 
       const result = service.identifyByUse(potion, gameState)
 
-      expect(result.identifiedItems.has(PotionType.HEAL)).toBe(true)
+      expect(result.identifiedItems.has(PotionType.MINOR_HEAL)).toBe(true)
     })
 
     test('returns unchanged state for items that do not need identification', () => {

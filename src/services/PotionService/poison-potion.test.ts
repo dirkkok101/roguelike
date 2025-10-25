@@ -45,8 +45,8 @@ describe('PotionService - Poison Potion', () => {
     // Create itemNameMap for identification
     const itemNameMap: ItemNameMap = {
       potions: new Map<PotionType, string>([
-        [PotionType.HEAL, 'blue potion'],
-        [PotionType.EXTRA_HEAL, 'red potion'],
+        [PotionType.MINOR_HEAL, 'blue potion'],
+        [PotionType.MEDIUM_HEAL, 'red potion'],
         [PotionType.GAIN_STRENGTH, 'green potion'],
         [PotionType.RESTORE_STRENGTH, 'purple potion'],
         [PotionType.POISON, 'sickly potion'],

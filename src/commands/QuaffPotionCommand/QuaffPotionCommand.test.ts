@@ -60,7 +60,7 @@ describe('QuaffPotionCommand', () => {
     }
   }
 
-  function createPotion(type: PotionType = PotionType.HEAL, id: string = 'potion-1'): Potion {
+  function createPotion(type: PotionType = PotionType.MINOR_HEAL, id: string = 'potion-1'): Potion {
     return {
       id,
       type: ItemType.POTION,
@@ -93,7 +93,7 @@ describe('QuaffPotionCommand', () => {
 
   test('drinks healing potion successfully', () => {
     const player = createTestPlayer(10)
-    const potion = createPotion(PotionType.HEALING)
+    const potion = createPotion(PotionType.MINOR_HEALING)
     player.inventory = [potion]
     const state = createTestState(player)
 
@@ -197,7 +197,7 @@ describe('QuaffPotionCommand', () => {
 
   test('immutability - does not mutate original state', () => {
     const player = createTestPlayer(10)
-    const potion = createPotion(PotionType.HEALING)
+    const potion = createPotion(PotionType.MINOR_HEALING)
     player.inventory = [potion]
     const state = createTestState(player)
 
@@ -223,12 +223,12 @@ describe('QuaffPotionCommand', () => {
 
   test('identifies potion type after drinking (first use)', () => {
     const player = createTestPlayer(10)
-    const healingPotion = createPotion(PotionType.HEAL, 'potion-1')
+    const healingPotion = createPotion(PotionType.MINOR_HEAL, 'potion-1')
     player.inventory = [healingPotion]
     const state = createTestState(player)
 
     // Verify potion is NOT identified before drinking
-    expect(state.identifiedItems.has(PotionType.HEAL)).toBe(false)
+    expect(state.identifiedItems.has(PotionType.MINOR_HEAL)).toBe(false)
 
     mockRandom.setValues([5]) // Healing amount
 
@@ -246,18 +246,18 @@ describe('QuaffPotionCommand', () => {
     const result = command.execute(state)
 
     // Verify potion IS identified after drinking
-    expect(result.identifiedItems.has(PotionType.HEAL)).toBe(true)
+    expect(result.identifiedItems.has(PotionType.MINOR_HEAL)).toBe(true)
     expect(result.player.inventory).toHaveLength(0) // Potion consumed
   })
 
   test('does not re-identify already identified potions', () => {
     const player = createTestPlayer(10)
-    const healingPotion = createPotion(PotionType.HEAL, 'potion-1')
+    const healingPotion = createPotion(PotionType.MINOR_HEAL, 'potion-1')
     player.inventory = [healingPotion]
 
     // Potion type already identified
     const state = createTestState(player)
-    state.identifiedItems = new Set([PotionType.HEAL])
+    state.identifiedItems = new Set([PotionType.MINOR_HEAL])
 
     mockRandom.setValues([5]) // Healing amount
 
@@ -275,7 +275,7 @@ describe('QuaffPotionCommand', () => {
     const result = command.execute(state)
 
     // Still identified (no error from double-identification)
-    expect(result.identifiedItems.has(PotionType.HEAL)).toBe(true)
+    expect(result.identifiedItems.has(PotionType.MINOR_HEAL)).toBe(true)
     expect(result.identifiedItems.size).toBe(1) // Only one type identified
   })
 })
