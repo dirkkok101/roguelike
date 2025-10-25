@@ -22,10 +22,11 @@ import {
   Tile,
   Monster,
   Position,
+  Level,
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
-import { GuaranteeConfig, GuaranteeTracker } from '@services/GuaranteeTracker'
+import { GuaranteeConfig, GuaranteeTracker, ItemDeficit } from '@services/GuaranteeTracker'
 
 // ============================================================================
 // ITEM SPAWN SERVICE - Handles item generation for dungeon levels
@@ -768,6 +769,330 @@ export class ItemSpawnService {
     }
 
     return items
+  }
+
+  // ============================================================================
+  // FORCE SPAWN FOR GUARANTEES
+  // ============================================================================
+
+  /**
+   * Force spawn items to meet range guarantees
+   * Called on boundary levels (5, 10, 15, 20, 26) to ensure minimum item quotas
+   *
+   * @param level - Current level to spawn items on
+   * @param deficits - Array of item deficits to satisfy
+   * @returns Updated level with deficit items spawned
+   */
+  forceSpawnForGuarantees(level: Level, deficits: ItemDeficit[]): Level {
+    const newItems = [...level.items]
+
+    for (const deficit of deficits) {
+      for (let i = 0; i < deficit.count; i++) {
+        // Find empty position in a random room
+        const position = this.findEmptyPosition(level)
+        if (!position) continue
+
+        // Create item of required category and power tier
+        const item = this.createItemForDeficit(deficit, level.depth, position)
+        if (item) {
+          newItems.push(item)
+        }
+      }
+    }
+
+    return {
+      ...level,
+      items: newItems
+    }
+  }
+
+  /**
+   * Find empty walkable position in random room
+   */
+  private findEmptyPosition(level: Level): Position | null {
+    if (level.rooms.length === 0) return null
+
+    const occupiedPositions = new Set<string>()
+    level.items.forEach(i => occupiedPositions.add(`${i.position.x},${i.position.y}`))
+    level.monsters.forEach(m => occupiedPositions.add(`${m.position.x},${m.position.y}`))
+
+    // Try up to 10 random positions
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const room = level.rooms[this.random.nextInt(0, level.rooms.length - 1)]
+      const x = this.random.nextInt(room.x + 1, room.x + room.width - 2)
+      const y = this.random.nextInt(room.y + 1, room.y + room.height - 2)
+      const key = `${x},${y}`
+
+      if (!occupiedPositions.has(key) && level.tiles[y]?.[x]?.walkable) {
+        return { x, y }
+      }
+    }
+
+    return null
+  }
+
+  /**
+   * Create item for specific deficit category
+   */
+  private createItemForDeficit(
+    deficit: ItemDeficit,
+    depth: number,
+    position: Position
+  ): Item | null {
+    switch (deficit.category) {
+      case 'healingPotions':
+        return this.createHealingPotionForDeficit(depth, position, deficit.powerTiers)
+      case 'identifyScrolls':
+        return this.createIdentifyScroll(position)
+      case 'enchantScrolls':
+        return this.createEnchantScroll(depth, position, deficit.powerTiers)
+      case 'food':
+        return this.createFoodRation(position)
+      case 'lightSources':
+        return this.createLightSourceForDeficit(depth, position, deficit.powerTiers)
+      case 'rings':
+        return this.createRingForDeficit(depth, position)
+      case 'wands':
+        return this.createWandForDeficit(depth, position)
+      case 'weapons':
+        return this.createWeaponForDeficit(depth, position)
+      case 'armors':
+        return this.createArmorForDeficit(depth, position)
+      default:
+        return null
+    }
+  }
+
+  private createHealingPotionForDeficit(
+    depth: number,
+    position: Position,
+    allowedTiers: PowerTier[]
+  ): Potion | null {
+    // Filter healing potions by allowed power tiers
+    const healingPotions = this.potionTemplates.filter(p =>
+      this.isHealingPotionType(p.type) && allowedTiers.includes(p.powerTier)
+    )
+
+    if (healingPotions.length === 0) return null
+
+    const template = healingPotions[this.random.nextInt(0, healingPotions.length - 1)]
+    return this.createPotionFromTemplate(template, position)
+  }
+
+  private isHealingPotionType(type: PotionType): boolean {
+    return [
+      PotionType.MINOR_HEAL,
+      PotionType.MEDIUM_HEAL,
+      PotionType.MAJOR_HEAL,
+      PotionType.SUPERIOR_HEAL
+    ].includes(type)
+  }
+
+  private createPotionFromTemplate(
+    template: { type: PotionType; spriteName: string; effect: string; power: string },
+    position: Position
+  ): Potion {
+    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: `Potion of ${template.type}`,
+      spriteName: template.spriteName,
+      type: ItemType.POTION,
+      identified: false,
+      position,
+      potionType: template.type,
+      effect: template.effect,
+      power: template.power,
+      descriptorName: 'unknown',
+    } as Potion
+  }
+
+  private createIdentifyScroll(position: Position): Scroll | null {
+    const template = this.scrollTemplates.find(s => s.type === ScrollType.IDENTIFY)
+    if (!template) return null
+
+    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: `Scroll of ${template.type}`,
+      spriteName: template.spriteName,
+      type: ItemType.SCROLL,
+      identified: false,
+      position,
+      scrollType: template.type,
+      effect: template.effect,
+      labelName: 'unknown',
+    } as Scroll
+  }
+
+  private createEnchantScroll(
+    depth: number,
+    position: Position,
+    allowedTiers: PowerTier[]
+  ): Scroll | null {
+    const enchantTypes = [ScrollType.ENCHANT_WEAPON, ScrollType.ENCHANT_ARMOR]
+    const enchantScrolls = this.scrollTemplates.filter(s =>
+      enchantTypes.includes(s.type) && allowedTiers.includes(s.powerTier)
+    )
+
+    if (enchantScrolls.length === 0) return null
+
+    const template = enchantScrolls[this.random.nextInt(0, enchantScrolls.length - 1)]
+    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    return {
+      id: itemId,
+      name: `Scroll of ${template.type}`,
+      spriteName: template.spriteName,
+      type: ItemType.SCROLL,
+      identified: false,
+      position,
+      scrollType: template.type,
+      effect: template.effect,
+      labelName: 'unknown',
+    } as Scroll
+  }
+
+  private createFoodRation(position: Position): Food {
+    const template = this.random.pickRandom(this.foodTemplates)
+    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+
+    return {
+      id: itemId,
+      name: template.name,
+      spriteName: template.spriteName,
+      type: ItemType.FOOD,
+      identified: false,
+      position,
+      nutrition: template.nutrition,
+    } as Food
+  }
+
+  private createLightSourceForDeficit(
+    depth: number,
+    position: Position,
+    allowedTiers: PowerTier[]
+  ): Item | null {
+    // For light sources, basic tier = torch, advanced tier = lantern
+    if (allowedTiers.includes(PowerTier.ADVANCED)) {
+      return this.createLantern(position)
+    } else {
+      return this.createTorch(position)
+    }
+  }
+
+  private createRingForDeficit(depth: number, position: Position): Ring | null {
+    const tierFiltered = this.filterByPowerTier(this.ringTemplates, depth)
+    if (tierFiltered.length === 0) return null
+
+    const template = this.random.pickRandom(tierFiltered)
+    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const isCursed = template.type === RingType.TELEPORTATION
+    const bonus = isCursed ? -1 : 1
+
+    let name = `Ring of ${template.type}`
+    if (bonus > 0) {
+      name = `${name} +${bonus}`
+    }
+
+    return {
+      id: itemId,
+      name,
+      spriteName: template.spriteName,
+      type: ItemType.RING,
+      identified: false,
+      position,
+      ringType: template.type,
+      effect: template.effect,
+      bonus,
+      materialName: 'unknown',
+      hungerModifier: 1.5,
+      cursed: isCursed,
+    } as Ring
+  }
+
+  private createWandForDeficit(depth: number, position: Position): Wand | null {
+    const tierFiltered = this.filterByPowerTier(this.wandTemplates, depth)
+    if (tierFiltered.length === 0) return null
+
+    const template = this.random.pickRandom(tierFiltered)
+    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const maxCharges = this.random.roll(template.charges)
+    const range = this.getWandRange(template.type)
+
+    return {
+      id: itemId,
+      name: `Wand of ${template.type}`,
+      spriteName: template.spriteName,
+      type: ItemType.WAND,
+      identified: false,
+      position,
+      wandType: template.type,
+      damage: template.damage,
+      charges: maxCharges,
+      currentCharges: maxCharges,
+      woodName: 'unknown',
+      range,
+    } as Wand
+  }
+
+  private createWeaponForDeficit(depth: number, position: Position): Weapon | null {
+    const rarityWeights = this.calculateRarityWeights(depth)
+    const rarity = this.selectWeightedRarity(rarityWeights)
+    const templates = this.weaponTemplates.filter(t => t.rarity === rarity)
+
+    if (templates.length === 0) return null
+
+    const template = this.random.pickRandom(templates)
+    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const isCursed = this.rollCursedStatus(rarity, depth)
+    const bonus = this.rollEnchantment(rarity, isCursed, depth)
+
+    let name = template.name
+    if (bonus > 0) {
+      name = `${template.name} +${bonus}`
+    }
+
+    return {
+      id: itemId,
+      name,
+      spriteName: template.spriteName,
+      type: ItemType.WEAPON,
+      identified: false,
+      position,
+      damage: template.damage,
+      bonus,
+      cursed: isCursed,
+    } as Weapon
+  }
+
+  private createArmorForDeficit(depth: number, position: Position): Armor | null {
+    const rarityWeights = this.calculateRarityWeights(depth)
+    const rarity = this.selectWeightedRarity(rarityWeights)
+    const templates = this.armorTemplates.filter(t => t.rarity === rarity)
+
+    if (templates.length === 0) return null
+
+    const template = this.random.pickRandom(templates)
+    const itemId = `item-forced-${Date.now()}-${this.random.nextInt(1000, 9999)}`
+    const isCursed = this.rollCursedStatus(rarity, depth)
+    const bonus = this.rollEnchantment(rarity, isCursed, depth)
+
+    let name = template.name
+    if (bonus > 0) {
+      name = `${template.name} +${bonus}`
+    }
+
+    return {
+      id: itemId,
+      name,
+      spriteName: template.spriteName,
+      type: ItemType.ARMOR,
+      identified: false,
+      position,
+      ac: template.ac,
+      bonus,
+      cursed: isCursed,
+    } as Armor
   }
 
   // ============================================================================
