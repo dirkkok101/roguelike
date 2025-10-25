@@ -82,8 +82,9 @@ describe('EntryDetailsModal', () => {
       const entry = createTestEntry()
       modal.show(entry, jest.fn())
 
-      // Just check that a date is displayed (format is MM/DD/YYYY)
-      const dateRegex = /\d{1,2}\/\d{1,2}\/\d{4}/
+      // Check that a date is displayed (format varies by locale, e.g. YYYY/MM/DD, HH:MM:SS or MM/DD/YYYY)
+      // Just verify it contains date-like numbers with slashes and optional time with colons
+      const dateRegex = /\d{4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2}\/\d{4}/
       expect(document.body.textContent).toMatch(dateRegex)
     })
   })
