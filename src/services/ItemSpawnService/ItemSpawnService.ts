@@ -24,6 +24,7 @@ import {
 } from '@game/core/core'
 import { IRandomService } from '@services/RandomService'
 import { ItemData } from '../../data/ItemDataLoader'
+import { GuaranteeConfig } from '@services/GuaranteeTracker'
 
 // ============================================================================
 // ITEM SPAWN SERVICE - Handles item generation for dungeon levels
@@ -69,10 +70,12 @@ export class ItemSpawnService {
    * Templates are loaded once from itemData in constructor for performance.
    * @param random - Random number generator for item selection
    * @param itemData - Item data from JSON (REQUIRED - not optional)
+   * @param guarantees - Guarantee configuration for depth-based category weights
    */
   constructor(
     private random: IRandomService,
-    private itemData: ItemData  // REQUIRED: No optional, no fallbacks
+    private itemData: ItemData,  // REQUIRED: No optional, no fallbacks
+    private guarantees: GuaranteeConfig  // REQUIRED: Depth-based weights
   ) {
     // Load all templates once (cached for lifetime of service)
     this.potionTemplates = this.loadPotionTemplates()
@@ -1013,5 +1016,25 @@ export class ItemSpawnService {
       position,
       cursed: false, // Never cursed
     } as Amulet
+  }
+
+  // ============================================================================
+  // DEPTH-BASED CATEGORY WEIGHTS (Item Scaling System)
+  // ============================================================================
+
+  /**
+   * Get category weights for depth range
+   */
+  private getCategoryWeights(depth: number): Record<string, number> {
+    const range = this.getDepthRange(depth)
+    return this.guarantees.categoryWeights[range]
+  }
+
+  private getDepthRange(depth: number): string {
+    if (depth <= 5) return '1-5'
+    if (depth <= 10) return '6-10'
+    if (depth <= 15) return '11-15'
+    if (depth <= 20) return '16-20'
+    return '21-26'
   }
 }
