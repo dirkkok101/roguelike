@@ -1,14 +1,20 @@
 # DungeonService
 
 **Location**: `src/services/DungeonService/DungeonService.ts`
-**Dependencies**: RandomService, RoomGenerationService, CorridorGenerationService, ItemData (optional)
-**Test Coverage**: Room placement, corridor generation, door placement, spawning
+**Dependencies**: RandomService, RoomGenerationService, CorridorGenerationService, MonsterSpawnService, ItemSpawnService, GoldService, GuaranteeTracker
+**Test Coverage**: Room placement, corridor generation, door placement, spawning, guarantee enforcement
 
 ---
 
 ## Purpose
 
-**Main orchestrator** for procedural dungeon generation. Generates complete levels with rooms, corridors (MST + loops), doors, traps, monsters, items, stairs, and the Amulet of Yendor.
+**Main orchestrator** for procedural dungeon generation. Generates complete 26-level dungeon with rooms, corridors (MST + loops), doors, traps, monsters, items, gold, stairs, and the Amulet of Yendor.
+
+**Key Responsibilities**:
+- Generate all 26 dungeon levels at game initialization
+- Enforce item guarantee system via GuaranteeTracker
+- Manage fixed 7 items per level for predictable progression
+- Force spawn deficit items on boundary levels (5, 10, 15, 20, 26)
 
 ---
 
@@ -16,8 +22,8 @@
 
 ### Level Generation
 
-#### `generateLevel(depth: number, config: DungeonConfig): Level`
-Generates a complete dungeon level.
+#### `generateAllLevels(config: DungeonConfig): Level[]`
+Generates all 26 dungeon levels at once with guarantee enforcement.
 
 **Parameters**:
 ```typescript
@@ -33,6 +39,36 @@ interface DungeonConfig {
 }
 ```
 
+**Returns**: Array of 26 Level instances (depths 1-26)
+
+**Guarantee Enforcement Pipeline**:
+1. Initialize GuaranteeTracker for first depth range (1-5)
+2. For each depth (1-26):
+   - Generate level normally with fixed 7 items
+   - Items tracked automatically via ItemSpawnService
+   - On boundary levels (5, 10, 15, 20, 26):
+     - Check if quotas met for current range
+     - If deficits exist, force spawn missing items
+     - Reset tracker for next range (except after level 26)
+3. Return all 26 levels
+
+**Example**:
+```typescript
+const dungeonService = new DungeonService(random, monsterSpawnService, itemData, guarantees)
+const levels = dungeonService.generateAllLevels(config)
+
+// All 26 levels generated with:
+// - Fixed 7 items per level
+// - Guaranteed resource availability per range
+// - Depth-appropriate category weights
+// - Power tier filtering by depth
+```
+
+---
+
+#### `generateLevel(depth: number, config: DungeonConfig): Level`
+Generates a single dungeon level (called by `generateAllLevels()`).
+
 **Generation Pipeline**:
 1. Create empty tile grid (all walls)
 2. Generate rooms (RoomGenerationService)
@@ -43,11 +79,13 @@ interface DungeonConfig {
 7. Place traps (2-4 per level)
 8. Determine stairs positions
 9. Spawn monsters (depth + 1, max 8)
-10. Spawn items (5-8 per level)
-11. **Spawn gold (3-9 piles per level)** ← NEW
-12. Spawn Amulet of Yendor (Level 10 only)
+10. **Spawn items (fixed 7 per level)** ← UPDATED
+11. Spawn gold (3-9 piles per level)
+12. Spawn Amulet of Yendor (Level 26 only)
 
 **Returns**: Complete Level object
+
+**Note**: Typically not called directly. Use `generateAllLevels()` to ensure guarantee enforcement.
 
 ---
 
@@ -347,76 +385,95 @@ const templates = [
 
 ---
 
-## Item Spawning
+## Item Spawning with Guarantees
 
 ```typescript
-spawnItems(rooms: Room[], count: number, tiles: Tile[][], monsters: Monster[], depth: number): Item[]
+// In generateLevel()
+const itemCount = 7  // Fixed count for all levels
+const spawnRooms = depth === 1 ? rooms : rooms.slice(1)  // Skip first room (player starts there)
+const items = this.itemSpawnService.spawnItems(
+  spawnRooms,
+  itemCount,
+  tiles,
+  monsters,
+  depth,
+  this.tracker  // Pass tracker for recording
+)
 ```
 
-**Item Count**: 5-8 per level (increased for better food availability)
+**Item Count**: **Fixed 7 per level** (35 per range) for predictable progression
 
-**Item Categories**:
-- Weapons (Dagger, Mace, Long Sword, Battle Axe, Two-Handed Sword)
-- Armor (Leather, Ring Mail, Chain Mail, Plate Mail)
-- Potions (Heal, Strength, Poison, Haste, Raise Level)
-- Scrolls (Identify, Enchant, Magic Mapping, Teleportation)
-- Rings (Protection, Regeneration, Add Strength, Slow Digestion)
-- Food (Food Ration - 900 nutrition) - **Weight: 18** (increased from 12 for more frequent spawns)
-- Torches (Radius 2, 500 fuel)
-- Lanterns (Radius 2, 500 fuel, refillable)
-- Oil Flasks (500 fuel for lanterns)
+**Category Selection**: Delegated to ItemSpawnService with depth-based weights from `data/guarantees.json`
 
----
+**Tracked Categories**:
+- Healing potions, identify scrolls, enchant scrolls
+- Weapons, armors, rings, wands
+- Food, light sources, lanterns, artifacts
+- Utility potions, utility scrolls, advanced items
 
-### Rarity System
-
-**Rarity Weights**:
-- **Common**: 60%
-- **Uncommon**: 30%
-- **Rare**: 10%
-
-**Item Selection**:
-1. Roll rarity
-2. Filter templates by rarity
-3. Pick random from filtered list
-
-**Bonuses**:
-- Rare weapons: +1 or +2 damage
-- Rare armor: +1 or +2 AC
-- Rings: +1 to +3 bonus
+**Power Tier Filtering**: ItemSpawnService filters items by depth:
+- Depth 1-8: Basic only
+- Depth 9-16: Basic + Intermediate
+- Depth 17-26: All tiers
 
 ---
 
-### Depth-Based Spawning
+### Guarantee Enforcement
 
-**Light Source Weights**:
+On boundary levels (5, 10, 15, 20, 26), DungeonService enforces quotas:
 
-| Depth | Torches | Lanterns | Oil Flasks | Artifacts |
-|-------|---------|----------|------------|-----------|
-| 1-3 | 20 | 0 | 3 | 0% |
-| 4-7 | 15 | 8 | 10 | 0% |
-| 8-10 | 10 | 12 | 12 | 0.5% |
+```typescript
+if (boundaryLevels.includes(depth)) {
+  // Check if we met quotas for this range
+  const deficits = this.tracker.getDeficits(depth)
 
-**Rationale**:
-- Early game: Torches plentiful, no lanterns
-- Mid game: Lanterns appear, oil available
-- Late game: Artifacts possible (Phial of Galadriel - permanent light, radius 3)
+  if (deficits.length > 0) {
+    // Force spawn missing items to meet range guarantees
+    level = this.itemSpawnService.forceSpawnForGuarantees(level, deficits)
+  }
+
+  // Reset tracker for next range (except after level 26)
+  if (depth < 26) {
+    this.tracker.resetRange(depth + 1)
+  }
+}
+```
+
+**Deficit Example**:
+```typescript
+// On level 5, if only 8 healing potions spawned naturally (quota is 10)
+const deficits = tracker.getDeficits(5)
+// Returns: [{ category: 'healingPotions', count: 2, powerTiers: [PowerTier.BASIC] }]
+
+// Force spawn 2 additional healing potions on level 5
+level = itemSpawnService.forceSpawnForGuarantees(level, deficits)
+```
 
 ---
 
-### Item Placement
+### Depth-Based Category Weights
 
-- Random position in random room
-- Avoid monster positions
-- Avoid duplicate positions
-- Only on walkable tiles
+**Early Game (1-5)**:
+- Potion: 20 weight (healing focus)
+- Scroll: 20 weight (identification)
+- Weapon: 15 weight (combat upgrades)
+- Armor: 15 weight (defense upgrades)
+- Food: 12 weight (hunger management)
+- Light: 8 weight (vision)
+- Ring: 5 weight (rare utility)
+- Wand: 5 weight (rare utility)
 
-**Unidentified Items**:
-- Potions: `descriptorName: 'unknown'`
-- Scrolls: `labelName: 'unknown'`
-- Rings: `materialName: 'unknown'`
+**Late Game (21-26)**:
+- Ring: 18 weight (dominant utility)
+- Wand: 18 weight (dominant utility)
+- Food: 16 weight (critical resource)
+- Potion: 14 weight (powerful consumables)
+- Scroll: 14 weight (powerful consumables)
+- Light: 8 weight (stable supply)
+- Weapon: 6 weight (very rare)
+- Armor: 6 weight (very rare)
 
-Identification happens via IdentificationService.
+See [ItemSpawnService](./ItemSpawnService.md) for complete weight tables.
 
 ---
 
@@ -532,14 +589,46 @@ describe('DungeonService - Level Generation', () => {
 
 ## Related Services
 
+- [GuaranteeTracker](./GuaranteeTracker.md) - Tracks item spawns across depth ranges, calculates deficits
+- [ItemSpawnService](./ItemSpawnService.md) - Spawns items with depth-based weights, enforces guarantees
+- [MonsterSpawnService](./MonsterSpawnService.md) - Spawns monsters with vorpal system
+- [GoldService](./GoldService.md) - Calculates gold pile amounts
 - **RoomGenerationService** - Generates non-overlapping rooms
 - **CorridorGenerationService** - MST + loop corridor generation
 - **RandomService** - All randomization (room placement, item spawning, etc.)
-- **ItemData** (optional) - Loads item templates from JSON
+- **ItemData** - Loads item templates from JSON
 
 ---
 
 ## Design Rationale
+
+### Why Generate All Levels at Once?
+
+**Problem**: Generating levels on-the-fly when player descends stairs makes guarantee enforcement impossible.
+
+**Solution**: Generate all 26 levels at game initialization:
+- Enables guarantee tracking across depth ranges
+- Allows deficit correction on boundary levels
+- Ensures predictable resource availability
+- Simplifies save/load (all levels exist in GameState)
+
+### Why Guarantee System?
+
+**Problem**: Purely random spawning can result in critical resource droughts:
+- 10 levels without healing potions (death likely)
+- No identify scrolls in early game (equipment unknown)
+- Insufficient food in late game (starvation death)
+
+**Solution**: Three-layer guarantee system:
+1. **Fixed 7 items per level**: Predictable progression baseline
+2. **Range quotas**: Minimum category counts per 5-level range
+3. **Boundary enforcement**: Deficit correction on levels 5, 10, 15, 20, 26
+
+**Benefits**:
+- Eliminates unlucky deaths from item droughts
+- Maintains natural randomness within ranges
+- Predictable testing (known enforcement points)
+- Balanced difficulty curve across all runs
 
 ### Why MST for Corridors?
 
