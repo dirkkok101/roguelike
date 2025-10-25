@@ -67,7 +67,7 @@ describe('RegenerationService - Combat Blocking', () => {
       // Tick 10 times in combat - should not heal
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, inCombat)
+        const result = service.tickRegeneration(updatedPlayer, inCombat, 1)
         updatedPlayer = result.player
         expect(result.healed).toBe(false)
       }
@@ -82,7 +82,7 @@ describe('RegenerationService - Combat Blocking', () => {
       // Tick 10 times out of combat - should heal
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, inCombat)
+        const result = service.tickRegeneration(updatedPlayer, inCombat, 1)
         updatedPlayer = result.player
       }
 
@@ -97,15 +97,15 @@ describe('RegenerationService - Combat Blocking', () => {
       // Build up counter out of combat (5 turns)
       let updatedPlayer = player
       for (let i = 0; i < 5; i++) {
-        service.tickRegeneration(updatedPlayer, false)
+        service.tickRegeneration(updatedPlayer, false, 1)
       }
 
       // Enter combat for 1 turn (resets counter)
-      service.tickRegeneration(updatedPlayer, true)
+      service.tickRegeneration(updatedPlayer, true, 1)
 
       // Exit combat and tick 5 more times
       for (let i = 0; i < 5; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -118,13 +118,13 @@ describe('RegenerationService - Combat Blocking', () => {
 
       // Combat for 5 turns
       for (let i = 0; i < 5; i++) {
-        service.tickRegeneration(player, true)
+        service.tickRegeneration(player, true, 1)
       }
 
       // Exit combat and tick exactly 10 times
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -138,7 +138,7 @@ describe('RegenerationService - Combat Blocking', () => {
       let updatedPlayer = player
       for (let i = 0; i < 20; i++) {
         const inCombat = i % 2 === 0 // Even turns in combat
-        const result = service.tickRegeneration(updatedPlayer, inCombat)
+        const result = service.tickRegeneration(updatedPlayer, inCombat, 1)
         updatedPlayer = result.player
       }
 
@@ -165,7 +165,7 @@ describe('RegenerationService - Combat Blocking', () => {
       // Tick 5 times in combat (ring rate) - should not heal
       let updatedPlayer = player
       for (let i = 0; i < 5; i++) {
-        const result = service.tickRegeneration(updatedPlayer, true)
+        const result = service.tickRegeneration(updatedPlayer, true, 1)
         updatedPlayer = result.player
       }
 
@@ -188,13 +188,13 @@ describe('RegenerationService - Combat Blocking', () => {
 
       // Combat for 3 turns
       for (let i = 0; i < 3; i++) {
-        service.tickRegeneration(player, true)
+        service.tickRegeneration(player, true, 1)
       }
 
       // Exit combat and tick 5 times (ring rate)
       let updatedPlayer = player
       for (let i = 0; i < 5; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -211,11 +211,11 @@ describe('RegenerationService - Combat Blocking', () => {
       for (let cycle = 0; cycle < 5; cycle++) {
         // 3 turns out of combat
         for (let i = 0; i < 3; i++) {
-          const result = service.tickRegeneration(updatedPlayer, false)
+          const result = service.tickRegeneration(updatedPlayer, false, 1)
           updatedPlayer = result.player
         }
         // 1 turn in combat (resets counter)
-        service.tickRegeneration(updatedPlayer, true)
+        service.tickRegeneration(updatedPlayer, true, 1)
       }
 
       // Should NOT have healed (counter keeps resetting every 4 turns)
@@ -227,13 +227,13 @@ describe('RegenerationService - Combat Blocking', () => {
 
       // Combat for 5 turns
       for (let i = 0; i < 5; i++) {
-        service.tickRegeneration(player, true)
+        service.tickRegeneration(player, true, 1)
       }
 
       // Extended retreat (20 turns out of combat)
       let updatedPlayer = player
       for (let i = 0; i < 20; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -247,15 +247,15 @@ describe('RegenerationService - Combat Blocking', () => {
       // Build counter to 9 turns
       let updatedPlayer = player
       for (let i = 0; i < 9; i++) {
-        service.tickRegeneration(updatedPlayer, false)
+        service.tickRegeneration(updatedPlayer, false, 1)
       }
 
       // Brief combat check (resets counter)
-      service.tickRegeneration(updatedPlayer, true)
+      service.tickRegeneration(updatedPlayer, true, 1)
 
       // Resume - need full 10 turns again
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -267,7 +267,7 @@ describe('RegenerationService - Combat Blocking', () => {
     test('healed flag is false during combat', () => {
       const player = createTestPlayer({ hp: 10, maxHp: 20 })
 
-      const result = service.tickRegeneration(player, true)
+      const result = service.tickRegeneration(player, true, 1)
 
       expect(result.healed).toBe(false)
     })
@@ -275,7 +275,7 @@ describe('RegenerationService - Combat Blocking', () => {
     test('returns same player reference when combat blocks regen', () => {
       const player = createTestPlayer({ hp: 10, maxHp: 20 })
 
-      const result = service.tickRegeneration(player, true)
+      const result = service.tickRegeneration(player, true, 1)
 
       // Player unchanged
       expect(result.player).toEqual(player)
@@ -287,7 +287,7 @@ describe('RegenerationService - Combat Blocking', () => {
       // Even at critical HP, combat blocks regen
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, true)
+        const result = service.tickRegeneration(updatedPlayer, true, 1)
         updatedPlayer = result.player
       }
 
@@ -311,7 +311,7 @@ describe('RegenerationService - Combat Blocking', () => {
       // Even with ring, combat blocks
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, true)
+        const result = service.tickRegeneration(updatedPlayer, true, 1)
         updatedPlayer = result.player
       }
 

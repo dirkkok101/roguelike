@@ -47,13 +47,13 @@ describe('RegenerationService - Natural Regeneration', () => {
 
       // Tick 9 times - should not heal
       for (let i = 0; i < 9; i++) {
-        const result = service.tickRegeneration(player, false)
+        const result = service.tickRegeneration(player, false, 1)
         expect(result.healed).toBe(false)
         expect(result.player.hp).toBe(10)
       }
 
       // 10th tick - should heal
-      const finalResult = service.tickRegeneration(player, false)
+      const finalResult = service.tickRegeneration(player, false, 1)
       expect(finalResult.healed).toBe(true)
       expect(finalResult.player.hp).toBe(11)
     })
@@ -63,7 +63,7 @@ describe('RegenerationService - Natural Regeneration', () => {
 
       // Tick 10 times
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(player, false)
+        const result = service.tickRegeneration(player, false, 1)
         expect(result.healed).toBe(false)
         expect(result.player.hp).toBe(20)
       }
@@ -75,7 +75,7 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Tick 10 times to trigger regen
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -88,14 +88,14 @@ describe('RegenerationService - Natural Regeneration', () => {
       // First regen cycle
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
       expect(updatedPlayer.hp).toBe(11)
 
       // Second regen cycle (counter should have reset)
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
       expect(updatedPlayer.hp).toBe(12)
@@ -107,7 +107,7 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Tick 10 times to trigger healing
       let result
       for (let i = 0; i < 10; i++) {
-        result = service.tickRegeneration(player, false)
+        result = service.tickRegeneration(player, false, 1)
       }
 
       // Original player unchanged
@@ -126,7 +126,7 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Tick 10 times with hunger just above threshold
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -140,7 +140,7 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Tick 10 times
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -154,7 +154,7 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Tick 10 times
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -167,18 +167,18 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Tick 5 times (halfway to regen)
       let updatedPlayer = player
       for (let i = 0; i < 5; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
       // Now drop hunger below threshold and tick once
       updatedPlayer = { ...updatedPlayer, hunger: 50 }
-      service.tickRegeneration(updatedPlayer, false)
+      service.tickRegeneration(updatedPlayer, false, 1)
 
       // Restore hunger and tick 5 more times (would be 10 total if counter wasn't reset)
       updatedPlayer = { ...updatedPlayer, hunger: 1300 }
       for (let i = 0; i < 5; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -195,7 +195,7 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Tick 10 times in combat
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, inCombat)
+        const result = service.tickRegeneration(updatedPlayer, inCombat, 1)
         updatedPlayer = result.player
       }
 
@@ -209,16 +209,16 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Tick 5 times out of combat (halfway to regen)
       let updatedPlayer = player
       for (let i = 0; i < 5; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
       // Enter combat for 1 turn
-      service.tickRegeneration(updatedPlayer, true)
+      service.tickRegeneration(updatedPlayer, true, 1)
 
       // Exit combat and tick 5 more times
       for (let i = 0; i < 5; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -232,12 +232,12 @@ describe('RegenerationService - Natural Regeneration', () => {
       // Combat for 3 turns
       let updatedPlayer = player
       for (let i = 0; i < 3; i++) {
-        service.tickRegeneration(updatedPlayer, true)
+        service.tickRegeneration(updatedPlayer, true, 1)
       }
 
       // Combat ends, tick 10 times
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -252,7 +252,7 @@ describe('RegenerationService - Natural Regeneration', () => {
 
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -264,7 +264,7 @@ describe('RegenerationService - Natural Regeneration', () => {
 
       let updatedPlayer = player
       for (let i = 0; i < 10; i++) {
-        const result = service.tickRegeneration(updatedPlayer, false)
+        const result = service.tickRegeneration(updatedPlayer, false, 1)
         updatedPlayer = result.player
       }
 
@@ -274,7 +274,7 @@ describe('RegenerationService - Natural Regeneration', () => {
     test('returns empty messages array', () => {
       const player = createTestPlayer({ hp: 10, maxHp: 20 })
 
-      const result = service.tickRegeneration(player, false)
+      const result = service.tickRegeneration(player, false, 1)
 
       expect(result.messages).toEqual([])
     })
@@ -283,7 +283,7 @@ describe('RegenerationService - Natural Regeneration', () => {
       const player = createTestPlayer({ hp: 10, maxHp: 20 })
 
       // Only 5 turns (not enough)
-      const result = service.tickRegeneration(player, false)
+      const result = service.tickRegeneration(player, false, 1)
 
       expect(result.healed).toBe(false)
     })
@@ -294,7 +294,7 @@ describe('RegenerationService - Natural Regeneration', () => {
       // 10 turns
       let result
       for (let i = 0; i < 10; i++) {
-        result = service.tickRegeneration(player, false)
+        result = service.tickRegeneration(player, false, 1)
       }
 
       expect(result!.healed).toBe(true)

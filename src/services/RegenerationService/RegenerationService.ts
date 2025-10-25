@@ -36,21 +36,35 @@ export class RegenerationService {
   constructor(private ringService: RingService) {}
 
   /**
+   * Calculate regeneration speed based on depth
+   * Deeper levels = faster regeneration to offset resource drain
+   *
+   * Formula: max(5, 10 - floor(depth × 0.2))
+   *
+   * @param depth - Current dungeon depth (1-26)
+   * @returns Turns required per 1 HP healed (capped at 5 minimum)
+   */
+  private calculateRegenTurns(depth: number): number {
+    return Math.max(5, 10 - Math.floor(depth * 0.2))
+  }
+
+  /**
    * Tick regeneration for player
    * Returns player with updated HP if regen triggered
    *
    * Rules:
-   * - Base rate: 1 HP every 10 turns
-   * - With Ring of Regeneration: 1 HP every 5 turns
+   * - Base rate: Depth-based (10 turns/HP at depth 1, 5 turns/HP at depth 26)
+   * - With Ring of Regeneration: Halves regen time
    * - Requires: hunger > 100
    * - Blocked by: enemy in FOV (combat)
    * - Only heals when below max HP
    *
    * @param player - Current player state
    * @param inCombat - True if enemy in FOV
+   * @param depth - Current dungeon depth (default 1)
    * @returns Result with updated player and messages
    */
-  tickRegeneration(player: Player, inCombat: boolean): RegenerationTickResult {
+  tickRegeneration(player: Player, inCombat: boolean, depth: number = 1): RegenerationTickResult {
     const messages: Message[] = []
 
     // 1. Check if regeneration is blocked
@@ -77,9 +91,10 @@ export class RegenerationService {
 
     // 3. Check if player has regeneration ring
     const hasRing = this.ringService.hasRing(player, RingType.REGENERATION)
+    const baseTurns = this.calculateRegenTurns(depth)
     const requiredTurns = hasRing
-      ? REGEN_CONFIG.RING_TURNS
-      : REGEN_CONFIG.BASE_TURNS
+      ? Math.floor(baseTurns / 2) // Ring halves the regen time
+      : baseTurns
 
     // 4. Check if regen triggers
     if (newTurns < requiredTurns) {
