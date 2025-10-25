@@ -62,6 +62,8 @@ import { ModalController } from '@ui/ModalController'
 import { ToastContainer } from '@ui/ToastContainer'
 import { MainMenu } from '@ui/MainMenu'
 import { loadItemData, ItemData } from './data/ItemDataLoader'
+import { loadGuaranteeData } from './data/GuaranteeDataLoader'
+import { GuaranteeConfig } from '@services/GuaranteeTracker'
 import { GameStateManager } from '@services/GameStateManager'
 import { PlayingState } from '@states/PlayingState'
 import { LeaderboardState } from '@states/LeaderboardState'
@@ -81,6 +83,16 @@ async function initializeGame() {
   } catch (error) {
     console.error('Failed to load items.json:', error)
     throw error // Fatal error - game cannot proceed without item data
+  }
+
+  // Load guarantee configuration from JSON
+  let guarantees: GuaranteeConfig
+  try {
+    guarantees = await loadGuaranteeData()
+    console.log('Guarantees loaded from guarantees.json')
+  } catch (error) {
+    console.error('Failed to load guarantees.json:', error)
+    throw error // Fatal error - game cannot proceed without guarantee data
   }
 
   // Generate unique seed for new games (will be overridden when loading saves)
@@ -139,7 +151,7 @@ async function initializeGame() {
   const renderingService = new RenderingService(fovService)
   const movementService = new MovementService(random, statusEffectService)
 
-  const dungeonService = new DungeonService(random, monsterSpawnService, itemData)
+  const dungeonService = new DungeonService(random, monsterSpawnService, itemData, guarantees)
   const stairsNavigationService = new StairsNavigationService(monsterSpawnService)
   const ringService = new RingService(random)
   const hungerService = new HungerService(random, ringService, debugService)
@@ -274,8 +286,8 @@ async function initializeGame() {
 
   // Create new random service with game-specific seed
   const gameRandom = new SeededRandom(gameSeed)
-  const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
-  const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
+  const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData, guarantees)
+  const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData, guarantees)
 
   // Generate all 26 dungeon levels upfront using DungeonService
   const allLevels = gameDungeonService.generateAllLevels(dungeonConfig)
@@ -430,8 +442,8 @@ async function initializeGame() {
 
     // Create new game with specified seed
     const gameRandom = new SeededRandom(seed)
-    const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData)
-    const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData)
+    const gameDungeonService = new DungeonService(gameRandom, monsterSpawnService, itemData, guarantees)
+    const gameItemSpawnService = new ItemSpawnService(gameRandom, itemData, guarantees)
 
     // Generate all 26 dungeon levels upfront using DungeonService
     const allLevels = gameDungeonService.generateAllLevels(dungeonConfig)
