@@ -25,6 +25,7 @@ import { MonsterSpawnService } from '@services/MonsterSpawnService'
 import { ItemSpawnService } from '@services/ItemSpawnService'
 import { GoldService } from '@services/GoldService'
 import { ItemData } from '../../data/ItemDataLoader'
+import { GuaranteeConfig, GuaranteeTracker } from '@services/GuaranteeTracker'
 
 // ============================================================================
 // DUNGEON SERVICE - Procedural dungeon generation with MST
@@ -47,17 +48,20 @@ export class DungeonService {
   private monsterSpawnService: MonsterSpawnService
   private itemSpawnService: ItemSpawnService
   private goldService: GoldService
+  private tracker: GuaranteeTracker
 
   constructor(
     private random: IRandomService,
     monsterSpawnService: MonsterSpawnService,
-    itemData: ItemData
+    itemData: ItemData,
+    guarantees: GuaranteeConfig
   ) {
     this.roomGenerationService = new RoomGenerationService(random)
     this.corridorGenerationService = new CorridorGenerationService(random)
     this.monsterSpawnService = monsterSpawnService
-    this.itemSpawnService = new ItemSpawnService(random, itemData)
+    this.itemSpawnService = new ItemSpawnService(random, itemData, guarantees)
     this.goldService = new GoldService(random)
+    this.tracker = new GuaranteeTracker(guarantees)
   }
 
   /**
@@ -66,14 +70,44 @@ export class DungeonService {
    * Called at game initialization to create the full dungeon.
    * Levels are persistent and stored in GameState.levels array.
    *
+   * Enforces guarantee system:
+   * - Fixed 7 items per level for predictable progression
+   * - Tracks items across depth ranges (1-5, 6-10, 11-15, 16-20, 21-26)
+   * - On boundary levels (5, 10, 15, 20, 26), checks deficits and force-spawns missing items
+   * - Resets tracker for next range after boundary levels
+   *
    * @param config Dungeon configuration settings
    * @returns Array of 26 Level instances (depths 1-26)
    */
   generateAllLevels(config: DungeonConfig): Level[] {
     const levels: Level[] = []
 
+    // Initialize tracker for first depth range (1-5)
+    this.tracker.resetRange(1)
+
     for (let depth = 1; depth <= 26; depth++) {
-      const level = this.generateLevel(depth, config)
+      // Generate level normally with fixed 7 items
+      let level = this.generateLevel(depth, config)
+
+      // Items already tracked via ItemSpawnService.spawnItems() call in generateLevel
+
+      // On range boundaries (5, 10, 15, 20, 26), enforce guarantees
+      const boundaryLevels = [5, 10, 15, 20, 26]
+      if (boundaryLevels.includes(depth)) {
+        // Check if we met quotas for this range
+        const deficits = this.tracker.getDeficits(depth)
+
+        if (deficits.length > 0) {
+          // Force spawn missing items to meet range guarantees
+          level = this.itemSpawnService.forceSpawnForGuarantees(level, deficits)
+        }
+
+        // Reset tracker for next range (except after level 26)
+        if (depth < 26) {
+          this.tracker.resetRange(depth + 1)
+        }
+      }
+
       levels.push(level)
     }
 
@@ -131,8 +165,9 @@ export class DungeonService {
     const monsters = this.monsterSpawnService.spawnMonsters(spawnRooms, tiles, depth)
 
     // Spawn items (exclude starting room, avoid monster positions)
-    const itemCount = this.random.nextInt(5, 8) // 5-8 items per level
-    const items = this.itemSpawnService.spawnItems(spawnRooms, itemCount, tiles, monsters, depth)
+    // Fixed 7 items per level (changed from random 5-8 for predictable progression)
+    const itemCount = 7
+    const items = this.itemSpawnService.spawnItems(spawnRooms, itemCount, tiles, monsters, depth, this.tracker)
 
     // Spawn gold (3-9 piles per level)
     const goldCount = this.random.nextInt(3, 9)
