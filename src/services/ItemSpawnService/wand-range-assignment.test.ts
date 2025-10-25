@@ -80,8 +80,8 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
       const random = new SeededRandom('test-wand-type-ranges')
       const service = new ItemSpawnService(random, mockItemData, mockGuaranteeConfig)
 
-      // Act: Spawn many items
-      const items = service.spawnItems(rooms, 1000, tiles, [], 5)
+      // Act: Spawn many items at depth 17+ to get all tier wands (basic, intermediate, advanced)
+      const items = service.spawnItems(rooms, 1000, tiles, [], 17)
       const wands = items.filter((item) => item.type === ItemType.WAND) as Wand[]
 
       // Assert: Group wands by type and verify ranges
@@ -131,8 +131,8 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
       const random = new SeededRandom('test-beam-wands')
       const service = new ItemSpawnService(random, mockItemData, mockGuaranteeConfig)
 
-      // Act
-      const items = service.spawnItems(rooms, 1000, tiles, [], 5)
+      // Act: Spawn at depth 10 to get intermediate tier beam wands
+      const items = service.spawnItems(rooms, 1000, tiles, [], 10)
       const wands = items.filter((item) => item.type === ItemType.WAND) as Wand[]
 
       // Assert
@@ -163,8 +163,8 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
       const random = new SeededRandom('test-utility-wands')
       const service = new ItemSpawnService(random, mockItemData, mockGuaranteeConfig)
 
-      // Act
-      const items = service.spawnItems(rooms, 1000, tiles, [], 5)
+      // Act: Spawn at depth 17 to get advanced tier utility wands
+      const items = service.spawnItems(rooms, 1000, tiles, [], 17)
       const wands = items.filter((item) => item.type === ItemType.WAND) as Wand[]
 
       // Assert
@@ -192,8 +192,8 @@ describe('ItemSpawnService - Wand Range Assignment', () => {
       const random = new SeededRandom('test-moderate-wands')
       const service = new ItemSpawnService(random, mockItemData, mockGuaranteeConfig)
 
-      // Act
-      const items = service.spawnItems(rooms, 1000, tiles, [], 5)
+      // Act: Spawn at depth 17 to get all tier wands
+      const items = service.spawnItems(rooms, 1000, tiles, [], 17)
       const wands = items.filter((item) => item.type === ItemType.WAND) as Wand[]
 
       // Assert
