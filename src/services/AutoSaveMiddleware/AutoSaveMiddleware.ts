@@ -18,6 +18,7 @@ export class AutoSaveMiddleware {
 
   /**
    * Called after each turn to check if auto-save should trigger
+   * @deprecated Use forceSave() instead for explicit save points
    */
   afterTurn(state: GameState): void {
     // Don't auto-save if game is over
@@ -27,34 +28,43 @@ export class AutoSaveMiddleware {
 
     // Check if turn count is a multiple of save interval
     if (state.turnCount % this.saveInterval === 0 && state.turnCount > 0) {
-      // Fire async save without blocking (fire-and-forget)
-      this.storageService
-        .saveGame(state)
-        .then(async () => {
-          console.log(`✅ Auto-saved at turn ${state.turnCount}`)
-
-          // Persist replay data to IndexedDB
-          if (this.commandRecorder && state.gameId) {
-            await this.commandRecorder.persistToIndexedDB(state.gameId)
-          }
-
-          // In debug mode, validate determinism
-          if (process.env.NODE_ENV === 'development' && this.replayDebugger) {
-            await this.validateDeterminism(state)
-          }
-        })
-        .catch((error) => {
-          // Silently ignore throttling errors - they're expected behavior
-          // The LocalStorageService throttles saves to prevent rapid-fire saves
-          if (error.message?.includes('throttled')) {
-            // Do nothing - throttling is working as intended
-            return
-          }
-
-          // Log other errors (storage quota, serialization failures, etc.)
-          console.error('❌ Auto-save failed:', error)
-        })
+      this.forceSave(state, `turn ${state.turnCount}`)
     }
+  }
+
+  /**
+   * Force an immediate save (for level transitions, death, etc.)
+   * @param state - Current game state
+   * @param reason - Reason for save (for logging)
+   */
+  forceSave(state: GameState, reason: string = 'manual'): void {
+    // Fire async save without blocking (fire-and-forget)
+    this.storageService
+      .saveGame(state)
+      .then(async () => {
+        console.log(`✅ Saved game (${reason})`)
+
+        // Persist replay data to IndexedDB
+        if (this.commandRecorder && state.gameId) {
+          await this.commandRecorder.persistToIndexedDB(state.gameId)
+        }
+
+        // In debug mode, validate determinism
+        if (process.env.NODE_ENV === 'development' && this.replayDebugger) {
+          await this.validateDeterminism(state)
+        }
+      })
+      .catch((error) => {
+        // Silently ignore throttling errors - they're expected behavior
+        // The LocalStorageService throttles saves to prevent rapid-fire saves
+        if (error.message?.includes('throttled')) {
+          // Do nothing - throttling is working as intended
+          return
+        }
+
+        // Log other errors (storage quota, serialization failures, etc.)
+        console.error(`❌ Save failed (${reason}):`, error)
+      })
   }
 
   /**

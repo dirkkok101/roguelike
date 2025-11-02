@@ -66,6 +66,7 @@ import { CommandRecorderService } from '@services/CommandRecorderService'
 import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { IndexedDBService } from '@services/IndexedDBService'
 import { DownloadService } from '@services/DownloadService'
+import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { GameState, Scroll, ScrollType } from '@game/core/core'
 import { GameDependencies } from '@game/core/Services'
 import { ModalController } from './ModalController'
@@ -117,6 +118,7 @@ export class InputHandler {
   private readonly replayDebugger: ReplayDebuggerService
   private readonly indexedDB: IndexedDBService
   private readonly downloadService: DownloadService
+  private autoSaveMiddleware?: AutoSaveMiddleware
 
   constructor(
     services: GameDependencies,
@@ -125,8 +127,10 @@ export class InputHandler {
     private helpModal: any, // HelpModal
     private onReturnToMenu: () => void,
     private stateManager: GameStateManager,
-    private gameRenderer: GameRenderer
+    private gameRenderer: GameRenderer,
+    autoSaveMiddleware?: AutoSaveMiddleware
   ) {
+    this.autoSaveMiddleware = autoSaveMiddleware
     // Destructure services for convenient access
     this.movementService = services.movement
     this.lightingService = services.lighting
@@ -339,7 +343,8 @@ export class InputHandler {
           this.turnService,
           this.statusEffectService,
           this.commandRecorder,
-          this.random
+          this.random,
+          this.autoSaveMiddleware
         )
 
       case '<':
@@ -355,7 +360,8 @@ export class InputHandler {
           this.turnService,
           this.statusEffectService,
           this.commandRecorder,
-          this.random
+          this.random,
+          this.autoSaveMiddleware
         )
 
       // =====================================================================

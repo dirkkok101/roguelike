@@ -181,7 +181,10 @@ export class PlayingState extends BaseState {
         this.gameState = this.turnService.incrementTurn(this.gameState)
       }
 
-      this.autoSaveMiddleware.afterTurn(this.gameState)
+      // Save on death
+      if (this.gameState.isGameOver) {
+        this.autoSaveMiddleware.forceSave(this.gameState, 'death')
+      }
 
       // PHASE 4: Continue running if player is still in run mode
       // Keep executing MoveCommand until disturbance or run stops
@@ -222,7 +225,10 @@ export class PlayingState extends BaseState {
           // Render after each run move to show exploration progress
           this.renderer.render(this.gameState)
 
-          this.autoSaveMiddleware.afterTurn(this.gameState)
+          // Save on death
+          if (this.gameState.isGameOver) {
+            this.autoSaveMiddleware.forceSave(this.gameState, 'death')
+          }
         } else {
           // No command returned, stop running
           break
@@ -297,7 +303,10 @@ export class PlayingState extends BaseState {
         this.gameState = this.turnService.incrementTurn(this.gameState)
       }
 
-      this.autoSaveMiddleware.afterTurn(this.gameState)
+      // Save on death
+      if (this.gameState.isGameOver) {
+        this.autoSaveMiddleware.forceSave(this.gameState, 'death')
+      }
 
       // Re-render after command execution
       this.renderer.render(this.gameState)

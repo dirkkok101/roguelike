@@ -637,7 +637,8 @@ async function initializeGame() {
       renderer.getHelpModal(),
       returnToMenu,
       stateManager,
-      renderer
+      renderer,
+      autoSaveMiddleware
     )
 
     // Render initial state

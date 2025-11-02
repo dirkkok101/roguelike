@@ -143,7 +143,7 @@ describe('AutoSaveMiddleware - Replay Persistence Integration', () => {
 
     expect(mockStorageService.saveGame).toHaveBeenCalled()
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Auto-save failed'),
+      expect.stringContaining('Save failed'),
       expect.any(Error)
     )
 
