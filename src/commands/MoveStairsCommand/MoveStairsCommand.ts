@@ -10,7 +10,6 @@ import { TurnService } from '@services/TurnService'
 import { StatusEffectService } from '@services/StatusEffectService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 import { IRandomService } from '@services/RandomService'
-import { AutoSaveMiddleware } from '@services/AutoSaveMiddleware'
 import { COMMAND_TYPES } from '@game/replay/replay'
 
 // ============================================================================
@@ -31,8 +30,7 @@ export class MoveStairsCommand implements ICommand {
 
     private recorder: CommandRecorderService,
 
-    private randomService: IRandomService,
-    private autoSaveMiddleware?: AutoSaveMiddleware
+    private randomService: IRandomService
   ) {}
 
   execute(state: GameState): GameState {
@@ -175,11 +173,6 @@ export class MoveStairsCommand implements ICommand {
           newState.turnCount
         ),
       }
-    }
-
-    // Save game after level transition
-    if (this.autoSaveMiddleware) {
-      this.autoSaveMiddleware.forceSave(newState, `level ${newState.currentLevel}`)
     }
 
     return newState

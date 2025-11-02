@@ -4,9 +4,18 @@ import { ReplayDebuggerService } from '@services/ReplayDebuggerService'
 import { CommandRecorderService } from '@services/CommandRecorderService'
 
 /**
- * AutoSaveMiddleware - Automatically saves game every N turns
- * Default: saves every 10 turns
+ * AutoSaveMiddleware - Handles game saves at explicit checkpoints
+ *
+ * Save triggers:
+ * - Level transitions (stairs up/down)
+ * - Player death
+ * - Player victory
+ * - Manual save (S key)
+ * - Quit (Q key)
+ *
  * In debug mode: validates determinism after each save
+ *
+ * @deprecated afterTurn() - Use forceSave() for explicit save points
  */
 export class AutoSaveMiddleware {
   constructor(
