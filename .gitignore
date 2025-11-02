@@ -31,3 +31,8 @@ coverage/
 
 # Git worktrees
 .worktrees/
+
+# Cloudflare Wrangler
+.wrangler/
+.dev.vars
+wrangler.log

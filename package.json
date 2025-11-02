@@ -14,7 +14,10 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
-    "test:e2e:ui": "playwright test -c tests/e2e/playwright.config.ts --ui"
+    "test:e2e:ui": "playwright test -c tests/e2e/playwright.config.ts --ui",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=roguelike",
+    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name=roguelike --branch=preview",
+    "deploy:production": "npm run build && wrangler pages deploy dist --project-name=roguelike --branch=main"
   },
   "keywords": [
     "roguelike",
@@ -34,7 +37,8 @@
     "jest-environment-jsdom": "^30.2.0",
     "ts-jest": "^29.4.4",
     "typescript": "^5.9.3",
-    "vite": "^7.1.9"
+    "vite": "^7.1.9",
+    "wrangler": "^4.45.3"
   },
   "dependencies": {
     "lz-string": "^1.5.0"
