@@ -162,7 +162,7 @@ export class MoveStairsCommand implements ICommand {
 
     // Check victory condition after moving to new level
     if (this.victoryService.checkVictory(newState)) {
-      return {
+      newState = {
         ...newState,
         hasWon: true,
         isGameOver: true,

@@ -39,6 +39,8 @@ import { RunCommand } from '@commands/RunCommand'
 export class PlayingState extends BaseState {
   private gameState: GameState
   private toggleRenderModeCommand: ToggleRenderModeCommand
+  private lastSavedLevel: number
+  private hasGameEnded: boolean = false
 
   constructor(
     initialState: GameState,
@@ -54,6 +56,7 @@ export class PlayingState extends BaseState {
   ) {
     super()
     this.gameState = initialState
+    this.lastSavedLevel = initialState.currentLevel
     this.toggleRenderModeCommand = new ToggleRenderModeCommand(
       preferencesService,
       messageService,
@@ -181,8 +184,6 @@ export class PlayingState extends BaseState {
         this.gameState = this.turnService.incrementTurn(this.gameState)
       }
 
-      this.autoSaveMiddleware.afterTurn(this.gameState)
-
       // PHASE 4: Continue running if player is still in run mode
       // Keep executing MoveCommand until disturbance or run stops
       let runMoveCount = 0
@@ -221,8 +222,6 @@ export class PlayingState extends BaseState {
 
           // Render after each run move to show exploration progress
           this.renderer.render(this.gameState)
-
-          this.autoSaveMiddleware.afterTurn(this.gameState)
         } else {
           // No command returned, stop running
           break
@@ -240,6 +239,9 @@ export class PlayingState extends BaseState {
           }
         }
       }
+
+      // Check for save triggers (level transition, death, victory)
+      this.checkAndSave()
     }
 
     // Rendering is now handled by main loop after handleInput() returns
@@ -297,10 +299,39 @@ export class PlayingState extends BaseState {
         this.gameState = this.turnService.incrementTurn(this.gameState)
       }
 
-      this.autoSaveMiddleware.afterTurn(this.gameState)
+      // Check for save triggers (level transition, death, victory)
+      this.checkAndSave()
 
       // Re-render after command execution
       this.renderer.render(this.gameState)
+    }
+  }
+
+  /**
+   * Check for save triggers and save if needed
+   *
+   * Triggers:
+   * - Level transition (entering a new level)
+   * - Death (player dies)
+   * - Victory (player wins with Amulet)
+   *
+   * Prevents duplicate saves by tracking state
+   */
+  private checkAndSave(): void {
+    const state = this.gameState
+
+    // Save on death/victory (only once per game)
+    if (state.isGameOver && !this.hasGameEnded) {
+      const reason = state.hasWon ? 'victory' : 'death'
+      this.autoSaveMiddleware.forceSave(state, reason)
+      this.hasGameEnded = true
+      return
+    }
+
+    // Save on level transition
+    if (state.currentLevel !== this.lastSavedLevel) {
+      this.autoSaveMiddleware.forceSave(state, `level ${state.currentLevel}`)
+      this.lastSavedLevel = state.currentLevel
     }
   }
 
